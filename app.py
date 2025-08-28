@@ -228,17 +228,14 @@ async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     # Check if user already exists in the database
     if not user_data:
         # If user is not in the database, add them and send approval request
-        users_collection.update_one(
-            {"user_id": user.id},
-            {"$setOnInsert": {
-                "username": user.username,
-                "full_name": user.full_name,
-                "lang": "en",
-                "is_approved": False,
-                "earnings": 0.0
-            }},
-            upsert=True
-        )
+        users_collection.insert_one({
+            "user_id": user.id,
+            "username": user.username,
+            "full_name": user.full_name,
+            "lang": "en",
+            "is_approved": False,
+            "earnings": 0.0
+        })
         keyboard = [
             [
                 InlineKeyboardButton("Approve", callback_data=f"approve_{user.id}"),
@@ -254,6 +251,7 @@ async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             reply_markup=reply_markup,
         )
         await update.message.reply_text(MESSAGES[lang]["request_sent"])
+        return # Return here to prevent further execution for new users
 
     elif user_data.get("is_approved"):
         # If user is approved, show the earning button
@@ -265,6 +263,7 @@ async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     else:
         # If user is pending approval, show the pending message
         await update.message.reply_text(MESSAGES[lang]["not_approved_earn"])
+
 async def show_earn_details(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
@@ -576,7 +575,7 @@ async def add_payment_after_delay(context: ContextTypes.DEFAULT_TYPE, user_id: i
     # After the delay, perform the payment logic
     user_data = users_collection.find_one({"user_id": user_id})
     if user_data:
-        referral_data = referrals_collection.find_one({"referred_user_id": user.id})
+        referral_data = referrals_collection.find_one({"referred_user_id": user_id})
         
         if referral_data:
             referrer_id = referral_data["referrer_id"]
@@ -584,10 +583,11 @@ async def add_payment_after_delay(context: ContextTypes.DEFAULT_TYPE, user_id: i
             
             if referrer_data:
                 # Get the date of the last earning from this specific referred user
-                last_earning_date = referrals_collection.find_one({
+                last_earning_date_doc = referrals_collection.find_one({
                     "referred_user_id": user_id, 
                     "referrer_id": referrer_id
-                }).get("last_earning_date")
+                })
+                last_earning_date = last_earning_date_doc.get("last_earning_date") if last_earning_date_doc else None
                 
                 today = datetime.now().date()
                 
@@ -639,7 +639,11 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
             
             if referrer_data:
                 # Check if the referrer has already earned from this specific user today
-                last_earning_date = referral_data.get("last_earning_date")
+                last_earning_date_doc = referrals_collection.find_one({
+                    "referred_user_id": user.id, 
+                    "referrer_id": referrer_id
+                })
+                last_earning_date = last_earning_date_doc.get("last_earning_date") if last_earning_date_doc else None
                 today = datetime.now().date()
 
                 if not last_earning_date or last_earning_date.date() < today:
@@ -688,3 +692,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
