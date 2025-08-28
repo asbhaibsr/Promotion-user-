@@ -1,6 +1,6 @@
 import os
 import logging
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Bot
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
 from pymongo import MongoClient
 from datetime import datetime
@@ -20,13 +20,17 @@ ADMIN_ID = int(os.getenv("ADMIN_ID"))
 YOUR_TELEGRAM_HANDLE = os.getenv("YOUR_TELEGRAM_HANDLE")
 MOVIE_GROUP_LINK = "https://t.me/addlist/EOSX8n4AoC1jYWU1"
 
+# Load Render-specific variables
+WEB_SERVER_URL = os.getenv("WEB_SERVER_URL")
+PORT = int(os.getenv("PORT", 8000))  # Default to 8000 if not set
+
 # Connect to MongoDB
 client = MongoClient(MONGO_URI)
 db = client.get_database('bot_database')
 users_collection = db.get_collection('users')
 referrals_collection = db.get_collection('referrals')
 
-# Dictionaries for multi-language support
+# Dictionaries for multi-language support (आपका पूरा MESSAGES डिक्ट यहीं रहेगा)
 MESSAGES = {
     "en": {
         "start_greeting": "Hey 👋! Welcome to the Movies Group Bot. Get your favorite movies by following these simple steps:",
@@ -141,7 +145,6 @@ MESSAGES = {
         "check_stats_usage": "❌ उपयोग: /checkstats <user_id>"
     }
 }
-
 async def get_user_lang(user_id):
     """Fetches user's language preference from the database."""
     user_data = users_collection.find_one({"user_id": user_id})
@@ -154,7 +157,7 @@ async def set_user_lang(user_id, lang):
         {"$set": {"lang": lang}},
         upsert=True
     )
-
+    
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     referral_id = context.args[0].replace("ref_", "") if context.args and context.args[0].startswith("ref_") else None
@@ -216,7 +219,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 )
             except Exception as e:
                 logging.error(f"Could not notify referrer {referral_id}: {e}")
-
+                
 async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     lang = await get_user_lang(user.id)
@@ -262,7 +265,6 @@ async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     else:
         # If user is pending approval, show the pending message
         await update.message.reply_text(MESSAGES[lang]["not_approved_earn"])
-
 async def show_earn_details(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
@@ -390,7 +392,7 @@ async def clear_earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
             await update.message.reply_text(MESSAGES[lang]["clear_earn_not_found"].format(user_id=target_user_id))
     except ValueError:
         await update.message.reply_text(MESSAGES[lang]["clear_earn_usage"])
-
+        
 async def check_stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     lang = await get_user_lang(user.id)
@@ -423,7 +425,6 @@ async def check_stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE
             await update.message.reply_text(MESSAGES[lang]["check_stats_not_found"].format(user_id=target_user_id))
     except ValueError:
         await update.message.reply_text(MESSAGES[lang]["check_stats_usage"])
-
 async def checkbot_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     lang = await get_user_lang(user.id)
@@ -434,7 +435,7 @@ async def checkbot_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     except Exception as e:
         logging.error(f"Bot is not connected: {e}")
         await update.message.reply_text(MESSAGES[lang]["checkbot_failure"])
-
+        
 async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     lang = await get_user_lang(user.id)
@@ -451,7 +452,7 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             total_users=total_users, approved_users=approved_users
         )
     )
-
+    
 async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     lang = await get_user_lang(user.id)
@@ -500,7 +501,7 @@ async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     lang = await get_user_lang(query.from_user.id)
     await query.edit_message_text(text=MESSAGES[lang]["language_choice"], reply_markup=reply_markup)
-
+    
 async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
@@ -546,7 +547,7 @@ async def handle_admin_approval(update: Update, context: ContextTypes.DEFAULT_TY
         user_lang = await get_user_lang(user_id)
         await context.bot.send_message(chat_id=user_id, text=MESSAGES[user_lang]["earning_denied"])
         await query.edit_message_text(text=MESSAGES[admin_lang]["user_cancelled_admin"].format(user_id=user_id))
-
+        
 async def handle_back_to_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
@@ -611,7 +612,7 @@ async def process_shortlink_completion(user_id):
 def main() -> None:
     """Start the bot."""
     application = Application.builder().token(BOT_TOKEN).build()
-    
+
     # Command Handlers
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("earn", earn_command))
@@ -632,8 +633,13 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(show_withdraw_details, pattern="^show_withdraw_details$"))
     application.add_handler(CallbackQueryHandler(back_to_withdraw_menu, pattern="^back_to_withdraw_menu$"))
     
-    # Start the Bot
-    application.run_polling()
+    # Start the Bot in webhook mode
+    application.run_webhook(
+        listen="0.0.0.0",
+        port=PORT,
+        url_path=f"/{BOT_TOKEN}",
+        webhook_url=f"{WEB_SERVER_URL}/{BOT_TOKEN}"
+    )
 
 if __name__ == "__main__":
     main()
