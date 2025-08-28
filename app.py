@@ -43,9 +43,9 @@ MESSAGES = {
         "earn_approved_message": "You are approved! Click the button below to get your referral link and rules:",
         "earn_button": "💰 Get Referral Link & Rules",
         "earn_rules_title": "💰 Rules for Earning",
-        "earn_rule1": "● Get people to join our group using your link.",
-        "earn_rule2": "● When your referred user searches for a movie in the group, they'll be taken to our bot via a shortlink.",
-        "earn_rule3": "● After they complete the shortlink process, you'll earn money. Note that you earn only <b>once per day</b> per referred user.",
+        "earn_rule1": "➡️ Get people to join our group using your link.",
+        "earn_rule2": "➡️ When your referred user searches for a movie in the group, they'll be taken to our bot via a shortlink.",
+        "earn_rule3": "➡️ After they complete the shortlink process, you'll earn money. Note that you earn only <b>once per day</b> per referred user.",
         "earnings_breakdown": "Earnings Breakdown:",
         "owner_share": "Owner's Share:",
         "your_share": "Your Share:",
@@ -99,9 +99,9 @@ MESSAGES = {
         "earn_approved_message": "आप स्वीकृत हैं! अपनी रेफरल लिंक और नियम पाने के लिए नीचे दिए गए बटन पर क्लिक करें:",
         "earn_button": "💰 रेफरल लिंक और नियम पाएँ",
         "earn_rules_title": "💰 कमाई के नियम",
-        "earn_rule1": "● अपनी लिंक का उपयोग करके लोगों को हमारे ग्रुप में शामिल करें।",
-        "earn_rule2": "● जब आपका रेफर किया गया यूजर ग्रुप में किसी मूवी को खोजता है, तो उसे शॉर्टलिंक के जरिए हमारे बॉट पर ले जाया जाएगा।",
-        "earn_rule3": "● जब वे शॉर्टलिंक प्रक्रिया पूरी कर लेंगे, तो आपको पैसे मिलेंगे। ध्यान दें कि आप प्रति रेफर किए गए यूजर से केवल <b>एक बार प्रति दिन</b> कमा सकते हैं।",
+        "earn_rule1": "➡️ अपनी लिंक का उपयोग करके लोगों को हमारे ग्रुप में शामिल करें।",
+        "earn_rule2": "➡️ जब आपका रेफर किया गया यूजर ग्रुप में किसी मूवी को खोजता है, तो उसे शॉर्टलिंक के जरिए हमारे बॉट पर ले जाया जाएगा।",
+        "earn_rule3": "➡️ जब वे शॉर्टलिंक प्रक्रिया पूरी कर लेंगे, तो आपको पैसे मिलेंगे। ध्यान दें कि आप प्रति रेफर किए गए यूजर से केवल <b>एक बार प्रति दिन</b> कमा सकते हैं।",
         "earnings_breakdown": "कमाई का विवरण:",
         "owner_share": "मालिक का हिस्सा:",
         "your_share": "आपका हिस्सा:",
@@ -226,7 +226,20 @@ async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     lang = await get_user_lang(user.id)
     user_data = users_collection.find_one({"user_id": user.id})
 
+    # Check if user already exists in the database
     if not user_data:
+        # If user is not in the database, add them and send approval request
+        users_collection.update_one(
+            {"user_id": user.id},
+            {"$setOnInsert": {
+                "username": user.username,
+                "full_name": user.full_name,
+                "lang": "en",
+                "is_approved": False,
+                "earnings": 0.0
+            }},
+            upsert=True
+        )
         keyboard = [
             [
                 InlineKeyboardButton("Approve", callback_data=f"approve_{user.id}"),
@@ -242,13 +255,16 @@ async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             reply_markup=reply_markup,
         )
         await update.message.reply_text(MESSAGES[lang]["request_sent"])
+
     elif user_data.get("is_approved"):
+        # If user is approved, show the earning button
         keyboard = [
             [InlineKeyboardButton(MESSAGES[lang]["earn_button"], callback_data="show_earn_details")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await update.message.reply_html(MESSAGES[lang]["earn_approved_message"], reply_markup=reply_markup)
     else:
+        # If user is pending approval, show the pending message
         await update.message.reply_text(MESSAGES[lang]["not_approved_earn"])
 
 async def show_earn_details(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -262,10 +278,12 @@ async def show_earn_details(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     referral_link = f"https://t.me/{bot_username}?start=ref_{user.id}"
     
+    # Corrected message title
     message = (
-        f"<b>{MESSAGES[lang]['earn_approved']}</b>\n\n"
+        f"<b>{MESSAGES[lang]['earn_rules_title']}</b>\n\n"
+        f"<b>Your Referral Link:</b>\n"
         f"<code>{referral_link}</code>\n\n"
-        f"<b>{MESSAGES[lang]['earn_rules_title']}</b>\n"
+        f"<b>Rules:</b>\n"
         f"1. {MESSAGES[lang]['earn_rule1']}\n"
         f"2. {MESSAGES[lang]['earn_rule2']}\n"
         f"3. {MESSAGES[lang]['earn_rule3']}\n\n"
@@ -314,6 +332,7 @@ async def show_withdraw_details(update: Update, context: ContextTypes.DEFAULT_TY
     user_data = users_collection.find_one({"user_id": user.id, "is_approved": True})
 
     if not user_data:
+        # This case is a fallback, should not happen if the command check is right
         await query.edit_message_text(MESSAGES[lang]["not_approved_withdraw"])
         return
 
@@ -486,71 +505,33 @@ async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     lang = await get_user_lang(query.from_user.id)
     await query.edit_message_text(text=MESSAGES[lang]["language_choice"], reply_markup=reply_markup)
 
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
-
-    if query.data == "select_lang":
-        await language_menu(update, context)
-        return
     
-    if query.data == "show_earn_details":
-        await show_earn_details(update, context)
-        return
-        
-    if query.data == "back_to_earn_menu":
-        await back_to_earn_menu(update, context)
-        return
-        
-    if query.data == "show_withdraw_details":
-        await show_withdraw_details(update, context)
-        return
-        
-    if query.data == "back_to_withdraw_menu":
-        await back_to_withdraw_menu(update, context)
-        return
+    lang = query.data.split("_")[1]
+    await set_user_lang(query.from_user.id, lang)
+    
+    # Re-create the main start message with the new language
+    keyboard = [
+        [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
+        [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    message = (
+        f"{MESSAGES[lang]['start_greeting']}\n\n"
+        f"<b>1.</b> {MESSAGES[lang]['start_step1']}\n"
+        f"<b>2.</b> {MESSAGES[lang]['start_step2']}\n"
+        f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
+    )
+    
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
-    if query.data == "back_to_start":
-        user = query.from_user
-        user_data = users_collection.find_one({"user_id": user.id})
-        lang = user_data.get("lang", "en")
-
-        keyboard = [
-            [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
-            [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-
-        message = (
-            f"{MESSAGES[lang]['start_greeting']}\n\n"
-            f"<b>1.</b> {MESSAGES[lang]['start_step1']}\n"
-            f"<b>2.</b> {MESSAGES[lang]['start_step2']}\n"
-            f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
-        )
-        await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-        return
-
-    if query.data.startswith("lang_"):
-        lang = query.data.split("_")[1]
-        await set_user_lang(query.from_user.id, lang)
-        
-        # Re-create the main start message with the new language
-        keyboard = [
-            [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
-            [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        message = (
-            f"{MESSAGES[lang]['start_greeting']}\n\n"
-            f"<b>1.</b> {MESSAGES[lang]['start_step1']}\n"
-            f"<b>2.</b> {MESSAGES[lang]['start_step2']}\n"
-            f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
-        )
-        
-        await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-        return
-
+async def handle_admin_approval(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    
     action, user_id_str = query.data.split("_")
     user_id = int(user_id_str)
     admin_lang = await get_user_lang(query.from_user.id)
@@ -569,6 +550,28 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         user_lang = await get_user_lang(user_id)
         await context.bot.send_message(chat_id=user_id, text=MESSAGES[user_lang]["earning_denied"])
         await query.edit_message_text(text=MESSAGES[admin_lang]["user_cancelled_admin"].format(user_id=user_id))
+
+async def handle_back_to_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    
+    user = query.from_user
+    user_data = users_collection.find_one({"user_id": user.id})
+    lang = user_data.get("lang", "en")
+
+    keyboard = [
+        [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
+        [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    message = (
+        f"{MESSAGES[lang]['start_greeting']}\n\n"
+        f"<b>1.</b> {MESSAGES[lang]['start_step1']}\n"
+        f"<b>2.</b> {MESSAGES[lang]['start_step2']}\n"
+        f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
+    )
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
 async def process_shortlink_completion(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     referred_user = update.effective_user
@@ -616,6 +619,7 @@ def shortlink_completed(user_id):
 def main() -> None:
     application = Application.builder().token(BOT_TOKEN).build()
     
+    # Command Handlers
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("earn", earn_command))
     application.add_handler(CommandHandler("withdraw", withdraw_command))
@@ -624,8 +628,17 @@ def main() -> None:
     application.add_handler(CommandHandler("checkbot", checkbot_command))
     application.add_handler(CommandHandler("stats", stats_command))
     application.add_handler(CommandHandler("broadcast", broadcast_command))
-    application.add_handler(CallbackQueryHandler(button_handler))
     
+    # Callback Handlers (More structured)
+    application.add_handler(CallbackQueryHandler(language_menu, pattern="^select_lang$"))
+    application.add_handler(CallbackQueryHandler(handle_back_to_start, pattern="^back_to_start$"))
+    application.add_handler(CallbackQueryHandler(handle_lang_choice, pattern="^lang_"))
+    application.add_handler(CallbackQueryHandler(handle_admin_approval, pattern="^(approve|cancel)_"))
+    application.add_handler(CallbackQueryHandler(show_earn_details, pattern="^show_earn_details$"))
+    application.add_handler(CallbackQueryHandler(back_to_earn_menu, pattern="^back_to_earn_menu$"))
+    application.add_handler(CallbackQueryHandler(show_withdraw_details, pattern="^show_withdraw_details$"))
+    application.add_handler(CallbackQueryHandler(back_to_withdraw_menu, pattern="^back_to_withdraw_menu$"))
+
     application.run_polling()
 
 if __name__ == "__main__":
