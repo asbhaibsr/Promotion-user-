@@ -205,7 +205,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 "referred_user_id": user.id,
                 "referred_username": user.username,
                 "join_date": datetime.now(),
-                "is_active_earner": False
             })
             try:
                 # Use a fallback username if none is available
@@ -337,7 +336,6 @@ async def show_withdraw_details(update: Update, context: ContextTypes.DEFAULT_TY
 
     earnings = user_data.get("earnings", 0.0)
     referrals_count = referrals_collection.count_documents({"referrer_id": user.id})
-    active_earners_count = referrals_collection.count_documents({"referrer_id": user.id, "is_active_earner": True})
     
     withdraw_link = f"https://t.me/{YOUR_TELEGRAM_HANDLE}"
 
@@ -350,8 +348,7 @@ async def show_withdraw_details(update: Update, context: ContextTypes.DEFAULT_TY
     message = (
         f"<b>{MESSAGES[lang]['withdrawal_details_title']}</b>\n\n"
         f"<b>{MESSAGES[lang]['total_earnings']}</b> <b>${earnings:.4f}</b>\n"
-        f"<b>{MESSAGES[lang]['total_referrals']}</b> <b>{referrals_count}</b>\n"
-        f"<b>{MESSAGES[lang]['active_earners']}</b> <b>{active_earners_count}</b>\n\n"
+        f"<b>{MESSAGES[lang]['total_referrals']}</b> <b>{referrals_count}</b>\n\n"
         f"<b>{MESSAGES[lang]['withdrawal_info']}</b>"
     )
 
@@ -385,7 +382,7 @@ async def clear_earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
         target_user_id = int(context.args[0])
         result = users_collection.update_one(
             {"user_id": target_user_id},
-            {"$set": {"earnings": 0.0}}
+            {"$set": {"earnings": 0.0, "last_earning_date": None}}
         )
         if result.modified_count > 0:
             await update.message.reply_text(MESSAGES[lang]["clear_earn_success"].format(user_id=target_user_id))
@@ -571,39 +568,44 @@ async def handle_back_to_start(update: Update, context: ContextTypes.DEFAULT_TYP
     )
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
     
-# NEW FUNCTION - This will run after the 3-minute delay
+# Corrected NEW FUNCTION - This will run after the 5-minute delay
 async def add_payment_after_delay(context: ContextTypes.DEFAULT_TYPE, user_id: int):
-    # Wait for 3 minutes (180 seconds)
-    await asyncio.sleep(180)
+    # Wait for 5 minutes (300 seconds) as per the user's request
+    await asyncio.sleep(300)
     
     # After the delay, perform the payment logic
     user_data = users_collection.find_one({"user_id": user_id})
     if user_data:
-        referral_data = referrals_collection.find_one({"referred_user_id": user_id})
+        referral_data = referrals_collection.find_one({"referred_user_id": user.id})
         
         if referral_data:
             referrer_id = referral_data["referrer_id"]
             referrer_data = users_collection.find_one({"user_id": referrer_id, "is_approved": True})
             
             if referrer_data:
+                # Get the date of the last earning from this specific referred user
+                last_earning_date = referrals_collection.find_one({
+                    "referred_user_id": user_id, 
+                    "referrer_id": referrer_id
+                }).get("last_earning_date")
+                
                 today = datetime.now().date()
-                last_earning_date = referrer_data.get("last_earning_date")
                 
                 # Check if this referrer has already earned from this user today
                 if not last_earning_date or last_earning_date.date() < today:
                     earnings_to_add = 0.0018
                     new_balance = referrer_data.get('earnings', 0) + earnings_to_add
                     
-                    # Update earnings for the referrer
+                    # Update earnings for the referrer and store the date of the payment
                     users_collection.update_one(
                         {"user_id": referrer_id},
-                        {"$inc": {"earnings": earnings_to_add}, "$set": {"last_earning_date": datetime.now()}}
+                        {"$inc": {"earnings": earnings_to_add}}
                     )
 
-                    # Mark the referral as an active earner
+                    # Update the referrals collection with the date of the successful payment
                     referrals_collection.update_one(
                         {"referred_user_id": user_id},
-                        {"$set": {"is_active_earner": True}}
+                        {"$set": {"last_earning_date": datetime.now()}}
                     )
 
                     # Notify the referrer
@@ -617,8 +619,7 @@ async def add_payment_after_delay(context: ContextTypes.DEFAULT_TYPE, user_id: i
                     )
                     logging.info(f"Updated earnings for referrer {referrer_id}. New balance: {new_balance}")
                 else:
-                    logging.info(f"Daily earning limit reached for referrer {referrer_id} from user {user_id}.")
-
+                    logging.info(f"Daily earning limit reached for referrer {referrer_id} from user {user_id}. No new payment scheduled.")
 
 # MODIFIED HANDLER - This will trigger the delayed task
 async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -637,14 +638,14 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
             referrer_data = users_collection.find_one({"user_id": referrer_id, "is_approved": True})
             
             if referrer_data:
+                # Check if the referrer has already earned from this specific user today
+                last_earning_date = referral_data.get("last_earning_date")
                 today = datetime.now().date()
-                last_earning_date = referrer_data.get("last_earning_date")
-                
-                # Check if this referrer has already earned from this user today
+
                 if not last_earning_date or last_earning_date.date() < today:
                     # Create a new asyncio task to handle the delay and payment
                     asyncio.create_task(add_payment_after_delay(context, user.id))
-                    logging.info(f"Payment task scheduled for user {user.id} after 3 minutes.")
+                    logging.info(f"Payment task scheduled for user {user.id} after 5 minutes.")
                 else:
                     logging.info(f"Daily earning limit reached for referrer {referrer_id} from user {user.id}. No new payment scheduled.")
 
