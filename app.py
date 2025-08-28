@@ -6,6 +6,7 @@ from flask import Flask, request, jsonify
 from pymongo import MongoClient
 from datetime import datetime
 from dotenv import load_dotenv
+import asyncio
 
 # Enable logging
 logging.basicConfig(
@@ -481,17 +482,17 @@ if __name__ == "__main__":
     application.add_handler(CallbackQueryHandler(button_handler))
 
     @app.route('/', methods=['POST'])
-    async def webhook_handler():
+    def webhook_handler():
         """Handle incoming webhook updates from Telegram."""
         try:
             update = Update.de_json(request.get_json(), application.bot)
-            await application.process_update(update)
+            # This is the corrected line to handle the async call from a sync function
+            asyncio.run(application.process_update(update))
         except Exception as e:
             logging.error(f"Error processing update: {e}")
         return "ok"
 
     # Set up the webhook URL before running the Flask app
-    import asyncio
     async def set_webhook():
         try:
             await application.bot.set_webhook(url=os.getenv("RENDER_EXTERNAL_URL"))
