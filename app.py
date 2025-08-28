@@ -188,11 +188,16 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 "is_active_earner": False
             })
             try:
+                # --- START OF FIX ---
+                # Use a fallback username if none is available
+                referred_username_display = f"@{user.username}" if user.username else f"(कोई यूजरनेम नहीं)"
+                # --- END OF FIX ---
+                
                 referrer_lang = await get_user_lang(int(referral_id))
                 await context.bot.send_message(
                     chat_id=int(referral_id),
                     text=MESSAGES[referrer_lang]["new_referral_notification"].format(
-                        full_name=user.full_name, username=user.username
+                        full_name=user.full_name, username=referred_username_display
                     )
                 )
             except Exception as e:
