@@ -638,7 +638,8 @@ def main() -> None:
         listen="0.0.0.0",
         port=PORT,
         url_path=f"/{BOT_TOKEN}",
-        webhook_url=f"{WEB_SERVER_URL}/{BOT_TOKEN}"
+        webhook_url=f"{WEB_SERVER_URL}/{BOT_TOKEN}",
+        allowed_updates=Update.ALL_TYPES
     )
 
 if __name__ == "__main__":
