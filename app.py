@@ -423,10 +423,9 @@ async def process_shortlink_completion(update: Update, context: ContextTypes.DEF
 def shortlink_completed(user_id):
     return jsonify({"status": "success", "message": "Earnings will be updated."})
 
-async def setup():
+def main() -> None:
     application = Application.builder().token(BOT_TOKEN).build()
     
-    # Add handlers to the application
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("earn", earn_command))
     application.add_handler(CommandHandler("withdraw", withdraw_command))
@@ -434,35 +433,9 @@ async def setup():
     application.add_handler(CommandHandler("stats", stats_command))
     application.add_handler(CommandHandler("broadcast", broadcast_command))
     application.add_handler(CallbackQueryHandler(button_handler))
-
-    return application
-
-@app.route('/', methods=['POST'])
-async def webhook_handler():
-    # This handler processes all incoming Telegram updates
-    try:
-        update = Update.de_json(request.get_json(), application.bot)
-        await application.process_update(update)
-    except Exception as e:
-        logging.error(f"Error processing update: {e}")
-    return "ok"
-
-# The entry point for the Render server
-if __name__ == "__main__":
-    application = Application.builder().token(BOT_TOKEN).build()
     
-    # Set up the bot handlers and webhook
-    async def run_bot():
-        await application.bot.set_webhook(url=os.getenv("RENDER_EXTERNAL_URL"))
-        application.add_handler(CommandHandler("start", start_command))
-        application.add_handler(CommandHandler("earn", earn_command))
-        application.add_handler(CommandHandler("withdraw", withdraw_command))
-        application.add_handler(CommandHandler("checkbot", checkbot_command))
-        application.add_handler(CommandHandler("stats", stats_command))
-        application.add_handler(CommandHandler("broadcast", broadcast_command))
-        application.add_handler(CallbackQueryHandler(button_handler))
-        
-    import asyncio
-    asyncio.run(run_bot())
+    application.run_polling()
 
+if __name__ == "__main__":
+    main()
     app.run(host='0.0.0.0', port=os.environ.get('PORT', 5000))
