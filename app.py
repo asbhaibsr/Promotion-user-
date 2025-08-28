@@ -2,7 +2,6 @@ import os
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Bot
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
-from flask import Flask, request, jsonify
 from pymongo import MongoClient
 from datetime import datetime
 from dotenv import load_dotenv
@@ -27,9 +26,6 @@ db = client.get_database('bot_database')
 users_collection = db.get_collection('users')
 referrals_collection = db.get_collection('referrals')
 
-# Flask app for Render
-app = Flask(__name__)
-
 # Dictionaries for multi-language support
 MESSAGES = {
     "en": {
@@ -43,9 +39,9 @@ MESSAGES = {
         "earn_approved_message": "You are approved! Click the button below to get your referral link and rules:",
         "earn_button": "💰 Get Referral Link & Rules",
         "earn_rules_title": "💰 Rules for Earning",
-        "earn_rule1": "➡️ Get people to join our group using your link.",
-        "earn_rule2": "➡️ When your referred user searches for a movie in the group, they'll be taken to our bot via a shortlink.",
-        "earn_rule3": "➡️ After they complete the shortlink process, you'll earn money. Note that you earn only <b>once per day</b> per referred user.",
+        "earn_rule1": "1. Get people to join our group using your link.",
+        "earn_rule2": "2. When your referred user searches for a movie in the group, they'll be taken to our bot via a shortlink.",
+        "earn_rule3": "3. After they complete the shortlink process, you'll earn money. Note that you earn only <b>once per day</b> per referred user.",
         "earnings_breakdown": "Earnings Breakdown:",
         "owner_share": "Owner's Share:",
         "your_share": "Your Share:",
@@ -99,9 +95,9 @@ MESSAGES = {
         "earn_approved_message": "आप स्वीकृत हैं! अपनी रेफरल लिंक और नियम पाने के लिए नीचे दिए गए बटन पर क्लिक करें:",
         "earn_button": "💰 रेफरल लिंक और नियम पाएँ",
         "earn_rules_title": "💰 कमाई के नियम",
-        "earn_rule1": "➡️ अपनी लिंक का उपयोग करके लोगों को हमारे ग्रुप में शामिल करें।",
-        "earn_rule2": "➡️ जब आपका रेफर किया गया यूजर ग्रुप में किसी मूवी को खोजता है, तो उसे शॉर्टलिंक के जरिए हमारे बॉट पर ले जाया जाएगा।",
-        "earn_rule3": "➡️ जब वे शॉर्टलिंक प्रक्रिया पूरी कर लेंगे, तो आपको पैसे मिलेंगे। ध्यान दें कि आप प्रति रेफर किए गए यूजर से केवल <b>एक बार प्रति दिन</b> कमा सकते हैं।",
+        "earn_rule1": "1. अपनी लिंक का उपयोग करके लोगों को हमारे ग्रुप में शामिल करें।",
+        "earn_rule2": "2. जब आपका रेफर किया गया यूजर ग्रुप में किसी मूवी को खोजता है, तो उसे शॉर्टलिंक के जरिए हमारे बॉट पर ले जाया जाएगा।",
+        "earn_rule3": "3. जब वे शॉर्टलिंक प्रक्रिया पूरी कर लेंगे, तो आपको पैसे मिलेंगे। ध्यान दें कि आप प्रति रेफर किए गए यूजर से केवल <b>एक बार प्रति दिन</b> कमा सकते हैं।",
         "earnings_breakdown": "कमाई का विवरण:",
         "owner_share": "मालिक का हिस्सा:",
         "your_share": "आपका हिस्सा:",
@@ -573,9 +569,9 @@ async def handle_back_to_start(update: Update, context: ContextTypes.DEFAULT_TYP
     )
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
-async def process_shortlink_completion(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    referred_user = update.effective_user
-    referral_data = referrals_collection.find_one({"referred_user_id": referred_user.id})
+async def process_shortlink_completion(user_id):
+    referred_user = await Application.bot.get_chat(user_id)
+    referral_data = referrals_collection.find_one({"referred_user_id": user_id})
 
     if referral_data:
         referrer_id = referral_data["referrer_id"]
@@ -595,10 +591,10 @@ async def process_shortlink_completion(update: Update, context: ContextTypes.DEF
                     {"$inc": {"earnings": earnings_to_add}, "$set": {"last_earning_date": datetime.now()}}
                 )
                 referrals_collection.update_one(
-                    {"referred_user_id": referred_user.id},
+                    {"referred_user_id": user_id},
                     {"$set": {"is_active_earner": True}}
                 )
-                await context.bot.send_message(
+                await Application.bot.send_message(
                     chat_id=referrer_id,
                     text=MESSAGES[referrer_lang]["daily_earning_update"].format(
                         full_name=referred_user.full_name, new_balance=new_balance
@@ -607,16 +603,13 @@ async def process_shortlink_completion(update: Update, context: ContextTypes.DEF
                 )
                 logging.info(f"Updated earnings for referrer {referrer_id}. New balance: {new_balance}")
             else:
-                await context.bot.send_message(
+                await Application.bot.send_message(
                     chat_id=referrer_id,
                     text=MESSAGES[referrer_lang]["daily_earning_limit"]
                 )
 
-@app.route('/shortlink_completed/<int:user_id>', methods=['GET'])
-def shortlink_completed(user_id):
-    return jsonify({"status": "success", "message": "Earnings will be updated."})
-
 def main() -> None:
+    """Start the bot."""
     application = Application.builder().token(BOT_TOKEN).build()
     
     # Command Handlers
@@ -638,9 +631,9 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(back_to_earn_menu, pattern="^back_to_earn_menu$"))
     application.add_handler(CallbackQueryHandler(show_withdraw_details, pattern="^show_withdraw_details$"))
     application.add_handler(CallbackQueryHandler(back_to_withdraw_menu, pattern="^back_to_withdraw_menu$"))
-
+    
+    # Start the Bot
     application.run_polling()
 
 if __name__ == "__main__":
     main()
-    app.run(host='0.0.0.0', port=os.environ.get('PORT', 5000))
