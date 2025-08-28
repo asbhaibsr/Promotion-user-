@@ -6,7 +6,6 @@ from flask import Flask, request, jsonify
 from pymongo import MongoClient
 from datetime import datetime
 from dotenv import load_dotenv
-import asyncio
 
 # Enable logging
 logging.basicConfig(
@@ -160,9 +159,9 @@ async def send_start_message(update: Update, context: ContextTypes.DEFAULT_TYPE)
     
     message = (
         f"{MESSAGES[lang]['start_greeting']}\n\n"
-        f"{MESSAGES[lang]['start_step1']}\n"
-        f"{MESSAGES[lang]['start_step2']}\n"
-        f"{MESSAGES[lang]['start_step3']}"
+        f"<b>1.</b> {MESSAGES[lang]['start_step1']}\n"
+        f"<b>2.</b> {MESSAGES[lang]['start_step2']}\n"
+        f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
     )
 
     if update.callback_query:
@@ -353,48 +352,23 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     
     user = query.from_user
     user_id = user.id
-    
+
     if query.data.startswith("lang_"):
         lang = query.data.split("_")[1]
         await set_user_lang(user_id, lang)
         
-        # Now, send the main start message
-        lang = await get_user_lang(user.id)
+        message_text = "Choose your language:"
         keyboard = [
-            [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
-            [InlineKeyboardButton("English 🇬🇧" if lang == 'en' else "English 🇬🇧 ✅", callback_data="lang_en"),
-             InlineKeyboardButton("हिंदी 🇮🇳" if lang == 'hi' else "हिंदी 🇮🇳 ✅", callback_data="lang_hi")],
+            [InlineKeyboardButton(f"English 🇬🇧 {'✅' if lang == 'en' else ''}", callback_data="lang_en"),
+             InlineKeyboardButton(f"हिंदी 🇮🇳 {'✅' if lang == 'hi' else ''}", callback_data="lang_hi")],
             [InlineKeyboardButton("Back", callback_data="back_to_start")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        message = (
-            f"{MESSAGES[lang]['start_greeting']}\n\n"
-            f"{MESSAGES[lang]['start_step1']}\n"
-            f"{MESSAGES[lang]['start_step2']}\n"
-            f"{MESSAGES[lang]['start_step3']}"
-        )
-        
-        await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+        await query.edit_message_text(message_text, reply_markup=reply_markup)
         
     elif query.data == "back_to_start":
-        lang = await get_user_lang(user.id)
+        await send_start_message(update, context)
         
-        message = (
-            f"{MESSAGES[lang]['start_greeting']}\n\n"
-            f"<b>1.</b> {MESSAGES[lang]['start_step1'].replace('1. ', '')}\n"
-            f"<b>2.</b> {MESSAGES[lang]['start_step2'].replace('2. ', '')}\n"
-            f"<b>3.</b> {MESSAGES[lang]['start_step3'].replace('3. ', '')}"
-        )
-        
-        keyboard = [
-            [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
-            [InlineKeyboardButton("English 🇬🇧", callback_data="lang_en"),
-             InlineKeyboardButton("हिंदी 🇮🇳", callback_data="lang_hi")]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-
     elif query.data.startswith("approve_"):
         action, user_id_str = query.data.split("_")
         user_id = int(user_id_str)
@@ -481,10 +455,25 @@ if __name__ == "__main__":
     application.add_handler(CommandHandler("broadcast", broadcast_command))
     application.add_handler(CallbackQueryHandler(button_handler))
 
-    # This is the correct way to run a webhook-based bot
-    application.run_webhook(
-        listen="0.0.0.0",
-        port=int(os.environ.get('PORT', 5000)),
-        url_path="",
-        webhook_url=os.environ.get("RENDER_EXTERNAL_URL")
-    )
+    @app.route('/', methods=['POST'])
+    async def webhook_handler():
+        """Handle incoming webhook updates from Telegram."""
+        try:
+            update = Update.de_json(request.get_json(), application.bot)
+            await application.process_update(update)
+        except Exception as e:
+            logging.error(f"Error processing update: {e}")
+        return "ok"
+
+    # Set up the webhook URL before running the Flask app
+    import asyncio
+    async def set_webhook():
+        try:
+            await application.bot.set_webhook(url=os.getenv("RENDER_EXTERNAL_URL"))
+            logging.info("Webhook set successfully.")
+        except Exception as e:
+            logging.error(f"Could not set webhook: {e}")
+
+    asyncio.run(set_webhook())
+    
+    app.run(host='0.0.0.0', port=os.environ.get('PORT', 5000))
