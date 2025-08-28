@@ -1,10 +1,11 @@
 import os
 import logging
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Bot
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
 from flask import Flask, request, jsonify
 from pymongo import MongoClient
 from datetime import datetime
+from dotenv import load_dotenv
 
 # Enable logging
 logging.basicConfig(
@@ -12,14 +13,13 @@ logging.basicConfig(
 )
 
 # Load environment variables
-from dotenv import load_dotenv
 load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 MONGO_URI = os.getenv("MONGO_URI")
 ADMIN_ID = int(os.getenv("ADMIN_ID"))
 YOUR_TELEGRAM_HANDLE = os.getenv("YOUR_TELEGRAM_HANDLE")
-MOVIE_GROUP_LINK = "https://t.me/addlist/EOSX8n4AoC1jYWU1" # Your specific movie group link
+MOVIE_GROUP_LINK = "https://t.me/addlist/EOSX8n4AoC1jYWU1"
 
 # Connect to MongoDB
 client = MongoClient(MONGO_URI)
@@ -40,18 +40,22 @@ MESSAGES = {
         "start_group_button": "Join Movies Group",
         "language_choice": "Choose your language:",
         "language_selected": "Language changed to English.",
-        "earn_approved": "You are approved! Here is your referral link:",
+        "earn_approved_message": "You are approved! Click the button below to get your referral link and rules:",
+        "earn_button": "💰 Get Referral Link & Rules",
         "earn_rules_title": "💰 Rules for Earning",
-        "earn_rule1": "1. Get people to join our group using your link.",
-        "earn_rule2": "2. When your referred user searches for a movie in the group, they'll be taken to our bot via a shortlink.",
-        "earn_rule3": "3. After they complete the shortlink process, you'll earn money. Note that you earn only <b>once per day</b> per referred user.",
+        "earn_rule1": "● Get people to join our group using your link.",
+        "earn_rule2": "● When your referred user searches for a movie in the group, they'll be taken to our bot via a shortlink.",
+        "earn_rule3": "● After they complete the shortlink process, you'll earn money. Note that you earn only <b>once per day</b> per referred user.",
         "earnings_breakdown": "Earnings Breakdown:",
         "owner_share": "Owner's Share:",
         "your_share": "Your Share:",
         "earnings_update": "Your earnings will automatically update in your account.",
         "not_approved_earn": "Your request is pending. Please wait for the admin's approval.",
         "not_approved_withdraw": "You must be approved to use this command.",
+        "withdrawal_message": "Click the button below to see your withdrawal details:",
+        "withdraw_button": "💸 Withdrawal Details",
         "withdrawal_details_title": "💰 Withdrawal Details 💰",
+        "withdrawal_info": "Withdrawals are only possible via UPI ID, QR code, or bank account.\nYou can withdraw a maximum of $1 per month.",
         "total_earnings": "Total Earnings:",
         "total_referrals": "Total Referrals:",
         "active_earners": "Active Earners Today:",
@@ -77,6 +81,12 @@ MESSAGES = {
         "broadcast_failed": "❌ Failed to send message to all users. Please check logs for errors.",
         "broadcast_title": "📢 New Message from Admin!",
         "broadcast_forwarding_error": "❌ Error forwarding message.",
+        "clear_earn_success": "✅ User {user_id}'s earnings have been cleared.",
+        "clear_earn_not_found": "❌ User with ID {user_id} not found or not an earner.",
+        "clear_earn_usage": "❌ Usage: /clearearn <user_id>",
+        "check_stats_message": "Stats for user {user_id}:\n\nTotal Earnings: ${earnings:.4f}\nTotal Referrals: {referrals}\nApproved: {is_approved}",
+        "check_stats_not_found": "❌ User with ID {user_id} not found.",
+        "check_stats_usage": "❌ Usage: /checkstats <user_id>"
     },
     "hi": {
         "start_greeting": "नमस्ते 👋! मूवी ग्रुप बॉट में आपका स्वागत है। इन आसान स्टेप्स को फॉलो करके अपनी पसंदीदा मूवी पाएँ:",
@@ -86,18 +96,22 @@ MESSAGES = {
         "start_group_button": "मूवी ग्रुप जॉइन करें",
         "language_choice": "अपनी भाषा चुनें:",
         "language_selected": "भाषा हिंदी में बदल दी गई है।",
-        "earn_approved": "आप स्वीकृत हैं! आपकी रेफरल लिंक यहाँ है:",
+        "earn_approved_message": "आप स्वीकृत हैं! अपनी रेफरल लिंक और नियम पाने के लिए नीचे दिए गए बटन पर क्लिक करें:",
+        "earn_button": "💰 रेफरल लिंक और नियम पाएँ",
         "earn_rules_title": "💰 कमाई के नियम",
-        "earn_rule1": "1. अपनी लिंक का उपयोग करके लोगों को हमारे ग्रुप में शामिल करें।",
-        "earn_rule2": "2. जब आपका रेफर किया गया यूजर ग्रुप में किसी मूवी को खोजता है, तो उसे शॉर्टलिंक के जरिए हमारे बॉट पर ले जाया जाएगा।",
-        "earn_rule3": "3. जब वे शॉर्टलिंक प्रक्रिया पूरी कर लेंगे, तो आपको पैसे मिलेंगे। ध्यान दें कि आप प्रति रेफर किए गए यूजर से केवल <b>एक बार प्रति दिन</b> कमा सकते हैं।",
+        "earn_rule1": "● अपनी लिंक का उपयोग करके लोगों को हमारे ग्रुप में शामिल करें।",
+        "earn_rule2": "● जब आपका रेफर किया गया यूजर ग्रुप में किसी मूवी को खोजता है, तो उसे शॉर्टलिंक के जरिए हमारे बॉट पर ले जाया जाएगा।",
+        "earn_rule3": "● जब वे शॉर्टलिंक प्रक्रिया पूरी कर लेंगे, तो आपको पैसे मिलेंगे। ध्यान दें कि आप प्रति रेफर किए गए यूजर से केवल <b>एक बार प्रति दिन</b> कमा सकते हैं।",
         "earnings_breakdown": "कमाई का विवरण:",
         "owner_share": "मालिक का हिस्सा:",
         "your_share": "आपका हिस्सा:",
         "earnings_update": "आपकी कमाई स्वचालित रूप से आपके खाते में अपडेट हो जाएगी।",
         "not_approved_earn": "आपका अनुरोध लंबित है। कृपया एडमिन की स्वीकृति का इंतजार करें।",
         "not_approved_withdraw": "इस कमांड का उपयोग करने के लिए आपको स्वीकृत होना चाहिए।",
+        "withdrawal_message": "निकासी के विवरण देखने के लिए नीचे दिए गए बटन पर क्लिक करें:",
+        "withdraw_button": "💸 निकासी का विवरण",
         "withdrawal_details_title": "💰 निकासी का विवरण 💰",
+        "withdrawal_info": "निकासी केवल UPI ID, QR कोड, या बैंक खाते के माध्यम से ही संभव है।\nआप हर महीने अधिकतम $1 निकाल सकते हैं।",
         "total_earnings": "कुल कमाई:",
         "total_referrals": "कुल रेफरल:",
         "active_earners": "आज के सक्रिय कमाने वाले:",
@@ -123,6 +137,12 @@ MESSAGES = {
         "broadcast_failed": "❌ सभी उपयोगकर्ताओं को संदेश भेजने में विफल। कृपया त्रुटियों के लिए लॉग जांचें।",
         "broadcast_title": "📢 एडमिन की ओर से नया संदेश!",
         "broadcast_forwarding_error": "❌ संदेश फॉरवर्ड करने में त्रुटि।",
+        "clear_earn_success": "✅ यूजर {user_id} की कमाई साफ कर दी गई है।",
+        "clear_earn_not_found": "❌ यूजर ID {user_id} नहीं मिला या वह कमाने वाला नहीं है।",
+        "clear_earn_usage": "❌ उपयोग: /clearearn <user_id>",
+        "check_stats_message": "यूजर {user_id} के आंकड़े:\n\nकुल कमाई: ${earnings:.4f}\nकुल रेफरल: {referrals}\nस्वीकृत: {is_approved}",
+        "check_stats_not_found": "❌ यूजर ID {user_id} नहीं मिला।",
+        "check_stats_usage": "❌ उपयोग: /checkstats <user_id>"
     }
 }
 
@@ -188,10 +208,8 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 "is_active_earner": False
             })
             try:
-                # --- START OF FIX ---
                 # Use a fallback username if none is available
-                referred_username_display = f"@{user.username}" if user.username else f"(कोई यूजरनेम नहीं)"
-                # --- END OF FIX ---
+                referred_username_display = f"@{user.username}" if user.username else f"(No username)"
                 
                 referrer_lang = await get_user_lang(int(referral_id))
                 await context.bot.send_message(
@@ -202,25 +220,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 )
             except Exception as e:
                 logging.error(f"Could not notify referrer {referral_id}: {e}")
-
-async def send_start_message_with_lang(update: Update, context: ContextTypes.DEFAULT_TYPE, lang: str) -> None:
-    user = update.effective_user
-    
-    keyboard = [
-        [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
-        [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    message = (
-        f"{MESSAGES[lang]['start_greeting']}\n\n"
-        f"<b>1.</b> {MESSAGES[lang]['start_step1']}\n"
-        f"<b>2.</b> {MESSAGES[lang]['start_step2']}\n"
-        f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
-    )
-
-    await update.message.edit_text(message, reply_markup=reply_markup, parse_mode='HTML')
-
 
 async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
@@ -244,23 +243,54 @@ async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         )
         await update.message.reply_text(MESSAGES[lang]["request_sent"])
     elif user_data.get("is_approved"):
-        referral_link = f"https://t.me/MoviesGroupLinkp_bot?start=ref_{user.id}" 
-        
-        message = (
-            f"<b>{MESSAGES[lang]['earn_approved']}</b>\n\n"
-            f"<code>{referral_link}</code>\n\n"
-            f"<b>{MESSAGES[lang]['earn_rules_title']}</b>\n"
-            f"1. {MESSAGES[lang]['earn_rule1']}\n"
-            f"2. {MESSAGES[lang]['earn_rule2']}\n"
-            f"3. {MESSAGES[lang]['earn_rule3']}\n\n"
-            f"<b>{MESSAGES[lang]['earnings_breakdown']}</b>\n"
-            f"<b>{MESSAGES[lang]['owner_share']}</b> $0.006\n"
-            f"<b>{MESSAGES[lang]['your_share']}</b> $0.0018\n\n"
-            f"<i>{MESSAGES[lang]['earnings_update']}</i>"
-        )
-        await update.message.reply_html(message)
+        keyboard = [
+            [InlineKeyboardButton(MESSAGES[lang]["earn_button"], callback_data="show_earn_details")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_html(MESSAGES[lang]["earn_approved_message"], reply_markup=reply_markup)
     else:
         await update.message.reply_text(MESSAGES[lang]["not_approved_earn"])
+
+async def show_earn_details(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+
+    user = query.from_user
+    lang = await get_user_lang(user.id)
+    bot_info = await context.bot.get_me()
+    bot_username = bot_info.username
+
+    referral_link = f"https://t.me/{bot_username}?start=ref_{user.id}"
+    
+    message = (
+        f"<b>{MESSAGES[lang]['earn_approved']}</b>\n\n"
+        f"<code>{referral_link}</code>\n\n"
+        f"<b>{MESSAGES[lang]['earn_rules_title']}</b>\n"
+        f"1. {MESSAGES[lang]['earn_rule1']}\n"
+        f"2. {MESSAGES[lang]['earn_rule2']}\n"
+        f"3. {MESSAGES[lang]['earn_rule3']}\n\n"
+        f"<b>{MESSAGES[lang]['earnings_breakdown']}</b>\n"
+        f"<b>{MESSAGES[lang]['owner_share']}</b> $0.006\n"
+        f"<b>{MESSAGES[lang]['your_share']}</b> $0.0018\n\n"
+        f"<i>{MESSAGES[lang]['earnings_update']}</i>"
+    )
+
+    keyboard = [[InlineKeyboardButton("← Back", callback_data="back_to_earn_menu")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+async def back_to_earn_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+
+    user = query.from_user
+    lang = await get_user_lang(user.id)
+    
+    keyboard = [[InlineKeyboardButton(MESSAGES[lang]["earn_button"], callback_data="show_earn_details")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(MESSAGES[lang]["earn_approved_message"], reply_markup=reply_markup, parse_mode='HTML')
 
 async def withdraw_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
@@ -271,23 +301,113 @@ async def withdraw_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await update.message.reply_text(MESSAGES[lang]["not_approved_withdraw"])
         return
 
+    keyboard = [[InlineKeyboardButton(MESSAGES[lang]["withdraw_button"], callback_data="show_withdraw_details")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_html(MESSAGES[lang]["withdrawal_message"], reply_markup=reply_markup)
+
+async def show_withdraw_details(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+
+    user = query.from_user
+    lang = await get_user_lang(user.id)
+    user_data = users_collection.find_one({"user_id": user.id, "is_approved": True})
+
+    if not user_data:
+        await query.edit_message_text(MESSAGES[lang]["not_approved_withdraw"])
+        return
+
     earnings = user_data.get("earnings", 0.0)
     referrals_count = referrals_collection.count_documents({"referrer_id": user.id})
     active_earners_count = referrals_collection.count_documents({"referrer_id": user.id, "is_active_earner": True})
     
     withdraw_link = f"https://t.me/{YOUR_TELEGRAM_HANDLE}"
 
-    keyboard = [[InlineKeyboardButton(MESSAGES[lang]["contact_admin_button"], url=withdraw_link)]]
+    keyboard = [
+        [InlineKeyboardButton(MESSAGES[lang]["contact_admin_button"], url=withdraw_link)],
+        [InlineKeyboardButton("← Back", callback_data="back_to_withdraw_menu")]
+    ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     message = (
         f"<b>{MESSAGES[lang]['withdrawal_details_title']}</b>\n\n"
         f"<b>{MESSAGES[lang]['total_earnings']}</b> <b>${earnings:.4f}</b>\n"
         f"<b>{MESSAGES[lang]['total_referrals']}</b> <b>{referrals_count}</b>\n"
-        f"<b>{MESSAGES[lang]['active_earners']}</b> <b>{active_earners_count}</b>"
+        f"<b>{MESSAGES[lang]['active_earners']}</b> <b>{active_earners_count}</b>\n\n"
+        f"<b>{MESSAGES[lang]['withdrawal_info']}</b>"
     )
 
-    await update.message.reply_html(message, reply_markup=reply_markup)
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+async def back_to_withdraw_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+
+    user = query.from_user
+    lang = await get_user_lang(user.id)
+    
+    keyboard = [[InlineKeyboardButton(MESSAGES[lang]["withdraw_button"], callback_data="show_withdraw_details")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(MESSAGES[lang]["withdrawal_message"], reply_markup=reply_markup, parse_mode='HTML')
+
+async def clear_earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user = update.effective_user
+    lang = await get_user_lang(user.id)
+
+    if user.id != ADMIN_ID:
+        await update.message.reply_text(MESSAGES[lang]["broadcast_admin_only"])
+        return
+
+    if len(context.args) != 1:
+        await update.message.reply_text(MESSAGES[lang]["clear_earn_usage"])
+        return
+
+    try:
+        target_user_id = int(context.args[0])
+        result = users_collection.update_one(
+            {"user_id": target_user_id},
+            {"$set": {"earnings": 0.0}}
+        )
+        if result.modified_count > 0:
+            await update.message.reply_text(MESSAGES[lang]["clear_earn_success"].format(user_id=target_user_id))
+        else:
+            await update.message.reply_text(MESSAGES[lang]["clear_earn_not_found"].format(user_id=target_user_id))
+    except ValueError:
+        await update.message.reply_text(MESSAGES[lang]["clear_earn_usage"])
+
+async def check_stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user = update.effective_user
+    lang = await get_user_lang(user.id)
+
+    if user.id != ADMIN_ID:
+        await update.message.reply_text(MESSAGES[lang]["broadcast_admin_only"])
+        return
+
+    if len(context.args) != 1:
+        await update.message.reply_text(MESSAGES[lang]["check_stats_usage"])
+        return
+
+    try:
+        target_user_id = int(context.args[0])
+        user_data = users_collection.find_one({"user_id": target_user_id})
+
+        if user_data:
+            earnings = user_data.get("earnings", 0.0)
+            is_approved = "Yes" if user_data.get("is_approved") else "No"
+            referrals = referrals_collection.count_documents({"referrer_id": target_user_id})
+
+            message = MESSAGES[lang]["check_stats_message"].format(
+                user_id=target_user_id,
+                earnings=earnings,
+                referrals=referrals,
+                is_approved=is_approved
+            )
+            await update.message.reply_text(message)
+        else:
+            await update.message.reply_text(MESSAGES[lang]["check_stats_not_found"].format(user_id=target_user_id))
+    except ValueError:
+        await update.message.reply_text(MESSAGES[lang]["check_stats_usage"])
 
 async def checkbot_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
@@ -366,7 +486,6 @@ async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     lang = await get_user_lang(query.from_user.id)
     await query.edit_message_text(text=MESSAGES[lang]["language_choice"], reply_markup=reply_markup)
 
-
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
@@ -374,9 +493,41 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     if query.data == "select_lang":
         await language_menu(update, context)
         return
+    
+    if query.data == "show_earn_details":
+        await show_earn_details(update, context)
+        return
+        
+    if query.data == "back_to_earn_menu":
+        await back_to_earn_menu(update, context)
+        return
+        
+    if query.data == "show_withdraw_details":
+        await show_withdraw_details(update, context)
+        return
+        
+    if query.data == "back_to_withdraw_menu":
+        await back_to_withdraw_menu(update, context)
+        return
 
     if query.data == "back_to_start":
-        await start_command(update, context)
+        user = query.from_user
+        user_data = users_collection.find_one({"user_id": user.id})
+        lang = user_data.get("lang", "en")
+
+        keyboard = [
+            [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
+            [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        message = (
+            f"{MESSAGES[lang]['start_greeting']}\n\n"
+            f"<b>1.</b> {MESSAGES[lang]['start_step1']}\n"
+            f"<b>2.</b> {MESSAGES[lang]['start_step2']}\n"
+            f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
+        )
+        await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
         return
 
     if query.data.startswith("lang_"):
@@ -468,6 +619,8 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("earn", earn_command))
     application.add_handler(CommandHandler("withdraw", withdraw_command))
+    application.add_handler(CommandHandler("clearearn", clear_earn_command))
+    application.add_handler(CommandHandler("checkstats", check_stats_command))
     application.add_handler(CommandHandler("checkbot", checkbot_command))
     application.add_handler(CommandHandler("stats", stats_command))
     application.add_handler(CommandHandler("broadcast", broadcast_command))
