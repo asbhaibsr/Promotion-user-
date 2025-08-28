@@ -5,6 +5,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 from flask import Flask, request, jsonify
 from pymongo import MongoClient
 from datetime import datetime
+from dotenv import load_dotenv
 
 # Enable logging
 logging.basicConfig(
@@ -12,14 +13,13 @@ logging.basicConfig(
 )
 
 # Load environment variables
-from dotenv import load_dotenv
 load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 MONGO_URI = os.getenv("MONGO_URI")
 ADMIN_ID = int(os.getenv("ADMIN_ID"))
 YOUR_TELEGRAM_HANDLE = os.getenv("YOUR_TELEGRAM_HANDLE")
-MOVIE_GROUP_LINK = "https://t.me/addlist/EOSX8n4AoC1jYWU1" # Your specific movie group link
+MOVIE_GROUP_LINK = "https://t.me/addlist/EOSX8n4AoC1jYWU1"
 
 # Connect to MongoDB
 client = MongoClient(MONGO_URI)
@@ -139,6 +139,36 @@ async def set_user_lang(user_id, lang):
         upsert=True
     )
 
+async def send_language_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    keyboard = [
+        [InlineKeyboardButton("English 🇬🇧", callback_data="lang_en"),
+         InlineKeyboardButton("हिंदी 🇮🇳", callback_data="lang_hi")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await update.message.reply_text("Choose your language:", reply_markup=reply_markup)
+
+async def send_start_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user = update.effective_user
+    lang = await get_user_lang(user.id)
+    
+    keyboard = [
+        [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    message = (
+        f"{MESSAGES[lang]['start_greeting']}\n\n"
+        f"{MESSAGES[lang]['start_step1']}\n"
+        f"{MESSAGES[lang]['start_step2']}\n"
+        f"{MESSAGES[lang]['start_step3']}"
+    )
+
+    if update.callback_query:
+        await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+    else:
+        await update.message.reply_html(message, reply_markup=reply_markup)
+
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     referral_id = context.args[0].replace("ref_", "") if context.args and context.args[0].startswith("ref_") else None
@@ -156,26 +186,13 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         upsert=True
     )
 
-    user_data = users_collection.find_one({"user_id": user.id})
-    lang = user_data.get("lang", "en")
-
-    # Create the keyboard with the movie group button and language buttons
+    # Initial message: Language choice
     keyboard = [
-        [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
         [InlineKeyboardButton("English 🇬🇧", callback_data="lang_en"),
-         InlineKeyboardButton("हिन्दी 🇮🇳", callback_data="lang_hi")]
+         InlineKeyboardButton("हिंदी 🇮🇳", callback_data="lang_hi")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-
-    # Construct the message with proper HTML tags for bold text
-    message = (
-        f"{MESSAGES[lang]['start_greeting']}\n\n"
-        f"<b>1.</b> {MESSAGES[lang]['start_step1']}\n"
-        f"<b>2.</b> {MESSAGES[lang]['start_step2']}\n"
-        f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
-    )
-
-    await update.message.reply_html(message, reply_markup=reply_markup)
+    await update.message.reply_text("Choose your language:", reply_markup=reply_markup)
 
     # Referral logic remains the same
     if referral_id:
@@ -198,26 +215,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 )
             except Exception as e:
                 logging.error(f"Could not notify referrer {referral_id}: {e}")
-
-async def send_start_message_with_lang(update: Update, context: ContextTypes.DEFAULT_TYPE, lang: str) -> None:
-    user = update.effective_user
-    
-    keyboard = [
-        [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
-        [InlineKeyboardButton("English 🇬🇧", callback_data="lang_en"),
-         InlineKeyboardButton("हिन्दी 🇮🇳", callback_data="lang_hi")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    message = (
-        f"{MESSAGES[lang]['start_greeting']}\n\n"
-        f"<b>1.</b> {MESSAGES[lang]['start_step1']}\n"
-        f"<b>2.</b> {MESSAGES[lang]['start_step2']}\n"
-        f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
-    )
-
-    await update.message.edit_text(message, reply_markup=reply_markup, parse_mode='HTML')
-
 
 async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
@@ -352,20 +349,56 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
-
+    
+    user = query.from_user
+    user_id = user.id
+    
     if query.data.startswith("lang_"):
         lang = query.data.split("_")[1]
-        await set_user_lang(query.from_user.id, lang)
+        await set_user_lang(user_id, lang)
         
-        # Edit the previous message to show the new language
-        await send_start_message_with_lang(query, context, lang)
-        return
+        # Now, send the main start message
+        lang = await get_user_lang(user.id)
+        keyboard = [
+            [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
+            [InlineKeyboardButton("English 🇬🇧" if lang == 'en' else "English 🇬🇧 ✅", callback_data="lang_en"),
+             InlineKeyboardButton("हिंदी 🇮🇳" if lang == 'hi' else "हिंदी 🇮🇳 ✅", callback_data="lang_hi")],
+            [InlineKeyboardButton("Back", callback_data="back_to_start")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        message = (
+            f"{MESSAGES[lang]['start_greeting']}\n\n"
+            f"{MESSAGES[lang]['start_step1']}\n"
+            f"{MESSAGES[lang]['start_step2']}\n"
+            f"{MESSAGES[lang]['start_step3']}"
+        )
+        
+        await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+        
+    elif query.data == "back_to_start":
+        lang = await get_user_lang(user.id)
+        
+        message = (
+            f"{MESSAGES[lang]['start_greeting']}\n\n"
+            f"<b>1.</b> {MESSAGES[lang]['start_step1'].replace('1. ', '')}\n"
+            f"<b>2.</b> {MESSAGES[lang]['start_step2'].replace('2. ', '')}\n"
+            f"<b>3.</b> {MESSAGES[lang]['start_step3'].replace('3. ', '')}"
+        )
+        
+        keyboard = [
+            [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
+            [InlineKeyboardButton("English 🇬🇧", callback_data="lang_en"),
+             InlineKeyboardButton("हिंदी 🇮🇳", callback_data="lang_hi")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
-    action, user_id_str = query.data.split("_")
-    user_id = int(user_id_str)
-    admin_lang = await get_user_lang(query.from_user.id)
-
-    if action == "approve":
+    elif query.data.startswith("approve_"):
+        action, user_id_str = query.data.split("_")
+        user_id = int(user_id_str)
+        admin_lang = await get_user_lang(query.from_user.id)
+        
         users_collection.update_one(
             {"user_id": user_id},
             {"$set": {"is_approved": True, "earnings": 0.0}},
@@ -374,11 +407,20 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         user_lang = await get_user_lang(user_id)
         await context.bot.send_message(chat_id=user_id, text=MESSAGES[user_lang]["earning_approved"])
         await query.edit_message_text(text=MESSAGES[admin_lang]["user_approved_admin"].format(user_id=user_id))
-    elif action == "cancel":
+    
+    elif query.data.startswith("cancel_"):
+        action, user_id_str = query.data.split("_")
+        user_id = int(user_id_str)
+        admin_lang = await get_user_lang(query.from_user.id)
+        
         users_collection.delete_one({"user_id": user_id})
         user_lang = await get_user_lang(user_id)
         await context.bot.send_message(chat_id=user_id, text=MESSAGES[user_lang]["earning_denied"])
         await query.edit_message_text(text=MESSAGES[admin_lang]["user_cancelled_admin"].format(user_id=user_id))
+        
+    else:
+        # Default handler to catch any other callbacks
+        logging.info(f"Unhandled callback query: {query.data}")
 
 async def process_shortlink_completion(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     referred_user = update.effective_user
@@ -423,9 +465,13 @@ async def process_shortlink_completion(update: Update, context: ContextTypes.DEF
 def shortlink_completed(user_id):
     return jsonify({"status": "success", "message": "Earnings will be updated."})
 
-def main() -> None:
-    application = Application.builder().token(BOT_TOKEN).build()
+# Global application object
+application = Application.builder().token(BOT_TOKEN).build()
+
+# The entry point for the Render server
+if __name__ == "__main__":
     
+    # Set up all handlers
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("earn", earn_command))
     application.add_handler(CommandHandler("withdraw", withdraw_command))
@@ -433,9 +479,26 @@ def main() -> None:
     application.add_handler(CommandHandler("stats", stats_command))
     application.add_handler(CommandHandler("broadcast", broadcast_command))
     application.add_handler(CallbackQueryHandler(button_handler))
-    
-    application.run_polling()
 
-if __name__ == "__main__":
-    main()
+    @app.route('/', methods=['POST'])
+    async def webhook_handler():
+        """Handle incoming webhook updates from Telegram."""
+        try:
+            update = Update.de_json(request.get_json(), application.bot)
+            await application.process_update(update)
+        except Exception as e:
+            logging.error(f"Error processing update: {e}")
+        return "ok"
+
+    # Set up the webhook URL before running the Flask app
+    import asyncio
+    async def set_webhook():
+        try:
+            await application.bot.set_webhook(url=os.getenv("RENDER_EXTERNAL_URL"))
+            logging.info("Webhook set successfully.")
+        except Exception as e:
+            logging.error(f"Could not set webhook: {e}")
+
+    asyncio.run(set_webhook())
+    
     app.run(host='0.0.0.0', port=os.environ.get('PORT', 5000))
