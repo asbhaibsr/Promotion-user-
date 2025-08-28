@@ -41,18 +41,16 @@ MESSAGES = {
         "start_group_button": "Join Movies Group",
         "language_choice": "Choose your language:",
         "language_selected": "Language changed to English.",
-        "earn_approved_message": "You are approved! Click the button below to get your referral link and rules:",
+        "earn_message": "Click the button below to get your referral link and rules:",
         "earn_button": "💰 Get Referral Link & Rules",
         "earn_rules_title": "💰 Rules for Earning",
-        "earn_rule1": "1. Get people to join our group using your link.",
-        "earn_rule2": "2. When your referred user searches for a movie in the group, they'll be taken to our bot via a shortlink.",
-        "earn_rule3": "3. After they complete the shortlink process, you'll earn money. Note that you earn only <b>once per day</b> per referred user.",
+        "earn_rule1": "➡️ Get people to join our group using your link.",
+        "earn_rule2": "➡️ When your referred user searches for a movie in the group, they'll be taken to our bot via a shortlink.",
+        "earn_rule3": "➡️ After they complete the shortlink process, you'll earn money. Note that you earn only <b>once per day</b> per referred user.",
         "earnings_breakdown": "Earnings Breakdown:",
         "owner_share": "Owner's Share:",
         "your_share": "Your Share:",
         "earnings_update": "Your earnings will automatically update in your account.",
-        "not_approved_earn": "Your request is pending. Please wait for the admin's approval.",
-        "not_approved_withdraw": "You must be approved to use this command.",
         "withdrawal_message": "Click the button below to see your withdrawal details:",
         "withdraw_button": "💸 Withdrawal Details",
         "withdrawal_details_title": "💰 Withdrawal Details 💰",
@@ -63,12 +61,6 @@ MESSAGES = {
         "contact_admin_text": "Click the button below to contact the admin for withdrawal.",
         "contact_admin_button": "Contact Admin",
         "new_referral_notification": "🥳 Good news! A new user has joined through your link: {full_name} (@{username}).",
-        "approve_request": "New user {full_name} (@{username}, ID: {user_id}) wants to start earning. Approve?",
-        "request_sent": "Your request has been sent to the admin for approval. Please wait.",
-        "earning_approved": "Congratulations! You have been approved to earn. Use /earn to get your link.",
-        "earning_denied": "Your request was not approved.",
-        "user_approved_admin": "User {user_id} has been approved.",
-        "user_cancelled_admin": "User {user_id}'s request has been cancelled.",
         "daily_earning_update": "🎉 <b>Your earnings have been updated!</b>\n"
                                 "A referred user ({full_name}) completed the shortlink process today.\n"
                                 "Your new balance: ${new_balance:.4f}",
@@ -85,7 +77,7 @@ MESSAGES = {
         "clear_earn_success": "✅ User {user_id}'s earnings have been cleared.",
         "clear_earn_not_found": "❌ User with ID {user_id} not found or not an earner.",
         "clear_earn_usage": "❌ Usage: /clearearn <user_id>",
-        "check_stats_message": "Stats for user {user_id}:\n\nTotal Earnings: ${earnings:.4f}\nTotal Referrals: {referrals}\nApproved: {is_approved}",
+        "check_stats_message": "Stats for user {user_id}:\n\nTotal Earnings: ${earnings:.4f}\nTotal Referrals: {referrals}",
         "check_stats_not_found": "❌ User with ID {user_id} not found.",
         "check_stats_usage": "❌ Usage: /checkstats <user_id>"
     },
@@ -97,18 +89,16 @@ MESSAGES = {
         "start_group_button": "मूवी ग्रुप जॉइन करें",
         "language_choice": "अपनी भाषा चुनें:",
         "language_selected": "भाषा हिंदी में बदल दी गई है।",
-        "earn_approved_message": "आप स्वीकृत हैं! अपनी रेफरल लिंक और नियम पाने के लिए नीचे दिए गए बटन पर क्लिक करें:",
+        "earn_message": "अपनी रेफरल लिंक और नियम पाने के लिए नीचे दिए गए बटन पर क्लिक करें:",
         "earn_button": "💰 रेफरल लिंक और नियम पाएँ",
         "earn_rules_title": "💰 कमाई के नियम",
-        "earn_rule1": "1. अपनी लिंक का उपयोग करके लोगों को हमारे ग्रुप में शामिल करें।",
-        "earn_rule2": "2. जब आपका रेफर किया गया यूजर ग्रुप में किसी मूवी को खोजता है, तो उसे शॉर्टलिंक के जरिए हमारे बॉट पर ले जाया जाएगा।",
-        "earn_rule3": "3. जब वे शॉर्टलिंक प्रक्रिया पूरी कर लेंगे, तो आपको पैसे मिलेंगे। ध्यान दें कि आप प्रति रेफर किए गए यूजर से केवल <b>एक बार प्रति दिन</b> कमा सकते हैं।",
+        "earn_rule1": "➡️ अपनी लिंक का उपयोग करके लोगों को हमारे ग्रुप में शामिल करें।",
+        "earn_rule2": "➡️ जब आपका रेफर किया गया यूजर ग्रुप में किसी मूवी को खोजता है, तो उसे शॉर्टलिंक के जरिए हमारे बॉट पर ले जाया जाएगा।",
+        "earn_rule3": "➡️ जब वे शॉर्टलिंक प्रक्रिया पूरी कर लेंगे, तो आपको पैसे मिलेंगे। ध्यान दें कि आप प्रति रेफर किए गए यूजर से केवल <b>एक बार प्रति दिन</b> कमा सकते हैं।",
         "earnings_breakdown": "कमाई का विवरण:",
         "owner_share": "मालिक का हिस्सा:",
         "your_share": "आपका हिस्सा:",
         "earnings_update": "आपकी कमाई स्वचालित रूप से आपके खाते में अपडेट हो जाएगी।",
-        "not_approved_earn": "आपका अनुरोध लंबित है। कृपया एडमिन की स्वीकृति का इंतजार करें।",
-        "not_approved_withdraw": "इस कमांड का उपयोग करने के लिए आपको स्वीकृत होना चाहिए।",
         "withdrawal_message": "निकासी के विवरण देखने के लिए नीचे दिए गए बटन पर क्लिक करें:",
         "withdraw_button": "💸 निकासी का विवरण",
         "withdrawal_details_title": "💰 निकासी का विवरण 💰",
@@ -119,12 +109,6 @@ MESSAGES = {
         "contact_admin_text": "निकासी के लिए एडमिन से संपर्क करने हेतु नीचे दिए गए बटन पर क्लिक करें।",
         "contact_admin_button": "एडमिन से संपर्क करें",
         "new_referral_notification": "🥳 खुशखबरी! एक नया यूजर आपकी लिंक से जुड़ा है: {full_name} (@{username})।",
-        "approve_request": "नया यूजर {full_name} (@{username}, ID: {user_id}) कमाई शुरू करना चाहता है। क्या आप स्वीकृत करते हैं?",
-        "request_sent": "आपका अनुरोध एडमिन को भेज दिया गया है। कृपया प्रतीक्षा करें।",
-        "earning_approved": "बधाई हो! आपको कमाई करने के लिए स्वीकृत किया गया है। अपनी लिंक पाने के लिए /earn का उपयोग करें।",
-        "earning_denied": "आपका अनुरोध स्वीकृत नहीं हुआ।",
-        "user_approved_admin": "यूजर {user_id} को स्वीकृत कर दिया गया है।",
-        "user_cancelled_admin": "यूजर {user_id} का अनुरोध रद्द कर दिया गया है।",
         "daily_earning_update": "🎉 <b>आपकी कमाई अपडेट हो गई है!</b>\n"
                                 "एक रेफर किए गए यूजर ({full_name}) ने आज शॉर्टलिंक प्रक्रिया पूरी की।\n"
                                 "आपका नया बैलेंस: ${new_balance:.4f}",
@@ -141,7 +125,7 @@ MESSAGES = {
         "clear_earn_success": "✅ यूजर {user_id} की कमाई साफ कर दी गई है।",
         "clear_earn_not_found": "❌ यूजर ID {user_id} नहीं मिला या वह कमाने वाला नहीं है।",
         "clear_earn_usage": "❌ उपयोग: /clearearn <user_id>",
-        "check_stats_message": "यूजर {user_id} के आंकड़े:\n\nकुल कमाई: ${earnings:.4f}\nकुल रेफरल: {referrals}\nस्वीकृत: {is_approved}",
+        "check_stats_message": "यूजर {user_id} के आंकड़े:\n\nकुल कमाई: ${earnings:.4f}\nकुल रेफरल: {referrals}",
         "check_stats_not_found": "❌ यूजर ID {user_id} नहीं मिला।",
         "check_stats_usage": "❌ उपयोग: /checkstats <user_id>"
     }
@@ -170,7 +154,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             "username": user.username,
             "full_name": user.full_name,
             "lang": "en",
-            "is_approved": False,
+            "is_approved": True,  # Now all new users are auto-approved
             "earnings": 0.0
         }},
         upsert=True
@@ -223,46 +207,25 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     lang = await get_user_lang(user.id)
-    user_data = users_collection.find_one({"user_id": user.id})
-
+    
     # Check if user already exists in the database
-    if not user_data:
-        # If user is not in the database, add them and send approval request
+    if not users_collection.find_one({"user_id": user.id}):
+        # If user is not in the database, add them and set is_approved to True
         users_collection.insert_one({
             "user_id": user.id,
             "username": user.username,
             "full_name": user.full_name,
             "lang": "en",
-            "is_approved": False,
+            "is_approved": True,
             "earnings": 0.0
         })
-        keyboard = [
-            [
-                InlineKeyboardButton("Approve", callback_data=f"approve_{user.id}"),
-                InlineKeyboardButton("Cancel", callback_data=f"cancel_{user.id}"),
-            ]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await context.bot.send_message(
-            chat_id=ADMIN_ID,
-            text=MESSAGES["en"]["approve_request"].format(
-                full_name=user.full_name, username=user.username, user_id=user.id
-            ),
-            reply_markup=reply_markup,
-        )
-        await update.message.reply_text(MESSAGES[lang]["request_sent"])
-        return # Return here to prevent further execution for new users
 
-    elif user_data.get("is_approved"):
-        # If user is approved, show the earning button
-        keyboard = [
-            [InlineKeyboardButton(MESSAGES[lang]["earn_button"], callback_data="show_earn_details")]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await update.message.reply_html(MESSAGES[lang]["earn_approved_message"], reply_markup=reply_markup)
-    else:
-        # If user is pending approval, show the pending message
-        await update.message.reply_text(MESSAGES[lang]["not_approved_earn"])
+    # Show the earning button for all users now
+    keyboard = [
+        [InlineKeyboardButton(MESSAGES[lang]["earn_button"], callback_data="show_earn_details")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_html(MESSAGES[lang]["earn_message"], reply_markup=reply_markup)
 
 async def show_earn_details(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -305,16 +268,23 @@ async def back_to_earn_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     keyboard = [[InlineKeyboardButton(MESSAGES[lang]["earn_button"], callback_data="show_earn_details")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    await query.edit_message_text(MESSAGES[lang]["earn_approved_message"], reply_markup=reply_markup, parse_mode='HTML')
+    await query.edit_message_text(MESSAGES[lang]["earn_message"], reply_markup=reply_markup, parse_mode='HTML')
 
 async def withdraw_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     lang = await get_user_lang(user.id)
-    user_data = users_collection.find_one({"user_id": user.id, "is_approved": True})
+    user_data = users_collection.find_one({"user_id": user.id})
 
     if not user_data:
-        await update.message.reply_text(MESSAGES[lang]["not_approved_withdraw"])
-        return
+        # A new user who tries /withdraw first, create them
+        users_collection.insert_one({
+            "user_id": user.id,
+            "username": user.username,
+            "full_name": user.full_name,
+            "lang": "en",
+            "is_approved": True,
+            "earnings": 0.0
+        })
 
     keyboard = [[InlineKeyboardButton(MESSAGES[lang]["withdraw_button"], callback_data="show_withdraw_details")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -326,11 +296,10 @@ async def show_withdraw_details(update: Update, context: ContextTypes.DEFAULT_TY
 
     user = query.from_user
     lang = await get_user_lang(user.id)
-    user_data = users_collection.find_one({"user_id": user.id, "is_approved": True})
+    user_data = users_collection.find_one({"user_id": user.id})
 
     if not user_data:
-        # This case is a fallback, should not happen if the command check is right
-        await query.edit_message_text(MESSAGES[lang]["not_approved_withdraw"])
+        await query.edit_message_text("User data not found.")
         return
 
     earnings = user_data.get("earnings", 0.0)
@@ -408,14 +377,12 @@ async def check_stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE
 
         if user_data:
             earnings = user_data.get("earnings", 0.0)
-            is_approved = "Yes" if user_data.get("is_approved") else "No"
             referrals = referrals_collection.count_documents({"referrer_id": target_user_id})
 
             message = MESSAGES[lang]["check_stats_message"].format(
                 user_id=target_user_id,
                 earnings=earnings,
-                referrals=referrals,
-                is_approved=is_approved
+                referrals=referrals
             )
             await update.message.reply_text(message)
         else:
@@ -521,29 +488,6 @@ async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
     )
     
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-
-async def handle_admin_approval(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    await query.answer()
-    
-    action, user_id_str = query.data.split("_")
-    user_id = int(user_id_str)
-    admin_lang = await get_user_lang(query.from_user.id)
-
-    if action == "approve":
-        users_collection.update_one(
-            {"user_id": user_id},
-            {"$set": {"is_approved": True, "earnings": 0.0}},
-            upsert=True
-        )
-        user_lang = await get_user_lang(user_id)
-        await context.bot.send_message(chat_id=user_id, text=MESSAGES[user_lang]["earning_approved"])
-        await query.edit_message_text(text=MESSAGES[admin_lang]["user_approved_admin"].format(user_id=user_id))
-    elif action == "cancel":
-        users_collection.delete_one({"user_id": user_id})
-        user_lang = await get_user_lang(user_id)
-        await context.bot.send_message(chat_id=user_id, text=MESSAGES[user_lang]["earning_denied"])
-        await query.edit_message_text(text=MESSAGES[admin_lang]["user_cancelled_admin"].format(user_id=user_id))
         
 async def handle_back_to_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -579,7 +523,7 @@ async def add_payment_after_delay(context: ContextTypes.DEFAULT_TYPE, user_id: i
         
         if referral_data:
             referrer_id = referral_data["referrer_id"]
-            referrer_data = users_collection.find_one({"user_id": referrer_id, "is_approved": True})
+            referrer_data = users_collection.find_one({"user_id": referrer_id}) # No is_approved check needed now
             
             if referrer_data:
                 # Get the date of the last earning from this specific referred user
@@ -635,7 +579,7 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
         
         if referral_data:
             referrer_id = referral_data["referrer_id"]
-            referrer_data = users_collection.find_one({"user_id": referrer_id, "is_approved": True})
+            referrer_data = users_collection.find_one({"user_id": referrer_id})
             
             if referrer_data:
                 # Check if the referrer has already earned from this specific user today
@@ -671,7 +615,6 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(language_menu, pattern="^select_lang$"))
     application.add_handler(CallbackQueryHandler(handle_back_to_start, pattern="^back_to_start$"))
     application.add_handler(CallbackQueryHandler(handle_lang_choice, pattern="^lang_"))
-    application.add_handler(CallbackQueryHandler(handle_admin_approval, pattern="^(approve|cancel)_"))
     application.add_handler(CallbackQueryHandler(show_earn_details, pattern="^show_earn_details$"))
     application.add_handler(CallbackQueryHandler(back_to_earn_menu, pattern="^back_to_earn_menu$"))
     application.add_handler(CallbackQueryHandler(show_withdraw_details, pattern="^show_withdraw_details$"))
@@ -692,4 +635,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
