@@ -34,9 +34,9 @@ app = Flask(__name__)
 MESSAGES = {
     "en": {
         "start_greeting": "Hey 👋! Welcome to the Movies Group Bot. Get your favorite movies by following these simple steps:",
-        "start_step1": "1. Click the button below to join our movie group.",
-        "start_step2": "2. Go to the group and type the name of the movie you want.",
-        "start_step3": "3. The bot will give you a link to your movie.",
+        "start_step1": "Click the button below to join our movie group.",
+        "start_step2": "Go to the group and type the name of the movie you want.",
+        "start_step3": "The bot will give you a link to your movie.",
         "start_group_button": "Join Movies Group",
         "language_choice": "Choose your language:",
         "language_selected": "Language changed to English.",
@@ -80,9 +80,9 @@ MESSAGES = {
     },
     "hi": {
         "start_greeting": "नमस्ते 👋! मूवी ग्रुप बॉट में आपका स्वागत है। इन आसान स्टेप्स को फॉलो करके अपनी पसंदीदा मूवी पाएँ:",
-        "start_step1": "1. हमारे मूवी ग्रुप में शामिल होने के लिए नीचे दिए गए बटन पर क्लिक करें।",
-        "start_step2": "2. ग्रुप में जाकर अपनी मनपसंद मूवी का नाम लिखें।",
-        "start_step3": "3. बॉट आपको आपकी मूवी की लिंक देगा।",
+        "start_step1": "हमारे मूवी ग्रुप में शामिल होने के लिए नीचे दिए गए बटन पर क्लिक करें।",
+        "start_step2": "ग्रुप में जाकर अपनी मनपसंद मूवी का नाम लिखें।",
+        "start_step3": "बॉट आपको आपकी मूवी की लिंक देगा।",
         "start_group_button": "मूवी ग्रुप जॉइन करें",
         "language_choice": "अपनी भाषा चुनें:",
         "language_selected": "भाषा हिंदी में बदल दी गई है।",
@@ -159,11 +159,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     user_data = users_collection.find_one({"user_id": user.id})
     lang = user_data.get("lang", "en")
 
-    # Create the keyboard with the movie group button and language buttons
+    # Create the keyboard with the movie group button and language button
     keyboard = [
         [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
-        [InlineKeyboardButton("English 🇬🇧", callback_data="lang_en"),
-         InlineKeyboardButton("हिन्दी 🇮🇳", callback_data="lang_hi")]
+        [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -204,8 +203,7 @@ async def send_start_message_with_lang(update: Update, context: ContextTypes.DEF
     
     keyboard = [
         [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
-        [InlineKeyboardButton("English 🇬🇧", callback_data="lang_en"),
-         InlineKeyboardButton("हिन्दी 🇮🇳", callback_data="lang_hi")]
+        [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
@@ -349,16 +347,52 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     else:
         await update.message.reply_text(MESSAGES[lang]["broadcast_success"].format(count=sent_count))
 
+async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+
+    keyboard = [
+        [InlineKeyboardButton("English 🇬🇧", callback_data="lang_en")],
+        [InlineKeyboardButton("हिन्दी 🇮🇳", callback_data="lang_hi")],
+        [InlineKeyboardButton("← Back", callback_data="back_to_start")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    lang = await get_user_lang(query.from_user.id)
+    await query.edit_message_text(text=MESSAGES[lang]["language_choice"], reply_markup=reply_markup)
+
+
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
+
+    if query.data == "select_lang":
+        await language_menu(update, context)
+        return
+
+    if query.data == "back_to_start":
+        await start_command(update, context)
+        return
 
     if query.data.startswith("lang_"):
         lang = query.data.split("_")[1]
         await set_user_lang(query.from_user.id, lang)
         
-        # Edit the previous message to show the new language
-        await send_start_message_with_lang(query, context, lang)
+        # Re-create the main start message with the new language
+        keyboard = [
+            [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
+            [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        message = (
+            f"{MESSAGES[lang]['start_greeting']}\n\n"
+            f"<b>1.</b> {MESSAGES[lang]['start_step1']}\n"
+            f"<b>2.</b> {MESSAGES[lang]['start_step2']}\n"
+            f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
+        )
+        
+        await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
         return
 
     action, user_id_str = query.data.split("_")
