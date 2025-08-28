@@ -481,25 +481,10 @@ if __name__ == "__main__":
     application.add_handler(CommandHandler("broadcast", broadcast_command))
     application.add_handler(CallbackQueryHandler(button_handler))
 
-    @app.route('/', methods=['POST'])
-    def webhook_handler():
-        """Handle incoming webhook updates from Telegram."""
-        try:
-            update = Update.de_json(request.get_json(), application.bot)
-            # This is the corrected line to handle the async call from a sync function
-            asyncio.run(application.process_update(update))
-        except Exception as e:
-            logging.error(f"Error processing update: {e}")
-        return "ok"
-
-    # Set up the webhook URL before running the Flask app
-    async def set_webhook():
-        try:
-            await application.bot.set_webhook(url=os.getenv("RENDER_EXTERNAL_URL"))
-            logging.info("Webhook set successfully.")
-        except Exception as e:
-            logging.error(f"Could not set webhook: {e}")
-
-    asyncio.run(set_webhook())
-    
-    app.run(host='0.0.0.0', port=os.environ.get('PORT', 5000))
+    # This is the correct way to run a webhook-based bot
+    application.run_webhook(
+        listen="0.0.0.0",
+        port=int(os.environ.get('PORT', 5000)),
+        url_path="",
+        webhook_url=os.environ.get("RENDER_EXTERNAL_URL")
+    )
