@@ -4,7 +4,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
 from flask import Flask, request, jsonify
 from pymongo import MongoClient
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # Enable logging
 logging.basicConfig(
@@ -18,7 +18,6 @@ load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 MONGO_URI = os.getenv("MONGO_URI")
 ADMIN_ID = int(os.getenv("ADMIN_ID"))
-# Note: GROUP_ID is not used in the provided code, but can be useful for group-specific functions.
 YOUR_TELEGRAM_HANDLE = os.getenv("YOUR_TELEGRAM_HANDLE")
 MOVIE_GROUP_LINK = "https://t.me/addlist/EOSX8n4AoC1jYWU1" # Your specific movie group link
 
@@ -45,7 +44,7 @@ MESSAGES = {
         "earn_rules_title": "💰 Rules for Earning",
         "earn_rule1": "1. Get people to join our group using your link.",
         "earn_rule2": "2. When your referred user searches for a movie in the group, they'll be taken to our bot via a shortlink.",
-        "earn_rule3": "3. After they complete the shortlink process, you'll earn money. Note that you earn only **once per day** per referred user.",
+        "earn_rule3": "3. After they complete the shortlink process, you'll earn money. Note that you earn only <b>once per day</b> per referred user.",
         "earnings_breakdown": "Earnings Breakdown:",
         "owner_share": "Owner's Share:",
         "your_share": "Your Share:",
@@ -65,7 +64,7 @@ MESSAGES = {
         "earning_denied": "Your request was not approved.",
         "user_approved_admin": "User {user_id} has been approved.",
         "user_cancelled_admin": "User {user_id}'s request has been cancelled.",
-        "daily_earning_update": "🎉 **Your earnings have been updated!**\n"
+        "daily_earning_update": "🎉 <b>Your earnings have been updated!</b>\n"
                                 "A referred user ({full_name}) completed the shortlink process today.\n"
                                 "Your new balance: ${new_balance:.4f}",
         "daily_earning_limit": "This user has already earned you money today. Your earnings will be updated again tomorrow.",
@@ -91,7 +90,7 @@ MESSAGES = {
         "earn_rules_title": "💰 कमाई के नियम",
         "earn_rule1": "1. अपनी लिंक का उपयोग करके लोगों को हमारे ग्रुप में शामिल करें।",
         "earn_rule2": "2. जब आपका रेफर किया गया यूजर ग्रुप में किसी मूवी को खोजता है, तो उसे शॉर्टलिंक के जरिए हमारे बॉट पर ले जाया जाएगा।",
-        "earn_rule3": "3. जब वे शॉर्टलिंक प्रक्रिया पूरी कर लेंगे, तो आपको पैसे मिलेंगे। ध्यान दें कि आप प्रति रेफर किए गए यूजर से केवल **एक बार प्रति दिन** कमा सकते हैं।",
+        "earn_rule3": "3. जब वे शॉर्टलिंक प्रक्रिया पूरी कर लेंगे, तो आपको पैसे मिलेंगे। ध्यान दें कि आप प्रति रेफर किए गए यूजर से केवल <b>एक बार प्रति दिन</b> कमा सकते हैं।",
         "earnings_breakdown": "कमाई का विवरण:",
         "owner_share": "मालिक का हिस्सा:",
         "your_share": "आपका हिस्सा:",
@@ -111,7 +110,7 @@ MESSAGES = {
         "earning_denied": "आपका अनुरोध स्वीकृत नहीं हुआ।",
         "user_approved_admin": "यूजर {user_id} को स्वीकृत कर दिया गया है।",
         "user_cancelled_admin": "यूजर {user_id} का अनुरोध रद्द कर दिया गया है।",
-        "daily_earning_update": "🎉 **आपकी कमाई अपडेट हो गई है!**\n"
+        "daily_earning_update": "🎉 <b>आपकी कमाई अपडेट हो गई है!</b>\n"
                                 "एक रेफर किए गए यूजर ({full_name}) ने आज शॉर्टलिंक प्रक्रिया पूरी की।\n"
                                 "आपका नया बैलेंस: ${new_balance:.4f}",
         "daily_earning_limit": "इस यूजर से आपने आज पहले ही कमाई कर ली है। आपकी कमाई कल फिर से अपडेट होगी।",
@@ -144,33 +143,41 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     user = update.effective_user
     referral_id = context.args[0].replace("ref_", "") if context.args and context.args[0].startswith("ref_") else None
 
-    # Check if user already exists
-    user_data = users_collection.find_one({"user_id": user.id})
-    if not user_data:
-        users_collection.insert_one({
-            "user_id": user.id,
+    # Update or insert user data.
+    users_collection.update_one(
+        {"user_id": user.id},
+        {"$setOnInsert": {
             "username": user.username,
             "full_name": user.full_name,
-            "lang": "en", # Default language
+            "lang": "en",
             "is_approved": False,
-            "earnings": 0.0,
-            "last_earning_date": None
-        })
+            "earnings": 0.0
+        }},
+        upsert=True
+    )
 
-    # Language selection keyboard
+    user_data = users_collection.find_one({"user_id": user.id})
+    lang = user_data.get("lang", "en")
+
+    # Create the keyboard with the movie group button and language buttons
     keyboard = [
+        [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
         [InlineKeyboardButton("English 🇬🇧", callback_data="lang_en"),
          InlineKeyboardButton("हिन्दी 🇮🇳", callback_data="lang_hi")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    # Initial start message with language selection
-    await update.message.reply_html(
-        f"{MESSAGES['en']['language_choice']}\n\n{MESSAGES['hi']['language_choice']}",
-        reply_markup=reply_markup
+    # Construct the message with proper HTML tags for bold text
+    message = (
+        f"{MESSAGES[lang]['start_greeting']}\n\n"
+        f"<b>1.</b> {MESSAGES[lang]['start_step1']}\n"
+        f"<b>2.</b> {MESSAGES[lang]['start_step2']}\n"
+        f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
     )
 
-    # Store referral data
+    await update.message.reply_html(message, reply_markup=reply_markup)
+
+    # Referral logic remains the same
     if referral_id:
         referral_data = referrals_collection.find_one({"referred_user_id": user.id})
         if not referral_data:
@@ -181,7 +188,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 "join_date": datetime.now(),
                 "is_active_earner": False
             })
-            # Notify referrer
             try:
                 referrer_lang = await get_user_lang(int(referral_id))
                 await context.bot.send_message(
@@ -197,18 +203,20 @@ async def send_start_message_with_lang(update: Update, context: ContextTypes.DEF
     user = update.effective_user
     
     keyboard = [
-        [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)]
+        [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
+        [InlineKeyboardButton("English 🇬🇧", callback_data="lang_en"),
+         InlineKeyboardButton("हिन्दी 🇮🇳", callback_data="lang_hi")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     message = (
         f"{MESSAGES[lang]['start_greeting']}\n\n"
-        f"**1.** {MESSAGES[lang]['start_step1']}\n"
-        f"**2.** {MESSAGES[lang]['start_step2']}\n"
-        f"**3.** {MESSAGES[lang]['start_step3']}"
+        f"<b>1.</b> {MESSAGES[lang]['start_step1']}\n"
+        f"<b>2.</b> {MESSAGES[lang]['start_step2']}\n"
+        f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
     )
 
-    await update.message.reply_html(message, reply_markup=reply_markup)
+    await update.message.edit_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
 
 async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -217,7 +225,6 @@ async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     user_data = users_collection.find_one({"user_id": user.id})
 
     if not user_data:
-        # User not found, send for approval
         keyboard = [
             [
                 InlineKeyboardButton("Approve", callback_data=f"approve_{user.id}"),
@@ -234,19 +241,19 @@ async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         )
         await update.message.reply_text(MESSAGES[lang]["request_sent"])
     elif user_data.get("is_approved"):
-        referral_link = f"https://t.me/MoviesGroupLinkp_bot?start=ref_{user.id}" # Correct bot username here
+        referral_link = f"https://t.me/MoviesGroupLinkp_bot?start=ref_{user.id}" 
         
         message = (
-            f"**{MESSAGES[lang]['earn_approved']}**\n\n"
-            f"`{referral_link}`\n\n"
-            f"**{MESSAGES[lang]['earn_rules_title']}**\n"
+            f"<b>{MESSAGES[lang]['earn_approved']}</b>\n\n"
+            f"<code>{referral_link}</code>\n\n"
+            f"<b>{MESSAGES[lang]['earn_rules_title']}</b>\n"
             f"1. {MESSAGES[lang]['earn_rule1']}\n"
             f"2. {MESSAGES[lang]['earn_rule2']}\n"
             f"3. {MESSAGES[lang]['earn_rule3']}\n\n"
-            f"**{MESSAGES[lang]['earnings_breakdown']}**\n"
-            f"**{MESSAGES[lang]['owner_share']}** $0.006\n"
-            f"**{MESSAGES[lang]['your_share']}** $0.0018\n\n"
-            f"*{MESSAGES[lang]['earnings_update']}*"
+            f"<b>{MESSAGES[lang]['earnings_breakdown']}</b>\n"
+            f"<b>{MESSAGES[lang]['owner_share']}</b> $0.006\n"
+            f"<b>{MESSAGES[lang]['your_share']}</b> $0.0018\n\n"
+            f"<i>{MESSAGES[lang]['earnings_update']}</i>"
         )
         await update.message.reply_html(message)
     else:
@@ -271,10 +278,10 @@ async def withdraw_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     message = (
-        f"**{MESSAGES[lang]['withdrawal_details_title']}**\n\n"
-        f"**{MESSAGES[lang]['total_earnings']}** **${earnings:.4f}**\n"
-        f"**{MESSAGES[lang]['total_referrals']}** **{referrals_count}**\n"
-        f"**{MESSAGES[lang]['active_earners']}** **{active_earners_count}**"
+        f"<b>{MESSAGES[lang]['withdrawal_details_title']}</b>\n\n"
+        f"<b>{MESSAGES[lang]['total_earnings']}</b> <b>${earnings:.4f}</b>\n"
+        f"<b>{MESSAGES[lang]['total_referrals']}</b> <b>{referrals_count}</b>\n"
+        f"<b>{MESSAGES[lang]['active_earners']}</b> <b>{active_earners_count}</b>"
     )
 
     await update.message.reply_html(message, reply_markup=reply_markup)
@@ -283,8 +290,6 @@ async def checkbot_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     user = update.effective_user
     lang = await get_user_lang(user.id)
     
-    # This command checks if the bot is in a group and can send a message.
-    # The GROUP_ID should be set in environment variables.
     try:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Testing connection...")
         await update.message.reply_text(MESSAGES[lang]["checkbot_success"])
@@ -352,15 +357,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         lang = query.data.split("_")[1]
         await set_user_lang(query.from_user.id, lang)
         
-        # Send a confirmation message in the chosen language
-        await context.bot.send_message(
-            chat_id=query.from_user.id,
-            text=MESSAGES[lang]["language_selected"]
-        )
-        
-        # Then send the main start message
+        # Edit the previous message to show the new language
         await send_start_message_with_lang(query, context, lang)
-        await query.delete_message()
         return
 
     action, user_id_str = query.data.split("_")
@@ -370,7 +368,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     if action == "approve":
         users_collection.update_one(
             {"user_id": user_id},
-            {"$set": {"is_approved": True, "earnings": 0.0, "last_earning_date": None}},
+            {"$set": {"is_approved": True, "earnings": 0.0}},
             upsert=True
         )
         user_lang = await get_user_lang(user_id)
@@ -382,11 +380,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await context.bot.send_message(chat_id=user_id, text=MESSAGES[user_lang]["earning_denied"])
         await query.edit_message_text(text=MESSAGES[admin_lang]["user_cancelled_admin"].format(user_id=user_id))
 
-# This function simulates the shortlink completion. You'll need to integrate this
-# logic with your actual shortlink service.
 async def process_shortlink_completion(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # This is where your shortlink service would call back to your bot with a user ID
-    # For this example, we assume the user ID is passed in the update or context
     referred_user = update.effective_user
     referral_data = referrals_collection.find_one({"referred_user_id": referred_user.id})
 
@@ -399,7 +393,6 @@ async def process_shortlink_completion(update: Update, context: ContextTypes.DEF
             last_earning_date = referrer_data.get("last_earning_date")
             referrer_lang = await get_user_lang(referrer_id)
             
-            # Check if earnings have already been added today for this referral
             if not last_earning_date or last_earning_date.date() < today:
                 earnings_to_add = 0.0018
                 new_balance = referrer_data.get('earnings', 0) + earnings_to_add
@@ -426,15 +419,10 @@ async def process_shortlink_completion(update: Update, context: ContextTypes.DEF
                     text=MESSAGES[referrer_lang]["daily_earning_limit"]
                 )
 
-# Example endpoint for shortlink service callback (needs to be configured on Render)
 @app.route('/shortlink_completed/<int:user_id>', methods=['GET'])
 def shortlink_completed(user_id):
-    # This is a mock. You'll need to implement the actual logic
-    # and call the `process_shortlink_completion` async function
-    # In a real-world scenario, you would handle this more robustly
     return jsonify({"status": "success", "message": "Earnings will be updated."})
 
-# Main function to run the bot
 def main() -> None:
     application = Application.builder().token(BOT_TOKEN).build()
     
