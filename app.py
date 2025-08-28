@@ -5,7 +5,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 from pymongo import MongoClient
 from datetime import datetime
 from dotenv import load_dotenv
-import asyncio # New import for handling the delay
+import asyncio
 
 # Enable logging
 logging.basicConfig(
@@ -23,7 +23,7 @@ MOVIE_GROUP_LINK = "https://t.me/addlist/EOSX8n4AoC1jYWU1"
 
 # Load Render-specific variables
 WEB_SERVER_URL = os.getenv("WEB_SERVER_URL")
-PORT = int(os.getenv("PORT", 8000))  # Default to 8000 if not set
+PORT = int(os.getenv("PORT", 8000))
 
 # Connect to MongoDB
 client = MongoClient(MONGO_URI)
