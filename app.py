@@ -5,6 +5,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 from pymongo import MongoClient
 from datetime import datetime
 from dotenv import load_dotenv
+import asyncio # New import for handling the delay
 
 # Enable logging
 logging.basicConfig(
@@ -569,45 +570,83 @@ async def handle_back_to_start(update: Update, context: ContextTypes.DEFAULT_TYP
         f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
     )
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-
-async def process_shortlink_completion(user_id):
-    referred_user = await Application.bot.get_chat(user_id)
-    referral_data = referrals_collection.find_one({"referred_user_id": user_id})
-
-    if referral_data:
-        referrer_id = referral_data["referrer_id"]
-        referrer_data = users_collection.find_one({"user_id": referrer_id, "is_approved": True})
+    
+# NEW FUNCTION - This will run after the 3-minute delay
+async def add_payment_after_delay(context: ContextTypes.DEFAULT_TYPE, user_id: int):
+    # Wait for 3 minutes (180 seconds)
+    await asyncio.sleep(180)
+    
+    # After the delay, perform the payment logic
+    user_data = users_collection.find_one({"user_id": user_id})
+    if user_data:
+        referral_data = referrals_collection.find_one({"referred_user_id": user_id})
         
-        if referrer_data:
-            today = datetime.now().date()
-            last_earning_date = referrer_data.get("last_earning_date")
-            referrer_lang = await get_user_lang(referrer_id)
+        if referral_data:
+            referrer_id = referral_data["referrer_id"]
+            referrer_data = users_collection.find_one({"user_id": referrer_id, "is_approved": True})
             
-            if not last_earning_date or last_earning_date.date() < today:
-                earnings_to_add = 0.0018
-                new_balance = referrer_data.get('earnings', 0) + earnings_to_add
+            if referrer_data:
+                today = datetime.now().date()
+                last_earning_date = referrer_data.get("last_earning_date")
                 
-                users_collection.update_one(
-                    {"user_id": referrer_id},
-                    {"$inc": {"earnings": earnings_to_add}, "$set": {"last_earning_date": datetime.now()}}
-                )
-                referrals_collection.update_one(
-                    {"referred_user_id": user_id},
-                    {"$set": {"is_active_earner": True}}
-                )
-                await Application.bot.send_message(
-                    chat_id=referrer_id,
-                    text=MESSAGES[referrer_lang]["daily_earning_update"].format(
-                        full_name=referred_user.full_name, new_balance=new_balance
-                    ),
-                    parse_mode='HTML'
-                )
-                logging.info(f"Updated earnings for referrer {referrer_id}. New balance: {new_balance}")
-            else:
-                await Application.bot.send_message(
-                    chat_id=referrer_id,
-                    text=MESSAGES[referrer_lang]["daily_earning_limit"]
-                )
+                # Check if this referrer has already earned from this user today
+                if not last_earning_date or last_earning_date.date() < today:
+                    earnings_to_add = 0.0018
+                    new_balance = referrer_data.get('earnings', 0) + earnings_to_add
+                    
+                    # Update earnings for the referrer
+                    users_collection.update_one(
+                        {"user_id": referrer_id},
+                        {"$inc": {"earnings": earnings_to_add}, "$set": {"last_earning_date": datetime.now()}}
+                    )
+
+                    # Mark the referral as an active earner
+                    referrals_collection.update_one(
+                        {"referred_user_id": user_id},
+                        {"$set": {"is_active_earner": True}}
+                    )
+
+                    # Notify the referrer
+                    referrer_lang = await get_user_lang(referrer_id)
+                    await context.bot.send_message(
+                        chat_id=referrer_id,
+                        text=MESSAGES[referrer_lang]["daily_earning_update"].format(
+                            full_name=user_data.get("full_name"), new_balance=new_balance
+                        ),
+                        parse_mode='HTML'
+                    )
+                    logging.info(f"Updated earnings for referrer {referrer_id}. New balance: {new_balance}")
+                else:
+                    logging.info(f"Daily earning limit reached for referrer {referrer_id} from user {user_id}.")
+
+
+# MODIFIED HANDLER - This will trigger the delayed task
+async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user = update.effective_user
+    chat = update.effective_chat
+    
+    # Check if the message is in a group
+    if chat.type in ["group", "supergroup"]:
+        logging.info(f"Message received in group from user: {user.id}")
+
+        # Find if this user was referred by someone
+        referral_data = referrals_collection.find_one({"referred_user_id": user.id})
+        
+        if referral_data:
+            referrer_id = referral_data["referrer_id"]
+            referrer_data = users_collection.find_one({"user_id": referrer_id, "is_approved": True})
+            
+            if referrer_data:
+                today = datetime.now().date()
+                last_earning_date = referrer_data.get("last_earning_date")
+                
+                # Check if this referrer has already earned from this user today
+                if not last_earning_date or last_earning_date.date() < today:
+                    # Create a new asyncio task to handle the delay and payment
+                    asyncio.create_task(add_payment_after_delay(context, user.id))
+                    logging.info(f"Payment task scheduled for user {user.id} after 3 minutes.")
+                else:
+                    logging.info(f"Daily earning limit reached for referrer {referrer_id} from user {user.id}. No new payment scheduled.")
 
 def main() -> None:
     """Start the bot."""
@@ -623,7 +662,7 @@ def main() -> None:
     application.add_handler(CommandHandler("stats", stats_command))
     application.add_handler(CommandHandler("broadcast", broadcast_command))
     
-    # Callback Handlers (More structured)
+    # Callback Handlers
     application.add_handler(CallbackQueryHandler(language_menu, pattern="^select_lang$"))
     application.add_handler(CallbackQueryHandler(handle_back_to_start, pattern="^back_to_start$"))
     application.add_handler(CallbackQueryHandler(handle_lang_choice, pattern="^lang_"))
@@ -633,6 +672,10 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(show_withdraw_details, pattern="^show_withdraw_details$"))
     application.add_handler(CallbackQueryHandler(back_to_withdraw_menu, pattern="^back_to_withdraw_menu$"))
     
+    # Group Message Handler (यह नया है)
+    # This will trigger the payment after a delay
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.GROUPS, handle_group_messages))
+
     # Start the Bot in webhook mode
     application.run_webhook(
         listen="0.0.0.0",
