@@ -43,12 +43,18 @@ MESSAGES = {
         "start_group_button": "Join Movies Group",
         "language_choice": "Choose your language:",
         "language_selected": "Language changed to English.",
-        "earn_message": "Click the button below to get your referral link and rules:",
-        "earn_button": "💰 Get Referral Link & Rules",
-        "earn_rules_title": "💰 Rules for Earning",
-        "earn_rule1": "➡️ Get people to join our group using your link.",
-        "earn_rule2": "➡️ When your referred user searches for a movie in the group, they'll be taken to our bot via a shortlink.",
-        "earn_rule3": "➡️ After they complete the shortlink process, you'll earn money. Note that you earn only <b>once per day</b> per referred user.",
+        # UPDATED MESSAGE FOR EARN BUTTON
+        "earn_message": "Here's how you can earn with this bot:",
+        # UPDATED EARN BUTTON TEXT
+        "earn_button": "How to Earn Money",
+        # UPDATED EARN RULES TITLE
+        "earn_rules_title": "💰 How to Earn with this Bot",
+        # UPDATED RULES FOR EARNING
+        "earn_rule1": "1. Refer friends using your unique referral link.",
+        "earn_rule2": "2. When a referred friend searches for a movie in the group, they will be redirected to the bot via a shortlink.",
+        "earn_rule3": "3. After they complete the shortlink, you earn money.",
+        "earn_rule4": "4. You can only earn from each referred user once per day.",
+        "earn_command_info": "Use the /earn command to get your referral link.",
         "earnings_breakdown": "Earnings Breakdown:",
         "owner_share": "Owner's Share:",
         "your_share": "Your Share:",
@@ -56,13 +62,18 @@ MESSAGES = {
         "withdrawal_message": "Click the button below to see your withdrawal details:",
         "withdraw_button": "💸 Withdrawal Details",
         "withdrawal_details_title": "💰 Withdrawal Details 💰",
-        "withdrawal_info": "Withdrawals are only possible via UPI ID, QR code, or bank account.\nYou can withdraw a maximum of $1 per month.",
+        # UPDATED WITHDRAWAL INFO
+        "withdrawal_info": "You can withdraw any amount as long as your balance is ₹80 or more. Withdrawals are only possible via UPI ID, QR code, or bank account.",
         "total_earnings": "Total Earnings:",
         "total_referrals": "Total Referrals:",
         "active_earners": "Active Earners Today:",
         "contact_admin_text": "Click the button below to contact the admin for withdrawal.",
         "contact_admin_button": "Contact Admin",
         "new_referral_notification": "🥳 Good news! A new user has joined through your link: {full_name} (@{username}).",
+        # ADDED LOGGING CHANNEL MESSAGE
+        "new_user_log": "🆕 <b>New User Connected:</b>\n\n<b>User ID:</b> <code>{user_id}</code>\n<b>Username:</b> @{username}\n<b>Full Name:</b> {full_name}\n<b>Referred By:</b> @{referrer_username} (ID: <code>{referrer_id}</code>)",
+        # NEW USER LOG WITHOUT REFERRER
+        "new_user_log_no_ref": "🆕 <b>New User Connected:</b>\n\n<b>User ID:</b> <code>{user_id}</code>\n<b>Username:</b> @{username}\n<b>Full Name:</b> {full_name}\n<b>Referred By:</b> None",
         "daily_earning_update": "🎉 <b>Your earnings have been updated!</b>\n"
                                 "A referred user ({full_name}) completed the shortlink process today.\n"
                                 "Your new balance: ${new_balance:.4f}",
@@ -92,12 +103,18 @@ MESSAGES = {
         "start_group_button": "मूवी ग्रुप जॉइन करें",
         "language_choice": "अपनी भाषा चुनें:",
         "language_selected": "भाषा हिंदी में बदल दी गई है।",
-        "earn_message": "अपनी रेफरल लिंक और नियम पाने के लिए नीचे दिए गए बटन पर क्लिक करें:",
-        "earn_button": "💰 रेफरल लिंक और नियम पाएँ",
-        "earn_rules_title": "💰 कमाई के नियम",
-        "earn_rule1": "➡️ अपनी लिंक का उपयोग करके लोगों को हमारे ग्रुप में शामिल करें।",
-        "earn_rule2": "➡️ जब आपका रेफर किया गया यूजर ग्रुप में किसी मूवी को खोजता है, तो उसे शॉर्टलिंक के जरिए हमारे बॉट पर ले जाया जाएगा।",
-        "earn_rule3": "➡️ जब वे शॉर्टलिंक प्रक्रिया पूरी कर लेंगे, तो आपको पैसे मिलेंगे। ध्यान दें कि आप प्रति रेफर किए गए यूजर से केवल <b>एक बार प्रति दिन</b> कमा सकते हैं।",
+        # UPDATED MESSAGE FOR EARN BUTTON
+        "earn_message": "आप इस बॉट से कैसे कमा सकते हैं, यहां बताया गया है:",
+        # UPDATED EARN BUTTON TEXT
+        "earn_button": "पैसे कैसे कमाएं",
+        # UPDATED EARN RULES TITLE
+        "earn_rules_title": "💰 इस बॉट से पैसे कैसे कमाएं",
+        # UPDATED RULES FOR EARNING
+        "earn_rule1": "1. अपनी रेफरल लिंक का उपयोग करके दोस्तों को रेफर करें।",
+        "earn_rule2": "2. जब आपका रेफर किया गया दोस्त ग्रुप में कोई मूवी खोजता है, तो उसे एक शॉर्टलिंक के माध्यम से बॉट पर रीडायरेक्ट किया जाएगा।",
+        "earn_rule3": "3. जब वे शॉर्टलिंक पूरा कर लेंगे, तो आप पैसे कमाएंगे।",
+        "earn_rule4": "4. आप प्रति रेफर किए गए यूजर से केवल एक बार प्रति दिन कमा सकते हैं।",
+        "earn_command_info": "अपनी रेफरल लिंक पाने के लिए /earn कमांड का उपयोग करें।",
         "earnings_breakdown": "कमाई का विवरण:",
         "owner_share": "मालिक का हिस्सा:",
         "your_share": "आपका हिस्सा:",
@@ -105,13 +122,18 @@ MESSAGES = {
         "withdrawal_message": "निकासी के विवरण देखने के लिए नीचे दिए गए बटन पर क्लिक करें:",
         "withdraw_button": "💸 निकासी का विवरण",
         "withdrawal_details_title": "💰 निकासी का विवरण 💰",
-        "withdrawal_info": "निकासी केवल UPI ID, QR कोड, या बैंक खाते के माध्यम से ही संभव है।\nआप हर महीने अधिकतम ₹80 या उससे अधिक होने पर ही निकाल सकते हैं।",
+        # UPDATED WITHDRAWAL INFO
+        "withdrawal_info": "आप किसी भी राशि को निकाल सकते हैं, बशर्ते कि आपका बैलेंस ₹80 या उससे अधिक हो। निकासी केवल UPI ID, QR कोड, या बैंक खाते के माध्यम से ही संभव है।",
         "total_earnings": "कुल कमाई:",
         "total_referrals": "कुल रेफरल:",
         "active_earners": "आज के सक्रिय कमाने वाले:",
         "contact_admin_text": "निकासी के लिए एडमिन से संपर्क करने हेतु नीचे दिए गए बटन पर क्लिक करें।",
         "contact_admin_button": "एडमिन से संपर्क करें",
         "new_referral_notification": "🥳 खुशखबरी! एक नया यूजर आपकी लिंक से जुड़ा है: {full_name} (@{username})।",
+        # ADDED LOGGING CHANNEL MESSAGE
+        "new_user_log": "🆕 <b>नया उपयोगकर्ता जुड़ा है:</b>\n\n<b>उपयोगकर्ता आईडी:</b> <code>{user_id}</code>\n<b>यूजरनेम:</b> @{username}\n<b>पूरा नाम:</b> {full_name}\n<b>किसके द्वारा रेफर किया गया:</b> @{referrer_username} (आईडी: <code>{referrer_id}</code>)",
+        # NEW USER LOG WITHOUT REFERRER
+        "new_user_log_no_ref": "🆕 <b>नया उपयोगकर्ता जुड़ा है:</b>\n\n<b>उपयोगकर्ता आईडी:</b> <code>{user_id}</code>\n<b>यूजरनेम:</b> @{username}\n<b>पूरा नाम:</b> {full_name}\n<b>किसके द्वारा रेफर किया गया:</b> कोई नहीं",
         "daily_earning_update": "🎉 <b>आपकी कमाई अपडेट हो गई है!</b>\n"
                                 "एक रेफर किए गए यूजर ({full_name}) ने आज शॉर्टलिंक प्रक्रिया पूरी की।\n"
                                 "आपका नया बैलेंस: ₹{new_balance:.2f}",
@@ -137,6 +159,9 @@ MESSAGES = {
 
 # Conversion rate (assuming a static rate for simplicity)
 DOLLAR_TO_INR = 83.0
+
+# ADD THIS VARIABLE FOR YOUR LOGGING CHANNEL
+LOG_CHANNEL_ID = os.getenv("LOG_CHANNEL_ID")
 
 async def get_user_lang(user_id):
     """Fetches user's language preference from the database."""
@@ -177,6 +202,29 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     user_data = users_collection.find_one({"user_id": user.id})
     lang = user_data.get("lang", "en")
+    
+    # NEW: LOG THE NEW USER
+    if is_new_user and LOG_CHANNEL_ID:
+        try:
+            if referral_id:
+                referrer_data = users_collection.find_one({"user_id": referral_id})
+                referrer_username = referrer_data.get("username", "Unknown") if referrer_data else "Unknown"
+                log_message = MESSAGES[lang]["new_user_log"].format(
+                    user_id=user.id,
+                    username=user.username or "N/A",
+                    full_name=user.full_name or "N/A",
+                    referrer_username=referrer_username,
+                    referrer_id=referral_id
+                )
+            else:
+                log_message = MESSAGES[lang]["new_user_log_no_ref"].format(
+                    user_id=user.id,
+                    username=user.username or "N/A",
+                    full_name=user.full_name or "N/A"
+                )
+            await context.bot.send_message(chat_id=LOG_CHANNEL_ID, text=log_message, parse_mode='HTML')
+        except Exception as e:
+            logging.error(f"Could not log new user to channel: {e}")
 
     # Handle referral logic
     if referral_id:
@@ -215,7 +263,8 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     keyboard = [
         [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
         [InlineKeyboardButton("Join All Movie Groups", url=ALL_GROUPS_LINK)],
-        [InlineKeyboardButton("💰 Earn Money", callback_data="show_earn_details")],
+        # UPDATED EARN BUTTON TEXT
+        [InlineKeyboardButton(MESSAGES[lang]["earn_button"], callback_data="show_earn_details")],
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -246,12 +295,24 @@ async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             "earnings": 0.0
         })
 
-    # Show the earning button for all users now
-    keyboard = [
-        [InlineKeyboardButton(MESSAGES[lang]["earn_button"], callback_data="show_earn_details")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_html(MESSAGES[lang]["earn_message"], reply_markup=reply_markup)
+    # UPDATED: The /earn command now directly shows the instructions
+    bot_info = await context.bot.get_me()
+    bot_username = bot_info.username
+
+    referral_link = f"https://t.me/{bot_username}?start=ref_{user.id}"
+
+    message = (
+        f"<b>{MESSAGES[lang]['earn_rules_title']}</b>\n\n"
+        f"{MESSAGES[lang]['earn_rule1']}\n"
+        f"{MESSAGES[lang]['earn_rule2']}\n"
+        f"{MESSAGES[lang]['earn_rule3']}\n"
+        f"{MESSAGES[lang]['earn_rule4']}\n\n"
+        f"<b>Your Referral Link:</b>\n"
+        f"<code>{referral_link}</code>\n\n"
+        f"<i>{MESSAGES[lang]['earnings_update']}</i>"
+    )
+
+    await update.message.reply_html(message)
 
 async def show_earn_details(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -259,45 +320,22 @@ async def show_earn_details(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     user = query.from_user
     lang = await get_user_lang(user.id)
-    bot_info = await context.bot.get_me()
-    bot_username = bot_info.username
-
-    referral_link = f"https://t.me/{bot_username}?start=ref_{user.id}"
     
-    owner_share_usd = 0.006
-    user_share_usd = 0.0018
-    user_share_inr = user_share_usd * DOLLAR_TO_INR
-
+    # The button now explains how to earn, not the rules
     message = (
         f"<b>{MESSAGES[lang]['earn_rules_title']}</b>\n\n"
-        f"<b>Your Referral Link:</b>\n"
-        f"<code>{referral_link}</code>\n\n"
-        f"<b>Rules:</b>\n"
-        f"1. {MESSAGES[lang]['earn_rule1']}\n"
-        f"2. {MESSAGES[lang]['earn_rule2']}\n"
-        f"3. {MESSAGES[lang]['earn_rule3']}\n\n"
-        f"<b>{MESSAGES[lang]['earnings_breakdown']}</b>\n"
-        f"<b>{MESSAGES[lang]['owner_share']}</b> ${owner_share_usd:.4f}\n"
-        f"<b>{MESSAGES[lang]['your_share']}</b> ₹{user_share_inr:.2f}\n\n"
-        f"<i>{MESSAGES[lang]['earnings_update']}</i>"
+        f"{MESSAGES[lang]['earn_rule1']}\n"
+        f"{MESSAGES[lang]['earn_rule2']}\n"
+        f"{MESSAGES[lang]['earn_rule3']}\n"
+        f"{MESSAGES[lang]['earn_rule4']}\n\n"
+        f"{MESSAGES[lang]['earn_command_info']}"
     )
 
-    keyboard = [[InlineKeyboardButton("← Back", callback_data="back_to_earn_menu")]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+    await query.edit_message_text(message, parse_mode='HTML')
 
 async def back_to_earn_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    await query.answer()
-
-    user = query.from_user
-    lang = await get_user_lang(user.id)
-    
-    keyboard = [[InlineKeyboardButton(MESSAGES[lang]["earn_button"], callback_data="show_earn_details")]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await query.edit_message_text(MESSAGES[lang]["earn_message"], reply_markup=reply_markup, parse_mode='HTML')
+    # This function is no longer needed as the flow is simpler
+    pass
 
 async def withdraw_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
@@ -516,7 +554,8 @@ async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
     keyboard = [
         [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
         [InlineKeyboardButton("Join All Movie Groups", url=ALL_GROUPS_LINK)],
-        [InlineKeyboardButton("💰 Earn Money", callback_data="show_earn_details")],
+        # UPDATED EARN BUTTON TEXT
+        [InlineKeyboardButton(MESSAGES[lang]["earn_button"], callback_data="show_earn_details")],
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -541,7 +580,8 @@ async def handle_back_to_start(update: Update, context: ContextTypes.DEFAULT_TYP
     keyboard = [
         [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
         [InlineKeyboardButton("Join All Movie Groups", url=ALL_GROUPS_LINK)],
-        [InlineKeyboardButton("💰 Earn Money", callback_data="show_earn_details")],
+        # UPDATED EARN BUTTON TEXT
+        [InlineKeyboardButton(MESSAGES[lang]["earn_button"], callback_data="show_earn_details")],
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
