@@ -19,7 +19,9 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 MONGO_URI = os.getenv("MONGO_URI")
 ADMIN_ID = int(os.getenv("ADMIN_ID"))
 YOUR_TELEGRAM_HANDLE = os.getenv("YOUR_TELEGRAM_HANDLE")
-MOVIE_GROUP_LINK = "https://t.me/addlist/EOSX8n4AoC1jYWU1"
+# Updated movie group links
+MOVIE_GROUP_LINK = "https://t.me/movies_searchh_group"
+ALL_GROUPS_LINK = "https://t.me/addlist/EOSX8n4AoC1jYWU1"
 
 # Load Render-specific variables
 WEB_SERVER_URL = os.getenv("WEB_SERVER_URL")
@@ -79,7 +81,8 @@ MESSAGES = {
         "clear_earn_usage": "❌ Usage: /clearearn <user_id>",
         "check_stats_message": "Stats for user {user_id}:\n\nTotal Earnings: ${earnings:.4f}\nTotal Referrals: {referrals}",
         "check_stats_not_found": "❌ User with ID {user_id} not found.",
-        "check_stats_usage": "❌ Usage: /checkstats <user_id>"
+        "check_stats_usage": "❌ Usage: /checkstats <user_id>",
+        "referral_already_exists": "This user has already been referred by someone else. You cannot get any benefits from this referral.",
     },
     "hi": {
         "start_greeting": "नमस्ते 👋! मूवी ग्रुप बॉट में आपका स्वागत है। इन आसान स्टेप्स को फॉलो करके अपनी पसंदीदा मूवी पाएँ:",
@@ -102,7 +105,7 @@ MESSAGES = {
         "withdrawal_message": "निकासी के विवरण देखने के लिए नीचे दिए गए बटन पर क्लिक करें:",
         "withdraw_button": "💸 निकासी का विवरण",
         "withdrawal_details_title": "💰 निकासी का विवरण 💰",
-        "withdrawal_info": "निकासी केवल UPI ID, QR कोड, या बैंक खाते के माध्यम से ही संभव है।\nआप हर महीने अधिकतम $1 निकाल सकते हैं।",
+        "withdrawal_info": "निकासी केवल UPI ID, QR कोड, या बैंक खाते के माध्यम से ही संभव है।\nआप हर महीने अधिकतम ₹80 या उससे अधिक होने पर ही निकाल सकते हैं।",
         "total_earnings": "कुल कमाई:",
         "total_referrals": "कुल रेफरल:",
         "active_earners": "आज के सक्रिय कमाने वाले:",
@@ -111,7 +114,7 @@ MESSAGES = {
         "new_referral_notification": "🥳 खुशखबरी! एक नया यूजर आपकी लिंक से जुड़ा है: {full_name} (@{username})।",
         "daily_earning_update": "🎉 <b>आपकी कमाई अपडेट हो गई है!</b>\n"
                                 "एक रेफर किए गए यूजर ({full_name}) ने आज शॉर्टलिंक प्रक्रिया पूरी की।\n"
-                                "आपका नया बैलेंस: ${new_balance:.4f}",
+                                "आपका नया बैलेंस: ₹{new_balance:.2f}",
         "daily_earning_limit": "इस यूजर से आपने आज पहले ही कमाई कर ली है। आपकी कमाई कल फिर से अपडेट होगी।",
         "checkbot_success": "✅ बॉट इस ग्रुप से जुड़ा हुआ है!",
         "checkbot_failure": "❌ बॉट इस ग्रुप से जुड़ा हुआ नहीं है। कृपया सेटिंग्स जांचें।",
@@ -125,11 +128,16 @@ MESSAGES = {
         "clear_earn_success": "✅ यूजर {user_id} की कमाई साफ कर दी गई है।",
         "clear_earn_not_found": "❌ यूजर ID {user_id} नहीं मिला या वह कमाने वाला नहीं है।",
         "clear_earn_usage": "❌ उपयोग: /clearearn <user_id>",
-        "check_stats_message": "यूजर {user_id} के आंकड़े:\n\nकुल कमाई: ${earnings:.4f}\nकुल रेफरल: {referrals}",
+        "check_stats_message": "यूजर {user_id} के आंकड़े:\n\nकुल कमाई: ₹{earnings:.2f}\nकुल रेफरल: {referrals}",
         "check_stats_not_found": "❌ यूजर ID {user_id} नहीं मिला।",
-        "check_stats_usage": "❌ उपयोग: /checkstats <user_id>"
+        "check_stats_usage": "❌ उपयोग: /checkstats <user_id>",
+        "referral_already_exists": "यह उपयोगकर्ता पहले ही किसी और के द्वारा रेफर किया जा चुका है। इसलिए, आप इस रेफरल से कोई लाभ नहीं उठा सकते हैं।"
     }
 }
+
+# Conversion rate (assuming a static rate for simplicity)
+DOLLAR_TO_INR = 83.0
+
 async def get_user_lang(user_id):
     """Fetches user's language preference from the database."""
     user_data = users_collection.find_one({"user_id": user_id})
@@ -145,7 +153,14 @@ async def set_user_lang(user_id, lang):
     
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
-    referral_id = context.args[0].replace("ref_", "") if context.args and context.args[0].startswith("ref_") else None
+    referral_id_str = context.args[0].replace("ref_", "") if context.args and context.args[0].startswith("ref_") else None
+    referral_id = int(referral_id_str) if referral_id_str else None
+
+    # Check if user already exists
+    user_data = users_collection.find_one({"user_id": user.id})
+    
+    # Check if a new user is being referred and they are not already in the DB
+    is_new_user = not user_data
 
     # Update or insert user data.
     users_collection.update_one(
@@ -154,7 +169,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             "username": user.username,
             "full_name": user.full_name,
             "lang": "en",
-            "is_approved": True,  # Now all new users are auto-approved
+            "is_approved": True,
             "earnings": 0.0
         }},
         upsert=True
@@ -163,9 +178,44 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     user_data = users_collection.find_one({"user_id": user.id})
     lang = user_data.get("lang", "en")
 
-    # Create the keyboard with the movie group button and language button
+    # Handle referral logic
+    if referral_id:
+        existing_referral = referrals_collection.find_one({"referred_user_id": user.id})
+        
+        if existing_referral:
+            # If a referral already exists for this user, notify the current referrer
+            referrer_lang = await get_user_lang(referral_id)
+            await context.bot.send_message(
+                chat_id=referral_id,
+                text=MESSAGES[referrer_lang]["referral_already_exists"]
+            )
+        elif is_new_user:
+            # This is a new user and a valid referral, so process it
+            referrals_collection.insert_one({
+                "referrer_id": referral_id,
+                "referred_user_id": user.id,
+                "referred_username": user.username,
+                "join_date": datetime.now(),
+            })
+            try:
+                # Use a fallback username if none is available
+                referred_username_display = f"@{user.username}" if user.username else f"(No username)"
+                
+                referrer_lang = await get_user_lang(referral_id)
+                await context.bot.send_message(
+                    chat_id=referral_id,
+                    text=MESSAGES[referrer_lang]["new_referral_notification"].format(
+                        full_name=user.full_name, username=referred_username_display
+                    )
+                )
+            except Exception as e:
+                logging.error(f"Could not notify referrer {referral_id}: {e}")
+
+    # Create the keyboard with the movie group button, all groups button, and earn money button
     keyboard = [
         [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
+        [InlineKeyboardButton("Join All Movie Groups", url=ALL_GROUPS_LINK)],
+        [InlineKeyboardButton("💰 Earn Money", callback_data="show_earn_details")],
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -179,30 +229,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     )
 
     await update.message.reply_html(message, reply_markup=reply_markup)
-
-    # Referral logic remains the same
-    if referral_id:
-        referral_data = referrals_collection.find_one({"referred_user_id": user.id})
-        if not referral_data:
-            referrals_collection.insert_one({
-                "referrer_id": int(referral_id),
-                "referred_user_id": user.id,
-                "referred_username": user.username,
-                "join_date": datetime.now(),
-            })
-            try:
-                # Use a fallback username if none is available
-                referred_username_display = f"@{user.username}" if user.username else f"(No username)"
-                
-                referrer_lang = await get_user_lang(int(referral_id))
-                await context.bot.send_message(
-                    chat_id=int(referral_id),
-                    text=MESSAGES[referrer_lang]["new_referral_notification"].format(
-                        full_name=user.full_name, username=referred_username_display
-                    )
-                )
-            except Exception as e:
-                logging.error(f"Could not notify referrer {referral_id}: {e}")
                 
 async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
@@ -238,7 +264,10 @@ async def show_earn_details(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     referral_link = f"https://t.me/{bot_username}?start=ref_{user.id}"
     
-    # Corrected message title
+    owner_share_usd = 0.006
+    user_share_usd = 0.0018
+    user_share_inr = user_share_usd * DOLLAR_TO_INR
+
     message = (
         f"<b>{MESSAGES[lang]['earn_rules_title']}</b>\n\n"
         f"<b>Your Referral Link:</b>\n"
@@ -248,8 +277,8 @@ async def show_earn_details(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         f"2. {MESSAGES[lang]['earn_rule2']}\n"
         f"3. {MESSAGES[lang]['earn_rule3']}\n\n"
         f"<b>{MESSAGES[lang]['earnings_breakdown']}</b>\n"
-        f"<b>{MESSAGES[lang]['owner_share']}</b> $0.006\n"
-        f"<b>{MESSAGES[lang]['your_share']}</b> $0.0018\n\n"
+        f"<b>{MESSAGES[lang]['owner_share']}</b> ${owner_share_usd:.4f}\n"
+        f"<b>{MESSAGES[lang]['your_share']}</b> ₹{user_share_inr:.2f}\n\n"
         f"<i>{MESSAGES[lang]['earnings_update']}</i>"
     )
 
@@ -303,19 +332,27 @@ async def show_withdraw_details(update: Update, context: ContextTypes.DEFAULT_TY
         return
 
     earnings = user_data.get("earnings", 0.0)
+    earnings_inr = earnings * DOLLAR_TO_INR
     referrals_count = referrals_collection.count_documents({"referrer_id": user.id})
     
     withdraw_link = f"https://t.me/{YOUR_TELEGRAM_HANDLE}"
-
-    keyboard = [
-        [InlineKeyboardButton(MESSAGES[lang]["contact_admin_button"], url=withdraw_link)],
-        [InlineKeyboardButton("← Back", callback_data="back_to_withdraw_menu")]
-    ]
+    
+    # Check if earnings are >= 80 INR
+    if earnings_inr >= 80:
+        keyboard = [
+            [InlineKeyboardButton(MESSAGES[lang]["contact_admin_button"], url=withdraw_link)],
+            [InlineKeyboardButton("← Back", callback_data="back_to_withdraw_menu")]
+        ]
+    else:
+        keyboard = [
+            [InlineKeyboardButton("← Back", callback_data="back_to_withdraw_menu")]
+        ]
+    
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     message = (
         f"<b>{MESSAGES[lang]['withdrawal_details_title']}</b>\n\n"
-        f"<b>{MESSAGES[lang]['total_earnings']}</b> <b>${earnings:.4f}</b>\n"
+        f"<b>{MESSAGES[lang]['total_earnings']}</b> <b>₹{earnings_inr:.2f}</b>\n"
         f"<b>{MESSAGES[lang]['total_referrals']}</b> <b>{referrals_count}</b>\n\n"
         f"<b>{MESSAGES[lang]['withdrawal_info']}</b>"
     )
@@ -350,7 +387,7 @@ async def clear_earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
         target_user_id = int(context.args[0])
         result = users_collection.update_one(
             {"user_id": target_user_id},
-            {"$set": {"earnings": 0.0, "last_earning_date": None}}
+            {"$set": {"earnings": 0.0}}
         )
         if result.modified_count > 0:
             await update.message.reply_text(MESSAGES[lang]["clear_earn_success"].format(user_id=target_user_id))
@@ -377,11 +414,12 @@ async def check_stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE
 
         if user_data:
             earnings = user_data.get("earnings", 0.0)
+            earnings_inr = earnings * DOLLAR_TO_INR
             referrals = referrals_collection.count_documents({"referrer_id": target_user_id})
 
             message = MESSAGES[lang]["check_stats_message"].format(
                 user_id=target_user_id,
-                earnings=earnings,
+                earnings=earnings_inr,
                 referrals=referrals
             )
             await update.message.reply_text(message)
@@ -389,6 +427,7 @@ async def check_stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE
             await update.message.reply_text(MESSAGES[lang]["check_stats_not_found"].format(user_id=target_user_id))
     except ValueError:
         await update.message.reply_text(MESSAGES[lang]["check_stats_usage"])
+        
 async def checkbot_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     lang = await get_user_lang(user.id)
@@ -476,6 +515,8 @@ async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
     # Re-create the main start message with the new language
     keyboard = [
         [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
+        [InlineKeyboardButton("Join All Movie Groups", url=ALL_GROUPS_LINK)],
+        [InlineKeyboardButton("💰 Earn Money", callback_data="show_earn_details")],
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -499,6 +540,8 @@ async def handle_back_to_start(update: Update, context: ContextTypes.DEFAULT_TYP
 
     keyboard = [
         [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
+        [InlineKeyboardButton("Join All Movie Groups", url=ALL_GROUPS_LINK)],
+        [InlineKeyboardButton("💰 Earn Money", callback_data="show_earn_details")],
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -551,13 +594,16 @@ async def add_payment_after_delay(context: ContextTypes.DEFAULT_TYPE, user_id: i
                         {"referred_user_id": user_id},
                         {"$set": {"last_earning_date": datetime.now()}}
                     )
+                    
+                    # Convert new balance to INR for the message
+                    new_balance_inr = new_balance * DOLLAR_TO_INR
 
                     # Notify the referrer
                     referrer_lang = await get_user_lang(referrer_id)
                     await context.bot.send_message(
                         chat_id=referrer_id,
                         text=MESSAGES[referrer_lang]["daily_earning_update"].format(
-                            full_name=user_data.get("full_name"), new_balance=new_balance
+                            full_name=user_data.get("full_name"), new_balance=new_balance_inr
                         ),
                         parse_mode='HTML'
                     )
