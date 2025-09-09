@@ -85,7 +85,7 @@ MESSAGES = {
         "clear_earn_success": "✅ User {user_id}'s earnings have been cleared.",
         "clear_earn_not_found": "❌ User with ID {user_id} not found or not an earner.",
         "clear_earn_usage": "❌ Usage: /clearearn <user_id>",
-        "check_stats_message": "Stats for user {user_id}:\n\nTotal Earnings: ${earnings:.4f}\nTotal Referrals: {referrals}",
+        "check_stats_message": "Stats for user {user_id}:\n\nTotal Earnings: ₹{earnings:.2f}\nTotal Referrals: {referrals}",
         "check_stats_not_found": "❌ User with ID {user_id} not found.",
         "check_stats_usage": "❌ Usage: /checkstats <user_id>",
         "referral_already_exists": "This user has already been referred by someone else. You cannot get any benefits from this referral.",
@@ -305,8 +305,9 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     # Send the main menu with earning panel and movie groups
     lang = await get_user_lang(user.id)
     keyboard = [
-        [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
+        # Buttons are now swapped to show Movie Groups first
         [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
+        [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -506,8 +507,9 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     lang = await get_user_lang(query.from_user.id)
     keyboard = [
-        [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
+        # Buttons are now swapped to show Movie Groups first
         [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
+        [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -571,11 +573,11 @@ async def set_referral_rate_command(update: Update, context: ContextTypes.DEFAUL
     lang = await get_user_lang(user.id)
 
     if user.id != ADMIN_ID:
-        await update.message.reply_text(MESSAGES[lang]["broadcast_admin_only"])
+        await update.message.reply_html(MESSAGES[lang]["broadcast_admin_only"])
         return
 
     if len(context.args) != 1:
-        await update.message.reply_text(MESSAGES[lang]["setrate_usage"])
+        await update.message.reply_html(MESSAGES[lang]["setrate_usage"])
         return
 
     try:
@@ -585,22 +587,22 @@ async def set_referral_rate_command(update: Update, context: ContextTypes.DEFAUL
             {"$set": {"rate_inr": new_rate_inr}},
             upsert=True
         )
-        await update.message.reply_text(
+        await update.message.reply_html(
             MESSAGES[lang]["setrate_success"].format(new_rate=new_rate_inr)
         )
     except ValueError:
-        await update.message.reply_text(MESSAGES[lang]["invalid_rate"])
+        await update.message.reply_html(MESSAGES[lang]["invalid_rate"])
 
 async def clear_earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     lang = await get_user_lang(user.id)
 
     if user.id != ADMIN_ID:
-        await update.message.reply_text(MESSAGES[lang]["broadcast_admin_only"])
+        await update.message.reply_html(MESSAGES[lang]["broadcast_admin_only"])
         return
 
     if len(context.args) != 1:
-        await update.message.reply_text(MESSAGES[lang]["clear_earn_usage"])
+        await update.message.reply_html(MESSAGES[lang]["clear_earn_usage"])
         return
 
     try:
@@ -610,22 +612,22 @@ async def clear_earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
             {"$set": {"earnings": 0.0}}
         )
         if result.modified_count > 0:
-            await update.message.reply_text(MESSAGES[lang]["clear_earn_success"].format(user_id=target_user_id))
+            await update.message.reply_html(MESSAGES[lang]["clear_earn_success"].format(user_id=target_user_id))
         else:
-            await update.message.reply_text(MESSAGES[lang]["clear_earn_not_found"].format(user_id=target_user_id))
+            await update.message.reply_html(MESSAGES[lang]["clear_earn_not_found"].format(user_id=target_user_id))
     except ValueError:
-        await update.message.reply_text(MESSAGES[lang]["clear_earn_usage"])
+        await update.message.reply_html(MESSAGES[lang]["clear_earn_usage"])
         
 async def check_stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     lang = await get_user_lang(user.id)
 
     if user.id != ADMIN_ID:
-        await update.message.reply_text(MESSAGES[lang]["broadcast_admin_only"])
+        await update.message.reply_html(MESSAGES[lang]["broadcast_admin_only"])
         return
 
     if len(context.args) != 1:
-        await update.message.reply_text(MESSAGES[lang]["check_stats_usage"])
+        await update.message.reply_html(MESSAGES[lang]["check_stats_usage"])
         return
 
     try:
@@ -637,40 +639,41 @@ async def check_stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE
             earnings_inr = earnings * DOLLAR_TO_INR
             referrals = referrals_collection.count_documents({"referrer_id": target_user_id})
 
+            # The currency symbol and conversion have been fixed here
             message = MESSAGES[lang]["check_stats_message"].format(
                 user_id=target_user_id,
                 earnings=earnings_inr,
                 referrals=referrals
             )
-            await update.message.reply_text(message)
+            await update.message.reply_html(message)
         else:
-            await update.message.reply_text(MESSAGES[lang]["check_stats_not_found"].format(user_id=target_user_id))
+            await update.message.reply_html(MESSAGES[lang]["check_stats_not_found"].format(user_id=target_user_id))
     except ValueError:
-        await update.message.reply_text(MESSAGES[lang]["check_stats_usage"])
+        await update.message.reply_html(MESSAGES[lang]["check_stats_usage"])
         
 async def checkbot_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     lang = await get_user_lang(user.id)
     
     try:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Testing connection...")
-        await update.message.reply_text(MESSAGES[lang]["checkbot_success"])
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Testing connection...", parse_mode='HTML')
+        await update.message.reply_html(MESSAGES[lang]["checkbot_success"])
     except Exception as e:
         logging.error(f"Bot is not connected: {e}")
-        await update.message.reply_text(MESSAGES[lang]["checkbot_failure"])
+        await update.message.reply_html(MESSAGES[lang]["checkbot_failure"])
         
 async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     lang = await get_user_lang(user.id)
     
     if user.id != ADMIN_ID:
-        await update.message.reply_text(MESSAGES[lang]["broadcast_admin_only"])
+        await update.message.reply_html(MESSAGES[lang]["broadcast_admin_only"])
         return
 
     total_users = users_collection.count_documents({})
     approved_users = users_collection.count_documents({"is_approved": True})
     
-    await update.message.reply_text(
+    await update.message.reply_html(
         MESSAGES[lang]["stats_message"].format(
             total_users=total_users, approved_users=approved_users
         )
@@ -681,18 +684,18 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     lang = await get_user_lang(user.id)
 
     if user.id != ADMIN_ID:
-        await update.message.reply_text(MESSAGES[lang]["broadcast_admin_only"])
+        await update.message.reply_html(MESSAGES[lang]["broadcast_admin_only"])
         return
 
     if not update.message.reply_to_message:
-        await update.message.reply_text(MESSAGES[lang]["broadcast_message"])
+        await update.message.reply_html(MESSAGES[lang]["broadcast_message"])
         return
 
     message_to_send = update.message.reply_to_message
     all_users = list(users_collection.find({}, {"user_id": 1}))
     tasks = []
     
-    await update.message.reply_text("Sending broadcast message...")
+    await update.message.reply_html("Sending broadcast message...")
 
     for user_doc in all_users:
         user_id = user_doc["user_id"]
@@ -720,7 +723,7 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         else:
             sent_count += 1
     
-    await update.message.reply_text(f"✅ Broadcast finished!\n\nSent to: {sent_count} users\nFailed: {failed_count} users")
+    await update.message.reply_html(f"✅ Broadcast finished!\n\nSent to: {sent_count} users\nFailed: {failed_count} users")
 
 
 async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -746,8 +749,8 @@ async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
     
     # Re-create the main start message with the new language
     keyboard = [
-        [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
         [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
+        [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -877,4 +880,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
