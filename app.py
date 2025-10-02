@@ -21,7 +21,7 @@ MONGO_URI = os.getenv("MONGO_URI")
 ADMIN_ID = int(os.getenv("ADMIN_ID"))
 YOUR_TELEGRAM_HANDLE = os.getenv("YOUR_TELEGRAM_HANDLE")
 # Updated movie group links
-MOVIE_GROUP_LINK = "https://t.me/movies_searchh_group"
+MOVIE_GROUP_LINK = "https://t.me/asfilter_group"
 ALL_GROUPS_LINK = "https://t.me/addlist/EOSX8n4AoC1jYWU1"
 
 # Load Render-specific variables
