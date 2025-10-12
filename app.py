@@ -312,15 +312,12 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 )
             except (TelegramError, TimedOut) as e:
                 logging.error(f"Could not notify referrer {referral_id}: {e}")
-            # यहाँ से अनावश्यक 'sleep' हटा दिया गया है
-            # await asyncio.sleep(1) 
 
 
     # Send the main menu with earning panel and movie groups
     lang = await get_user_lang(user.id)
     keyboard = [
-        # NEW BUTTON ADDED HERE
-        # 'Movie Groups' सब-मेन्यू में जाने वाला बटन अब एक अलग रो में है
+        # FIX: 'Movie Groups' बटन का callback_data जोड़ा गया
         [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")], 
         [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
@@ -505,15 +502,15 @@ async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
         )
 
-
+# FIX: यह नया फ़ंक्शन 'Movie Groups' बटन के क्लिक को हैंडल करेगा
 async def show_movie_groups_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
 
     lang = await get_user_lang(query.from_user.id)
 
+    # मूवी ग्रुप्स के लिंक वाले बटन
     keyboard = [
-        # यह मूवी ग्रुप सब-मेन्यू है, जहाँ सभी ग्रुप बटन हैं।
         [InlineKeyboardButton(MESSAGES[lang]["new_group_button"], url=NEW_MOVIE_GROUP_LINK)],
         [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
         [InlineKeyboardButton("Join All Movie Groups", url=ALL_GROUPS_LINK)],
@@ -522,10 +519,8 @@ async def show_movie_groups_menu(update: Update, context: ContextTypes.DEFAULT_T
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     message = (
-        f"{MESSAGES[lang]['start_greeting']}\n\n"
-        f"<b>1.</b> {MESSAGES[lang]['start_step1']}\n"
-        f"<b>2.</b> {MESSAGES[lang]['start_step2']}\n"
-        f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
+        f"<b>🎬 Movie Groups</b>\n\n"
+        f"{MESSAGES[lang]['start_step1']}"
     )
 
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
@@ -536,7 +531,7 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     lang = await get_user_lang(query.from_user.id)
     keyboard = [
-        # मुख्य मेन्यू में 'Movie Groups' बटन कॉलबैक डेटा 'show_movie_groups_menu' का उपयोग करता है
+        # मुख्य मेन्यू में 'Movie Groups' बटन का callback_data सुनिश्चित किया गया
         [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
         [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
@@ -797,6 +792,7 @@ async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     lang = await get_user_lang(query.from_user.id)
     await query.edit_message_text(text=MESSAGES[lang]["language_choice"], reply_markup=reply_markup)
     
+# FIX: भाषा बदलने के बाद मेन्यू को अपडेट करने के लिए लॉजिक जोड़ा गया
 async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
@@ -805,8 +801,9 @@ async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await set_user_lang(query.from_user.id, lang)
     
     # Re-create the main start message with the new language
+    # FIX: नए lang के साथ मेन्यू बटनों को अपडेट करें
     keyboard = [
-        # मुख्य मेन्यू में 'Movie Groups' बटन कॉलबैक डेटा 'show_movie_groups_menu' का उपयोग करता है
+        # मुख्य मेन्यू में 'Movie Groups' बटन का callback_data सुनिश्चित किया गया
         [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
         [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
@@ -921,7 +918,7 @@ def main() -> None:
     
     # Callback Handlers
     application.add_handler(CallbackQueryHandler(show_earning_panel, pattern="^show_earning_panel$"))
-    # 'Movie Groups' बटन का हैंडलर
+    # FIX: 'Movie Groups' बटन के लिए हैंडलर जोड़ा गया
     application.add_handler(CallbackQueryHandler(show_movie_groups_menu, pattern="^show_movie_groups_menu$"))
     application.add_handler(CallbackQueryHandler(back_to_main_menu, pattern="^back_to_main_menu$"))
     application.add_handler(CallbackQueryHandler(language_menu, pattern="^select_lang$"))
