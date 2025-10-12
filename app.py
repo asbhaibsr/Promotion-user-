@@ -25,7 +25,8 @@ LOG_CHANNEL_ID = os.getenv("LOG_CHANNEL_ID")
 
 # New movie group link and original links
 NEW_MOVIE_GROUP_LINK = "https://t.me/Susanllll_bot/app?startapp=NzMxNTgwNTU4MV83ODU2NjkwMTgz"
-MOVIE_GROUP_LINK = "https://tme/asfilter_group" # यदि यह लिंक गलत है, तो इसे सही करें
+# 🔴 FIX: URL को 'https://t.me/asfilter_group' में बदला गया
+MOVIE_GROUP_LINK = "https://t.me/asfilter_group" 
 ALL_GROUPS_LINK = "https://t.me/addlist/EOSX8n4AoC1jYWU1"
 
 # Load Render-specific variables
@@ -510,6 +511,7 @@ async def show_movie_groups_menu(update: Update, context: ContextTypes.DEFAULT_T
     lang = await get_user_lang(query.from_user.id)
 
     # मूवी ग्रुप्स के लिंक वाले बटन
+    # MOVIE_GROUP_LINK अब सही होना चाहिए
     keyboard = [
         [InlineKeyboardButton(MESSAGES[lang]["new_group_button"], url=NEW_MOVIE_GROUP_LINK)],
         [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
@@ -825,7 +827,7 @@ async def add_payment_after_delay(context: ContextTypes.DEFAULT_TYPE, user_id: i
     
     user_data = users_collection.find_one({"user_id": user_id})
     if user_data:
-        referral_data = referrals_collection.find_one({"referred_user_id": user_id})
+        referral_data = referrals_collection.find_one({"referred_user_id": user.id})
         
         if referral_data:
             referrer_id = referral_data["referrer_id"]
