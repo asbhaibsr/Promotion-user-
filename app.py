@@ -1,7 +1,7 @@
 import os
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.error import TelegramError
+from telegram.error import TelegramError, TimedOut
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
 from pymongo import MongoClient
 from datetime import datetime, timedelta
@@ -20,7 +20,10 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 MONGO_URI = os.getenv("MONGO_URI")
 ADMIN_ID = int(os.getenv("ADMIN_ID"))
 YOUR_TELEGRAM_HANDLE = os.getenv("YOUR_TELEGRAM_HANDLE")
-# Updated movie group links
+
+# New movie group link and original links
+# New button link added here
+NEW_MOVIE_GROUP_LINK = "https://t.me/Susanllll_bot/app?startapp=NzMxNTgwNTU4MV83ODU2NjkwMTgz"
 MOVIE_GROUP_LINK = "https://t.me/asfilter_group"
 ALL_GROUPS_LINK = "https://t.me/addlist/EOSX8n4AoC1jYWU1"
 
@@ -35,7 +38,8 @@ users_collection = db.get_collection('users')
 referrals_collection = db.get_collection('referrals')
 settings_collection = db.get_collection('settings')
 
-# Dictionaries for multi-language support (आपका पूरा MESSAGES डिक्ट यहीं रहेगा)
+# --- MESSAGES Dictionary (आपका पूरा MESSAGES डिक्ट यहीं रहेगा) ---
+# Dictionaries for multi-language support 
 MESSAGES = {
     "en": {
         "start_greeting": "Hey 👋! Welcome to the Movies Group Bot. Get your favorite movies by following these simple steps:",
@@ -43,6 +47,7 @@ MESSAGES = {
         "start_step2": "Go to the group and type the name of the movie you want.",
         "start_step3": "The bot will give you a link to your movie.",
         "start_group_button": "Join Movies Group",
+        "new_group_button": "🆕 New Movie Group", # New button text
         "language_choice": "Choose your language:",
         "language_selected": "Language changed to English.",
         "earn_message": "Here's how you can earn with this bot:",
@@ -115,6 +120,7 @@ MESSAGES = {
         "start_step2": "ग्रुप में जाकर अपनी मनपसंद मूवी का नाम लिखें।",
         "start_step3": "बॉट आपको आपकी मूवी की लिंक देगा।",
         "start_group_button": "मूवी ग्रुप जॉइन करें",
+        "new_group_button": "🆕 नया मूवी ग्रुप", # New button text
         "language_choice": "अपनी भाषा चुनें:",
         "language_selected": "भाषा हिंदी में बदल दी गई है।",
         "earn_message": "आप इस बॉट से कैसे कमा सकते हैं, यहां बताया गया है:",
@@ -182,6 +188,8 @@ MESSAGES = {
         "referral_rate_updated": "नई रेफरल दर अब ₹{new_rate:.2f} है।",
     }
 }
+# --- MESSAGES Dictionary End ---
+
 
 # Conversion rate (assuming a static rate for simplicity)
 DOLLAR_TO_INR = 83.0
@@ -204,8 +212,9 @@ async def get_user_lang(user_id):
 
 async def set_user_lang(user_id, lang):
     """Sets user's language preference in the database."""
+    # Ensure 'user' object is passed correctly or get user object from database if necessary
     users_collection.update_one(
-        {"user_id": user.id},
+        {"user_id": user_id},
         {"$set": {"lang": lang}},
         upsert=True
     )
@@ -268,10 +277,14 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         if existing_referral:
             # If a referral already exists for this user, notify the current referrer
             referrer_lang = await get_user_lang(referral_id)
-            await context.bot.send_message(
-                chat_id=referral_id,
-                text=MESSAGES[referrer_lang]["referral_already_exists"]
-            )
+            try:
+                await context.bot.send_message(
+                    chat_id=referral_id,
+                    text=MESSAGES[referrer_lang]["referral_already_exists"]
+                )
+            except (TelegramError, TimedOut) as e:
+                logging.error(f"Could not send referral exists notification to {referral_id}: {e}")
+
         elif is_new_user:
             # This is a new user and a valid referral, so process it
             referrals_collection.insert_one({
@@ -299,12 +312,14 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                         full_name=user.full_name, username=referred_username_display
                     )
                 )
-            except Exception as e:
+            except (TelegramError, TimedOut) as e:
                 logging.error(f"Could not notify referrer {referral_id}: {e}")
 
     # Send the main menu with earning panel and movie groups
     lang = await get_user_lang(user.id)
     keyboard = [
+        # NEW BUTTON ADDED HERE
+        [InlineKeyboardButton(MESSAGES[lang]["new_group_button"], url=NEW_MOVIE_GROUP_LINK)],
         # Buttons are now swapped to show Movie Groups first
         [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
         [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
@@ -322,6 +337,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await update.message.reply_html(message, reply_markup=reply_markup)
                 
 async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # ... (earn_command content is unchanged)
     user = update.effective_user
     lang = await get_user_lang(user.id)
     
@@ -354,7 +370,9 @@ async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
     await update.message.reply_html(message)
 
+
 async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # ... (show_earning_panel content is unchanged)
     query = update.callback_query
     await query.answer()
     
@@ -373,7 +391,9 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
     message = MESSAGES[lang]["earning_panel_message"]
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
+
 async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # ... (show_help content is unchanged)
     query = update.callback_query
     await query.answer()
     user = query.from_user
@@ -388,7 +408,9 @@ async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     
     await query.edit_message_text(help_message, reply_markup=reply_markup, parse_mode='HTML')
 
+
 async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # ... (show_refer_link content is unchanged)
     query = update.callback_query
     await query.answer()
     user = query.from_user
@@ -410,8 +432,10 @@ async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
     
 async def show_withdraw_details_new(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # ... (show_withdraw_details_new content is unchanged)
     query = update.callback_query
     await query.answer()
 
@@ -444,7 +468,9 @@ async def show_withdraw_details_new(update: Update, context: ContextTypes.DEFAUL
 
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
+
 async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # ... (claim_daily_bonus content is unchanged)
     query = update.callback_query
     await query.answer()
 
@@ -479,6 +505,7 @@ async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
         )
 
+
 async def show_movie_groups_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
@@ -486,6 +513,8 @@ async def show_movie_groups_menu(update: Update, context: ContextTypes.DEFAULT_T
     lang = await get_user_lang(query.from_user.id)
 
     keyboard = [
+        # NEW BUTTON ADDED HERE
+        [InlineKeyboardButton(MESSAGES[lang]["new_group_button"], url=NEW_MOVIE_GROUP_LINK)],
         [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
         [InlineKeyboardButton("Join All Movie Groups", url=ALL_GROUPS_LINK)],
         [InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]
@@ -507,7 +536,9 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     lang = await get_user_lang(query.from_user.id)
     keyboard = [
-        # Buttons are now swapped to show Movie Groups first
+        # NEW BUTTON ADDED HERE
+        [InlineKeyboardButton(MESSAGES[lang]["new_group_button"], url=NEW_MOVIE_GROUP_LINK)],
+        # Buttons are now updated with the new order
         [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
         [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
@@ -523,6 +554,7 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
     
 async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # ... (admin_panel content is unchanged)
     user = update.effective_user
     lang = await get_user_lang(user.id)
 
@@ -541,7 +573,9 @@ async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     
     await update.message.reply_html(MESSAGES[lang]["admin_panel_title"], reply_markup=reply_markup)
 
+
 async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # ... (handle_admin_callbacks content is unchanged)
     query = update.callback_query
     await query.answer()
     
@@ -568,7 +602,9 @@ async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_T
         message = MESSAGES[lang]["setrate_usage"]
         await query.edit_message_text(message)
 
+
 async def set_referral_rate_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # ... (set_referral_rate_command content is unchanged)
     user = update.effective_user
     lang = await get_user_lang(user.id)
 
@@ -593,7 +629,9 @@ async def set_referral_rate_command(update: Update, context: ContextTypes.DEFAUL
     except ValueError:
         await update.message.reply_html(MESSAGES[lang]["invalid_rate"])
 
+
 async def clear_earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # ... (clear_earn_command content is unchanged)
     user = update.effective_user
     lang = await get_user_lang(user.id)
 
@@ -619,6 +657,7 @@ async def clear_earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await update.message.reply_html(MESSAGES[lang]["clear_earn_usage"])
         
 async def check_stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # ... (check_stats_command content is unchanged)
     user = update.effective_user
     lang = await get_user_lang(user.id)
 
@@ -652,6 +691,7 @@ async def check_stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE
         await update.message.reply_html(MESSAGES[lang]["check_stats_usage"])
         
 async def checkbot_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # ... (checkbot_command content is unchanged)
     user = update.effective_user
     lang = await get_user_lang(user.id)
     
@@ -663,6 +703,7 @@ async def checkbot_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await update.message.reply_html(MESSAGES[lang]["checkbot_failure"])
         
 async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # ... (stats_command content is unchanged)
     user = update.effective_user
     lang = await get_user_lang(user.id)
     
@@ -679,6 +720,7 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         )
     )
     
+# --- ब्रॉडकास्ट कमांड में सुधार (Broadcast Command Improvement) ---
 async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     lang = await get_user_lang(user.id)
@@ -693,37 +735,54 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     message_to_send = update.message.reply_to_message
     all_users = list(users_collection.find({}, {"user_id": 1}))
-    tasks = []
     
-    await update.message.reply_html("Sending broadcast message...")
+    await update.message.reply_html("ब्रॉडकास्ट संदेश भेजना शुरू हो रहा है...")
 
+    sent_count = 0
+    failed_count = 0
+    
+    # Send message sequentially with a small delay to avoid flood waits and high API load
     for user_doc in all_users:
         user_id = user_doc["user_id"]
         if user_id == ADMIN_ID:
             continue
-        # Create a task for each user to send the message concurrently
-        tasks.append(
-            context.bot.forward_message(
+        
+        try:
+            # Forward the message to the user
+            await context.bot.forward_message(
                 chat_id=user_id, 
                 from_chat_id=update.effective_chat.id, 
                 message_id=message_to_send.message_id
             )
-        )
-    
-    sent_count = 0
-    failed_count = 0
-    
-    # Use asyncio.gather to run all tasks concurrently and handle exceptions
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-
-    for result in results:
-        if isinstance(result, TelegramError):
-            failed_count += 1
-            logging.error(f"Could not broadcast message to a user: {result}")
-        else:
             sent_count += 1
-    
-    await update.message.reply_html(f"✅ Broadcast finished!\n\nSent to: {sent_count} users\nFailed: {failed_count} users")
+            # Wait for a small amount of time to reduce the load on the API
+            await asyncio.sleep(0.05) # 50 milliseconds delay
+            
+        except TimedOut:
+            # Handle timeout error if the request takes too long
+            failed_count += 1
+            logging.error(f"Timed out while broadcasting to user {user_id}. Retrying after a short delay.")
+            await asyncio.sleep(1) # Wait longer after a timeout
+        except TelegramError as e:
+            # Handle other Telegram errors (e.g., bot was blocked by the user)
+            failed_count += 1
+            logging.error(f"Could not broadcast message to user {user_id}: {e}")
+            # If the error is a FloodWait, the error object might have the retry_after field
+            if 'retry_after' in str(e):
+                logging.warning(f"Hit flood wait. Sleeping for {e.retry_after} seconds.")
+                await asyncio.sleep(e.retry_after + 1) # Wait for the suggested time plus 1 second
+            
+        except Exception as e:
+            # Handle other potential errors
+            failed_count += 1
+            logging.error(f"An unexpected error occurred while broadcasting to user {user_id}: {e}")
+            await asyncio.sleep(0.5) # Small delay for unexpected errors
+
+    await update.message.reply_html(
+        MESSAGES[lang]["broadcast_success"].format(count=sent_count) + 
+        f"\n❌ विफल संदेश (Failed): {failed_count} users"
+    )
+# --- ब्रॉडकास्ट कमांड सुधार समाप्त ---
 
 
 async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -749,6 +808,8 @@ async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
     
     # Re-create the main start message with the new language
     keyboard = [
+        # NEW BUTTON ADDED HERE
+        [InlineKeyboardButton(MESSAGES[lang]["new_group_button"], url=NEW_MOVIE_GROUP_LINK)],
         [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
         [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
@@ -765,6 +826,7 @@ async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
         
 async def add_payment_after_delay(context: ContextTypes.DEFAULT_TYPE, user_id: int):
+    # ... (add_payment_after_delay content is unchanged)
     await asyncio.sleep(300)
     
     user_data = users_collection.find_one({"user_id": user_id})
@@ -801,18 +863,23 @@ async def add_payment_after_delay(context: ContextTypes.DEFAULT_TYPE, user_id: i
                     new_balance_inr = new_balance * DOLLAR_TO_INR
 
                     referrer_lang = await get_user_lang(referrer_id)
-                    await context.bot.send_message(
-                        chat_id=referrer_id,
-                        text=MESSAGES[referrer_lang]["daily_earning_update"].format(
-                            full_name=user_data.get("full_name"), new_balance=new_balance_inr
-                        ),
-                        parse_mode='HTML'
-                    )
+                    try:
+                        await context.bot.send_message(
+                            chat_id=referrer_id,
+                            text=MESSAGES[referrer_lang]["daily_earning_update"].format(
+                                full_name=user_data.get("full_name"), new_balance=new_balance_inr
+                            ),
+                            parse_mode='HTML'
+                        )
+                    except (TelegramError, TimedOut) as e:
+                        logging.error(f"Could not send daily earning update to referrer {referrer_id}: {e}")
+                        
                     logging.info(f"Updated earnings for referrer {referrer_id}. New balance: {new_balance}")
                 else:
                     logging.info(f"Daily earning limit reached for referrer {referrer_id} from user {user_id}. No new payment scheduled.")
 
 async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # ... (handle_group_messages content is unchanged)
     user = update.effective_user
     chat = update.effective_chat
     
@@ -838,6 +905,7 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
                     logging.info(f"Payment task scheduled for user {user.id} after 5 minutes.")
                 else:
                     logging.info(f"Daily earning limit reached for referrer {referrer_id} from user {user.id}. No new payment scheduled.")
+
 
 def main() -> None:
     """Start the bot."""
