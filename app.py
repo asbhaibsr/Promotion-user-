@@ -18,13 +18,14 @@ load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 MONGO_URI = os.getenv("MONGO_URI")
-ADMIN_ID = int(os.getenv("ADMIN_ID"))
+# सुनिश्चित करें कि ADMIN_ID एक integer है
+ADMIN_ID = int(os.getenv("ADMIN_ID")) if os.getenv("ADMIN_ID") else None
 YOUR_TELEGRAM_HANDLE = os.getenv("YOUR_TELEGRAM_HANDLE")
+LOG_CHANNEL_ID = os.getenv("LOG_CHANNEL_ID")
 
 # New movie group link and original links
-# New button link added here
 NEW_MOVIE_GROUP_LINK = "https://t.me/Susanllll_bot/app?startapp=NzMxNTgwNTU4MV83ODU2NjkwMTgz"
-MOVIE_GROUP_LINK = "https://t.me/asfilter_group"
+MOVIE_GROUP_LINK = "https://tme/asfilter_group" # यदि यह लिंक गलत है, तो इसे सही करें
 ALL_GROUPS_LINK = "https://t.me/addlist/EOSX8n4AoC1jYWU1"
 
 # Load Render-specific variables
@@ -39,7 +40,7 @@ referrals_collection = db.get_collection('referrals')
 settings_collection = db.get_collection('settings')
 
 # --- MESSAGES Dictionary (आपका पूरा MESSAGES डिक्ट यहीं रहेगा) ---
-# Dictionaries for multi-language support 
+# Dictionaries for multi-language support (यह डिक्शनरी वैसी ही रहेगी)
 MESSAGES = {
     "en": {
         "start_greeting": "Hey 👋! Welcome to the Movies Group Bot. Get your favorite movies by following these simple steps:",
@@ -202,9 +203,6 @@ async def get_referral_bonus_usd():
     rate_inr = await get_referral_bonus_inr()
     return rate_inr / DOLLAR_TO_INR
 
-# ADD THIS VARIABLE FOR YOUR LOGGING CHANNEL
-LOG_CHANNEL_ID = os.getenv("LOG_CHANNEL_ID")
-
 async def get_user_lang(user_id):
     """Fetches user's language preference from the database."""
     user_data = users_collection.find_one({"user_id": user_id})
@@ -314,14 +312,16 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 )
             except (TelegramError, TimedOut) as e:
                 logging.error(f"Could not notify referrer {referral_id}: {e}")
+            # यहाँ से अनावश्यक 'sleep' हटा दिया गया है
+            # await asyncio.sleep(1) 
+
 
     # Send the main menu with earning panel and movie groups
     lang = await get_user_lang(user.id)
     keyboard = [
         # NEW BUTTON ADDED HERE
-        [InlineKeyboardButton(MESSAGES[lang]["new_group_button"], url=NEW_MOVIE_GROUP_LINK)],
-        # Buttons are now swapped to show Movie Groups first
-        [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
+        # 'Movie Groups' सब-मेन्यू में जाने वाला बटन अब एक अलग रो में है
+        [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")], 
         [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
     ]
@@ -513,7 +513,7 @@ async def show_movie_groups_menu(update: Update, context: ContextTypes.DEFAULT_T
     lang = await get_user_lang(query.from_user.id)
 
     keyboard = [
-        # NEW BUTTON ADDED HERE
+        # यह मूवी ग्रुप सब-मेन्यू है, जहाँ सभी ग्रुप बटन हैं।
         [InlineKeyboardButton(MESSAGES[lang]["new_group_button"], url=NEW_MOVIE_GROUP_LINK)],
         [InlineKeyboardButton(MESSAGES[lang]["start_group_button"], url=MOVIE_GROUP_LINK)],
         [InlineKeyboardButton("Join All Movie Groups", url=ALL_GROUPS_LINK)],
@@ -536,9 +536,7 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     lang = await get_user_lang(query.from_user.id)
     keyboard = [
-        # NEW BUTTON ADDED HERE
-        [InlineKeyboardButton(MESSAGES[lang]["new_group_button"], url=NEW_MOVIE_GROUP_LINK)],
-        # Buttons are now updated with the new order
+        # मुख्य मेन्यू में 'Movie Groups' बटन कॉलबैक डेटा 'show_movie_groups_menu' का उपयोग करता है
         [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
         [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
@@ -808,8 +806,7 @@ async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
     
     # Re-create the main start message with the new language
     keyboard = [
-        # NEW BUTTON ADDED HERE
-        [InlineKeyboardButton(MESSAGES[lang]["new_group_button"], url=NEW_MOVIE_GROUP_LINK)],
+        # मुख्य मेन्यू में 'Movie Groups' बटन कॉलबैक डेटा 'show_movie_groups_menu' का उपयोग करता है
         [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
         [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
@@ -924,6 +921,7 @@ def main() -> None:
     
     # Callback Handlers
     application.add_handler(CallbackQueryHandler(show_earning_panel, pattern="^show_earning_panel$"))
+    # 'Movie Groups' बटन का हैंडलर
     application.add_handler(CallbackQueryHandler(show_movie_groups_menu, pattern="^show_movie_groups_menu$"))
     application.add_handler(CallbackQueryHandler(back_to_main_menu, pattern="^back_to_main_menu$"))
     application.add_handler(CallbackQueryHandler(language_menu, pattern="^select_lang$"))
