@@ -6,7 +6,8 @@ import pymongo
 from datetime import datetime, time as dt_time
 import json
 import time
-from flask import Flask # Flask अब सिर्फ एक Placeholder है, PTB Webhook server खुद चलाएगा
+from flask import Flask
+import threading
 
 # Logging Setup
 logging.basicConfig(
@@ -19,12 +20,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Flask app (Render health check के लिए इसे रखा गया है)
+# Flask app for Render 24/7 (Health Check)
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    # यह सिर्फ यह दिखाने के लिए है कि सर्वर चल रहा है, असली बॉट Webhook पर चलेगा
     return "🤖 Promotion User Bot is Running! Status: ACTIVE"
 
 @app.route('/health')
@@ -34,13 +34,9 @@ def health():
 # Configuration
 MONGODB_URI = os.getenv("MONGODB_URI") 
 BOT_TOKEN = os.getenv("BOT_TOKEN") 
-
-# ✅ NEW: Render Webhook URL के लिए
-WEBHOOK_URL = os.getenv("WEBHOOK_URL") 
-# Example: https://your-bot-name.onrender.com
+WEBHOOK_URL = os.getenv("WEBHOOK_URL") # Render Service URL
 
 # MongoDB Setup
-# ... (MongoDB Setup code is unchanged) ...
 users_collection = None
 referrals_collection = None
 settings_collection = None
@@ -72,7 +68,7 @@ else:
     logger.warning("⚠️ MONGODB_URI is not set. Database functionality will be disabled.")
 
 
-# Constants (Unchanged)
+# Constants 
 MOVIE_CHANNEL_ID = -1002283182645
 OWNER_ID = 7315805571
 OWNER_USERNAME = "@asbhaibsr"
@@ -82,7 +78,6 @@ SPIN_PRIZES = [0.10, 0.20, 0.50, 1.00, 2.00, 5.00, 10.00, 0.00, 0.00, "premium"]
 
 # Utility Functions (Unchanged)
 async def check_channel_membership(user_id: int, context: ContextTypes.DEFAULT_TYPE) -> bool:
-    # ... (Function body unchanged) ...
     try:
         member = await context.bot.get_chat_member(chat_id=MOVIE_CHANNEL_ID, user_id=user_id)
         return member.status in ['member', 'administrator', 'creator']
@@ -91,10 +86,7 @@ async def check_channel_membership(user_id: int, context: ContextTypes.DEFAULT_T
         return False
 
 def has_searched_today(user_id: int) -> bool:
-    # ... (Function body unchanged) ...
-    if not movie_searches_collection:
-        return False
-        
+    if not movie_searches_collection: return False
     today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     today_searches = movie_searches_collection.count_documents({
         "user_id": user_id,
@@ -103,13 +95,10 @@ def has_searched_today(user_id: int) -> bool:
     return today_searches > 0
 
 def get_user_data(user_id: int):
-    # ... (Function body unchanged) ...
-    if not users_collection:
-        return None
+    if not users_collection: return None
     return users_collection.find_one({"user_id": user_id})
 
 def update_user_balance(user_id: int, amount: float):
-    # ... (Function body unchanged) ...
     if users_collection:
         users_collection.update_one(
             {"user_id": user_id},
@@ -118,7 +107,6 @@ def update_user_balance(user_id: int, amount: float):
         )
 
 def get_referral_stats(user_id: int):
-    # ... (Function body unchanged) ...
     if not referrals_collection:
         return {"total": 0, "earnings": 0, "pending": 0}
     
@@ -141,7 +129,6 @@ def get_referral_stats(user_id: int):
     }
     
 async def _process_pending_referrals(user_id: int, context: ContextTypes.DEFAULT_TYPE, message=None):
-    # ... (Function body unchanged) ...
     if not referrals_collection or not users_collection:
         return "", 0, 0
     
@@ -190,9 +177,8 @@ async def _process_pending_referrals(user_id: int, context: ContextTypes.DEFAULT
 
     return bonus_msg, total_bonus, total_spins
 
-# Command Handlers (Unchanged)
+# Command Handlers (Unchanged logic)
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (Function body unchanged) ...
     user = update.effective_user
     user_id = user.id
     
@@ -293,7 +279,6 @@ Click below to start earning! 🚀"""
     await update.message.reply_html(welcome_text, reply_markup=reply_markup)
 
 async def movie_search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (Function body unchanged) ...
     user = update.effective_user
     user_id = user.id
     
@@ -368,7 +353,6 @@ async def movie_search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     )
 
 async def join_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (Function body unchanged) ...
     user_id = update.effective_user.id
     
     if not update.message or not users_collection:
@@ -410,7 +394,6 @@ async def join_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         )
 
 async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (Function body unchanged) ...
     user_id = update.effective_user.id
     
     if not update.message or not users_collection:
@@ -458,7 +441,6 @@ async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (Function body unchanged) ...
     if not update.message: return
 
     help_text = """
@@ -496,7 +478,6 @@ Contact @asbhaibsr for help
     await update.message.reply_text(help_text, parse_mode='HTML')
 
 async def handle_twa_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (Function body unchanged) ...
     if not update.message or not users_collection or not withdrawals_collection:
         await update.message.reply_text("❌ Error: Database service is unavailable. Please try again later.")
         return
@@ -635,7 +616,6 @@ async def handle_twa_message(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await update.message.reply_text("❌ Error processing your request. Please try again.")
 
 async def handle_owner_approval(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (Function body unchanged) ...
     query = update.callback_query
     
     if not query or not withdrawals_collection:
@@ -708,15 +688,13 @@ def main() -> None:
     
     if not WEBHOOK_URL:
         logger.error("❌ WEBHOOK_URL is not set. Cannot start Webhook. Set it in Render Environment Variables.")
-        # Fallback to Polling for local testing/debugging if you need to, but Webhook is recommended for Render
-        # If running on Render, set WEBHOOK_URL to your service URL: https://your-bot-name.onrender.com
         return
 
     try:
-        # Application Builder - 'updater=None' and using the default context
-        application = Application.builder().token(BOT_TOKEN).updater(None).context_types(ContextTypes.DEFAULT_TYPE).build()
+        # ✅ FIX: ContextTypes को हटाकर Builder को सरल करें ताकि 'Object' error ठीक हो
+        application = Application.builder().token(BOT_TOKEN).build() 
         
-        # Add handlers (Unchanged)
+        # Add handlers 
         handlers = [
             CommandHandler("start", start),
             CommandHandler("search", movie_search),
@@ -731,23 +709,19 @@ def main() -> None:
         for handler in handlers:
             application.add_handler(handler)
         
-        # Job queue for scheduled tasks (Unchanged)
+        # Job queue setup
         job_queue = application.job_queue
         
         job_queue.run_repeating(health_check, interval=300, first=10)
         job_queue.run_daily(reset_daily_searches, time=dt_time(hour=0, minute=0))
         job_queue.run_daily(calculate_leaderboard, time=dt_time(hour=23, minute=30))
         
-        # 🚀 Webhook Setup (Polling को हटाकर इसे उपयोग करें)
+        # 🚀 Webhook Setup 
         port = int(os.environ.get('PORT', 5000))
         
         logger.info(f"🚀 Starting Promotion User Bot in Webhook Mode on port {port}...")
         
         # Webhook start
-        # listen: 0.0.0.0 (सभी इंटरफेस पर सुनें)
-        # port: Render द्वारा दिया गया पोर्ट
-        # url_path: BOT_TOKEN (गुप्त Webhook URL के लिए)
-        # webhook_url: Telegram को सेट किया जाने वाला पूरा URL
         application.run_webhook(
             listen="0.0.0.0",
             port=port,
@@ -756,56 +730,30 @@ def main() -> None:
         )
         
     except Exception as e:
-        logger.error(f"❌ Bot startup failed: {e}")
+        logger.error(f"❌ Bot startup failed: {e.__class__.__name__}: {e}")
         time.sleep(5)
         logger.error("❌ Exiting bot process after failure.")
 
-# ⚠️ Render Execution (Dual Threading/Polling को हटाकर इसे सरल बनाया गया)
-# Flask server अब health check और '/' रूट को संभालेगा
-# PTB का Webhook server बाकी सभी अनुरोध (BOT_TOKEN वाले Webhook route) को संभालेगा
+# Dual execution for Render (Simplified)
+# Flask Health Check को एक अलग Thread में चलाएं, और Bot को main thread में ताकि Webhook सर्वर चल सके
 if __name__ == "__main__":
-    # Flask app को एक अलग Thread में चलाएँ ताकि PTB Webhook शुरू हो सके
-    # PTB (python-telegram-bot) में application.run_webhook() चलाने के लिए
-    # Flask app को अलग से चलाना सबसे आसान तरीका है, खासकर जब आप '/' रूट को
-    # PTB Webhook से अलग रखना चाहते हैं (जैसा कि आपने health check के लिए किया है)
-    import threading
     
     def run_flask_health_check():
         """Run Flask server for Render Health check"""
         port = int(os.environ.get('PORT', 5000))
         try:
-            # Flask को '0.0.0.0' पर चलाएं लेकिन PTB Webhook से अलग पोर्ट पर
-            # या केवल debug=False पर, लेकिन PTB Webhook के लिए,
-            # हम इसे एक ही पोर्ट पर नहीं चला सकते।
-            # सबसे अच्छा तरीका है कि हम PTB Webhook को ही मुख्य सर्वर बनाएं।
-            # **********************************************
-            # ✅ Recommended: PTB Webhook को ही मुख्य सर्वर बनाएं।
-            # Render पर application.run_webhook() खुद ही HTTP सर्वर शुरू कर देगा।
-            # हम Flask app को main() के बाहर start_webhook() से पहले ही शुरू कर सकते हैं।
-            # **********************************************
-            logger.info("Starting Flask health check server (only / and /health active)...")
-            from waitress import serve
-            # Waitress का उपयोग करें या Gunicorn/uvicorn का, लेकिन simplicity के लिए:
+            # Flask को 0.0.0.0 पर चलाएं लेकिन use_reloader=False के साथ
+            # Note: यह PTB के Webhook server के साथ port conflict कर सकता है, 
+            # लेकिन Render पर Bot को active रखने के लिए यह आवश्यक है।
+            logger.info("💚 Starting Flask server for health checks...")
             app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False) 
-            # Note: The above line conflicts with PTB's Webhook server using the same port.
-            # RENDER SOLUTION: The ideal way is to use a single WSGI server (like Gunicorn) 
-            # to wrap both Flask and PTB's webserver, but for pure Python on Render Free Tier,
-            # running PTB's run_webhook() is the only necessary step. 
-            # We will use PTB's `application.run_webhook()` as the main server and it 
-            # *might* handle the default Flask '/' route.
-            
-            # Since threading is causing 404s, let's simplify and rely ONLY on PTB Webhook.
-            pass
         except Exception as e:
-             logger.error(f"❌ Flask startup failed (This is expected if PTB Webhook runs on same port): {e}")
+             # यदि पोर्ट conflict होता है तो यह error आ सकती है, जिसे अनदेखा किया जा सकता है
+             logger.warning(f"⚠️ Flask health check failed to start: {e}. Relying on PTB Webhook.")
 
-    # **********************************************
-    # ✅ SIMPLIFIED RENDER SOLUTION:
-    # 1. Start the Flask health check server in a thread.
-    # 2. Start the PTB Webhook server in the main thread.
-    
-    flask_thread = threading.Thread(target=run_flask_health_check, daemon=True)
-    # flask_thread.start() # If we start it, it'll try to use the same port as run_webhook
+    # Flask Thread (इसे start न करें, PTB का Webhook सर्वर खुद ही चल जाएगा)
+    # flask_thread = threading.Thread(target=run_flask_health_check, daemon=True)
+    # flask_thread.start()
 
     logger.info("🎯 Starting Telegram Bot Webhook...")
     main() # Run the main function with application.run_webhook()
