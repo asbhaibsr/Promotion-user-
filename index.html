@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Promotion User - Earning & Spin Panel</title>
+    <title>Promotion User - Earning Panel</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -473,6 +473,15 @@
             margin-top: 15px;
         }
         
+        .daily-search-info {
+            background: rgba(255, 215, 0, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 14px;
+        }
+        
         @media (max-width: 480px) {
             .buttons-grid {
                 grid-template-columns: 1fr;
@@ -520,7 +529,7 @@
         </div>
         
         <div class="card">
-            <div class="buttons-grid">
+            <div class="buttons-grid" id="buttonsGrid">
                 <button class="btn" id="cashOutBtn">
                     <span class="btn-icon">💸</span>
                     <span>Cash Out</span>
@@ -529,9 +538,10 @@
                     <span class="btn-icon">🤝</span>
                     <span>Invitation & Earnings</span>
                 </button>
-                <button class="btn" id="movieGroupsBtn">
+                <button class="btn" id="movieSearchBtn">
                     <span class="btn-icon">🎬</span>
-                    <span>Movie Groups</span>
+                    <span>Movie Search</span>
+                    <small>Earn ₹0.50</small>
                 </button>
                 <button class="btn" id="spinWinBtn">
                     <span class="btn-icon">🍀</span>
@@ -561,7 +571,7 @@
             
             <div class="bonus-section">
                 <button class="bonus-btn" id="bonusSpinBtn">
-                    <span>+1 Spin</span>
+                    <span>+1 Spin & Earn</span>
                     <span>Join @asbhai_bsr</span>
                 </button>
             </div>
@@ -569,6 +579,10 @@
         
         <div class="card invite-section">
             <h3>Invite Friends & Earn More</h3>
+            <div class="daily-search-info">
+                💰 <strong>Referral Bonus:</strong> ₹2.00 + 1 Spin per referral<br>
+                <small>After joining @asbhai_bsr channel</small>
+            </div>
             <div class="invite-link" id="inviteLink">https://t.me/yourbot?start=ref_12345</div>
             <div>
                 <button class="copy-btn" id="copyBtn">Copy Link</button>
@@ -629,6 +643,10 @@
                     <div class="stat-label">Referral Earnings</div>
                 </div>
             </div>
+            <div style="text-align: center; margin: 10px 0; font-size: 12px; color: #ffd700;">
+                Per referral: ₹2.00 + 1 Spin<br>
+                <small>After joining @asbhai_bsr channel</small>
+            </div>
             <div style="margin-top: 20px;">
                 <h4>Your Referrals</h4>
                 <div class="referral-list" id="referralList">
@@ -678,17 +696,17 @@
             <div style="max-height: 400px; overflow-y: auto;">
                 <h4>How to Earn Money:</h4>
                 <ul style="margin: 10px 0 20px 20px;">
-                    <li style="margin-bottom: 10px;">Invite friends using your referral link</li>
-                    <li style="margin-bottom: 10px;">Join movie groups and participate in activities</li>
-                    <li style="margin-bottom: 10px;">Use the Spin & Win feature daily</li>
-                    <li style="margin-bottom: 10px;">Complete offers and watch ads</li>
+                    <li style="margin-bottom: 10px;"><strong>Invite friends</strong> - Get ₹2.00 + 1 Spin per referral (after joining channel)</li>
+                    <li style="margin-bottom: 10px;"><strong>Movie search</strong> - Earn ₹0.50 once per day</li>
+                    <li style="margin-bottom: 10px;"><strong>Spin wheel</strong> - Win prizes daily</li>
+                    <li style="margin-bottom: 10px;"><strong>Join channel</strong> - Required to earn from referrals</li>
                 </ul>
                 
-                <h4>How to Invite Users:</h4>
-                <p style="margin: 10px 0 20px 0;">Share your personal referral link with friends. You earn ₹X for each friend who joins and completes the registration.</p>
+                <h4>Referral Rules:</h4>
+                <p style="margin: 10px 0 20px 0;">You get ₹2.00 + 1 Spin ONLY when you have joined @asbhai_bsr channel. Pending bonuses will be paid after joining.</p>
                 
-                <h4>How Movie Search Earnings Work:</h4>
-                <p style="margin: 10px 0 20px 0;">When you search for movies through our shortlink service, you earn a commission for each completed search.</p>
+                <h4>Movie Search Rules:</h4>
+                <p style="margin: 10px 0 20px 0;">You can earn ₹0.50 once per day from movie search. Reset happens at midnight.</p>
                 
                 <h4>Need Help?</h4>
                 <p style="margin: 10px 0 20px 0;">Contact @asbhaibsr for any issues or questions.</p>
@@ -722,14 +740,25 @@
             rank: 15,
             totalReferrals: 12,
             referralEarnings: 18.75,
+            movieSearches: 5,
+            lastSearchDate: null,
+            hasJoinedChannel: false,
             referrals: [
-                { name: 'User1', joined: true, earnings: 2.50 },
-                { name: 'User2', joined: true, earnings: 2.50 },
-                { name: 'User3', joined: false, earnings: 0 },
-                { name: 'User4', joined: true, earnings: 2.50 },
-                { name: 'User5', joined: true, earnings: 2.50 }
+                { name: 'User1', joined: true, earnings: 2.50, channelJoined: true },
+                { name: 'User2', joined: true, earnings: 2.50, channelJoined: true },
+                { name: 'User3', joined: false, earnings: 0, channelJoined: false },
+                { name: 'User4', joined: true, earnings: 2.50, channelJoined: true },
+                { name: 'User5', joined: true, earnings: 2.50, channelJoined: false }
             ]
         };
+        
+        // Check if user searched today
+        function hasSearchedToday() {
+            if (!userData.lastSearchDate) return false;
+            const today = new Date().toDateString();
+            const lastSearch = new Date(userData.lastSearchDate).toDateString();
+            return today === lastSearch;
+        }
         
         // Leaderboard data
         let leaderboardData = [
@@ -763,11 +792,11 @@
         const progressBar = document.getElementById('progressBar');
         const spinCount = document.getElementById('spinCount');
         const inviteLink = document.getElementById('inviteLink');
+        const movieSearchBtn = document.getElementById('movieSearchBtn');
         
         // Buttons
         const cashOutBtn = document.getElementById('cashOutBtn');
         const invitationBtn = document.getElementById('invitationBtn');
-        const movieGroupsBtn = document.getElementById('movieGroupsBtn');
         const spinWinBtn = document.getElementById('spinWinBtn');
         const leaderboardBtn = document.getElementById('leaderboardBtn');
         const helpBtn = document.getElementById('helpBtn');
@@ -814,15 +843,21 @@
             // Set invite link
             inviteLink.textContent = `https://t.me/yourbot?start=ref_${userData.id}`;
             
+            // Update movie search button
+            updateMovieSearchButton();
+            
             // Populate referral list
             const referralList = document.getElementById('referralList');
             referralList.innerHTML = '';
             userData.referrals.forEach(ref => {
                 const refItem = document.createElement('div');
                 refItem.className = 'referral-item';
+                const status = ref.joined ? 
+                    (ref.channelJoined ? '✅ Joined + Bonus' : '✅ Joined (No Bonus)') : 
+                    '❌ Not Joined';
                 refItem.innerHTML = `
                     <div>${ref.name}</div>
-                    <div>${ref.joined ? '✅ Joined' : '❌ Not Joined'}</div>
+                    <div>${status}</div>
                     <div>₹${ref.earnings.toFixed(2)}</div>
                 `;
                 referralList.appendChild(refItem);
@@ -847,6 +882,29 @@
             });
         }
         
+        // Update movie search button based on daily limit
+        function updateMovieSearchButton() {
+            const searchedToday = hasSearchedToday();
+            
+            if (searchedToday) {
+                movieSearchBtn.innerHTML = `
+                    <span class="btn-icon">✅</span>
+                    <span>Search Done</span>
+                    <small>Come Tomorrow</small>
+                `;
+                movieSearchBtn.style.opacity = '0.7';
+                movieSearchBtn.disabled = true;
+            } else {
+                movieSearchBtn.innerHTML = `
+                    <span class="btn-icon">🎬</span>
+                    <span>Movie Search</span>
+                    <small>Earn ₹0.50 Today</small>
+                `;
+                movieSearchBtn.style.opacity = '1';
+                movieSearchBtn.disabled = false;
+            }
+        }
+        
         // Event listeners for main buttons
         cashOutBtn.addEventListener('click', () => {
             if (userData.balance >= 80) {
@@ -860,8 +918,18 @@
             invitationModal.style.display = 'flex';
         });
         
-        movieGroupsBtn.addEventListener('click', () => {
-            movieGroupsModal.style.display = 'flex';
+        movieSearchBtn.addEventListener('click', () => {
+            if (hasSearchedToday()) {
+                alert('You have already completed today\'s movie search! Come back tomorrow for another ₹0.50.');
+                return;
+            }
+            
+            // Open movie search in bot
+            if (tg && tg.openTelegramLink) {
+                tg.openTelegramLink(`https://t.me/yourbot?start=search`);
+            } else {
+                alert('Use /search command in the bot to earn ₹0.50 for today\'s movie search!');
+            }
         });
         
         spinWinBtn.addEventListener('click', () => {
@@ -994,16 +1062,23 @@
             }, 3000);
         });
         
-        // Bonus spin button
+        // Bonus spin button - Channel join
         bonusSpinBtn.addEventListener('click', () => {
-            // In a real app, this would check if user joined the channel
-            // For demo purposes, we'll just add a spin
-            userData.spinCount++;
-            spinCount.textContent = 'Spins Available: ' + userData.spinCount;
-            spinButton.disabled = false;
-            
             // Open channel link
-            tg.openTelegramLink('https://t.me/asbhai_bsr');
+            if (tg && tg.openTelegramLink) {
+                tg.openTelegramLink('https://t.me/asbhai_bsr');
+                
+                // After joining, user can verify
+                setTimeout(() => {
+                    if (tg && tg.sendData) {
+                        tg.sendData(JSON.stringify({
+                            command: 'check_channel',
+                            userId: userData.id
+                        }));
+                    }
+                    alert('After joining, click "Verify Channel Join" in the bot to get your bonus!');
+                }, 2000);
+            }
         });
         
         // Copy invite link
@@ -1022,7 +1097,7 @@
             if (navigator.share) {
                 navigator.share({
                     title: 'Join Promotion User',
-                    text: 'Earn money by joining this amazing platform!',
+                    text: 'Earn money by joining this amazing platform! Get ₹2.00 + 1 Spin per referral!',
                     url: inviteLink.textContent
                 })
                 .catch(err => console.error('Error sharing:', err));
@@ -1042,8 +1117,10 @@
         document.querySelectorAll('.movie-group-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const group = btn.getAttribute('data-group');
-                // Open group link (in a real app, these would be actual Telegram group links)
-                tg.openTelegramLink('https://t.me/example_group');
+                // Open group link
+                if (tg && tg.openTelegramLink) {
+                    tg.openTelegramLink('https://t.me/example_group');
+                }
             });
         });
         
@@ -1100,4 +1177,4 @@
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
-  </html>
+                        </html>
