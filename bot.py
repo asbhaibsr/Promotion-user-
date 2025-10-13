@@ -3,7 +3,7 @@ import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
 import pymongo
-from datetime import datetime, timedelta, time as dt_time # 'time' module ka conflict avoid karne ke liye rename kiya
+from datetime import datetime, timedelta, time as dt_time # time ko dt_time alias kiya
 import asyncio
 import random
 import json
@@ -38,7 +38,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN", "your_bot_token_here")
 
 # MongoDB Setup
 try:
-    # Increased serverSelectionTimeoutMS for better connection reliability on cloud services
+    # Increased timeout for better cloud connection
     client = pymongo.MongoClient(MONGODB_URI, serverSelectionTimeoutMS=20000) 
     db = client.promotion_bot
     users_collection = db.users
@@ -51,15 +51,13 @@ try:
     # Create indexes
     users_collection.create_index("user_id", unique=True)
     referrals_collection.create_index([("referrer_id", 1), ("referred_id", 1)])
-    # Added TTL (Time-To-Live) index for daily search log cleanup (optional but good practice)
-    # movie_searches_collection.create_index("search_date", expireAfterSeconds=24*60*60) 
     movie_searches_collection.create_index([("user_id", 1), ("search_date", 1)])
     withdrawals_collection.create_index("user_id")
     
     logger.info("✅ MongoDB connected successfully")
 except Exception as e:
     logger.error(f"❌ MongoDB connection error: {e}")
-    # Continue without MongoDB for testing
+    # Fallback to None if connection fails
     users_collection = None
     referrals_collection = None
     settings_collection = None
@@ -68,7 +66,7 @@ except Exception as e:
     withdrawals_collection = None
 
 
-# Constants
+# Constants (Same as original)
 MOVIE_CHANNEL_ID = -1002283182645  # @asbhai_bsr
 OWNER_ID = 7315805571  # @asbhaibsr
 OWNER_USERNAME = "@asbhaibsr"
@@ -76,7 +74,7 @@ REFERRAL_BONUS = 2.0
 DAILY_SEARCH_BONUS = 0.50
 SPIN_PRIZES = [0.10, 0.20, 0.50, 1.00, 2.00, 5.00, 10.00, 0.00, 0.00, "premium"]
 
-# Utility Functions
+# Utility Functions (Same as original)
 async def check_channel_membership(user_id: int, context: ContextTypes.DEFAULT_TYPE) -> bool:
     """Check if user has joined the movie channel"""
     try:
@@ -88,10 +86,9 @@ async def check_channel_membership(user_id: int, context: ContextTypes.DEFAULT_T
 
 def has_searched_today(user_id: int) -> bool:
     """Check if user has already searched today"""
-    if not movie_searches_collection: # Check if collection is available
+    if not movie_searches_collection:
         return False
         
-    # Check current time in local timezone for the start of the day (00:00:00)
     today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     today_searches = movie_searches_collection.count_documents({
         "user_id": user_id,
@@ -129,7 +126,6 @@ def get_referral_stats(user_id: int):
     ]
     
     result = list(referrals_collection.aggregate(pipeline))
-    # Correctly handle the case where the result list is empty (no earned referrals yet)
     total_earnings = result[0]["total_earnings"] if result and result[0] and "total_earnings" in result[0] else 0
     
     return {
@@ -137,8 +133,59 @@ def get_referral_stats(user_id: int):
         "earnings": total_earnings,
         "pending": pending_refs
     }
+    
+async def _process_pending_referrals(user_id: int, context: ContextTypes.DEFAULT_TYPE, message=None):
+    """Internal function to process pending referral bonuses"""
+    if not referrals_collection or not users_collection:
+        return "", 0, 0
+    
+    pending_refs = referrals_collection.find({
+        "referrer_id": user_id,
+        "bonus_paid": False
+    })
+    
+    total_bonus = 0
+    total_spins = 0
+    
+    for referral in pending_refs:
+        # Pay bonus
+        update_user_balance(user_id, REFERRAL_BONUS)
+        users_collection.update_one(
+            {"user_id": user_id},
+            {
+                "$inc": {
+                    "referral_earnings": REFERRAL_BONUS,
+                    "spin_count": 1
+                }
+            }
+        )
+        
+        referrals_collection.update_one(
+            {"_id": referral["_id"]},
+            {
+                "$set": {
+                    "earnings": REFERRAL_BONUS,
+                    "spin_given": True,
+                    "bonus_paid": True,
+                    "bonus_paid_date": datetime.now(),
+                    "reason": "Bonus paid after channel join"
+                }
+            }
+        )
+        
+        total_bonus += REFERRAL_BONUS
+        total_spins += 1
+    
+    if total_bonus > 0:
+        bonus_msg = f"\n\n🎉 <b>Pending Bonuses Activated!</b>\n" \
+                    f"✅ Received: ₹{total_bonus:.2f} + {total_spins} Spins\n" \
+                    f"For {total_spins} pending referrals!"
+    else:
+        bonus_msg = "\n\n✅ You're all set! Start earning now!"
 
-# Command Handlers
+    return bonus_msg, total_bonus, total_spins
+
+# Command Handlers (Same as original, modified slightly for flow)
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /start command with referral system"""
     user = update.effective_user
@@ -164,7 +211,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             "has_joined_channel": False,
             "movie_searches": 0,
             "last_search_date": None,
-            "total_earnings": 0.0 # 'earnings' is used for main balance, 'total_earnings' seems redundant or for overall. Keeping it for now.
+            "total_earnings": 0.0
         }
         if users_collection:
             users_collection.insert_one(user_data)
@@ -173,18 +220,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if context.args and context.args[0].startswith('ref_'):
         try:
             referrer_id = int(context.args[0].split('_')[1])
-            if referrer_id != user_id:  # Prevent self-referral
+            if referrer_id != user_id: 
                 referrer_data = get_user_data(referrer_id)
                 
-                if referrer_data and referrals_collection: # Check if referrer exists and collection is available
-                    # Check if referral already exists
+                if referrer_data and referrals_collection:
                     existing_ref = referrals_collection.find_one({
                         "referrer_id": referrer_id,
                         "referred_id": user_id
                     })
                     
                     if not existing_ref:
-                        # Create referral record
                         referral_data = {
                             "referrer_id": referrer_id,
                             "referred_id": user_id,
@@ -205,17 +250,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Check channel membership
     has_joined = await check_channel_membership(user_id, context)
     if users_collection:
-        # Fetch latest user data after potential creation
-        current_user_data = get_user_data(user_id)
-        if current_user_data and current_user_data.get("has_joined_channel") != has_joined:
-            users_collection.update_one(
-                {"user_id": user_id},
-                {"$set": {"has_joined_channel": has_joined}}
-            )
-            # Run join logic if channel was just joined and recorded
-            if has_joined:
-                await _process_pending_referrals(user_id, context, update.message)
-
+        users_collection.update_one(
+            {"user_id": user_id},
+            {"$set": {"has_joined_channel": has_joined}}
+        )
+        if has_joined:
+            await _process_pending_referrals(user_id, context, update.message)
 
     # TWA URL
     twa_url = f"https://ashhabsr.github.io/Promotion-user-panel/?user_id={user_id}"
@@ -283,8 +323,7 @@ async def movie_search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     # Process search
     user_data = get_user_data(user_id)
     if not user_data:
-        # Try to create user data and retry
-        await start(update, context) 
+        await start(update, context)
         user_data = get_user_data(user_id)
         if not user_data:
              await update.message.reply_text("❌ Error: Could not retrieve or create user data. Please try /start again.")
@@ -315,14 +354,13 @@ async def movie_search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         )
     
     # Success message
-    # Fetch updated balance since it was just updated
     updated_user_data = get_user_data(user_id) 
     
     twa_url = f"https://ashhabsr.github.io/Promotion-user-panel/?user_id={user_id}"
     await update.message.reply_text(
         f"🎬 <b>Movie Search Completed!</b>\n\n"
         f"✅ <b>Earned:</b> ₹{DAILY_SEARCH_BONUS}\n"
-        f"💰 <b>Total Balance:</b> ₹{updated_user_data.get('earnings', 0.0):.2f}\n" # Use fetched balance
+        f"💰 <b>Total Balance:</b> ₹{updated_user_data.get('earnings', 0.0):.2f}\n" 
         f"🔄 Next search available: <b>Tomorrow</b>\n\n"
         f"Keep inviting friends for more earnings! 💰",
         parse_mode='HTML',
@@ -330,57 +368,6 @@ async def movie_search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             InlineKeyboardButton("📊 Open Dashboard", web_app=WebAppInfo(url=twa_url))
         ]])
     )
-
-async def _process_pending_referrals(user_id: int, context: ContextTypes.DEFAULT_TYPE, message=None):
-    """Internal function to process pending referral bonuses and return message parts"""
-    if not referrals_collection or not users_collection:
-        return "", 0, 0
-    
-    pending_refs = referrals_collection.find({
-        "referrer_id": user_id,
-        "bonus_paid": False
-    })
-    
-    total_bonus = 0
-    total_spins = 0
-    
-    for referral in pending_refs:
-        # Pay bonus
-        update_user_balance(user_id, REFERRAL_BONUS)
-        users_collection.update_one(
-            {"user_id": user_id},
-            {
-                "$inc": {
-                    "referral_earnings": REFERRAL_BONUS,
-                    "spin_count": 1
-                }
-            }
-        )
-        
-        referrals_collection.update_one(
-            {"_id": referral["_id"]},
-            {
-                "$set": {
-                    "earnings": REFERRAL_BONUS,
-                    "spin_given": True,
-                    "bonus_paid": True,
-                    "bonus_paid_date": datetime.now(),
-                    "reason": "Bonus paid after channel join"
-                }
-            }
-        )
-        
-        total_bonus += REFERRAL_BONUS
-        total_spins += 1
-    
-    if total_bonus > 0:
-        bonus_msg = f"\n\n🎉 <b>Pending Bonuses Activated!</b>\n" \
-                    f"✅ Received: ₹{total_bonus:.2f} + {total_spins} Spins\n" \
-                    f"For {total_spins} pending referrals!"
-    else:
-        bonus_msg = "\n\n✅ You're all set! Start earning now!"
-
-    return bonus_msg, total_bonus, total_spins
 
 async def join_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle channel join verification"""
@@ -499,7 +486,7 @@ Contact @asbhaibsr for help
     
     await update.message.reply_text(help_text, parse_mode='HTML')
 
-# TWA Data Handler
+# TWA Data Handler (Same as original, with balance check improvement)
 async def handle_twa_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle data from Telegram Web App"""
     try:
@@ -528,7 +515,6 @@ async def handle_twa_message(update: Update, context: ContextTypes.DEFAULT_TYPE)
             amount = float(data.get('amount', 0.0))
             details = data.get('details', {})
             
-            # Get current user data to check balance
             user_data = get_user_data(user_id)
             current_balance = user_data.get('earnings', 0.0) if user_data else 0.0
 
@@ -596,9 +582,7 @@ async def handle_twa_message(update: Update, context: ContextTypes.DEFAULT_TYPE)
             )
             
         elif command == 'premium_prize':
-            # Handle premium prize
             if users_collection:
-                 # Decrease spin count
                 users_collection.update_one(
                     {"user_id": user_id},
                     {"$inc": {"spin_count": -1}}
@@ -647,7 +631,7 @@ async def handle_twa_message(update: Update, context: ContextTypes.DEFAULT_TYPE)
         logger.error(f"Error processing TWA data: {e}")
         await update.message.reply_text("❌ Error processing your request. Please try again.")
 
-# Owner Approval Handler
+# Owner Approval Handler (Same as original)
 async def handle_owner_approval(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle withdrawal approval by owner"""
     query = update.callback_query
@@ -664,7 +648,7 @@ async def handle_owner_approval(update: Update, context: ContextTypes.DEFAULT_TY
             user_id = int(parts[1])
             amount = float(parts[2])
             
-            # Update withdrawal status (find and update pending request for this user/amount)
+            # Update withdrawal status 
             if withdrawals_collection:
                 result = withdrawals_collection.update_one(
                     {"user_id": user_id, "amount": amount, "status": "pending"},
@@ -701,16 +685,13 @@ async def handle_owner_approval(update: Update, context: ContextTypes.DEFAULT_TY
             logger.error(f"Error processing approval: {e}")
             await query.edit_message_text("❌ Error processing approval!")
 
-# Scheduled Tasks
+# Scheduled Tasks (Same as original)
 async def health_check(context: ContextTypes.DEFAULT_TYPE):
     """Health check for Render"""
     logger.info("🤖 Bot Health Check - Running...")
 
 async def reset_daily_searches(context: ContextTypes.DEFAULT_TYPE):
-    """Reset daily search limits (This logic is implicitly handled by has_searched_today and the search_date in the database, 
-       but you can use this for any cleanup or aggregated stats.)"""
-    # Note: The existing logic in has_searched_today handles the daily limit check based on the current date,
-    # so a global reset is not strictly needed for that, but kept for future use.
+    """Reset daily search limits"""
     logger.info("🔄 Daily searches reset/stats calculated for new day")
 
 async def calculate_leaderboard(context: ContextTypes.DEFAULT_TYPE):
@@ -745,36 +726,33 @@ def main() -> None:
         # Health check every 5 minutes
         job_queue.run_repeating(health_check, interval=300, first=10)
         
-        # Daily tasks: 🛑 CORRECTION APPLIED HERE 🛑
-        # Pass a datetime.time object
+        # Daily tasks: FIX 1 - datetime.time() constructor called correctly
         job_queue.run_daily(reset_daily_searches, time=dt_time(hour=0, minute=0))
         job_queue.run_daily(calculate_leaderboard, time=dt_time(hour=23, minute=30))
         
         # Start polling
         logger.info("🚀 Starting Promotion User Bot...")
-        # Added a longer timeout for polling, useful in cloud environments
+        
+        # FIX 2: Removed unsupported arguments like 'read_timeout' and 'timeout'
         application.run_polling(
             drop_pending_updates=True,
-            allowed_updates=Update.ALL_TYPES,
-            timeout=20, 
-            read_timeout=20
+            allowed_updates=Update.ALL_TYPES
         )
         
     except Exception as e:
         logger.error(f"❌ Bot startup failed: {e}")
-        time.sleep(30)
-        # main() # Avoid recursive call loop, let the container/system handle restart
+        # Removed recursive call and added proper sleep before exit
+        time.sleep(10)
         logger.error("❌ Exiting bot process after failure.")
 
-# Dual execution for Render
+# Dual execution for Render (Same as original)
 if __name__ == "__main__":
     import threading
     
     def run_flask():
         """Run Flask server for Render"""
         port = int(os.environ.get('PORT', 5000))
-        # Ensure Flask is running on 0.0.0.0 for external access in a container/cloud setup
-        app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False) 
+        app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
     
     def run_bot():
         """Run Telegram bot"""
@@ -793,10 +771,8 @@ if __name__ == "__main__":
     try:
         while True:
             time.sleep(60)
-            # This log keeps the Render console active and confirms thread is running
-            logger.info("💚 System running...") 
+            logger.info("💚 System running...")
     except KeyboardInterrupt:
         logger.info("🛑 Bot stopped by user")
     except Exception as e:
         logger.error(f"❌ Main thread loop error: {e}")
-
