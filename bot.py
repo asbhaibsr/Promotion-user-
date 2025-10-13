@@ -508,7 +508,7 @@ def main() -> None:
     
     # Add job queue for daily reset
     job_queue = application.job_queue
-    job_queue.run_daily(reset_daily_searches, time=datetime.time(hour=0, minute=0))
+    # job_queue.run_daily(reset_daily_searches, time=datetime.time(hour=0, minute=0))
     
     # Start the Bot
     application.run_polling()
