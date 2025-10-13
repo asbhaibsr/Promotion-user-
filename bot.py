@@ -10,6 +10,17 @@ import json
 import time
 from flask import Flask
 
+# Logging Setup - YEH PEHLE AAYEGA
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO,
+    handlers=[
+        logging.FileHandler("bot.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
 # Flask app for Render 24/7
 app = Flask(__name__)
 
@@ -55,17 +66,6 @@ OWNER_USERNAME = "@asbhaibsr"
 REFERRAL_BONUS = 2.0
 DAILY_SEARCH_BONUS = 0.50
 SPIN_PRIZES = [0.10, 0.20, 0.50, 1.00, 2.00, 5.00, 10.00, 0.00, 0.00, "premium"]
-
-# Logging Setup
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO,
-    handlers=[
-        logging.FileHandler("bot.log"),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
 
 # Utility Functions
 async def check_channel_membership(user_id: int, context: ContextTypes.DEFAULT_TYPE) -> bool:
@@ -201,7 +201,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         )
     
     # TWA URL
-    twa_url = f"https://asbhaibsr.github.io/Promotion-user-/?user_id={user_id}"
+    twa_url = f"https://ashhabsr.github.io/Promotion-user-panel/?user_id={user_id}"
     
     # Create keyboard
     keyboard = [
@@ -294,7 +294,7 @@ async def movie_search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         )
     
     # Success message
-    twa_url = f"https://asbhaibsr.github.io/Promotion-user-/?user_id={user_id}"
+    twa_url = f"https://ashhabsr.github.io/Promotion-user-panel/?user_id={user_id}"
     await update.message.reply_text(
         f"🎬 <b>Movie Search Completed!</b>\n\n"
         f"✅ <b>Earned:</b> ₹{DAILY_SEARCH_BONUS}\n"
@@ -369,7 +369,7 @@ async def join_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         else:
             bonus_msg = "\n\n✅ Channel verified! Start earning!"
         
-        twa_url = f"https://asbhaibsr.github.io/Promotion-user-/?user_id={user_id}"
+        twa_url = f"https://ashhabsr.github.io/Promotion-user-panel/?user_id={user_id}"
         await update.message.reply_text(
             f"✅ <b>Channel Verification Successful!</b>{bonus_msg}\n\n"
             f"🎯 <b>Now You Can:</b>\n"
@@ -403,7 +403,7 @@ async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
     
     ref_stats = get_referral_stats(user_id)
-    twa_url = f"https://asbhaibsr.github.io/Promotion-user-/?user_id={user_id}"
+    twa_url = f"https://ashhabsr.github.io/Promotion-user-panel/?user_id={user_id}"
     
     balance_text = f"""
 💰 <b>Your Earnings Summary</b>
@@ -659,12 +659,10 @@ async def health_check(context: ContextTypes.DEFAULT_TYPE):
 async def reset_daily_searches(context: ContextTypes.DEFAULT_TYPE):
     """Reset daily search limits"""
     logger.info("🔄 Daily searches reset for new day")
-    # In production, you might want to update some database fields here
 
 async def calculate_leaderboard(context: ContextTypes.DEFAULT_TYPE):
     """Calculate daily leaderboard"""
     logger.info("🏆 Calculating daily leaderboard...")
-    # Leaderboard logic would go here
 
 # Main Application
 def main() -> None:
@@ -707,7 +705,6 @@ def main() -> None:
         
     except Exception as e:
         logger.error(f"❌ Bot startup failed: {e}")
-        # Restart after 30 seconds
         time.sleep(30)
         main()
 
