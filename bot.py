@@ -3,14 +3,13 @@ import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
 import pymongo
-from datetime import datetime, timedelta, time as dt_time # time ko dt_time alias kiya
-import asyncio
-import random
+from datetime import datetime, time as dt_time # time को dt_time alias किया
 import json
 import time
 from flask import Flask
 
-# Logging Setup - YEH PEHLE AAYEGA
+# Logging Setup
+# FIX: Logging को थोड़ा साफ किया
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO,
@@ -20,6 +19,7 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+# YEH PEHLE AAYEGA
 
 # Flask app for Render 24/7
 app = Flask(__name__)
@@ -33,37 +33,41 @@ def health():
     return {"status": "active", "timestamp": datetime.now().isoformat()}
 
 # Configuration
-MONGODB_URI = os.getenv("MONGODB_URI", "your_mongodb_uri_here")
-BOT_TOKEN = os.getenv("BOT_TOKEN", "your_bot_token_here")
+# Note: Render variables will be automatically pulled from environment variables
+MONGODB_URI = os.getenv("MONGODB_URI") 
+BOT_TOKEN = os.getenv("BOT_TOKEN") 
 
 # MongoDB Setup
-try:
-    # Increased timeout for better cloud connection
-    client = pymongo.MongoClient(MONGODB_URI, serverSelectionTimeoutMS=20000) 
-    db = client.promotion_bot
-    users_collection = db.users
-    referrals_collection = db.referrals
-    settings_collection = db.settings
-    leaderboard_collection = db.leaderboard
-    movie_searches_collection = db.movie_searches
-    withdrawals_collection = db.withdrawals
-    
-    # Create indexes
-    users_collection.create_index("user_id", unique=True)
-    referrals_collection.create_index([("referrer_id", 1), ("referred_id", 1)])
-    movie_searches_collection.create_index([("user_id", 1), ("search_date", 1)])
-    withdrawals_collection.create_index("user_id")
-    
-    logger.info("✅ MongoDB connected successfully")
-except Exception as e:
-    logger.error(f"❌ MongoDB connection error: {e}")
-    # Fallback to None if connection fails
-    users_collection = None
-    referrals_collection = None
-    settings_collection = None
-    leaderboard_collection = None
-    movie_searches_collection = None
-    withdrawals_collection = None
+users_collection = None
+referrals_collection = None
+settings_collection = None
+leaderboard_collection = None
+movie_searches_collection = None
+withdrawals_collection = None
+
+if MONGODB_URI:
+    try:
+        # Increased timeout for better cloud connection
+        client = pymongo.MongoClient(MONGODB_URI, serverSelectionTimeoutMS=20000) 
+        db = client.promotion_bot
+        users_collection = db.users
+        referrals_collection = db.referrals
+        settings_collection = db.settings
+        leaderboard_collection = db.leaderboard
+        movie_searches_collection = db.movie_searches
+        withdrawals_collection = db.withdrawals
+        
+        # Create indexes
+        users_collection.create_index("user_id", unique=True)
+        referrals_collection.create_index([("referrer_id", 1), ("referred_id", 1)])
+        movie_searches_collection.create_index([("user_id", 1), ("search_date", 1)])
+        withdrawals_collection.create_index("user_id")
+        
+        logger.info("✅ MongoDB connected successfully")
+    except Exception as e:
+        logger.error(f"❌ MongoDB connection error: {e}. Bot will run without database functions.")
+else:
+    logger.warning("⚠️ MONGODB_URI is not set. Database functionality will be disabled.")
 
 
 # Constants (Same as original)
@@ -81,6 +85,7 @@ async def check_channel_membership(user_id: int, context: ContextTypes.DEFAULT_T
         member = await context.bot.get_chat_member(chat_id=MOVIE_CHANNEL_ID, user_id=user_id)
         return member.status in ['member', 'administrator', 'creator']
     except Exception as e:
+        # User not found in chat, bot not admin, or channel ID is wrong
         logger.error(f"Error checking channel membership for {user_id}: {e}")
         return False
 
@@ -89,6 +94,7 @@ def has_searched_today(user_id: int) -> bool:
     if not movie_searches_collection:
         return False
         
+    # Get today's start in local time (important for daily reset)
     today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     today_searches = movie_searches_collection.count_documents({
         "user_id": user_id,
@@ -120,6 +126,7 @@ def get_referral_stats(user_id: int):
     earned_refs = referrals_collection.count_documents({"referrer_id": user_id, "bonus_paid": True})
     pending_refs = total_refs - earned_refs
     
+    # Calculate total referral earnings (Requires aggregation pipeline)
     pipeline = [
         {"$match": {"referrer_id": user_id, "bonus_paid": True}},
         {"$group": {"_id": None, "total_earnings": {"$sum": "$earnings"}}}
@@ -191,8 +198,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     user_id = user.id
     
+    if not update.message:
+        return # Ignore non-message updates if possible, though /start is usually a message
+
     logger.info(f"User {user_id} started the bot")
     
+    if not users_collection:
+        await update.message.reply_text("❌ Database not connected. Please contact admin.", parse_mode='HTML')
+        return
+
     # Get or create user data
     user_data = get_user_data(user_id)
     if not user_data:
@@ -213,8 +227,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             "last_search_date": None,
             "total_earnings": 0.0
         }
-        if users_collection:
-            users_collection.insert_one(user_data)
+        users_collection.insert_one(user_data)
     
     # Check referral
     if context.args and context.args[0].startswith('ref_'):
@@ -249,13 +262,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     
     # Check channel membership
     has_joined = await check_channel_membership(user_id, context)
-    if users_collection:
-        users_collection.update_one(
-            {"user_id": user_id},
-            {"$set": {"has_joined_channel": has_joined}}
-        )
-        if has_joined:
-            await _process_pending_referrals(user_id, context, update.message)
+    users_collection.update_one(
+        {"user_id": user_id},
+        {"$set": {"has_joined_channel": has_joined}}
+    )
+    if has_joined:
+        await _process_pending_referrals(user_id, context, update.message)
 
     # TWA URL
     twa_url = f"https://ashhabsr.github.io/Promotion-user-panel/?user_id={user_id}"
@@ -294,6 +306,10 @@ async def movie_search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     user = update.effective_user
     user_id = user.id
     
+    if not update.message or not users_collection or not movie_searches_collection:
+        await update.message.reply_text("❌ Error: Database service is unavailable. Please try again later.")
+        return
+
     # Check channel membership
     has_joined = await check_channel_membership(user_id, context)
     if not has_joined:
@@ -323,7 +339,8 @@ async def movie_search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     # Process search
     user_data = get_user_data(user_id)
     if not user_data:
-        await start(update, context)
+        # Try to run start to ensure user data exists
+        await start(update, context) 
         user_data = get_user_data(user_id)
         if not user_data:
              await update.message.reply_text("❌ Error: Could not retrieve or create user data. Please try /start again.")
@@ -333,25 +350,23 @@ async def movie_search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     update_user_balance(user_id, DAILY_SEARCH_BONUS)
     
     # Log search
-    if movie_searches_collection:
-        search_data = {
-            "user_id": user_id,
-            "user_name": user.first_name,
-            "search_date": datetime.now(),
-            "earnings": DAILY_SEARCH_BONUS,
-            "status": "completed"
-        }
-        movie_searches_collection.insert_one(search_data)
+    search_data = {
+        "user_id": user_id,
+        "user_name": user.first_name,
+        "search_date": datetime.now(),
+        "earnings": DAILY_SEARCH_BONUS,
+        "status": "completed"
+    }
+    movie_searches_collection.insert_one(search_data)
     
     # Update user stats
-    if users_collection:
-        users_collection.update_one(
-            {"user_id": user_id},
-            {
-                "$inc": {"movie_searches": 1},
-                "$set": {"last_search_date": datetime.now()}
-            }
-        )
+    users_collection.update_one(
+        {"user_id": user_id},
+        {
+            "$inc": {"movie_searches": 1},
+            "$set": {"last_search_date": datetime.now()}
+        }
+    )
     
     # Success message
     updated_user_data = get_user_data(user_id) 
@@ -373,15 +388,18 @@ async def join_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     """Handle channel join verification"""
     user_id = update.effective_user.id
     
+    if not update.message or not users_collection:
+        await update.message.reply_text("❌ Error: Database service is unavailable. Please try again later.")
+        return
+        
     has_joined = await check_channel_membership(user_id, context)
     
     if has_joined:
         # Update user status
-        if users_collection:
-            users_collection.update_one(
-                {"user_id": user_id},
-                {"$set": {"has_joined_channel": True}}
-            )
+        users_collection.update_one(
+            {"user_id": user_id},
+            {"$set": {"has_joined_channel": True}}
+        )
         
         bonus_msg, _, _ = await _process_pending_referrals(user_id, context)
 
@@ -412,11 +430,19 @@ async def join_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Check user balance"""
     user_id = update.effective_user.id
+    
+    if not update.message or not users_collection:
+        await update.message.reply_text("❌ Error: Database service is unavailable. Please try again later.")
+        return
+        
     user_data = get_user_data(user_id)
     
     if not user_data:
         await start(update, context)
-        return
+        # Attempt to re-fetch after start
+        user_data = get_user_data(user_id)
+        if not user_data:
+            return
     
     ref_stats = get_referral_stats(user_id)
     twa_url = f"https://ashhabsr.github.io/Promotion-user-panel/?user_id={user_id}"
@@ -452,6 +478,8 @@ async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Help command"""
+    if not update.message: return
+
     help_text = """
 🆘 <b>Promotion User Bot - Help Guide</b>
 
@@ -489,6 +517,10 @@ Contact @asbhaibsr for help
 # TWA Data Handler (Same as original, with balance check improvement)
 async def handle_twa_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle data from Telegram Web App"""
+    if not update.message or not users_collection or not withdrawals_collection:
+        await update.message.reply_text("❌ Error: Database service is unavailable. Please try again later.")
+        return
+        
     try:
         web_app_data = update.message.web_app_data
         data = json.loads(web_app_data.data)
@@ -503,11 +535,10 @@ async def handle_twa_message(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 update_user_balance(user_id, amount)
             
             # Decrease spin count
-            if users_collection:
-                users_collection.update_one(
-                    {"user_id": user_id},
-                    {"$inc": {"spin_count": -1}}
-                )
+            users_collection.update_one(
+                {"user_id": user_id},
+                {"$inc": {"spin_count": -1}}
+            )
             
             await update.message.reply_text(f"✅ Spin completed! Added ₹{amount:.2f} to your balance.")
             
@@ -527,17 +558,16 @@ async def handle_twa_message(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 return
 
             # Create withdrawal request
-            if withdrawals_collection:
-                withdrawal_data = {
-                    "user_id": user_id,
-                    "amount": amount,
-                    "details": details,
-                    "status": "pending",
-                    "request_date": datetime.now(),
-                    "user_name": update.effective_user.first_name,
-                    "username": update.effective_user.username or "No username"
-                }
-                withdrawals_collection.insert_one(withdrawal_data)
+            withdrawal_data = {
+                "user_id": user_id,
+                "amount": amount,
+                "details": details,
+                "status": "pending",
+                "request_date": datetime.now(),
+                "user_name": update.effective_user.first_name,
+                "username": update.effective_user.username or "No username"
+            }
+            withdrawals_collection.insert_one(withdrawal_data)
             
             # Notify owner
             try:
@@ -582,11 +612,10 @@ async def handle_twa_message(update: Update, context: ContextTypes.DEFAULT_TYPE)
             )
             
         elif command == 'premium_prize':
-            if users_collection:
-                users_collection.update_one(
-                    {"user_id": user_id},
-                    {"$inc": {"spin_count": -1}}
-                )
+            users_collection.update_one(
+                {"user_id": user_id},
+                {"$inc": {"spin_count": -1}}
+            )
 
             try:
                 owner_text = f"🎁 <b>PREMIUM PRIZE WINNER!</b>\n\n" \
@@ -615,11 +644,10 @@ async def handle_twa_message(update: Update, context: ContextTypes.DEFAULT_TYPE)
         elif command == 'check_channel':
             # Channel verification from TWA
             has_joined = await check_channel_membership(user_id, context)
-            if users_collection:
-                users_collection.update_one(
-                    {"user_id": user_id},
-                    {"$set": {"has_joined_channel": has_joined}}
-                )
+            users_collection.update_one(
+                {"user_id": user_id},
+                {"$set": {"has_joined_channel": has_joined}}
+            )
             
             if has_joined:
                 bonus_msg, _, _ = await _process_pending_referrals(user_id, context)
@@ -635,6 +663,11 @@ async def handle_twa_message(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def handle_owner_approval(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle withdrawal approval by owner"""
     query = update.callback_query
+    
+    if not query or not withdrawals_collection:
+        logger.error("Callback query or DB is missing in handle_owner_approval.")
+        return
+
     await query.answer()
     
     if query.from_user.id != OWNER_ID:
@@ -649,21 +682,20 @@ async def handle_owner_approval(update: Update, context: ContextTypes.DEFAULT_TY
             amount = float(parts[2])
             
             # Update withdrawal status 
-            if withdrawals_collection:
-                result = withdrawals_collection.update_one(
-                    {"user_id": user_id, "amount": amount, "status": "pending"},
-                    {
-                        "$set": {
-                            "status": "approved",
-                            "approved_date": datetime.now(),
-                            "approved_by": query.from_user.id
-                        }
+            result = withdrawals_collection.update_one(
+                {"user_id": user_id, "amount": amount, "status": "pending"},
+                {
+                    "$set": {
+                        "status": "approved",
+                        "approved_date": datetime.now(),
+                        "approved_by": query.from_user.id
                     }
-                )
-                
-                if result.matched_count == 0:
-                     await query.edit_message_text(f"❌ Withdrawal for user {user_id} (₹{amount}) not found or already processed!")
-                     return
+                }
+            )
+            
+            if result.matched_count == 0:
+                 await query.edit_message_text(f"❌ Withdrawal for user {user_id} (₹{amount}) not found or already processed!")
+                 return
 
             # Notify user
             try:
@@ -701,6 +733,10 @@ async def calculate_leaderboard(context: ContextTypes.DEFAULT_TYPE):
 # Main Application
 def main() -> None:
     """Main function to start the bot"""
+    if not BOT_TOKEN:
+        logger.error("❌ BOT_TOKEN is not set. Cannot start the bot.")
+        return
+
     try:
         # Create application
         application = Application.builder().token(BOT_TOKEN).build()
@@ -727,22 +763,25 @@ def main() -> None:
         job_queue.run_repeating(health_check, interval=300, first=10)
         
         # Daily tasks: FIX 1 - datetime.time() constructor called correctly
+        # Note: Jobs run based on the bot's server time (likely UTC on Render)
         job_queue.run_daily(reset_daily_searches, time=dt_time(hour=0, minute=0))
         job_queue.run_daily(calculate_leaderboard, time=dt_time(hour=23, minute=30))
         
         # Start polling
         logger.info("🚀 Starting Promotion User Bot...")
         
-        # FIX 2: Removed unsupported arguments like 'read_timeout' and 'timeout'
+        # FIX 2: Added 'close_loop=False' for better threading compatibility with Flask
+        # Also ensured that no unsupported arguments are passed
         application.run_polling(
             drop_pending_updates=True,
-            allowed_updates=Update.ALL_TYPES
+            allowed_updates=Update.ALL_TYPES,
+            close_loop=False
         )
         
     except Exception as e:
         logger.error(f"❌ Bot startup failed: {e}")
-        # Removed recursive call and added proper sleep before exit
-        time.sleep(10)
+        # Added sleep for stability before application attempts to exit
+        time.sleep(5)
         logger.error("❌ Exiting bot process after failure.")
 
 # Dual execution for Render (Same as original)
@@ -752,7 +791,12 @@ if __name__ == "__main__":
     def run_flask():
         """Run Flask server for Render"""
         port = int(os.environ.get('PORT', 5000))
-        app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
+        # use_reloader=False is crucial for multi-threading environments
+        try:
+            logger.info(f"Starting Flask server on port {port}")
+            app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
+        except Exception as e:
+            logger.error(f"❌ Flask startup failed: {e}")
     
     def run_bot():
         """Run Telegram bot"""
@@ -771,8 +815,10 @@ if __name__ == "__main__":
     try:
         while True:
             time.sleep(60)
+            # Log every minute to keep the system awake on some free tiers (like Render free tier)
             logger.info("💚 System running...")
     except KeyboardInterrupt:
-        logger.info("🛑 Bot stopped by user")
+        logger.info("🛑 Bot stopped by user (KeyboardInterrupt)")
     except Exception as e:
         logger.error(f"❌ Main thread loop error: {e}")
+
