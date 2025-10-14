@@ -27,7 +27,7 @@ load_dotenv()
 MONGODB_URI = os.getenv("MONGODB_URI") 
 BOT_TOKEN = os.getenv("BOT_TOKEN") 
 WEBHOOK_URL = os.getenv("WEBHOOK_URL") # Render Service URL
-PORT = int(os.getenv("PORT", 5000))
+PORT = int(os.getenv("PORT", 10000))
 
 # MongoDB Setup
 users_collection = None
@@ -174,7 +174,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     user_id = user.id
     
-    if not update.message: return
+    if not update.message: 
+        return
 
     logger.info(f"User {user_id} started the bot")
     
@@ -700,22 +701,25 @@ def main() -> None:
         for handler in handlers:
             application.add_handler(handler)
         
-        # Job queue setup
-        job_queue = application.job_queue
-        
-        if job_queue:
-            job_queue.run_repeating(health_check, interval=300, first=10)
-            job_queue.run_daily(reset_daily_searches, time=dt_time(hour=0, minute=0))
-            job_queue.run_daily(calculate_leaderboard, time=dt_time(hour=23, minute=30))
+        # Job queue setup (optional - comment out if not needed)
+        # job_queue = application.job_queue
+        # if job_queue:
+        #     job_queue.run_repeating(health_check, interval=300, first=10)
+        #     job_queue.run_daily(reset_daily_searches, time=dt_time(hour=0, minute=0))
+        #     job_queue.run_daily(calculate_leaderboard, time=dt_time(hour=23, minute=30))
         
         # 🚀 Webhook Setup 
         logger.info(f"🚀 Starting Promotion User Bot in Webhook Mode on port {PORT}...")
+        
+        # FIXED: Correct webhook URL with BOT_TOKEN
+        webhook_url = f"{WEBHOOK_URL}/{BOT_TOKEN}"
+        logger.info(f"📡 Setting webhook to: {webhook_url}")
         
         # Webhook setup with proper configuration
         application.run_webhook(
             listen="0.0.0.0",
             port=PORT,
-            webhook_url=f"{WEBHOOK_URL}/{BOT_TOKEN}",
+            webhook_url=webhook_url,
             allowed_updates=Update.ALL_TYPES
         )
         
