@@ -1,6 +1,5 @@
 import os
 import logging
-# Flask import yahan se hata diya gaya hai.
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
 import pymongo
@@ -14,12 +13,10 @@ logging.basicConfig(
     level=logging.INFO,
     handlers=[
         logging.FileHandler("bot.log"),
-        logging.StreamHandler() # FIX: StreamHandler() ko logging.StreamHandler() kiya gaya hai.
+        logging.StreamHandler()
     ]
 )
 logger = logging.getLogger(__name__)
-
-# Flask app and Routes ka block yahan se hata diya gaya hai.
 
 # Configuration
 MONGODB_URI = os.getenv("MONGODB_URI") 
@@ -57,7 +54,6 @@ if MONGODB_URI:
 else:
     logger.warning("⚠️ MONGODB_URI is not set. Database functionality will be disabled.")
 
-
 # Constants 
 MOVIE_CHANNEL_ID = -1002283182645
 OWNER_ID = 7315805571
@@ -66,7 +62,7 @@ REFERRAL_BONUS = 2.0
 DAILY_SEARCH_BONUS = 0.50
 SPIN_PRIZES = [0.10, 0.20, 0.50, 1.00, 2.00, 5.00, 10.00, 0.00, 0.00, "premium"]
 
-# Utility Functions (Unchanged)
+# Utility Functions (Keep all your existing utility functions as they are)
 async def check_channel_membership(user_id: int, context: ContextTypes.DEFAULT_TYPE) -> bool:
     try:
         member = await context.bot.get_chat_member(chat_id=MOVIE_CHANNEL_ID, user_id=user_id)
@@ -167,7 +163,7 @@ async def _process_pending_referrals(user_id: int, context: ContextTypes.DEFAULT
 
     return bonus_msg, total_bonus, total_spins
 
-# Command Handlers (Unchanged logic)
+# Command Handlers (Keep all your existing command handlers as they are)
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     user_id = user.id
@@ -659,9 +655,8 @@ async def handle_owner_approval(update: Update, context: ContextTypes.DEFAULT_TY
             logger.error(f"Error processing approval: {e}")
             await query.edit_message_text("❌ Error processing approval!")
 
-# Scheduled Tasks (Unchanged)
+# Scheduled Tasks
 async def health_check(context: ContextTypes.DEFAULT_TYPE):
-    # Ab yeh job queue mein hai aur PTB ke andar chalega
     logger.info("🤖 Bot Health Check - Running...")
 
 async def reset_daily_searches(context: ContextTypes.DEFAULT_TYPE):
@@ -703,9 +698,10 @@ def main() -> None:
         # Job queue setup
         job_queue = application.job_queue
         
-        job_queue.run_repeating(health_check, interval=300, first=10)
-        job_queue.run_daily(reset_daily_searches, time=dt_time(hour=0, minute=0))
-        job_queue.run_daily(calculate_leaderboard, time=dt_time(hour=23, minute=30))
+        if job_queue:
+            job_queue.run_repeating(health_check, interval=300, first=10)
+            job_queue.run_daily(reset_daily_searches, time=dt_time(hour=0, minute=0))
+            job_queue.run_daily(calculate_leaderboard, time=dt_time(hour=23, minute=30))
         
         # 🚀 Webhook Setup 
         port = int(os.environ.get('PORT', 5000))
@@ -727,8 +723,6 @@ def main() -> None:
 
 # Dual execution for Render (Simplified)
 if __name__ == "__main__":
-    
     logger.info("🎯 Starting Telegram Bot Webhook...")
-    main() # Run the main function with application.run_webhook()
-
+    main()
     logger.info("🛑 Bot process finished.")
