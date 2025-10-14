@@ -1,19 +1,13 @@
-# bot.py
-
 import os
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-# telegram.ext से Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler import करें
-from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters 
+from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
 import pymongo
 from datetime import datetime, time as dt_time
 import json
 import time
 import asyncio
-from dotenv import load_dotenv # .env फ़ाइल लोड करने के लिए
-
-# Load environment variables
-load_dotenv()
+from dotenv import load_dotenv
 
 # Logging Setup
 logging.basicConfig(
@@ -26,11 +20,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Load environment variables
+load_dotenv()
+
 # Configuration
 MONGODB_URI = os.getenv("MONGODB_URI") 
 BOT_TOKEN = os.getenv("BOT_TOKEN") 
 WEBHOOK_URL = os.getenv("WEBHOOK_URL") # Render Service URL
-PORT = int(os.environ.get('PORT', 5000)) # Render पोर्ट 5000 का उपयोग करता है
+PORT = int(os.getenv("PORT", 5000))
 
 # MongoDB Setup
 users_collection = None
@@ -42,7 +39,6 @@ withdrawals_collection = None
 
 if MONGODB_URI:
     try:
-        # Pymongo क्लाइंट को बाहरी scope में define करें
         client = pymongo.MongoClient(MONGODB_URI, serverSelectionTimeoutMS=20000) 
         db = client.promotion_bot
         users_collection = db.users
@@ -72,7 +68,7 @@ REFERRAL_BONUS = 2.0
 DAILY_SEARCH_BONUS = 0.50
 SPIN_PRIZES = [0.10, 0.20, 0.50, 1.00, 2.00, 5.00, 10.00, 0.00, 0.00, "premium"]
 
-# --- Utility Functions (ये फ़ंक्शंस unchanged हैं) ---
+# Utility Functions
 async def check_channel_membership(user_id: int, context: ContextTypes.DEFAULT_TYPE) -> bool:
     try:
         member = await context.bot.get_chat_member(chat_id=MOVIE_CHANNEL_ID, user_id=user_id)
@@ -172,10 +168,8 @@ async def _process_pending_referrals(user_id: int, context: ContextTypes.DEFAULT
         bonus_msg = "\n\n✅ You're all set! Start earning now!"
 
     return bonus_msg, total_bonus, total_spins
-# --- Utility Functions End ---
 
-
-# --- Command Handlers (ये फ़ंक्शंस unchanged हैं) ---
+# Command Handlers
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     user_id = user.id
@@ -666,10 +660,8 @@ async def handle_owner_approval(update: Update, context: ContextTypes.DEFAULT_TY
         except (ValueError, IndexError) as e:
             logger.error(f"Error processing approval: {e}")
             await query.edit_message_text("❌ Error processing approval!")
-# --- Command Handlers End ---
 
-
-# --- Scheduled Tasks ---
+# Scheduled Tasks
 async def health_check(context: ContextTypes.DEFAULT_TYPE):
     logger.info("🤖 Bot Health Check - Running...")
 
@@ -678,11 +670,8 @@ async def reset_daily_searches(context: ContextTypes.DEFAULT_TYPE):
 
 async def calculate_leaderboard(context: ContextTypes.DEFAULT_TYPE):
     logger.info("🏆 Calculating daily leaderboard...")
-# --- Scheduled Tasks End ---
 
-
-# --- Main Application (Render के लिए सही किया गया) ---
-async def main() -> None:
+def main() -> None:
     """Main function to start the bot in Webhook Mode"""
     if not BOT_TOKEN:
         logger.error("❌ BOT_TOKEN is not set. Cannot start the bot.")
@@ -720,27 +709,22 @@ async def main() -> None:
             job_queue.run_daily(calculate_leaderboard, time=dt_time(hour=23, minute=30))
         
         # 🚀 Webhook Setup 
-        
         logger.info(f"🚀 Starting Promotion User Bot in Webhook Mode on port {PORT}...")
         
-        # Application.run_webhook का उपयोग आपके उदाहरण कोड के समान है
-        await application.run_webhook(
+        # Webhook setup with proper configuration
+        application.run_webhook(
             listen="0.0.0.0",
             port=PORT,
-            url_path=BOT_TOKEN, 
             webhook_url=f"{WEBHOOK_URL}/{BOT_TOKEN}",
-            allowed_updates=Update.ALL_TYPES # सभी प्रकार के अपडेट्स की अनुमति दें
+            allowed_updates=Update.ALL_TYPES
         )
         
     except Exception as e:
-        logger.error(f"❌ Bot startup failed: {e.__class__.__name__}: {e}")
+        logger.error(f"❌ Bot startup failed: {e}")
         time.sleep(5)
         logger.error("❌ Exiting bot process after failure.")
 
-
 if __name__ == "__main__":
     logger.info("🎯 Starting Telegram Bot Webhook...")
-    # asyncio.run() का उपयोग करना Render पर Webhook मोड में बॉट चलाने का सही तरीका है
-    asyncio.run(main())
+    main()
     logger.info("🛑 Bot process finished.")
-
