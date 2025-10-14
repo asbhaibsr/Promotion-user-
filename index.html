@@ -4,270 +4,289 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Movie Bot - Earn & Watch</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        /* --- Telegram Theme Variables (Dynamic Colors) --- */
+        :root {
+            --bg-color: #f0f0f0;
+            --text-color: #000000;
+            --secondary-bg-color: #ffffff;
+            --hint-color: #707070;
+            --link-color: #007aff;
+            --success-color: #4CAF50;
+            --danger-color: #FF6B6B;
+        }
+
+        body.tg-theme {
+            --bg-color: var(--tg-theme-bg-color, #f0f0f0);
+            --text-color: var(--tg-theme-text-color, #000000);
+            --secondary-bg-color: var(--tg-theme-secondary-bg-color, #ffffff);
+            --hint-color: var(--tg-theme-hint-color, #707070);
+            --link-color: var(--tg-theme-link-color, #007aff);
+        }
+
+        /* --- Base Styles --- */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-color: var(--bg-color);
             min-height: 100vh;
-            color: white;
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
         }
-        
+
         .container {
             max-width: 400px;
             margin: 0 auto;
             padding: 15px;
         }
-        
-        /* Top Navigation Bar */
+
+        /* --- Top Navigation Bar (Telegram-style Segmented Control) --- */
         .top-nav {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255,255,255,0.1);
-            padding: 12px 15px;
+            background-color: var(--secondary-bg-color);
+            padding: 4px;
             border-radius: 12px;
-            margin-bottom: 15px;
-            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
-        
+
         .nav-btn {
+            flex-grow: 1;
             background: none;
             border: none;
-            color: white;
+            color: var(--hint-color);
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            padding: 8px 12px;
+            padding: 8px 0;
             border-radius: 8px;
-            transition: background 0.3s;
+            transition: background 0.2s, color 0.2s;
         }
-        
+
         .nav-btn.active {
-            background: rgba(255,255,255,0.2);
+            background-color: var(--link-color);
+            color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
-        
-        /* Main Content Sections */
+
+        /* --- Main Content Sections --- */
         .section {
             display: none;
             animation: fadeIn 0.3s ease-in;
         }
-        
+
         .section.active {
             display: block;
         }
-        
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* --- Card Styles --- */
+        .card {
+            background-color: var(--secondary-bg-color);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        /* --- Balance Card (Image 1000008770.jpg Style) --- */
+        .balance-card {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); /* Gold/Orange Gradient */
+            color: white;
+            text-align: center;
+            padding: 25px 15px;
+            margin-bottom: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(255, 165, 0, 0.4);
+        }
+
+        .balance-amount {
+            font-size: 38px;
+            font-weight: 900;
+            margin: 5px 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         
-        /* Spin Wheel Section */
+        .balance-amount i {
+            font-size: 28px;
+            margin-right: 10px;
+        }
+
+        .progress-text {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.3);
+            height: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: var(--success-color); /* Bright Green */
+            height: 100%;
+            width: 3.23%; /* Initial value, will be set by JS */
+            border-radius: 5px;
+            transition: width 0.5s ease-out;
+        }
+
+        /* --- Spin Wheel Section --- */
         .spin-section {
             text-align: center;
         }
         
-        .balance-card {
-            background: rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(10px);
-        }
-        
-        .balance-amount {
-            font-size: 32px;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-        
-        .progress-bar {
-            background: rgba(255,255,255,0.2);
-            height: 8px;
-            border-radius: 4px;
-            margin: 15px 0;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            background: #4CAF50;
-            height: 100%;
-            width: 96.77%;
-            border-radius: 4px;
-        }
-        
-        .progress-text {
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-        
-        .spin-wheel {
-            width: 280px;
-            height: 280px;
-            margin: 20px auto;
+        .spin-wheel-container {
             position: relative;
-            background: conic-gradient(
-                from 0deg,
-                #ff6b6b, #ffa726, #ffee58, #66bb6a, 
-                #42a5f5, #5c6bc0, #ab47bc, #ff6b6b
-            );
+            width: 300px;
+            height: 300px;
+            margin: 30px auto;
+        }
+
+        .spin-wheel {
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: conic-gradient(
+                #FF6B6B 0% 12.5%, #FFA726 12.5% 25%, #FFEE58 25% 37.5%, #66BB6A 37.5% 50%, 
+                #42A5F5 50% 62.5%, #5C6BC0 62.5% 75%, #AB47BC 75% 87.5%, #FF6B6B 87.5% 100%
+            );
+            transition: transform 5s cubic-bezier(0.25, 0.1, 0, 1);
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
         }
         
         .spin-center {
-            width: 80px;
-            height: 80px;
-            background: white;
+            width: 100px;
+            height: 100px;
+            background: var(--secondary-bg-color);
             border-radius: 50%;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            font-size: 24px;
             font-weight: bold;
-            color: #333;
+            color: var(--text-color);
             cursor: pointer;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 5px solid var(--bg-color);
+        }
+
+        .spin-center small {
+            font-size: 12px;
+            font-weight: normal;
+            color: var(--hint-color);
+        }
+
+        .spin-indicator {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, -15px);
+            width: 0; 
+            height: 0; 
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 15px solid var(--link-color);
         }
         
-        .spin-button {
-            background: linear-gradient(45deg, #FFD700, #FFA500);
-            color: #000;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 25px;
-            cursor: pointer;
-            margin: 20px 0;
-            box-shadow: 0 5px 15px rgba(255,215,0,0.3);
-        }
-        
-        /* Invitation Section */
-        .invite-section {
-            text-align: center;
-        }
-        
-        .invite-card {
-            background: rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(10px);
-        }
-        
+        /* --- Invitation Section --- */
         .referral-link {
-            background: rgba(255,255,255,0.2);
-            padding: 15px;
-            border-radius: 10px;
+            background-color: var(--bg-color);
+            padding: 12px;
+            border-radius: 8px;
             margin: 15px 0;
             word-break: break-all;
             font-size: 14px;
-        }
-        
-        .share-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin: 15px 0;
-        }
-        
-        .share-btn {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            padding: 12px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        /* Movie Groups Section */
-        .movie-groups {
-            display: grid;
-            gap: 10px;
-        }
-        
-        .group-btn {
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: left;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-        }
-        
-        /* Withdrawal Section */
-        .withdrawal-section {
+            color: var(--text-color);
             text-align: center;
         }
-        
-        .withdrawal-card {
-            background: rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 15px;
-            backdrop-filter: blur(10px);
+
+        .share-buttons {
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+            margin-top: 15px;
         }
-        
-        .amount-display {
-            font-size: 24px;
+
+        .share-btn {
+            background-color: var(--link-color);
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            flex-grow: 1;
+        }
+
+        .users-list {
+            max-height: 250px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            background-color: var(--bg-color);
+        }
+
+        .user-earned {
+            color: var(--success-color);
             font-weight: bold;
-            margin: 10px 0;
         }
         
-        .info-grid {
+        /* --- Withdrawal Section --- */
+        .withdrawal-card .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
             margin: 15px 0;
         }
         
-        .info-item {
-            background: rgba(255,255,255,0.1);
-            padding: 12px;
+        .withdrawal-card .info-item {
+            background-color: var(--bg-color);
+            padding: 10px;
             border-radius: 8px;
             text-align: center;
         }
         
-        .info-value {
-            font-size: 18px;
+        .withdrawal-card .info-value {
+            font-size: 20px;
             font-weight: bold;
+            color: var(--link-color);
         }
         
-        .info-label {
+        .withdrawal-card .info-label {
             font-size: 12px;
-            opacity: 0.8;
+            color: var(--hint-color);
         }
         
-        .cashout-btn {
-            background: linear-gradient(45deg, #4CAF50, #45a049);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 25px;
-            cursor: pointer;
-            margin: 10px 0;
-            width: 100%;
-        }
-        
-        .cashout-btn:disabled {
-            background: #666;
-            cursor: not-allowed;
-        }
-        
-        /* Form Styles */
+        /* --- Form Styles --- */
         .form-group {
             margin-bottom: 15px;
             text-align: left;
@@ -277,97 +296,66 @@
             display: block;
             margin-bottom: 5px;
             font-size: 14px;
+            color: var(--text-color);
         }
         
         .form-input {
             width: 100%;
             padding: 12px;
-            border: none;
+            border: 1px solid var(--hint-color);
             border-radius: 8px;
-            background: rgba(255,255,255,0.9);
+            background-color: var(--bg-color);
+            color: var(--text-color);
         }
-        
-        /* Invited Users List */
-        .users-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .user-item {
-            background: rgba(255,255,255,0.1);
-            padding: 12px;
-            margin: 8px 0;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .user-earned {
-            color: #4CAF50;
-            font-weight: bold;
-        }
+
     </style>
 </head>
-<body>
+<body class="tg-theme">
     <div class="container">
-        <!-- Top Navigation -->
         <div class="top-nav">
-            <button class="nav-btn active" onclick="showSection('spin')">Rank</button>
-            <button class="nav-btn" onclick="showSection('invite')">Invitation</button>
-            <button class="nav-btn" onclick="showSection('cashout')">Cash Out</button>
+            <button class="nav-btn active" data-section-id="spin" onclick="showSection('spin', this)">🏆 Rank</button>
+            <button class="nav-btn" data-section-id="invite" onclick="showSection('invite', this)">👥 Invitation</button>
+            <button class="nav-btn" data-section-id="cashout" onclick="showSection('cashout', this)">💰 Cash Out</button>
+            <button class="nav-btn" data-section-id="groups" onclick="showSection('groups', this)">🎬 Movies</button>
         </div>
 
-        <!-- Spin Wheel Section -->
         <div id="spin" class="section active">
             <div class="spin-section">
                 <div class="balance-card">
-                    <div>Your Balance</div>
+                    <div style="font-size: 16px;">Your Balance</div>
                     <div class="balance-amount">₹<span id="currentBalance">3.23</span></div>
-                    <div class="progress-text">Only ₹3.23 left to cash out ₹100!</div>
                     <div class="progress-bar">
-                        <div class="progress-fill"></div>
+                        <div class="progress-fill" style="width: 3.23%;"></div>
+                    </div>
+                    <div class="progress-text">Only ₹<span id="remainingToCashout">96.77</span> left to cash out ₹100!</div>
+                </div>
+
+                <div class="spin-wheel-container">
+                    <div class="spin-indicator"></div>
+                    <div id="spinWheel" class="spin-wheel">
+                        <div class="spin-center" onclick="spinWheel()">
+                            <span id="spinCount">0</span>
+                            <small>Spins</small>
+                        </div>
                     </div>
                 </div>
 
-                <div class="spin-wheel">
-                    <div class="spin-center" onclick="spinWheel()">
-                        SPIN
-                    </div>
                 </div>
-
-                <button class="spin-button" onclick="spinWheel()">
-                    Get +1 Spin
-                </button>
-
-                <div class="movie-groups">
-                    <button class="group-btn" onclick="openMovieGroup('new')">
-                        🆕 New Movie Group
-                    </button>
-                    <button class="group-btn" onclick="openMovieGroup('main')">
-                        🎬 Main Movie Group
-                    </button>
-                    <button class="group-btn" onclick="openMovieGroup('all')">
-                        📚 All Movie Groups
-                    </button>
-                </div>
-            </div>
         </div>
 
-        <!-- Invitation Section -->
         <div id="invite" class="section">
             <div class="invite-section">
-                <div class="invite-card">
-                    <h3>Invite Friends & Earn</h3>
-                    <p>Get ₹0.20 for each friend who joins</p>
+                <div class="card">
+                    <h3>👥 Invite Friends & Earn</h3>
+                    <p style="color: var(--hint-color); margin-bottom: 10px;">Get ₹0.20 for each successful invite.</p>
                     
-                    <div class="info-grid">
-                        <div class="info-item">
+                    <div class="info-grid" style="grid-template-columns: 1fr 1fr;">
+                        <div class="info-item" style="background-color: var(--bg-color);">
                             <div class="info-value" id="totalInvites">0</div>
                             <div class="info-label">Total Invites</div>
                         </div>
-                        <div class="info-item">
-                            <div class="info-value">₹<span id="inviteEarnings">0.00</span></div>
+                        <div class="info-item" style="background-color: var(--bg-color);">
+                            <div class="info-value" style="color: var(--success-color);">₹<span id="inviteEarnings">0.00</span></div>
                             <div class="info-label">Earned</div>
                         </div>
                     </div>
@@ -375,239 +363,310 @@
                     <div class="referral-link" id="referralLinkDisplay">
                         Loading...
                     </div>
+                    
+                    <button class="share-btn" onclick="copyReferralLink()" style="margin-bottom: 10px; background-color: var(--link-color);">
+                         <i class="fas fa-copy"></i> Copy Link
+                    </button>
 
                     <div class="share-buttons">
-                        <button class="share-btn" onclick="shareToTelegram()">Telegram</button>
-                        <button class="share-btn" onclick="shareToWhatsApp()">WhatsApp</button>
-                        <button class="share-btn" onclick="copyReferralLink()">Copy Link</button>
-                        <button class="share-btn" onclick="shareToOther()">Other Apps</button>
+                        <button class="share-btn" onclick="shareToTelegram()" style="background-color: #0088CC;"><i class="fab fa-telegram-plane"></i></button>
+                        <button class="share-btn" onclick="shareToWhatsApp()" style="background-color: #25D366;"><i class="fab fa-whatsapp"></i></button>
+                        <button class="share-btn" onclick="shareToOther()" style="background-color: var(--hint-color);"><i class="fas fa-share-alt"></i></button>
                     </div>
                 </div>
 
-                <div class="invite-card">
-                    <h4>Invited Users</h4>
+                <div class="card">
+                    <h4>Invited Users (Active Today)</h4>
                     <div class="users-list" id="invitedUsers">
-                        <!-- Users will be loaded here -->
+                        <div class="user-item">
+                            <div><strong>@exampleuser1</strong></div>
+                            <div class="user-earned">+₹0.20</div>
+                        </div>
+                        <div class="user-item">
+                            <div><strong>@exampleuser2</strong></div>
+                            <div class="user-earned">+₹0.20</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Cash Out Section -->
         <div id="cashout" class="section">
             <div class="withdrawal-section">
-                <div class="withdrawal-card">
-                    <h3>Cash Out</h3>
+                <div class="card withdrawal-card">
+                    <h3>💰 Withdrawal Summary</h3>
                     
                     <div class="info-grid">
                         <div class="info-item">
                             <div class="info-value">₹<span id="toBeCashed">0.00</span></div>
-                            <div class="info-label">To Be Cashed Out</div>
+                            <div class="info-label">Current Balance</div>
                         </div>
                         <div class="info-item">
-                            <div class="info-value">₹<span id="successWithdrawal">0.00</span></div>
-                            <div class="info-label">Success Withdrawal</div>
+                            <div class="info-value" style="color: var(--success-color);">₹<span id="successWithdrawal">0.00</span></div>
+                            <div class="info-label">Total Withdrawn</div>
                         </div>
                         <div class="info-item">
-                            <div class="info-value">₹<span id="underReview">0.00</span></div>
+                            <div class="info-value" style="color: var(--hint-color);">₹<span id="underReview">0.00</span></div>
                             <div class="info-label">Under Review</div>
                         </div>
                         <div class="info-item">
-                            <div class="info-value" id="availableSpins">3</div>
-                            <div class="info-label">Available Spins</div>
+                            <div class="info-value" id="availableSpins" style="color: var(--danger-color);">3</div>
+                            <div class="info-label">Remaining Spins</div>
                         </div>
                     </div>
 
-                    <button class="cashout-btn" id="cashoutButton" onclick="showWithdrawalForm()">
-                        Cash Out ₹100
-                    </button>
+                    <p style="text-align: center; color: var(--hint-color); font-size: 14px;">Minimum cashout amount is ₹100.</p>
                 </div>
 
-                <!-- Withdrawal Form (Initially Hidden) -->
-                <div class="withdrawal-card" id="withdrawalForm" style="display: none;">
-                    <h4>Withdrawal Details</h4>
+                <div class="card" id="withdrawalForm">
+                    <h4>💳 Payment Details (For Cashout)</h4>
+                    <p style="color: var(--link-color); text-align: center; margin-bottom: 15px;">Admin Contact: <a href="https://t.me/{YOUR_TELEGRAM_HANDLE}" target="_blank">@{YOUR_TELEGRAM_HANDLE}</a></p>
                     
                     <div class="form-group">
-                        <label class="form-label">Account Name</label>
-                        <input type="text" class="form-input" id="accountName" placeholder="Enter account name">
+                        <label class="form-label">Account Name / UPI Name</label>
+                        <input type="text" class="form-input" id="accountName" placeholder="Full name of account holder">
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Account Number</label>
-                        <input type="text" class="form-input" id="accountNumber" placeholder="Enter account number">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">UPI ID</label>
-                        <input type="text" class="form-input" id="upiId" placeholder="Enter UPI ID">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">IFSC Code</label>
-                        <input type="text" class="form-input" id="ifscCode" placeholder="Enter IFSC code">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Bank Name</label>
-                        <input type="text" class="form-input" id="bankName" placeholder="Enter bank name">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-input" id="email" placeholder="Enter email">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Mobile Number</label>
-                        <input type="tel" class="form-input" id="mobileNumber" placeholder="Enter mobile number">
+                        <label class="form-label">UPI ID (Preferred)</label>
+                        <input type="text" class="form-input" id="upiId" placeholder="e.g., example@paytm">
                     </div>
 
-                    <button class="cashout-btn" onclick="submitWithdrawal()">
-                        Submit Withdrawal
-                    </button>
-                    <button class="share-btn" style="width: 100%; margin-top: 10px;" onclick="hideWithdrawalForm()">
-                        Close
+                    <div style="border-top: 1px solid var(--bg-color); padding-top: 15px; margin-top: 15px;">
+                        <label class="form-label" style="font-weight: bold;">(Optional) Bank Account Details</label>
+                        <div class="form-group">
+                            <input type="text" class="form-input" id="accountNumber" placeholder="Account Number (Optional)">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" class="form-input" id="ifscCode" placeholder="IFSC Code (Optional)">
+                        </div>
+                    </div>
+                    
+                    <button class="share-btn" id="submitWithdrawalBtn" style="width: 100%; margin-top: 15px; background-color: var(--success-color);" onclick="submitWithdrawal()">
+                        Submit Details & Notify Admin
                     </button>
                 </div>
             </div>
         </div>
+        
+        <div id="groups" class="section">
+            <div class="card">
+                <h3>🎬 Movie Group Links</h3>
+                <p style="color: var(--hint-color);">Join our Telegram groups to get your favourite movies instantly!</p>
+            </div>
+            
+            <div class="movie-groups" style="display: grid; gap: 10px;">
+                <button class="group-btn card" style="text-align: left; cursor: pointer; background-color: var(--secondary-bg-color);" onclick="openMovieGroup('new')">
+                    <strong>🆕 New Movie Group (Fastest)</strong>
+                    <div style="font-size: 12px; color: var(--hint-color);">Get all the latest releases here.</div>
+                </button>
+                <button class="group-btn card" style="text-align: left; cursor: pointer; background-color: var(--secondary-bg-color);" onclick="openMovieGroup('main')">
+                    <strong>📚 Main Movie Group</strong>
+                    <div style="font-size: 12px; color: var(--hint-color);">Our primary group for all users.</div>
+                </button>
+                <button class="group-btn card" style="text-align: left; cursor: pointer; background-color: var(--secondary-bg-color);" onclick="openMovieGroup('all')">
+                    <strong>🔗 Join All Groups List</strong>
+                    <div style="font-size: 12px; color: var(--hint-color);">A single link to join our full collection of groups.</div>
+                </button>
+            </div>
+        </div>
+        
     </div>
 
     <script>
+        // Placeholder for the Bot's Web Server URL
+        const API_BASE_URL = 'YOUR_WEB_SERVER_URL'; 
+        const BOT_HANDLE = 'YOUR_TELEGRAM_HANDLE';
+        const MIN_CASHOUT_AMOUNT = 100;
+        
         let tg = null;
         let currentUser = null;
         let userData = {
-            balance: 3.23,
+            balance: 3.23, // in INR
             totalEarnings: 0,
             totalInvites: 0,
-            invitedUsers: [],
+            invitedUsers: [
+                { name: '@user_a', joinDate: 'Today' },
+                { name: '@user_b', joinDate: 'Today' }
+            ],
             availableSpins: 3,
-            withdrawalHistory: []
+            totalWithdrawal: 0,
+            underReviewWithdrawal: 0
+        };
+        
+        const MOVIE_GROUP_LINKS = {
+            'new': 'https://t.me/Susanllll_bot/app?startapp=NzMxNTgwNTU4MV83ODU2NjkwMTgz',
+            'main': 'https://t.me/asfilter_group',
+            'all': 'https://t.me/addlist/EOSX8n4AoC1jYWU1'
         };
 
-        // Initialize Telegram Web App
+        // --- Core Functions ---
+
         function initTelegramApp() {
             tg = window.Telegram.WebApp;
             tg.expand();
             tg.ready();
             
             currentUser = tg.initDataUnsafe.user;
-            loadUserData();
+            
+            // Apply Telegram Theme Colors
+            document.body.classList.add('tg-theme');
+            document.documentElement.style.setProperty('--link-color', tg.themeParams.button_color);
+            document.documentElement.style.setProperty('--bg-color', tg.themeParams.bg_color);
+            document.documentElement.style.setProperty('--text-color', tg.themeParams.text_color);
+            document.documentElement.style.setProperty('--secondary-bg-color', tg.themeParams.secondary_bg_color);
+            
+            // Set Admin handle in form
+            document.querySelector('#withdrawalForm a').href = `https://t.me/${BOT_HANDLE}`;
+            document.querySelector('#withdrawalForm a').textContent = `@${BOT_HANDLE}`;
+
+
+            loadUserData(); // Fetch initial data
+            showSection('spin', document.querySelector('.nav-btn.active')); // Show default section and set main button
+        }
+
+        async function loadUserData() {
+            // Placeholder: In a real app, this would fetch user data from your Python backend
+            // const response = await fetch(`${API_BASE_URL}/api/user-data`, { /*...*/ });
+            // userData = await response.json();
+            
+            // Update the referral link with the actual bot handle and user ID
+            const botUsername = 'your_bot_username'; // Replace with actual bot username
+            const referralLink = `https://t.me/${botUsername}?start=ref_${currentUser.id}`;
+            document.getElementById('referralLinkDisplay').textContent = referralLink;
+            
             updateUI();
         }
 
-        // Load user data from backend
-        async function loadUserData() {
-            try {
-                const response = await fetch('/api/user-data', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        user_id: currentUser.id,
-                        initData: tg.initData
-                    })
-                });
-                
-                const data = await response.json();
-                userData = { ...userData, ...data };
-                updateUI();
-            } catch (error) {
-                console.error('Error loading user data:', error);
-            }
-        }
-
-        // Update UI with current data
         function updateUI() {
-            // Update balance and progress
-            document.getElementById('currentBalance').textContent = userData.balance.toFixed(2);
+            // Update Balance and Progress
+            const balanceINR = userData.balance;
+            const remaining = MIN_CASHOUT_AMOUNT - balanceINR;
+            const progressPercent = Math.min((balanceINR / MIN_CASHOUT_AMOUNT) * 100, 100);
+
+            document.getElementById('currentBalance').textContent = balanceINR.toFixed(2);
+            document.getElementById('remainingToCashout').textContent = remaining.toFixed(2);
+            document.querySelector('.progress-fill').style.width = progressPercent.toFixed(2) + '%';
+            
+            // Update Spin/Invite/Withdrawal Data
+            document.getElementById('spinCount').textContent = userData.availableSpins;
             document.getElementById('totalInvites').textContent = userData.totalInvites;
             document.getElementById('inviteEarnings').textContent = (userData.totalInvites * 0.20).toFixed(2);
+            document.getElementById('toBeCashed').textContent = balanceINR.toFixed(2);
+            document.getElementById('successWithdrawal').textContent = userData.totalWithdrawal.toFixed(2);
+            document.getElementById('underReview').textContent = userData.underReviewWithdrawal.toFixed(2);
             document.getElementById('availableSpins').textContent = userData.availableSpins;
-            
-            // Update referral link
-            if (currentUser) {
-                const referralLink = `https://t.me/your_bot_username?start=ref_${currentUser.id}`;
-                document.getElementById('referralLinkDisplay').textContent = referralLink;
-            }
-            
-            // Update withdrawal amounts
-            document.getElementById('toBeCashed').textContent = userData.balance.toFixed(2);
-            document.getElementById('successWithdrawal').textContent = userData.totalEarnings.toFixed(2);
-            
-            // Update invited users list
+
+            // Update Spin Center Text
+            const spinCenter = document.querySelector('.spin-center');
+            spinCenter.innerHTML = `
+                <span id="spinCount">${userData.availableSpins}</span>
+                <small>Spins</small>
+            `;
+
+            // Update Invited Users List
             updateInvitedUsersList();
             
-            // Enable/disable cashout button
-            const cashoutBtn = document.getElementById('cashoutButton');
-            cashoutBtn.disabled = userData.balance < 100;
+            // Update Main Button for current section
+            const activeSectionId = document.querySelector('.section.active').id;
+            updateMainButton(activeSectionId);
         }
 
-        // Section navigation
-        function showSection(sectionId) {
+        function updateMainButton(sectionId) {
+            tg.MainButton.hide();
+            tg.MainButton.offClick(spinWheel);
+            tg.MainButton.offClick(submitWithdrawal);
+            
+            if (sectionId === 'spin') {
+                tg.MainButton.setText('➕ GET +1 SPIN');
+                if (userData.availableSpins > 0) {
+                    tg.MainButton.show();
+                    tg.MainButton.enable();
+                    tg.MainButton.onClick(spinWheel);
+                } else {
+                    tg.MainButton.setText('Invite Friends for more Spins');
+                    tg.MainButton.disable();
+                    tg.MainButton.show();
+                }
+            } else if (sectionId === 'cashout') {
+                tg.MainButton.setText(`CASH OUT ₹${MIN_CASHOUT_AMOUNT}`);
+                if (userData.balance >= MIN_CASHOUT_AMOUNT) {
+                    tg.MainButton.show();
+                    tg.MainButton.enable();
+                    tg.MainButton.onClick(submitWithdrawal);
+                } else {
+                    tg.MainButton.setText(`Need ₹${(MIN_CASHOUT_AMOUNT - userData.balance).toFixed(2)} More`);
+                    tg.MainButton.disable();
+                    tg.MainButton.show();
+                }
+            }
+        }
+
+
+        // --- Navigation and View Functions ---
+
+        function showSection(sectionId, element) {
             // Update nav buttons
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            event.target.classList.add('active');
+            if(element) {
+                element.classList.add('active');
+            } else {
+                document.querySelector(`.nav-btn[data-section-id="${sectionId}"]`).classList.add('active');
+            }
             
             // Show section
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.remove('active');
             });
             document.getElementById(sectionId).classList.add('active');
+            
+            updateMainButton(sectionId);
         }
 
-        // Spin wheel function
+        // --- Spin Wheel Logic ---
+
         async function spinWheel() {
             if (userData.availableSpins <= 0) {
-                tg.showPopup({
-                    title: 'No Spins Left',
-                    message: 'Invite friends to get more spins!',
-                    buttons: [{ type: 'ok' }]
-                });
+                tg.showAlert('No Spins Left! Invite friends to get more spins.');
                 return;
             }
 
-            const spinButton = event.target;
-            spinButton.disabled = true;
-            spinButton.textContent = 'Spinning...';
+            const spinWheelElement = document.getElementById('spinWheel');
+            const winningAngle = 360 * 10 + 22.5; // Example angle for a win (can be randomized from backend)
+            
+            // Lock UI
+            tg.MainButton.disable();
+            tg.MainButton.setText('Spinning...');
+            
+            // Spin Animation
+            spinWheelElement.style.transform = `rotate(${winningAngle}deg)`;
+            tg.HapticFeedback.impactOccurred('light');
 
-            try {
-                const response = await fetch('/api/spin-wheel', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        user_id: currentUser.id
-                    })
-                });
+            // Simulate API call for result
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            
+            // Reset CSS transition and rotate back to a neutral position for next spin
+            spinWheelElement.style.transition = 'none';
+            spinWheelElement.style.transform = `rotate(${winningAngle % 360}deg)`;
+            setTimeout(() => {
+                spinWheelElement.style.transition = 'transform 5s cubic-bezier(0.25, 0.1, 0, 1)';
+            }, 50);
 
-                const result = await response.json();
-                
-                if (result.success) {
-                    userData.balance += result.amount;
-                    userData.availableSpins -= 1;
-                    
-                    tg.showPopup({
-                        title: 'Congratulations!',
-                        message: `You won ₹${result.amount}!`,
-                        buttons: [{ type: 'ok' }]
-                    });
-                    
-                    updateUI();
-                }
-            } catch (error) {
-                console.error('Error spinning wheel:', error);
-            }
-
-            spinButton.disabled = false;
-            spinButton.textContent = 'Get +1 Spin';
+            // Simulate result
+            const earnedAmount = 0.50; // Replace with actual API result
+            userData.balance += earnedAmount;
+            userData.availableSpins -= 1;
+            tg.HapticFeedback.notificationOccurred('success');
+            
+            tg.showAlert(`Congratulations! You won ₹${earnedAmount.toFixed(2)}!`);
+            
+            updateUI();
         }
 
-        // Share functions
+        // --- Invitation Functions ---
+
         function shareToTelegram() {
             const link = document.getElementById('referralLinkDisplay').textContent;
             const text = `Join this amazing movie bot and earn money! ${link}`;
@@ -623,11 +682,8 @@
         function copyReferralLink() {
             const link = document.getElementById('referralLinkDisplay').textContent;
             navigator.clipboard.writeText(link).then(() => {
-                tg.showPopup({
-                    title: 'Copied!',
-                    message: 'Referral link copied to clipboard',
-                    buttons: [{ type: 'ok' }]
-                });
+                tg.showPopup({ title: 'Copied!', message: 'Referral link copied to clipboard', buttons: [{ type: 'ok' }] });
+                tg.HapticFeedback.notificationOccurred('success');
             });
         }
 
@@ -636,103 +692,20 @@
             const text = `Join this amazing movie bot and earn money! ${link}`;
             
             if (navigator.share) {
-                navigator.share({
-                    title: 'Movie Bot',
-                    text: text,
-                    url: link
-                });
+                navigator.share({ title: 'Movie Bot', text: text, url: link });
             } else {
                 copyReferralLink();
             }
         }
 
-        // Movie group functions
-        function openMovieGroup(type) {
-            const groups = {
-                'new': 'https://t.me/Susanllll_bot/app?startapp=NzMxNTgwNTU4MV83ODU2NjkwMTgz',
-                'main': 'https://t.me/asfilter_group',
-                'all': 'https://t.me/addlist/EOSX8n4AoC1jYWU1'
-            };
-            
-            tg.openTelegramLink(groups[type]);
-        }
-
-        // Withdrawal functions
-        function showWithdrawalForm() {
-            if (userData.balance < 100) {
-                tg.showPopup({
-                    title: 'Minimum ₹100 Required',
-                    message: `You need ₹${(100 - userData.balance).toFixed(2)} more to cash out`,
-                    buttons: [{ type: 'ok' }]
-                });
-                return;
-            }
-            
-            document.getElementById('withdrawalForm').style.display = 'block';
-        }
-
-        function hideWithdrawalForm() {
-            document.getElementById('withdrawalForm').style.display = 'none';
-        }
-
-        async function submitWithdrawal() {
-            const formData = {
-                accountName: document.getElementById('accountName').value,
-                accountNumber: document.getElementById('accountNumber').value,
-                upiId: document.getElementById('upiId').value,
-                ifscCode: document.getElementById('ifscCode').value,
-                bankName: document.getElementById('bankName').value,
-                email: document.getElementById('email').value,
-                mobileNumber: document.getElementById('mobileNumber').value
-            };
-
-            // Basic validation
-            for (let field in formData) {
-                if (!formData[field]) {
-                    tg.showPopup({
-                        title: 'Error',
-                        message: 'Please fill all fields',
-                        buttons: [{ type: 'ok' }]
-                    });
-                    return;
-                }
-            }
-
-            try {
-                const response = await fetch('/api/submit-withdrawal', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        user_id: currentUser.id,
-                        ...formData,
-                        amount: userData.balance
-                    })
-                });
-
-                const result = await response.json();
-                
-                if (result.success) {
-                    tg.showPopup({
-                        title: 'Success',
-                        message: 'Withdrawal request submitted! Admin will process it soon.',
-                        buttons: [{ type: 'ok' }]
-                    });
-                    
-                    userData.balance = 0;
-                    hideWithdrawalForm();
-                    updateUI();
-                }
-            } catch (error) {
-                console.error('Error submitting withdrawal:', error);
-            }
-        }
-
-        // Update invited users list
         function updateInvitedUsersList() {
             const usersList = document.getElementById('invitedUsers');
             usersList.innerHTML = '';
+
+            if (userData.invitedUsers.length === 0) {
+                usersList.innerHTML = `<div style="text-align: center; color: var(--hint-color); padding: 10px;">No active invites today.</div>`;
+                return;
+            }
 
             userData.invitedUsers.forEach(user => {
                 const userItem = document.createElement('div');
@@ -740,7 +713,6 @@
                 userItem.innerHTML = `
                     <div>
                         <strong>${user.name}</strong>
-                        <div style="font-size: 12px; opacity: 0.8;">Joined: ${user.joinDate}</div>
                     </div>
                     <div class="user-earned">+₹0.20</div>
                 `;
@@ -748,8 +720,72 @@
             });
         }
 
+        // --- Movie Group Functions ---
+        function openMovieGroup(type) {
+            tg.openTelegramLink(MOVIE_GROUP_LINKS[type]);
+        }
+
+        // --- Withdrawal Functions ---
+
+        async function submitWithdrawal() {
+            if (userData.balance < MIN_CASHOUT_AMOUNT) {
+                tg.showAlert(`Cashout failed. Minimum amount is ₹${MIN_CASHOUT_AMOUNT}.`);
+                return;
+            }
+            
+            const formData = {
+                accountName: document.getElementById('accountName').value.trim(),
+                upiId: document.getElementById('upiId').value.trim(),
+                accountNumber: document.getElementById('accountNumber').value.trim(),
+                ifscCode: document.getElementById('ifscCode').value.trim()
+            };
+
+            // Basic validation
+            if (!formData.accountName || (!formData.upiId && !formData.accountNumber)) {
+                tg.showAlert('Please enter your Account Name and either a UPI ID or Bank Account Number.');
+                return;
+            }
+            
+            // Lock UI
+            tg.MainButton.disable();
+            tg.MainButton.setText('Submitting...');
+            
+            // 1. Prepare message for Admin
+            const adminMessage = `
+                💰 **NEW WITHDRAWAL REQUEST**
+                
+                **User:** ${currentUser.full_name} (@${currentUser.username || 'N/A'})
+                **User ID:** \`${currentUser.id}\`
+                **Amount:** ₹${userData.balance.toFixed(2)}
+                
+                **--- Payment Details ---**
+                **Name:** ${formData.accountName}
+                **UPI ID:** ${formData.upiId || 'N/A'}
+                **A/C No.:** ${formData.accountNumber || 'N/A'}
+                **IFSC:** ${formData.ifscCode || 'N/A'}
+            `;
+
+            // 2. Open Chat with Admin (for user to send the message)
+            const botChatUrl = `https://t.me/${BOT_HANDLE}?start=withdrawal_request_${currentUser.id}`;
+            tg.openTelegramLink(botChatUrl);
+
+            // 3. Inform the user and reset local balance (Optimistic Update - should be confirmed by API)
+            tg.showAlert('Withdrawal request submitted! Please send your payment details to the admin in the chat that just opened.');
+
+            // Placeholder for API call to move balance to 'Under Review'
+            // userData.underReviewWithdrawal += userData.balance;
+            // userData.balance = 0;
+            // updateUI();
+            
+            // Re-enable button after action
+            tg.MainButton.enable();
+            tg.MainButton.setText(`CASH OUT ₹${MIN_CASHOUT_AMOUNT}`); // Reset button text
+
+            tg.HapticFeedback.notificationOccurred('warning');
+        }
+
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initTelegramApp);
     </script>
 </body>
-    </html>
+</html>
