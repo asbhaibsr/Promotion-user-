@@ -6,7 +6,7 @@ import pymongo
 from datetime import datetime, time as dt_time
 import json
 import time
-from flask import Flask # Flask ko sirf routes define karne ke liye rakha gaya hai
+# Flask import (Line 9) HATA DIYA GAYA HAI
 
 # Logging Setup
 logging.basicConfig(
@@ -14,21 +14,13 @@ logging.basicConfig(
     level=logging.INFO,
     handlers=[
         logging.FileHandler("bot.log"),
-        logging.StreamHandler()
+        StreamHandler()
     ]
 )
 logger = logging.getLogger(__name__)
 
-# Flask app for Render 24/7 (Health Check) - Sirf definitions rakhe hain
-app = Flask(__name__)
-
-@app.route('/')
-def home():
-    return "🤖 Promotion User Bot is Running! Status: ACTIVE"
-
-@app.route('/health')
-def health():
-    return {"status": "active", "timestamp": datetime.now().isoformat()}
+# Flask app and Routes (Health Check) HATA DIYA GAYA HAI
+# Ab PTB ka Webhook server hi Render ko active rakhega.
 
 # Configuration
 MONGODB_URI = os.getenv("MONGODB_URI") 
