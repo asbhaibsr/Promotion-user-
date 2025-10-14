@@ -1,2 +1,4 @@
-python-telegram-bot==20.7
-pymongo==4.6.0
+python-telegram-bot[webhooks]
+pymongo
+python-dotenv
+flask
