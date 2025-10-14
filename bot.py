@@ -6,8 +6,7 @@ import pymongo
 from datetime import datetime, time as dt_time
 import json
 import time
-from flask import Flask
-import threading
+from flask import Flask # Flask ko sirf routes define karne ke liye rakha gaya hai
 
 # Logging Setup
 logging.basicConfig(
@@ -20,7 +19,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Flask app for Render 24/7 (Health Check)
+# Flask app for Render 24/7 (Health Check) - Sirf definitions rakhe hain
 app = Flask(__name__)
 
 @app.route('/')
@@ -691,7 +690,7 @@ def main() -> None:
         return
 
     try:
-        # ✅ FIX: ContextTypes को हटाकर Builder को सरल करें ताकि 'Object' error ठीक हो
+        # ✅ PTB v20+ Application Builder
         application = Application.builder().token(BOT_TOKEN).build() 
         
         # Add handlers 
@@ -735,28 +734,10 @@ def main() -> None:
         logger.error("❌ Exiting bot process after failure.")
 
 # Dual execution for Render (Simplified)
-# Flask Health Check को एक अलग Thread में चलाएं, और Bot को main thread में ताकि Webhook सर्वर चल सके
+# Flask health check code aur threading code ko hata diya gaya hai.
 if __name__ == "__main__":
     
-    def run_flask_health_check():
-        """Run Flask server for Render Health check"""
-        port = int(os.environ.get('PORT', 5000))
-        try:
-            # Flask को 0.0.0.0 पर चलाएं लेकिन use_reloader=False के साथ
-            # Note: यह PTB के Webhook server के साथ port conflict कर सकता है, 
-            # लेकिन Render पर Bot को active रखने के लिए यह आवश्यक है।
-            logger.info("💚 Starting Flask server for health checks...")
-            app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False) 
-        except Exception as e:
-             # यदि पोर्ट conflict होता है तो यह error आ सकती है, जिसे अनदेखा किया जा सकता है
-             logger.warning(f"⚠️ Flask health check failed to start: {e}. Relying on PTB Webhook.")
-
-    # Flask Thread (इसे start न करें, PTB का Webhook सर्वर खुद ही चल जाएगा)
-    # flask_thread = threading.Thread(target=run_flask_health_check, daemon=True)
-    # flask_thread.start()
-
     logger.info("🎯 Starting Telegram Bot Webhook...")
     main() # Run the main function with application.run_webhook()
 
     logger.info("🛑 Bot process finished.")
-
