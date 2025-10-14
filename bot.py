@@ -1,12 +1,12 @@
 import os
 import logging
+# Flask import yahan se hata diya gaya hai.
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
 import pymongo
 from datetime import datetime, time as dt_time
 import json
 import time
-# Flask import (Line 9) HATA DIYA GAYA HAI
 
 # Logging Setup
 logging.basicConfig(
@@ -14,13 +14,12 @@ logging.basicConfig(
     level=logging.INFO,
     handlers=[
         logging.FileHandler("bot.log"),
-        StreamHandler()
+        logging.StreamHandler() # FIX: StreamHandler() ko logging.StreamHandler() kiya gaya hai.
     ]
 )
 logger = logging.getLogger(__name__)
 
-# Flask app and Routes (Health Check) HATA DIYA GAYA HAI
-# Ab PTB ka Webhook server hi Render ko active rakhega.
+# Flask app and Routes ka block yahan se hata diya gaya hai.
 
 # Configuration
 MONGODB_URI = os.getenv("MONGODB_URI") 
@@ -662,6 +661,7 @@ async def handle_owner_approval(update: Update, context: ContextTypes.DEFAULT_TY
 
 # Scheduled Tasks (Unchanged)
 async def health_check(context: ContextTypes.DEFAULT_TYPE):
+    # Ab yeh job queue mein hai aur PTB ke andar chalega
     logger.info("🤖 Bot Health Check - Running...")
 
 async def reset_daily_searches(context: ContextTypes.DEFAULT_TYPE):
@@ -726,7 +726,6 @@ def main() -> None:
         logger.error("❌ Exiting bot process after failure.")
 
 # Dual execution for Render (Simplified)
-# Flask health check code aur threading code ko hata diya gaya hai.
 if __name__ == "__main__":
     
     logger.info("🎯 Starting Telegram Bot Webhook...")
