@@ -3,789 +3,1204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Bot - Earn & Watch</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>As Bhai Bsr</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* --- Telegram Theme Variables (Dynamic Colors) --- */
-        :root {
-            --bg-color: #f0f0f0;
-            --text-color: #000000;
-            --secondary-bg-color: #ffffff;
-            --hint-color: #707070;
-            --link-color: #007aff;
-            --success-color: #4CAF50;
-            --danger-color: #FF6B6B;
-        }
-
-        body.tg-theme {
-            --bg-color: var(--tg-theme-bg-color, #f0f0f0);
-            --text-color: var(--tg-theme-text-color, #000000);
-            --secondary-bg-color: var(--tg-theme-secondary-bg-color, #ffffff);
-            --hint-color: var(--tg-theme-hint-color, #707070);
-            --link-color: var(--tg-theme-link-color, #007aff);
-        }
-
-        /* --- Base Styles --- */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #4a00e0;
+            --secondary: #8e2de2;
+            --accent: #ff6b6b;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #28a745;
+            --warning: #ffc107;
+            --info: #17a2b8;
+            --youtube: #ff0000;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-color);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: var(--light);
             min-height: 100vh;
-            color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s;
+            overflow-x: hidden;
+            cursor: none;
         }
 
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 15px;
+        .custom-cursor {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: all 0.1s ease;
+            mix-blend-mode: difference;
         }
 
-        /* --- Top Navigation Bar (Telegram-style Segmented Control) --- */
-        .top-nav {
-            display: flex;
-            background-color: var(--secondary-bg-color);
-            padding: 4px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        .cursor-dot {
+            width: 4px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: all 0.05s ease;
         }
 
-        .nav-btn {
-            flex-grow: 1;
-            background: none;
-            border: none;
-            color: var(--hint-color);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            padding: 8px 0;
-            border-radius: 8px;
-            transition: background 0.2s, color 0.2s;
-        }
-
-        .nav-btn.active {
-            background-color: var(--link-color);
-            color: white;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        /* --- Main Content Sections --- */
-        .section {
-            display: none;
-            animation: fadeIn 0.3s ease-in;
-        }
-
-        .section.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* --- Card Styles --- */
-        .card {
-            background-color: var(--secondary-bg-color);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-
-        /* --- Balance Card (Image 1000008770.jpg Style) --- */
-        .balance-card {
-            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); /* Gold/Orange Gradient */
-            color: white;
-            text-align: center;
-            padding: 25px 15px;
-            margin-bottom: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(255, 165, 0, 0.4);
-        }
-
-        .balance-amount {
-            font-size: 38px;
-            font-weight: 900;
-            margin: 5px 0 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .balance-amount i {
-            font-size: 28px;
-            margin-right: 10px;
-        }
-
-        .progress-text {
-            font-size: 14px;
-            margin-top: 5px;
-        }
-
-        .progress-bar {
-            background: rgba(255, 255, 255, 0.3);
-            height: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            background: var(--success-color); /* Bright Green */
-            height: 100%;
-            width: 3.23%; /* Initial value, will be set by JS */
-            border-radius: 5px;
-            transition: width 0.5s ease-out;
-        }
-
-        /* --- Spin Wheel Section --- */
-        .spin-section {
-            text-align: center;
-        }
-        
-        .spin-wheel-container {
-            position: relative;
-            width: 300px;
-            height: 300px;
-            margin: 30px auto;
-        }
-
-        .spin-wheel {
+        /* Language Selection Screen */
+        .language-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            border-radius: 50%;
-            background: conic-gradient(
-                #FF6B6B 0% 12.5%, #FFA726 12.5% 25%, #FFEE58 25% 37.5%, #66BB6A 37.5% 50%, 
-                #42A5F5 50% 62.5%, #5C6BC0 62.5% 75%, #AB47BC 75% 87.5%, #FF6B6B 87.5% 100%
-            );
-            transition: transform 5s cubic-bezier(0.25, 0.1, 0, 1);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            position: relative;
-        }
-        
-        .spin-center {
-            width: 100px;
-            height: 100px;
-            background: var(--secondary-bg-color);
-            border-radius: 50%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--text-color);
-            cursor: pointer;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            border: 5px solid var(--bg-color);
+            z-index: 10000;
+            animation: fadeIn 1s ease;
         }
 
-        .spin-center small {
-            font-size: 12px;
-            font-weight: normal;
-            color: var(--hint-color);
-        }
-
-        .spin-indicator {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translate(-50%, -15px);
-            width: 0; 
-            height: 0; 
-            border-left: 10px solid transparent;
-            border-right: 10px solid transparent;
-            border-top: 15px solid var(--link-color);
-        }
-        
-        /* --- Invitation Section --- */
-        .referral-link {
-            background-color: var(--bg-color);
-            padding: 12px;
-            border-radius: 8px;
-            margin: 15px 0;
-            word-break: break-all;
-            font-size: 14px;
-            color: var(--text-color);
+        .language-title {
+            font-size: 3rem;
+            margin-bottom: 40px;
+            background: linear-gradient(to right, #ff6b6b, #4a00e0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
             text-align: center;
         }
 
-        .share-buttons {
+        .language-buttons {
             display: flex;
-            justify-content: space-around;
-            gap: 10px;
-            margin-top: 15px;
+            gap: 30px;
         }
 
-        .share-btn {
-            background-color: var(--link-color);
-            border: none;
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid transparent;
             color: white;
-            padding: 10px;
-            border-radius: 8px;
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-size: 1.5rem;
+            font-weight: 600;
             cursor: pointer;
-            font-size: 14px;
-            flex-grow: 1;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            min-width: 200px;
+            justify-content: center;
         }
 
-        .users-list {
-            max-height: 250px;
-            overflow-y: auto;
-            padding: 5px;
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: var(--accent);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
         }
 
-        .user-item {
+        .lang-btn i {
+            font-size: 2rem;
+        }
+
+        /* Main Website */
+        .main-website {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .main-website.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header Styles */
+        header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            background-color: var(--bg-color);
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeIn 1s ease;
         }
 
-        .user-earned {
-            color: var(--success-color);
-            font-weight: bold;
-        }
-        
-        /* --- Withdrawal Section --- */
-        .withdrawal-card .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        .logo {
+            display: flex;
+            align-items: center;
             gap: 10px;
-            margin: 15px 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
         }
-        
-        .withdrawal-card .info-item {
-            background-color: var(--bg-color);
-            padding: 10px;
-            border-radius: 8px;
+
+        .logo i {
+            color: var(--accent);
+            animation: pulse 2s infinite;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+
+        nav a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 8px 15px;
+            border-radius: 5px;
+        }
+
+        nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--accent);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 80px 0;
+            animation: fadeInUp 1s ease;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #ff6b6b, #4a00e0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            color: #ccc;
+        }
+
+        /* Main Button */
+        .main-button {
+            background: linear-gradient(to right, var(--accent), #ff8e53);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 20px 40px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 40px auto;
+            width: 350px;
+            animation: float 3s ease-in-out infinite, glow 2s infinite alternate;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .main-button i {
+            font-size: 1.8rem;
+        }
+
+        /* Section Styles */
+        section {
+            padding: 80px 0;
+            display: none;
+        }
+
+        section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 50px;
+            font-size: 2.5rem;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 2px;
+        }
+
+        /* About Section */
+        .about-content {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .about-text {
+            flex: 1;
+        }
+
+        .about-text p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+
+        .about-image {
+            flex: 1;
             text-align: center;
         }
-        
-        .withdrawal-card .info-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: var(--link-color);
-        }
-        
-        .withdrawal-card .info-label {
-            font-size: 12px;
-            color: var(--hint-color);
-        }
-        
-        /* --- Form Styles --- */
-        .form-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-        
-        .form-label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-            color: var(--text-color);
-        }
-        
-        .form-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--hint-color);
-            border-radius: 8px;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+
+        .profile-img {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid var(--primary);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: float 6s ease-in-out infinite;
+            transition: all 0.3s ease;
         }
 
+        .profile-img:hover {
+            transform: scale(1.05);
+            border-color: var(--accent);
+        }
+
+        /* Button Grid */
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .btn-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-card:hover::before {
+            left: 100%;
+        }
+
+        .btn-card:hover {
+            transform: translateY(-15px) rotateX(10deg);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-card:hover .btn-icon {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        .btn-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .btn-desc {
+            color: #ccc;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        .btn-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-link:hover::before {
+            left: 100%;
+        }
+
+        .btn-link:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Button Colors */
+        .btn-movie {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+        }
+
+        .btn-free {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+
+        .btn-ai {
+            background: linear-gradient(135deg, #17a2b8, #6f42c1);
+        }
+
+        .btn-earn {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+        }
+
+        .btn-youtube {
+            background: linear-gradient(135deg, var(--youtube), #cc0000);
+        }
+
+        .btn-group {
+            background: linear-gradient(135deg, #8e2de2, #4a00e0);
+        }
+
+        .btn-premium {
+            background: linear-gradient(135deg, #ff6b6b, #8e2de2);
+        }
+
+        .btn-contact {
+            background: linear-gradient(135deg, #17a2b8, #20c997);
+        }
+
+        /* Back Button */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+            border: 2px solid transparent;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: var(--accent);
+            transform: translateX(-5px);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 50px;
+            color: #aaa;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin: 25px 0;
+        }
+
+        .social-links a {
+            color: #aaa;
+            font-size: 1.8rem;
+            transition: all 0.3s ease;
+            padding: 15px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .social-links a:hover {
+            color: var(--accent);
+            transform: translateY(-8px) scale(1.2);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* King Animation */
+        .king-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .king-icon {
+            font-size: 10rem;
+            color: gold;
+            animation: pulse 1s infinite, float 2s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            margin-bottom: 30px;
+        }
+
+        .king-text {
+            color: white;
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: pulse 1.5s infinite;
+            text-align: center;
+            background: linear-gradient(45deg, gold, #ffd700, #ffed4e, gold);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .king-subtext {
+            color: #ccc;
+            font-size: 1.8rem;
+            text-align: center;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        /* Particles Background */
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from { 
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        @keyframes glow {
+            from { 
+                box-shadow: 0 0 20px rgba(255, 107, 107, 0.5),
+                          0 0 40px rgba(255, 107, 107, 0.3),
+                          0 0 60px rgba(255, 107, 107, 0.1);
+            }
+            to { 
+                box-shadow: 0 0 30px rgba(255, 107, 107, 0.8),
+                          0 0 60px rgba(255, 107, 107, 0.5),
+                          0 0 90px rgba(255, 107, 107, 0.3);
+            }
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        .typing-animation {
+            overflow: hidden;
+            border-right: 3px solid var(--accent);
+            white-space: nowrap;
+            margin: 0 auto;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: var(--accent); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .about-content {
+                flex-direction: column;
+            }
+            
+            nav ul {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-button {
+                width: 300px;
+                font-size: 1.3rem;
+                padding: 15px 30px;
+            }
+            
+            .king-text {
+                font-size: 2.5rem;
+            }
+            
+            .king-icon {
+                font-size: 6rem;
+            }
+            
+            .language-buttons {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .lang-btn {
+                min-width: 250px;
+            }
+        }
     </style>
 </head>
-<body class="tg-theme">
-    <div class="container">
-        <div class="top-nav">
-            <button class="nav-btn active" data-section-id="spin" onclick="showSection('spin', this)">🏆 Rank</button>
-            <button class="nav-btn" data-section-id="invite" onclick="showSection('invite', this)">👥 Invitation</button>
-            <button class="nav-btn" data-section-id="cashout" onclick="showSection('cashout', this)">💰 Cash Out</button>
-            <button class="nav-btn" data-section-id="groups" onclick="showSection('groups', this)">🎬 Movies</button>
+<body>
+    <!-- Custom Cursor -->
+    <div class="custom-cursor"></div>
+    <div class="cursor-dot"></div>
+
+    <!-- Language Selection Screen -->
+    <div class="language-screen" id="languageScreen">
+        <h1 class="language-title">Choose Your Language</h1>
+        <div class="language-buttons">
+            <button class="lang-btn" id="hindiBtn">
+                <i class="fas fa-language"></i>
+                हिंदी (Hindi)
+            </button>
+            <button class="lang-btn" id="englishBtn">
+                <i class="fas fa-globe"></i>
+                English
+            </button>
         </div>
-
-        <div id="spin" class="section active">
-            <div class="spin-section">
-                <div class="balance-card">
-                    <div style="font-size: 16px;">Your Balance</div>
-                    <div class="balance-amount">₹<span id="currentBalance">3.23</span></div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 3.23%;"></div>
-                    </div>
-                    <div class="progress-text">Only ₹<span id="remainingToCashout">96.77</span> left to cash out ₹100!</div>
-                </div>
-
-                <div class="spin-wheel-container">
-                    <div class="spin-indicator"></div>
-                    <div id="spinWheel" class="spin-wheel">
-                        <div class="spin-center" onclick="spinWheel()">
-                            <span id="spinCount">0</span>
-                            <small>Spins</small>
-                        </div>
-                    </div>
-                </div>
-
-                </div>
-        </div>
-
-        <div id="invite" class="section">
-            <div class="invite-section">
-                <div class="card">
-                    <h3>👥 Invite Friends & Earn</h3>
-                    <p style="color: var(--hint-color); margin-bottom: 10px;">Get ₹0.20 for each successful invite.</p>
-                    
-                    <div class="info-grid" style="grid-template-columns: 1fr 1fr;">
-                        <div class="info-item" style="background-color: var(--bg-color);">
-                            <div class="info-value" id="totalInvites">0</div>
-                            <div class="info-label">Total Invites</div>
-                        </div>
-                        <div class="info-item" style="background-color: var(--bg-color);">
-                            <div class="info-value" style="color: var(--success-color);">₹<span id="inviteEarnings">0.00</span></div>
-                            <div class="info-label">Earned</div>
-                        </div>
-                    </div>
-
-                    <div class="referral-link" id="referralLinkDisplay">
-                        Loading...
-                    </div>
-                    
-                    <button class="share-btn" onclick="copyReferralLink()" style="margin-bottom: 10px; background-color: var(--link-color);">
-                         <i class="fas fa-copy"></i> Copy Link
-                    </button>
-
-                    <div class="share-buttons">
-                        <button class="share-btn" onclick="shareToTelegram()" style="background-color: #0088CC;"><i class="fab fa-telegram-plane"></i></button>
-                        <button class="share-btn" onclick="shareToWhatsApp()" style="background-color: #25D366;"><i class="fab fa-whatsapp"></i></button>
-                        <button class="share-btn" onclick="shareToOther()" style="background-color: var(--hint-color);"><i class="fas fa-share-alt"></i></button>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h4>Invited Users (Active Today)</h4>
-                    <div class="users-list" id="invitedUsers">
-                        <div class="user-item">
-                            <div><strong>@exampleuser1</strong></div>
-                            <div class="user-earned">+₹0.20</div>
-                        </div>
-                        <div class="user-item">
-                            <div><strong>@exampleuser2</strong></div>
-                            <div class="user-earned">+₹0.20</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="cashout" class="section">
-            <div class="withdrawal-section">
-                <div class="card withdrawal-card">
-                    <h3>💰 Withdrawal Summary</h3>
-                    
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <div class="info-value">₹<span id="toBeCashed">0.00</span></div>
-                            <div class="info-label">Current Balance</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-value" style="color: var(--success-color);">₹<span id="successWithdrawal">0.00</span></div>
-                            <div class="info-label">Total Withdrawn</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-value" style="color: var(--hint-color);">₹<span id="underReview">0.00</span></div>
-                            <div class="info-label">Under Review</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-value" id="availableSpins" style="color: var(--danger-color);">3</div>
-                            <div class="info-label">Remaining Spins</div>
-                        </div>
-                    </div>
-
-                    <p style="text-align: center; color: var(--hint-color); font-size: 14px;">Minimum cashout amount is ₹100.</p>
-                </div>
-
-                <div class="card" id="withdrawalForm">
-                    <h4>💳 Payment Details (For Cashout)</h4>
-                    <p style="color: var(--link-color); text-align: center; margin-bottom: 15px;">Admin Contact: <a href="https://t.me/{YOUR_TELEGRAM_HANDLE}" target="_blank">@{YOUR_TELEGRAM_HANDLE}</a></p>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Account Name / UPI Name</label>
-                        <input type="text" class="form-input" id="accountName" placeholder="Full name of account holder">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">UPI ID (Preferred)</label>
-                        <input type="text" class="form-input" id="upiId" placeholder="e.g., example@paytm">
-                    </div>
-
-                    <div style="border-top: 1px solid var(--bg-color); padding-top: 15px; margin-top: 15px;">
-                        <label class="form-label" style="font-weight: bold;">(Optional) Bank Account Details</label>
-                        <div class="form-group">
-                            <input type="text" class="form-input" id="accountNumber" placeholder="Account Number (Optional)">
-                        </div>
-                        <div class="form-group">
-                            <input type="text" class="form-input" id="ifscCode" placeholder="IFSC Code (Optional)">
-                        </div>
-                    </div>
-                    
-                    <button class="share-btn" id="submitWithdrawalBtn" style="width: 100%; margin-top: 15px; background-color: var(--success-color);" onclick="submitWithdrawal()">
-                        Submit Details & Notify Admin
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <div id="groups" class="section">
-            <div class="card">
-                <h3>🎬 Movie Group Links</h3>
-                <p style="color: var(--hint-color);">Join our Telegram groups to get your favourite movies instantly!</p>
-            </div>
-            
-            <div class="movie-groups" style="display: grid; gap: 10px;">
-                <button class="group-btn card" style="text-align: left; cursor: pointer; background-color: var(--secondary-bg-color);" onclick="openMovieGroup('new')">
-                    <strong>🆕 New Movie Group (Fastest)</strong>
-                    <div style="font-size: 12px; color: var(--hint-color);">Get all the latest releases here.</div>
-                </button>
-                <button class="group-btn card" style="text-align: left; cursor: pointer; background-color: var(--secondary-bg-color);" onclick="openMovieGroup('main')">
-                    <strong>📚 Main Movie Group</strong>
-                    <div style="font-size: 12px; color: var(--hint-color);">Our primary group for all users.</div>
-                </button>
-                <button class="group-btn card" style="text-align: left; cursor: pointer; background-color: var(--secondary-bg-color);" onclick="openMovieGroup('all')">
-                    <strong>🔗 Join All Groups List</strong>
-                    <div style="font-size: 12px; color: var(--hint-color);">A single link to join our full collection of groups.</div>
-                </button>
-            </div>
-        </div>
-        
     </div>
 
-    <script>
-        // Placeholder for the Bot's Web Server URL
-        const API_BASE_URL = 'YOUR_WEB_SERVER_URL'; 
-        const BOT_HANDLE = 'YOUR_TELEGRAM_HANDLE';
-        const MIN_CASHOUT_AMOUNT = 100;
-        
-        let tg = null;
-        let currentUser = null;
-        let userData = {
-            balance: 3.23, // in INR
-            totalEarnings: 0,
-            totalInvites: 0,
-            invitedUsers: [
-                { name: '@user_a', joinDate: 'Today' },
-                { name: '@user_b', joinDate: 'Today' }
-            ],
-            availableSpins: 3,
-            totalWithdrawal: 0,
-            underReviewWithdrawal: 0
-        };
-        
-        const MOVIE_GROUP_LINKS = {
-            'new': 'https://t.me/Susanllll_bot/app?startapp=NzMxNTgwNTU4MV83ODU2NjkwMTgz',
-            'main': 'https://t.me/asfilter_group',
-            'all': 'https://t.me/addlist/EOSX8n4AoC1jYWU1'
-        };
+    <!-- Main Website -->
+    <div class="main-website" id="mainWebsite">
+        <!-- Particles Background -->
+        <div id="particles-js"></div>
 
-        // --- Core Functions ---
+        <div class="container">
+            <!-- Header -->
+            <header>
+                <div class="logo">
+                    <i class="fas fa-robot"></i>
+                    <span>As Bhai Bsr</span>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="#" data-target="home">Home</a></li>
+                        <li><a href="#" data-target="about">About</a></li>
+                        <li><a href="#" data-target="bots">Bots</a></li>
+                        <li><a href="#" data-target="groups">Groups</a></li>
+                        <li><a href="#" data-target="contact">Contact</a></li>
+                    </ul>
+                </nav>
+            </header>
 
-        function initTelegramApp() {
-            tg = window.Telegram.WebApp;
-            tg.expand();
-            tg.ready();
-            
-            currentUser = tg.initDataUnsafe.user;
-            
-            // Apply Telegram Theme Colors
-            document.body.classList.add('tg-theme');
-            document.documentElement.style.setProperty('--link-color', tg.themeParams.button_color);
-            document.documentElement.style.setProperty('--bg-color', tg.themeParams.bg_color);
-            document.documentElement.style.setProperty('--text-color', tg.themeParams.text_color);
-            document.documentElement.style.setProperty('--secondary-bg-color', tg.themeParams.secondary_bg_color);
-            
-            // Set Admin handle in form
-            document.querySelector('#withdrawalForm a').href = `https://t.me/${BOT_HANDLE}`;
-            document.querySelector('#withdrawalForm a').textContent = `@${BOT_HANDLE}`;
-
-
-            loadUserData(); // Fetch initial data
-            showSection('spin', document.querySelector('.nav-btn.active')); // Show default section and set main button
-        }
-
-        async function loadUserData() {
-            // Placeholder: In a real app, this would fetch user data from your Python backend
-            // const response = await fetch(`${API_BASE_URL}/api/user-data`, { /*...*/ });
-            // userData = await response.json();
-            
-            // Update the referral link with the actual bot handle and user ID
-            const botUsername = 'your_bot_username'; // Replace with actual bot username
-            const referralLink = `https://t.me/${botUsername}?start=ref_${currentUser.id}`;
-            document.getElementById('referralLinkDisplay').textContent = referralLink;
-            
-            updateUI();
-        }
-
-        function updateUI() {
-            // Update Balance and Progress
-            const balanceINR = userData.balance;
-            const remaining = MIN_CASHOUT_AMOUNT - balanceINR;
-            const progressPercent = Math.min((balanceINR / MIN_CASHOUT_AMOUNT) * 100, 100);
-
-            document.getElementById('currentBalance').textContent = balanceINR.toFixed(2);
-            document.getElementById('remainingToCashout').textContent = remaining.toFixed(2);
-            document.querySelector('.progress-fill').style.width = progressPercent.toFixed(2) + '%';
-            
-            // Update Spin/Invite/Withdrawal Data
-            document.getElementById('spinCount').textContent = userData.availableSpins;
-            document.getElementById('totalInvites').textContent = userData.totalInvites;
-            document.getElementById('inviteEarnings').textContent = (userData.totalInvites * 0.20).toFixed(2);
-            document.getElementById('toBeCashed').textContent = balanceINR.toFixed(2);
-            document.getElementById('successWithdrawal').textContent = userData.totalWithdrawal.toFixed(2);
-            document.getElementById('underReview').textContent = userData.underReviewWithdrawal.toFixed(2);
-            document.getElementById('availableSpins').textContent = userData.availableSpins;
-
-            // Update Spin Center Text
-            const spinCenter = document.querySelector('.spin-center');
-            spinCenter.innerHTML = `
-                <span id="spinCount">${userData.availableSpins}</span>
-                <small>Spins</small>
-            `;
-
-            // Update Invited Users List
-            updateInvitedUsersList();
-            
-            // Update Main Button for current section
-            const activeSectionId = document.querySelector('.section.active').id;
-            updateMainButton(activeSectionId);
-        }
-
-        function updateMainButton(sectionId) {
-            tg.MainButton.hide();
-            tg.MainButton.offClick(spinWheel);
-            tg.MainButton.offClick(submitWithdrawal);
-            
-            if (sectionId === 'spin') {
-                tg.MainButton.setText('➕ GET +1 SPIN');
-                if (userData.availableSpins > 0) {
-                    tg.MainButton.show();
-                    tg.MainButton.enable();
-                    tg.MainButton.onClick(spinWheel);
-                } else {
-                    tg.MainButton.setText('Invite Friends for more Spins');
-                    tg.MainButton.disable();
-                    tg.MainButton.show();
-                }
-            } else if (sectionId === 'cashout') {
-                tg.MainButton.setText(`CASH OUT ₹${MIN_CASHOUT_AMOUNT}`);
-                if (userData.balance >= MIN_CASHOUT_AMOUNT) {
-                    tg.MainButton.show();
-                    tg.MainButton.enable();
-                    tg.MainButton.onClick(submitWithdrawal);
-                } else {
-                    tg.MainButton.setText(`Need ₹${(MIN_CASHOUT_AMOUNT - userData.balance).toFixed(2)} More`);
-                    tg.MainButton.disable();
-                    tg.MainButton.show();
-                }
-            }
-        }
-
-
-        // --- Navigation and View Functions ---
-
-        function showSection(sectionId, element) {
-            // Update nav buttons
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            if(element) {
-                element.classList.add('active');
-            } else {
-                document.querySelector(`.nav-btn[data-section-id="${sectionId}"]`).classList.add('active');
-            }
-            
-            // Show section
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-            document.getElementById(sectionId).classList.add('active');
-            
-            updateMainButton(sectionId);
-        }
-
-        // --- Spin Wheel Logic ---
-
-        async function spinWheel() {
-            if (userData.availableSpins <= 0) {
-                tg.showAlert('No Spins Left! Invite friends to get more spins.');
-                return;
-            }
-
-            const spinWheelElement = document.getElementById('spinWheel');
-            const winningAngle = 360 * 10 + 22.5; // Example angle for a win (can be randomized from backend)
-            
-            // Lock UI
-            tg.MainButton.disable();
-            tg.MainButton.setText('Spinning...');
-            
-            // Spin Animation
-            spinWheelElement.style.transform = `rotate(${winningAngle}deg)`;
-            tg.HapticFeedback.impactOccurred('light');
-
-            // Simulate API call for result
-            await new Promise(resolve => setTimeout(resolve, 5000));
-            
-            // Reset CSS transition and rotate back to a neutral position for next spin
-            spinWheelElement.style.transition = 'none';
-            spinWheelElement.style.transform = `rotate(${winningAngle % 360}deg)`;
-            setTimeout(() => {
-                spinWheelElement.style.transition = 'transform 5s cubic-bezier(0.25, 0.1, 0, 1)';
-            }, 50);
-
-            // Simulate result
-            const earnedAmount = 0.50; // Replace with actual API result
-            userData.balance += earnedAmount;
-            userData.availableSpins -= 1;
-            tg.HapticFeedback.notificationOccurred('success');
-            
-            tg.showAlert(`Congratulations! You won ₹${earnedAmount.toFixed(2)}!`);
-            
-            updateUI();
-        }
-
-        // --- Invitation Functions ---
-
-        function shareToTelegram() {
-            const link = document.getElementById('referralLinkDisplay').textContent;
-            const text = `Join this amazing movie bot and earn money! ${link}`;
-            tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
-        }
-
-        function shareToWhatsApp() {
-            const link = document.getElementById('referralLinkDisplay').textContent;
-            const text = `Join this amazing movie bot and earn money! ${link}`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-        }
-
-        function copyReferralLink() {
-            const link = document.getElementById('referralLinkDisplay').textContent;
-            navigator.clipboard.writeText(link).then(() => {
-                tg.showPopup({ title: 'Copied!', message: 'Referral link copied to clipboard', buttons: [{ type: 'ok' }] });
-                tg.HapticFeedback.notificationOccurred('success');
-            });
-        }
-
-        function shareToOther() {
-            const link = document.getElementById('referralLinkDisplay').textContent;
-            const text = `Join this amazing movie bot and earn money! ${link}`;
-            
-            if (navigator.share) {
-                navigator.share({ title: 'Movie Bot', text: text, url: link });
-            } else {
-                copyReferralLink();
-            }
-        }
-
-        function updateInvitedUsersList() {
-            const usersList = document.getElementById('invitedUsers');
-            usersList.innerHTML = '';
-
-            if (userData.invitedUsers.length === 0) {
-                usersList.innerHTML = `<div style="text-align: center; color: var(--hint-color); padding: 10px;">No active invites today.</div>`;
-                return;
-            }
-
-            userData.invitedUsers.forEach(user => {
-                const userItem = document.createElement('div');
-                userItem.className = 'user-item';
-                userItem.innerHTML = `
-                    <div>
-                        <strong>${user.name}</strong>
+            <!-- Home Section -->
+            <section id="home" class="active">
+                <div class="hero">
+                    <h1 class="typing-animation">Welcome to As Bhai Bsr</h1>
+                    <p>Professional Telegram bot services, movie search solutions, and engaging communities. Explore our range of services designed to enhance your Telegram experience.</p>
+                    
+                    <!-- Main About Me Button with King Animation -->
+                    <button class="main-button" id="aboutMeBtn">
+                        <i class="fas fa-crown"></i> About Me
+                    </button>
+                    
+                    <!-- Other Buttons -->
+                    <div class="button-grid">
+                        <div class="btn-card">
+                            <div class="btn-icon" style="color: #ff6b6b;">
+                                <i class="fas fa-film"></i>
+                            </div>
+                            <h3 class="btn-title">Movie Bots</h3>
+                            <p class="btn-desc">Premium and free movie search bots for all your entertainment needs with advanced filtering options</p>
+                            <a href="#" class="btn-link btn-movie" data-target="bots">
+                                <i class="fas fa-arrow-right"></i> Explore Bots
+                            </a>
+                        </div>
+                        
+                        <div class="btn-card">
+                            <div class="btn-icon" style="color: #8e2de2;">
+                                <i class="fab fa-telegram"></i>
+                            </div>
+                            <h3 class="btn-title">Telegram Groups</h3>
+                            <p class="btn-desc">Join our active communities for movies, premium apps, web series and entertainment content</p>
+                            <a href="#" class="btn-link btn-group" data-target="groups">
+                                <i class="fas fa-arrow-right"></i> View Groups
+                            </a>
+                        </div>
+                        
+                        <div class="btn-card">
+                            <div class="btn-icon" style="color: #ff0000;">
+                                <i class="fab fa-youtube"></i>
+                            </div>
+                            <h3 class="btn-title">YouTube Channel</h3>
+                            <p class="btn-desc">Check out our YouTube channel for latest updates, tutorials and entertainment content</p>
+                            <a href="https://youtube.com/@asbhaibsr?si=PD50RLuxWISAs833" class="btn-link btn-youtube" target="_blank">
+                                <i class="fas fa-external-link-alt"></i> Visit Channel
+                            </a>
+                        </div>
+                        
+                        <div class="btn-card">
+                            <div class="btn-icon" style="color: #17a2b8;">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <h3 class="btn-title">AI Chat Bot</h3>
+                            <p class="btn-desc">Self-learning AI bot for engaging conversations, study help, motivation and entertainment</p>
+                            <a href="#" class="btn-link btn-ai" data-target="bots">
+                                <i class="fas fa-arrow-right"></i> Learn More
+                            </a>
+                        </div>
                     </div>
-                    <div class="user-earned">+₹0.20</div>
-                `;
-                usersList.appendChild(userItem);
+                </div>
+            </section>
+
+            <!-- About Section -->
+            <section id="about">
+                <a href="#" class="back-button" data-target="home">
+                    <i class="fas fa-arrow-left"></i> Back to Home
+                </a>
+                <h2 class="section-title">About Me</h2>
+                <div class="about-content">
+                    <div class="about-text">
+                        <p>Hello! I'm As Bhai Bsr, a passionate Telegram bot developer and digital content creator. I specialize in creating advanced bots for movie searching, AI conversations, and community management.</p>
+                        <p>With expertise in developing sophisticated Telegram solutions, I've created multiple successful bots that serve thousands of users daily. My focus is on creating user-friendly interfaces with powerful functionality.</p>
+                        <p><strong>Telegram ID:</strong> @asbhaibsr</p>
+                        <p><strong>Experience:</strong> 3+ years in bot development</p>
+                        <p><strong>Specialization:</strong> Movie search algorithms, AI chatbots, Automation systems</p>
+                    </div>
+                    <div class="about-image">
+                        <img src="https://jumpshare.com/s/6uAJJRDmNj3QwfLHxJ9r" alt="As Bhai Bsr" class="profile-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                        <div class="profile-img-placeholder" style="display: none; width: 300px; height: 300px; border-radius: 50%; background: linear-gradient(135deg, #8e2de2, #4a00e0); align-items: center; justify-content: center; font-size: 5rem; color: white; margin: 0 auto;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bots Section -->
+            <section id="bots">
+                <a href="#" class="back-button" data-target="home">
+                    <i class="fas fa-arrow-left"></i> Back to Home
+                </a>
+                <h2 class="section-title">My Bots</h2>
+                
+                <div class="button-grid">
+                    <!-- Movie Search Bots -->
+                    <div class="btn-card">
+                        <div class="btn-icon" style="color: #ff6b6b;">
+                            <i class="fas fa-film"></i>
+                        </div>
+                        <h3 class="btn-title">Movie Search Bot</h3>
+                        <p class="btn-desc">Advanced movie search bot with extensive database. Find any movie with multiple filter options and direct download links.</p>
+                        <a href="https://t.me/asfilter_bot" class="btn-link btn-movie" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> @asfilter_bot
+                        </a>
+                    </div>
+                    
+                    <div class="btn-card">
+                        <div class="btn-icon" style="color: #ff6b6b;">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <h3 class="btn-title">Movie Search Bot Pro</h3>
+                        <p class="btn-desc">Premium movie search experience with ad-free interface, faster results, and exclusive content access.</p>
+                        <a href="https://t.me/AsMoviesSearch_roBot" class="btn-link btn-movie" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> @AsMoviesSearch_roBot
+                        </a>
+                    </div>
+                    
+                    <div class="btn-card">
+                        <div class="btn-icon" style="color: #28a745;">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <h3 class="btn-title">Free Movie Search Bot</h3>
+                        <p class="btn-desc">Completely free movie search bot with basic features. Perfect for users who want essential movie searching capabilities.</p>
+                        <a href="https://t.me/AsfreefilterBot" class="btn-link btn-free" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> @AsfreefilterBot
+                        </a>
+                    </div>
+                    
+                    <div class="btn-card">
+                        <div class="btn-icon" style="color: #17a2b8;">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h3 class="btn-title">AI Chat Assistant</h3>
+                        <p class="btn-desc">Intelligent AI bot for natural conversations, study assistance, motivation, and entertainment in group chats.</p>
+                        <a href="https://t.me/askiangelbot" class="btn-link btn-ai" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> @askiangelbot
+                        </a>
+                    </div>
+                    
+                    <div class="btn-card">
+                        <div class="btn-icon" style="color: #ffc107;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 class="btn-title">Earning Bot</h3>
+                        <p class="btn-desc">Earn money by inviting users to our movie groups. Simple process with regular payout system and user-friendly interface.</p>
+                        <a href="https://t.me/LinkProviderRobot" class="btn-link btn-earn" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> @LinkProviderRobot
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Groups Section -->
+            <section id="groups">
+                <a href="#" class="back-button" data-target="home">
+                    <i class="fas fa-arrow-left"></i> Back to Home
+                </a>
+                <h2 class="section-title">My Groups & Channels</h2>
+                
+                <div class="button-grid">
+                    <div class="btn-card">
+                        <div class="btn-icon" style="color: #8e2de2;">
+                            <i class="fab fa-telegram"></i>
+                        </div>
+                        <h3 class="btn-title">Main Channel</h3>
+                        <p class="btn-desc">Official channel for all updates, new bot releases, and important announcements from As Bhai Bsr.</p>
+                        <a href="https://t.me/Asbhai_bsr" class="btn-link btn-group" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> Join Channel
+                        </a>
+                    </div>
+                    
+                    <div class="btn-card">
+                        <div class="btn-icon" style="color: #ff6b6b;">
+                            <i class="fas fa-film"></i>
+                        </div>
+                        <h3 class="btn-title">Movie Search Group</h3>
+                        <p class="btn-desc">Largest collection of movies and web series with regular updates and dedicated support team.</p>
+                        <a href="https://t.me/all_movies_webseries_is_here" class="btn-link btn-movie" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> Join Group
+                        </a>
+                    </div>
+                    
+                    <div class="btn-card">
+                        <div class="btn-icon" style="color: #ff6b6b;">
+                            <i class="fas fa-filter"></i>
+                        </div>
+                        <h3 class="btn-title">AS Filter Group</h3>
+                        <p class="btn-desc">Advanced movie filtering and search group with categorized content and quality-focused collection.</p>
+                        <a href="https://t.me/asfilter_group" class="btn-link btn-movie" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> Join Group
+                        </a>
+                    </div>
+                    
+                    <div class="btn-card">
+                        <div class="btn-icon" style="color: #ff6b6b;">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h3 class="btn-title">Movie Request Chat</h3>
+                        <p class="btn-desc">Interactive group for movie requests, discussions, and community interactions about entertainment.</p>
+                        <a href="https://t.me/asrequestchat" class="btn-link btn-movie" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> Join Group
+                        </a>
+                    </div>
+                    
+                    <div class="btn-card">
+                        <div class="btn-icon" style="color: #ff6b6b;">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <h3 class="btn-title">Premium Channel</h3>
+                        <p class="btn-desc">Exclusive premium apps, modded applications, and special content for subscribed members only.</p>
+                        <a href="https://t.me/aspremiumapps" class="btn-link btn-premium" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> Join Channel
+                        </a>
+                    </div>
+                    
+                    <div class="btn-card">
+                        <div class="btn-icon" style="color: #ff6b6b;">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h3 class="btn-title">Premium Group</h3>
+                        <p class="btn-desc">Premium community for app discussions, support, and exclusive content sharing among members.</p>
+                        <a href="https://t.me/aspremiumeappgroup" class="btn-link btn-premium" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> Join Group
+                        </a>
+                    </div>
+                    
+                    <div class="btn-card">
+                        <div class="btn-icon" style="color: #ff0000;">
+                            <i class="fab fa-youtube"></i>
+                        </div>
+                        <h3 class="btn-title">YouTube Channel</h3>
+                        <p class="btn-desc">Video content, tutorials, and entertainment on our official YouTube channel with regular uploads.</p>
+                        <a href="https://youtube.com/@asbhaibsr?si=PD50RLuxWISAs833" class="btn-link btn-youtube" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> Visit Channel
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Contact Section -->
+            <section id="contact">
+                <a href="#" class="back-button" data-target="home">
+                    <i class="fas fa-arrow-left"></i> Back to Home
+                </a>
+                <h2 class="section-title">Contact & Support</h2>
+                
+                <div class="button-grid">
+                    <div class="btn-card">
+                        <div class="btn-icon" style="color: #17a2b8;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h3 class="btn-title">Direct Contact</h3>
+                        <p class="btn-desc">Get in touch with me directly on Telegram for queries, collaborations, or custom bot development.</p>
+                        <a href="https://t.me/asbhaibsr" class="btn-link btn-contact" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> @asbhaibsr
+                        </a>
+                    </div>
+                    
+                    <div class="btn-card">
+                        <div class="btn-icon" style="color: #17a2b8;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 class="btn-title">Support Group</h3>
+                        <p class="btn-desc">Join our support group for technical assistance, bug reports, and community help with our services.</p>
+                        <a href="https://t.me/aschat_group" class="btn-link btn-contact" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> @aschat_group
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer>
+                <div class="social-links">
+                    <a href="https://t.me/Asbhai_bsr"><i class="fab fa-telegram"></i></a>
+                    <a href="https://youtube.com/@asbhaibsr?si=PD50RLuxWISAs833"><i class="fab fa-youtube"></i></a>
+                    <a href="https://t.me/asbhaibsr"><i class="fas fa-robot"></i></a>
+                </div>
+                <p>&copy; As Bhai Bsr. All rights reserved.</p>
+                <p>Designed with <i class="fas fa-heart" style="color: var(--accent);"></i> for Telegram Community</p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- King Animation Overlay -->
+    <div id="kingAnimation" class="king-animation" style="display: none;">
+        <i class="fas fa-crown king-icon"></i>
+        <h1 class="king-text">Welcome King!</h1>
+        <p class="king-subtext">You've discovered the special animation! As Bhai Bsr welcomes you to explore all the amazing bots and services available.</p>
+    </div>
+
+    <!-- Confetti Container -->
+    <canvas id="confetti-canvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9998; display:none;"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // Language Selection
+        document.getElementById('hindiBtn').addEventListener('click', function() {
+            startWebsite('hindi');
+        });
+
+        document.getElementById('englishBtn').addEventListener('click', function() {
+            startWebsite('english');
+        });
+
+        function startWebsite(language) {
+            document.getElementById('languageScreen').style.display = 'none';
+            document.getElementById('mainWebsite').classList.add('active');
+            
+            // Initialize all features
+            initializeParticles();
+            initializeCustomCursor();
+            
+            // Show confetti
+            showConfetti();
+            
+            // Set language (for future multi-language support)
+            document.body.setAttribute('data-lang', language);
+        }
+
+        // Custom Cursor
+        function initializeCustomCursor() {
+            const cursor = document.querySelector('.custom-cursor');
+            const cursorDot = document.querySelector('.cursor-dot');
+            
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+                
+                cursorDot.style.left = e.clientX + 'px';
+                cursorDot.style.top = e.clientY + 'px';
+            });
+            
+            // Cursor effects on interactive elements
+            const interactiveElements = document.querySelectorAll('a, button, .btn-card, .main-button');
+            
+            interactiveElements.forEach(element => {
+                element.addEventListener('mouseenter', () => {
+                    cursor.style.transform = 'scale(1.5)';
+                    cursor.style.borderColor = 'var(--accent)';
+                    cursorDot.style.transform = 'scale(2)';
+                });
+                
+                element.addEventListener('mouseleave', () => {
+                    cursor.style.transform = 'scale(1)';
+                    cursor.style.borderColor = 'var(--accent)';
+                    cursorDot.style.transform = 'scale(1)';
+                });
             });
         }
 
-        // --- Movie Group Functions ---
-        function openMovieGroup(type) {
-            tg.openTelegramLink(MOVIE_GROUP_LINKS[type]);
+        // Particles Background
+        function initializeParticles() {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 80, density: { enable: true, value_area: 800 } },
+                    color: { value: "#ffffff" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.5, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: {
+                        enable: true,
+                        distance: 150,
+                        color: "#ffffff",
+                        opacity: 0.4,
+                        width: 1
+                    },
+                    move: {
+                        enable: true,
+                        speed: 2,
+                        direction: "none",
+                        random: true,
+                        straight: false,
+                        out_mode: "out",
+                        bounce: false
+                    }
+                },
+                interactivity: {
+                    detect_on: "canvas",
+                    events: {
+                        onhover: { enable: true, mode: "repulse" },
+                        onclick: { enable: true, mode: "push" },
+                        resize: true
+                    }
+                },
+                retina_detect: true
+            });
         }
 
-        // --- Withdrawal Functions ---
+        // Navigation functionality
+        document.querySelectorAll('nav a, .back-button, .btn-link[data-target]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                if (this.getAttribute('data-target')) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('data-target');
+                    
+                    // Hide all sections
+                    document.querySelectorAll('section').forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    
+                    // Show target section
+                    document.getElementById(targetId).classList.add('active');
+                    
+                    // Scroll to top
+                    window.scrollTo(0, 0);
+                }
+            });
+        });
 
-        async function submitWithdrawal() {
-            if (userData.balance < MIN_CASHOUT_AMOUNT) {
-                tg.showAlert(`Cashout failed. Minimum amount is ₹${MIN_CASHOUT_AMOUNT}.`);
-                return;
+        // King Animation for About Me Button
+        document.getElementById('aboutMeBtn').addEventListener('click', function() {
+            // Show king animation
+            document.getElementById('kingAnimation').style.display = 'flex';
+            showConfetti();
+            
+            // Hide animation after 4 seconds and show about section
+            setTimeout(() => {
+                document.getElementById('kingAnimation').style.display = 'none';
+                
+                // Hide all sections
+                document.querySelectorAll('section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // Show about section
+                document.getElementById('about').classList.add('active');
+                
+                // Scroll to top
+                window.scrollTo(0, 0);
+            }, 4000);
+        });
+
+        // Confetti Function
+        function showConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            canvas.style.display = 'block';
+
+            const confettiPieces = [];
+            const colors = ['#ff6b6b', '#4a00e0', '#8e2de2', '#ffd700', '#ffffff'];
+
+            // Create confetti pieces
+            for (let i = 0; i < 150; i++) {
+                confettiPieces.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 10 + 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speed: Math.random() * 3 + 2,
+                    rotation: Math.random() * 360,
+                    rotationSpeed: Math.random() * 10 - 5
+                });
+            }
+
+            function animateConfetti() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                let activePieces = 0;
+                
+                confettiPieces.forEach(piece => {
+                    piece.y += piece.speed;
+                    piece.x += Math.sin(piece.y * 0.01) * 1;
+                    piece.rotation += piece.rotationSpeed;
+                    
+                    ctx.save();
+                    ctx.translate(piece.x, piece.y);
+                    ctx.rotate(piece.rotation * Math.PI / 180);
+                    ctx.fillStyle = piece.color;
+                    ctx.fillRect(-piece.size / 2, -piece.size / 2, piece.size, piece.size);
+                    ctx.restore();
+                    
+                    if (piece.y < canvas.height) {
+                        activePieces++;
+                    }
+                });
+                
+                if (activePieces > 0) {
+                    requestAnimationFrame(animateConfetti);
+                } else {
+                    canvas.style.display = 'none';
+                }
             }
             
-            const formData = {
-                accountName: document.getElementById('accountName').value.trim(),
-                upiId: document.getElementById('upiId').value.trim(),
-                accountNumber: document.getElementById('accountNumber').value.trim(),
-                ifscCode: document.getElementById('ifscCode').value.trim()
-            };
-
-            // Basic validation
-            if (!formData.accountName || (!formData.upiId && !formData.accountNumber)) {
-                tg.showAlert('Please enter your Account Name and either a UPI ID or Bank Account Number.');
-                return;
-            }
-            
-            // Lock UI
-            tg.MainButton.disable();
-            tg.MainButton.setText('Submitting...');
-            
-            // 1. Prepare message for Admin
-            const adminMessage = `
-                💰 **NEW WITHDRAWAL REQUEST**
-                
-                **User:** ${currentUser.full_name} (@${currentUser.username || 'N/A'})
-                **User ID:** \`${currentUser.id}\`
-                **Amount:** ₹${userData.balance.toFixed(2)}
-                
-                **--- Payment Details ---**
-                **Name:** ${formData.accountName}
-                **UPI ID:** ${formData.upiId || 'N/A'}
-                **A/C No.:** ${formData.accountNumber || 'N/A'}
-                **IFSC:** ${formData.ifscCode || 'N/A'}
-            `;
-
-            // 2. Open Chat with Admin (for user to send the message)
-            const botChatUrl = `https://t.me/${BOT_HANDLE}?start=withdrawal_request_${currentUser.id}`;
-            tg.openTelegramLink(botChatUrl);
-
-            // 3. Inform the user and reset local balance (Optimistic Update - should be confirmed by API)
-            tg.showAlert('Withdrawal request submitted! Please send your payment details to the admin in the chat that just opened.');
-
-            // Placeholder for API call to move balance to 'Under Review'
-            // userData.underReviewWithdrawal += userData.balance;
-            // userData.balance = 0;
-            // updateUI();
-            
-            // Re-enable button after action
-            tg.MainButton.enable();
-            tg.MainButton.setText(`CASH OUT ₹${MIN_CASHOUT_AMOUNT}`); // Reset button text
-
-            tg.HapticFeedback.notificationOccurred('warning');
+            animateConfetti();
         }
 
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', initTelegramApp);
+        // Add interactive animations to cards
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.btn-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-15px) rotateX(10deg)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) rotateX(0)';
+                });
+            });
+        });
+
+        // Initialize typing animation
+        setTimeout(() => {
+            const typingElement = document.querySelector('.typing-animation');
+            if (typingElement) {
+                typingElement.style.animation = 'none';
+                setTimeout(() => {
+                    typingElement.style.animation = 'typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite';
+                }, 100);
+            }
+        }, 1000);
     </script>
 </body>
-</html>
+                        </html>
