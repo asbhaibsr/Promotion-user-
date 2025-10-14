@@ -1,3 +1,5 @@
+# bot.py
+
 import os
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
@@ -6,6 +8,7 @@ import pymongo
 from datetime import datetime, time as dt_time
 import json
 import time
+import asyncio  # ## >> BADLAV 1 << ##: asyncio ko import kiya gaya hai
 
 # Logging Setup
 logging.basicConfig(
@@ -62,7 +65,7 @@ REFERRAL_BONUS = 2.0
 DAILY_SEARCH_BONUS = 0.50
 SPIN_PRIZES = [0.10, 0.20, 0.50, 1.00, 2.00, 5.00, 10.00, 0.00, 0.00, "premium"]
 
-# Utility Functions (Keep all your existing utility functions as they are)
+# Utility Functions (Aapke saare functions yahan maujood hain)
 async def check_channel_membership(user_id: int, context: ContextTypes.DEFAULT_TYPE) -> bool:
     try:
         member = await context.bot.get_chat_member(chat_id=MOVIE_CHANNEL_ID, user_id=user_id)
@@ -163,7 +166,7 @@ async def _process_pending_referrals(user_id: int, context: ContextTypes.DEFAULT
 
     return bonus_msg, total_bonus, total_spins
 
-# Command Handlers (Keep all your existing command handlers as they are)
+# Command Handlers (Aapke saare command handlers bhi yahan maujood hain)
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     user_id = user.id
@@ -429,20 +432,20 @@ async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not update.message: return
 
-    help_text = """
+    help_text = f"""
 🆘 <b>Promotion User Bot - Help Guide</b>
 
 🎯 <b>How to Earn:</b>
 1. <b>Invite Friends</b> - Share your referral link
-   • Earn ₹2.00 + 1 Spin per referral
+   • Earn ₹{REFERRAL_BONUS} + 1 Spin per referral
    • Bonus paid after joining @asbhai_bsr
 
 2. <b>Daily Movie Search</b> - Use /search command
-   • Earn ₹0.50 once per day
+   • Earn ₹{DAILY_SEARCH_BONUS} once per day
    • Requires channel membership
 
 3. <b>Spin Wheel</b> - Available in dashboard
-   • Win ₹0.10 to ₹10.00
+   • Win prizes
    • Premium prizes available
 
 4. <b>Leaderboard</b> - Top earners daily
@@ -458,7 +461,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 • Active Telegram account
 
 🛠️ <b>Support:</b>
-Contact @asbhaibsr for help
+Contact {OWNER_USERNAME} for help
     """
     
     await update.message.reply_text(help_text, parse_mode='HTML')
@@ -666,7 +669,7 @@ async def calculate_leaderboard(context: ContextTypes.DEFAULT_TYPE):
     logger.info("🏆 Calculating daily leaderboard...")
 
 # Main Application
-def main() -> None:
+async def main() -> None:  # ## >> BADLAV 2 << ##: Function ko 'async' banaya gaya hai
     """Main function to start the bot in Webhook Mode"""
     if not BOT_TOKEN:
         logger.error("❌ BOT_TOKEN is not set. Cannot start the bot.")
@@ -708,8 +711,8 @@ def main() -> None:
         
         logger.info(f"🚀 Starting Promotion User Bot in Webhook Mode on port {port}...")
         
-        # Webhook start
-        application.run_webhook(
+        # ## >> BADLAV 3 << ##: 'await' ka istemal kiya gaya hai
+        await application.run_webhook(
             listen="0.0.0.0",
             port=port,
             url_path=BOT_TOKEN, 
@@ -721,8 +724,9 @@ def main() -> None:
         time.sleep(5)
         logger.error("❌ Exiting bot process after failure.")
 
-# Dual execution for Render (Simplified)
+
+# ## >> BADLAV 4 << ##: Bot ko asyncio se run karne ka sahi tareeka
 if __name__ == "__main__":
     logger.info("🎯 Starting Telegram Bot Webhook...")
-    main()
+    asyncio.run(main())
     logger.info("🛑 Bot process finished.")
