@@ -25,10 +25,10 @@ YOUR_TELEGRAM_HANDLE = os.getenv("YOUR_TELEGRAM_HANDLE")
 LOG_CHANNEL_ID = os.getenv("LOG_CHANNEL_ID")
 
 # New movie group link and original links
-NEW_MOVIE_GROUP_LINK = "https://t.me/Susanllll_bot/app?startapp=NzMxNTgwNTU4MV83ODU2NjkwMTgz"
+NEW_MOVIE_GROUP_LINK = "https://t.me/asfilter_bot"
 # 🔴 FIX: URL को 'https://t.me/asfilter_group' में बदला गया
 MOVIE_GROUP_LINK = "https://t.me/asfilter_group" 
-ALL_GROUPS_LINK = "https://t.me/addlist/EOSX8n4AoC1jYWU1"
+ALL_GROUPS_LINK = "https://t.me/addlist/6urdhhdLRqhiZmQ1"
 
 # Load Render-specific variables
 WEB_SERVER_URL = os.getenv("WEB_SERVER_URL")
