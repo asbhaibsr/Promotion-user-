@@ -42,7 +42,7 @@ EXAMPLE_SCREENSHOT_URL = os.getenv("EXAMPLE_SCREENSHOT_URL", "https://envs.sh/ri
 # NEW: Channel Join Configuration
 CHANNEL_USERNAME = "@asbhai_bsr"
 CHANNEL_ID = -1002283182645 # Channel ID for checking membership
-CHANNEL_BONUS = 15.00 # 15 Rs for joining once
+CHANNEL_BONUS = 5.00 # 15 Rs for joining once
 
 # Load Render-specific variables
 WEB_SERVER_URL = os.getenv("WEB_SERVER_URL")
