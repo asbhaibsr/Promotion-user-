@@ -51,7 +51,43 @@ withdrawals_collection = db.get_collection('withdrawals')
 # Conversion rate
 DOLLAR_TO_INR = 83.0
 
-# --- UPDATED MESSAGES Dictionary ---
+# --- NEW FEATURES CONFIGURATION ---
+
+# Daily Bonus Config
+DAILY_BONUS_BASE = 0.50 # Base bonus in INR
+DAILY_BONUS_STREAK_MULTIPLIER = 0.10 # Extra 0.10 INR per day of streak
+
+# Spin Wheel Prizes (in INR)
+SPIN_PRIZES_WEIGHTS = {
+    0.00: 4,  # 0Rs - 4 parts
+    0.20: 3,  # 0.20Rs - 3 parts
+    0.50: 3,  # 0.50Rs - 3 parts
+    0.80: 2,  # 0.80Rs - 2 parts
+    1.00: 2,  # 1Rs - 2 parts
+    3.00: 1,  # 3Rs - 1 part
+    5.00: 1,  # 5Rs - 1 part
+    10.00: 1   # 10Rs - 1 part
+}
+SPIN_PRIZES = list(SPIN_PRIZES_WEIGHTS.keys())
+SPIN_WEIGHTS = list(SPIN_PRIZES_WEIGHTS.values())
+
+
+# Tier System Configuration
+TIERS = {
+    1: {"min_earnings": 0, "rate": 0.40, "name": "Beginner", "benefits": "Basic referral rate"},
+    2: {"min_earnings": 50, "rate": 0.60, "name": "Pro", "benefits": "50% higher referral rate"},
+    3: {"min_earnings": 200, "rate": 1.00, "name": "Expert", "benefits": "2.5x referral rate"},
+    4: {"min_earnings": 500, "rate": 2.00, "name": "Master", "benefits": "5x referral rate"}
+}
+
+# Missions Configuration
+DAILY_MISSIONS = {
+    "search_3_movies": {"reward": 1.00, "target": 3, "name": "Search 3 Movies", "name_hi": "3 फिल्में खोजें"},
+    "refer_2_friends": {"reward": 5.00, "target": 2, "name": "Refer 2 Friends", "name_hi": "2 दोस्तों को रेफ़र करें"},
+    "claim_daily_bonus": {"reward": 0.50, "target": 1, "name": "Claim Daily Bonus", "name_hi": "दैनिक बोनस क्लेम करें"}
+}
+
+# --- ALL MESSAGES (INCL. MISSING ONES) ---
 MESSAGES = {
     "en": {
         "start_greeting": "Hey 👋! Welcome to the Movies Group Bot. Get your favorite movies by following these simple steps:",
@@ -74,8 +110,6 @@ MESSAGES = {
         "broadcast_message": "Please reply to a message with `/broadcast` to send it to all users.",
         "setwelbonus_usage": "❌ Usage: /setwelbonus <amount_in_inr>",
         "setwelbonus_success": "✅ Welcome bonus updated to ₹{new_bonus:.2f}",
-        
-        # New Features Messages
         "welcome_bonus_received": "🎁 <b>Welcome Bonus!</b>\n\nYou have received ₹{amount:.2f} welcome bonus! Start earning more by referring friends.",
         "spin_wheel_title": "🎡 <b>Spin the Wheel</b>\n\nCost: ₹2.00\nClick 'Spin' to try your luck!",
         "spin_wheel_button": "✨ Spin Now (₹2)",
@@ -84,13 +118,22 @@ MESSAGES = {
         "spin_wheel_already_spun": "⏳ <b>Already Spun Today!</b>\n\nYou can spin the wheel only once per day. Try again tomorrow!",
         "spin_wheel_win": "🎉 <b>Congratulations!</b>\n\nYou won: ₹{amount:.2f}!\n\nNew balance: ₹{new_balance:.2f}",
         "spin_wheel_lose": "😢 <b>Better luck next time!</b>\n\nYou didn't win anything this time.\n\nRemaining balance: ₹{new_balance:.2f}",
-        "missions_title": "🎯 <b>Daily Missions</b>\n\nComplete missions to earn extra rewards!",
+        "missions_title": "🎯 <b>Daily Missions</b>\n\nComplete missions to earn extra rewards! Check your progress below:",
         "mission_complete": "✅ <b>Mission Completed!</b>\n\nYou earned ₹{reward:.2f} for {mission_name}!\nNew balance: ₹{new_balance:.2f}",
         "withdrawal_request_sent": "✅ <b>Withdrawal Request Sent!</b>\n\nYour request for ₹{amount:.2f} has been sent to admin. You will receive payment within 24 hours.",
         "withdrawal_insufficient": "❌ <b>Insufficient Balance!</b>\n\nMinimum withdrawal amount is ₹80.00",
         "withdrawal_approved_user": "✅ <b>Withdrawal Approved!</b>\n\nYour withdrawal of ₹{amount:.2f} has been approved. Payment will be processed within 24 hours.",
         "withdrawal_rejected_user": "❌ <b>Withdrawal Rejected!</b>\n\nYour withdrawal of ₹{amount:.2f} was rejected. Please contact admin for details.",
         "ref_link_message": "<b>Your Referral Link:</b>\n<code>{referral_link}</code>\n\n<b>Current Referral Rate:</b> ₹{tier_rate:.2f} per referral\n\n<i>Share this link with friends and earn money when they join and search for movies!</i>",
+        "new_referral_notification": "🎉 <b>New Referral!</b>\n\n{full_name} ({username}) has joined using your link!",
+        "daily_earning_update": "💰 <b>Referral Earning!</b>\n\nYou earned money from your referral {full_name}. \nNew balance: ₹{new_balance:.2f}",
+        "clear_earn_usage": "❌ Usage: /clearearn <user_id>",
+        "clear_earn_success": "✅ Earnings for user {user_id} have been cleared.",
+        "clear_earn_not_found": "❌ User {user_id} not found.",
+        "check_stats_usage": "❌ Usage: /checkstats <user_id>",
+        "check_stats_message": "📊 <b>User Stats</b>\n\nID: {user_id}\nEarnings: ₹{earnings:.2f}\nReferrals: {referrals}",
+        "check_stats_not_found": "❌ User {user_id} not found.",
+        "stats_message": "📊 <b>Bot Stats</b>\n\nTotal Users: {total_users}\nApproved Users: {approved_users}",
     },
     "hi": {
         "start_greeting": "नमस्ते 👋! मूवी ग्रुप बॉट में आपका स्वागत है। इन आसान स्टेप्स को फॉलो करके अपनी पसंदीदा मूवी पाएँ:",
@@ -113,8 +156,6 @@ MESSAGES = {
         "broadcast_message": "सभी उपयोगकर्ताओं को संदेश भेजने के लिए कृपया किसी संदेश का `/broadcast` के साथ उत्तर दें।",
         "setwelbonus_usage": "❌ उपयोग: /setwelbonus <राशि_रुपये_में>",
         "setwelbonus_success": "✅ वेलकम बोनस ₹{new_bonus:.2f} पर अपडेट हो गया है।",
-        
-        # New Features Messages in Hindi
         "welcome_bonus_received": "🎁 <b>वेलकम बोनस!</b>\n\nआपको ₹{amount:.2f} वेलकम बोनस मिला है! दोस्तों को रेफर करके और कमाएँ।",
         "spin_wheel_title": "🎡 <b>व्हील स्पिन करें</b>\n\nलागत: ₹2.00\nअपनी किस्मत आज़माने के लिए 'Spin Now' पर क्लिक करें!",
         "spin_wheel_button": "✨ अभी स्पिन करें (₹2)",
@@ -123,63 +164,40 @@ MESSAGES = {
         "spin_wheel_already_spun": "⏳ <b>आज पहले ही स्पिन कर चुके हैं!</b>\n\nआप व्हील को केवल एक बार प्रति दिन स्पिन कर सकते हैं। कल फिर कोशिश करें!",
         "spin_wheel_win": "🎉 <b>बधाई हो!</b>\n\nआपने जीता: ₹{amount:.2f}!\n\nनया बैलेंस: ₹{new_balance:.2f}",
         "spin_wheel_lose": "😢 <b>अगली बार बेहतर किस्मत!</b>\n\nइस बार आप कुछ नहीं जीत पाए।\n\nशेष बैलेंस: ₹{new_balance:.2f}",
-        "missions_title": "🎯 <b>दैनिक मिशन</b>\n\nअतिरिक्त इनाम पाने के लिए मिशन पूरे करें!",
+        "missions_title": "🎯 <b>दैनिक मिशन</b>\n\nअतिरिक्त इनाम पाने के लिए मिशन पूरे करें! अपनी प्रगति नीचे देखें:",
         "mission_complete": "✅ <b>मिशन पूरा हुआ!</b>\n\nआपने {mission_name} के लिए ₹{reward:.2f} कमाए!\nनया बैलेंस: ₹{new_balance:.2f}",
         "withdrawal_request_sent": "✅ <b>निकासी का अनुरोध भेज दिया गया!</b>\n\n₹{amount:.2f} के आपके अनुरोध को एडमिन को भेज दिया गया है। आपको 24 घंटे के भीतर भुगतान मिल जाएगा।",
         "withdrawal_insufficient": "❌ <b>पर्याप्त बैलेंस नहीं!</b>\n\nन्यूनतम निकासी राशि ₹80.00 है",
         "withdrawal_approved_user": "✅ <b>निकासी स्वीकृत!</b>\n\n₹{amount:.2f} की आपकी निकासी स्वीकृत कर दी गई है। भुगतान 24 घंटे के भीतर प्रोसेस किया जाएगा।",
         "withdrawal_rejected_user": "❌ <b>निकासी अस्वीकृत!</b>\n\n₹{amount:.2f} की आपकी निकासी अस्वीकृत कर दी गई है। विवरण के लिए एडमिन से संपर्क करें।",
         "ref_link_message": "<b>आपकी रेफरल लिंक:</b>\n<code>{referral_link}</code>\n\n<b>वर्तमान रेफरल दर:</b> ₹{tier_rate:.2f} प्रति रेफरल\n\n<i>इस लिंक को दोस्तों के साथ साझा करें और जब वे शामिल होकर फिल्में खोजते हैं, तो पैसे कमाएं!</i>",
+        "new_referral_notification": "🎉 <b>नया रेफरल!</b>\n\n{full_name} ({username}) आपकी लिंक का उपयोग करके शामिल हुए हैं!",
+        "daily_earning_update": "💰 <b>रेफरल कमाई!</b>\n\nआपने अपने रेफरल {full_name} से पैसे कमाए। \nनया बैलेंस: ₹{new_balance:.2f}",
+        "clear_earn_usage": "❌ उपयोग: /clearearn <user_id>",
+        "clear_earn_success": "✅ उपयोगकर्ता {user_id} की कमाई साफ़ कर दी गई है।",
+        "clear_earn_not_found": "❌ उपयोगकर्ता {user_id} नहीं मिला।",
+        "check_stats_usage": "❌ उपयोग: /checkstats <user_id>",
+        "check_stats_message": "📊 <b>यूज़र आँकड़े</b>\n\nID: {user_id}\nकमाई: ₹{earnings:.2f}\nरेफरल: {referrals}",
+        "check_stats_not_found": "❌ उपयोगकर्ता {user_id} नहीं मिला।",
+        "stats_message": "📊 <b>बॉट आँकड़े</b>\n\nकुल उपयोगकर्ता: {total_users}\nअनुमोदित उपयोगकर्ता: {approved_users}",
     }
 }
 
 # --- COMMAND LISTS FOR /setcommands ---
 USER_COMMANDS = [
-    BotCommand("start", "बॉट शुरू करें और मुख्य मेनू देखें।"),
-    BotCommand("earn", "कमाई का पैनल और रेफरल लिंक देखें।"),
+    BotCommand("start", "Start the bot and see main menu."),
+    BotCommand("earn", "See earning panel and referral link."),
 ]
 
 ADMIN_COMMANDS = [
-    BotCommand("admin", "एडमिन पैनल और सेटिंग्स एक्सेस करें।"),
-    BotCommand("stats", "बॉट के कुल उपयोगकर्ता और आंकड़े देखें।"),
-    BotCommand("broadcast", "सभी उपयोगकर्ताओं को संदेश भेजें।"),
-    BotCommand("setrate", "रेफरल दर (INR) सेट करें।"),
-    BotCommand("setwelbonus", "वेलकम बोनस (INR) सेट करें।"),
+    BotCommand("start", "Start the bot"),
+    BotCommand("earn", "See earning panel"),
+    BotCommand("admin", "Access Admin Panel and settings."),
+    BotCommand("stats", "See bot total users and stats."),
+    BotCommand("broadcast", "Send message to all users."),
+    BotCommand("setrate", "Set referral rate (INR)."),
+    BotCommand("setwelbonus", "Set welcome bonus (INR)."),
 ]
-
-# --- NEW FEATURES CONFIGURATION ---
-
-# Spin Wheel Prizes (in INR)
-# New prizes: 0.20, 0.50, 0.80, 1.00, 3.00, 5.00, 10.00. (0.00 for a loss)
-# We use probabilities to ensure 0 is not too frequent but still present.
-SPIN_PRIZES_WEIGHTS = {
-    0.00: 4,  # 0Rs - 4 parts
-    0.20: 3,  # 0.20Rs - 3 parts
-    0.50: 3,  # 0.50Rs - 3 parts
-    0.80: 2,  # 0.80Rs - 2 parts
-    1.00: 2,  # 1Rs - 2 parts
-    3.00: 1,  # 3Rs - 1 part
-    5.00: 1,  # 5Rs - 1 part
-    10.00: 1   # 10Rs - 1 part
-}
-SPIN_PRIZES = list(SPIN_PRIZES_WEIGHTS.keys())
-SPIN_WEIGHTS = list(SPIN_PRIZES_WEIGHTS.values())
-
-
-# Tier System Configuration (Kept as is for structure)
-TIERS = {
-    1: {"min_earnings": 0, "rate": 0.40, "name": "Beginner", "benefits": "Basic referral rate"},
-    2: {"min_earnings": 50, "rate": 0.60, "name": "Pro", "benefits": "50% higher referral rate"},
-    3: {"min_earnings": 200, "rate": 1.00, "name": "Expert", "benefits": "2.5x referral rate"},
-    4: {"min_earnings": 500, "rate": 2.00, "name": "Master", "benefits": "5x referral rate"}
-}
-
-# Missions Configuration (Kept as is for structure)
-DAILY_MISSIONS = {
-    "search_3_movies": {"reward": 1.00, "target": 3, "name": "Search 3 Movies"},
-    "refer_2_friends": {"reward": 5.00, "target": 2, "name": "Refer 2 Friends"},
-    "claim_daily_bonus": {"reward": 0.50, "target": 1, "name": "Claim Daily Bonus"}
-}
 
 # --- UTILITY FUNCTIONS ---
 
@@ -207,7 +225,6 @@ async def get_user_tier(user_id):
     if not user_data:
         return 1
     
-    # Use stored earnings, not USD, for tier calculation
     earnings_usd = user_data.get("earnings", 0.0) 
     earnings_inr = earnings_usd * DOLLAR_TO_INR
     
@@ -222,7 +239,6 @@ async def get_tier_referral_rate(tier):
 # --- CORE BOT FUNCTIONS ---
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (start_command logic remains largely the same, but ensuring user data structure is complete)
     user = update.effective_user
     full_name = user.first_name + (f" {user.last_name}" if user.last_name else "")
     
@@ -257,6 +273,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         upsert=True
     )
 
+    # Re-fetch data to get defaults if it was a new user
     user_data = users_collection.find_one({"user_id": user.id})
     lang = user_data.get("lang", "en")
     
@@ -274,7 +291,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             MESSAGES[lang]["welcome_bonus_received"].format(amount=welcome_bonus)
         )
 
-    # Handle referral logic (omitting detailed log logic for brevity, but it's in the original code)
+    # Handle referral logic
     if referral_id and referral_id != user.id and is_new_user:
         existing_referral = referrals_collection.find_one({"referred_user_id": user.id})
         
@@ -287,24 +304,25 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 "last_earning_date": None 
             })
             
-            # Initial join bonus (e.g., half the rate) - this logic remains.
+            # Initial join bonus (e.g., half the rate)
             referrer_tier = await get_user_tier(referral_id)
             tier_rate = await get_tier_referral_rate(referrer_tier)
-            referral_rate_usd = tier_rate / DOLLAR_TO_INR
+            referral_rate_usd = (tier_rate / DOLLAR_TO_INR) / 2 # Half bonus on join
             
             users_collection.update_one(
                 {"user_id": referral_id},
-                {"$inc": {"earnings": referral_rate_usd / 2}} 
+                {"$inc": {"earnings": referral_rate_usd}} 
             )
 
-            # Notify referrer (simplified)
+            # Notify referrer
             try:
                 referrer_lang = await get_user_lang(referral_id)
                 await context.bot.send_message(
                     chat_id=referral_id,
                     text=MESSAGES[referrer_lang]["new_referral_notification"].format(
                         full_name=full_name, username=f"@{user.username}" if user.username else "(No username)"
-                    )
+                    ),
+                    parse_mode='HTML'
                 )
             except (TelegramError, TimedOut) as e:
                 logger.error(f"Could not notify referrer {referral_id}: {e}")
@@ -326,8 +344,297 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     
     await update.message.reply_html(message, reply_markup=reply_markup)
 
+# --- EARNING PANEL FUNCTIONS ---
 
-# --- NEW AND IMPROVED SPIN WHEEL IMPLEMENTATION ---
+async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    
+    user = query.from_user
+    lang = await get_user_lang(user.id)
+    user_data = users_collection.find_one({"user_id": user.id})
+    
+    if not user_data:
+        await query.edit_message_text("User data not found.")
+        return
+
+    # Get user stats
+    earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
+    referrals_count = referrals_collection.count_documents({"referrer_id": user.id})
+    user_tier = await get_user_tier(user.id)
+    tier_info = TIERS.get(user_tier, TIERS[1]) 
+    
+    # Enhanced earning panel message
+    message = (
+        f"<b>💰 Earning Panel</b>\n\n"
+        f"🏅 <b>Current Tier:</b> {tier_info['name']} (Level {user_tier})\n"
+        f"💵 <b>Balance:</b> ₹{earnings_inr:.2f}\n"
+        f"👥 <b>Total Referrals:</b> {referrals_count}\n"
+        f"🎯 <b>Referral Rate:</b> ₹{tier_info['rate']:.2f}/referral\n\n"
+        f"<i>Earn more to unlock higher tiers with better rates!</i>"
+    )
+    
+    keyboard = [
+        [InlineKeyboardButton("🔗 My Refer Link", callback_data="show_refer_link")],
+        [InlineKeyboardButton(MESSAGES[lang]["spin_wheel_button"], callback_data="spin_wheel")],
+        [InlineKeyboardButton("💸 Request Withdrawal", callback_data="request_withdrawal")],
+        [InlineKeyboardButton("🎁 Daily Bonus", callback_data="claim_daily_bonus")],
+        [InlineKeyboardButton("🎯 Daily Missions", callback_data="show_missions")],
+        [InlineKeyboardButton("📊 Tier Benefits", callback_data="show_tier_benefits")],
+        [InlineKeyboardButton("🆘 Help", callback_data="show_help")],
+        [InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    user = query.from_user
+    lang = await get_user_lang(user.id)
+    
+    bot_info = await context.bot.get_me()
+    bot_username = bot_info.username
+    referral_link = f"https://t.me/{bot_username}?start=ref_{user.id}"
+    
+    user_tier = await get_user_tier(user.id)
+    tier_rate = await get_tier_referral_rate(user_tier)
+    
+    message = MESSAGES[lang]["ref_link_message"].format(
+        referral_link=referral_link,
+        tier_rate=tier_rate
+    )
+    
+    keyboard = [
+        [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    user = query.from_user
+    lang = await get_user_lang(user.id)
+    
+    help_message = MESSAGES[lang]["help_message_text"]
+    
+    keyboard = [
+        [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(help_message, reply_markup=reply_markup, parse_mode='HTML')
+
+# --- NEWLY ADDED/FIXED FUNCTIONS ---
+
+async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Displays the language selection menu."""
+    query = update.callback_query
+    await query.answer()
+    
+    keyboard = [
+        [InlineKeyboardButton("🇬🇧 English", callback_data="lang_en")],
+        [InlineKeyboardButton("🇮🇳 हिंदी", callback_data="lang_hi")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(
+        "Please choose your language: / अपनी भाषा चुनें:", 
+        reply_markup=reply_markup
+    )
+
+async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handles the user's language selection."""
+    query = update.callback_query
+    await query.answer()
+    
+    lang = query.data.split("_")[1] # e.g., "lang_en" -> "en"
+    user_id = query.from_user.id
+    
+    await set_user_lang(user_id, lang)
+    
+    keyboard = [[InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(
+        MESSAGES[lang]["language_selected"],
+        reply_markup=reply_markup
+    )
+
+async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handles the daily bonus claim."""
+    query = update.callback_query
+    await query.answer()
+    
+    user = query.from_user
+    lang = await get_user_lang(user.id)
+    
+    user_data = users_collection.find_one({"user_id": user.id})
+    if not user_data:
+        await query.edit_message_text("User data not found.")
+        return
+
+    today = datetime.now().date()
+    last_checkin = user_data.get("last_checkin_date")
+    
+    if last_checkin and isinstance(last_checkin, datetime) and last_checkin.date() == today:
+        await query.edit_message_text(
+            MESSAGES[lang]["daily_bonus_already_claimed"],
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
+        )
+        return
+
+    streak = user_data.get("daily_bonus_streak", 0)
+    
+    # Check for streak
+    if last_checkin and isinstance(last_checkin, datetime) and (today - last_checkin.date()).days == 1:
+        streak += 1
+    else:
+        streak = 1 # Reset or start streak
+
+    bonus_amount = DAILY_BONUS_BASE + (streak * DAILY_BONUS_STREAK_MULTIPLIER)
+    bonus_amount_usd = bonus_amount / DOLLAR_TO_INR
+    
+    new_balance = user_data.get("earnings", 0.0) + bonus_amount_usd
+    
+    users_collection.update_one(
+        {"user_id": user.id},
+        {
+            "$set": {
+                "earnings": new_balance,
+                "last_checkin_date": datetime.now(),
+                "daily_bonus_streak": streak,
+                f"missions_completed.claim_daily_bonus": True # Mark mission as complete
+            }
+        }
+    )
+    
+    streak_message = f"🔥 You are on a {streak}-day streak! Keep it up for bigger bonuses!"
+    if lang == "hi":
+        streak_message = f"🔥 आप {streak}-दिन की स्ट्रीक पर हैं! बड़े बोनस के लिए इसे जारी रखें!"
+        
+    await query.edit_message_text(
+        MESSAGES[lang]["daily_bonus_success"].format(
+            bonus_amount=bonus_amount,
+            new_balance=new_balance * DOLLAR_TO_INR,
+            streak_message=streak_message
+        ),
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]),
+        parse_mode='HTML'
+    )
+
+async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Displays the user's daily mission progress."""
+    query = update.callback_query
+    await query.answer()
+    
+    user = query.from_user
+    lang = await get_user_lang(user.id)
+    
+    user_data = users_collection.find_one({"user_id": user.id})
+    if not user_data:
+        await query.edit_message_text("User data not found.")
+        return
+        
+    missions_completed = user_data.get("missions_completed", {})
+    daily_searches = user_data.get("daily_searches", 0)
+    
+    # Check if last_search_date is today, if not, reset daily_searches
+    last_search_date = user_data.get("last_search_date")
+    today = datetime.now().date()
+    if not last_search_date or not isinstance(last_search_date, datetime) or last_search_date.date() != today:
+        daily_searches = 0 # Reset for the new day
+
+    # Check referral mission
+    referrals_today_count = referrals_collection.count_documents({
+        "referrer_id": user.id,
+        "join_date": {"$gte": datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)}
+    })
+
+    message = f"{MESSAGES[lang]['missions_title']}\n\n"
+
+    # Mission 1: Search 3 Movies
+    mission_key = "search_3_movies"
+    mission = DAILY_MISSIONS[mission_key]
+    name = mission["name"] if lang == "en" else mission["name_hi"]
+    if missions_completed.get(mission_key):
+        message += f"✅ {name} ({mission['target']}/{mission['target']}) [<b>Completed</b>]\n"
+    else:
+        message += f"⏳ {name} ({daily_searches}/{mission['target']}) [In Progress]\n"
+        
+    # Mission 2: Refer 2 Friends
+    mission_key = "refer_2_friends"
+    mission = DAILY_MISSIONS[mission_key]
+    name = mission["name"] if lang == "en" else mission["name_hi"]
+    if missions_completed.get(mission_key):
+        message += f"✅ {name} ({mission['target']}/{mission['target']}) [<b>Completed</b>]\n"
+    else:
+        message += f"⏳ {name} ({referrals_today_count}/{mission['target']}) [In Progress]\n"
+
+    # Mission 3: Claim Daily Bonus
+    mission_key = "claim_daily_bonus"
+    mission = DAILY_MISSIONS[mission_key]
+    name = mission["name"] if lang == "en" else mission["name_hi"]
+    if missions_completed.get(mission_key):
+        message += f"✅ {name} [<b>Completed</b>]\n"
+    else:
+        message += f"⏳ {name} [In Progress]\n"
+
+    keyboard = [[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+async def show_tier_benefits(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Displays the benefits for all tiers."""
+    query = update.callback_query
+    await query.answer()
+    
+    lang = await get_user_lang(query.from_user.id)
+    user_tier = await get_user_tier(query.from_user.id)
+
+    message = "<b>🏆 Tier Benefits 🏆</b>\n\n"
+    if lang == 'hi':
+        message = "<b>🏆 टियर के लाभ 🏆</b>\n\n"
+        
+    for tier, info in sorted(TIERS.items()):
+        if tier == user_tier:
+            message += "<b>" # Bold the current tier
+            
+        name = info['name']
+        benefits = info['benefits']
+        
+        if lang == 'hi':
+            # Simple translation for tier names
+            if name == 'Beginner': name = 'शुरुआती'
+            elif name == 'Pro': name = 'प्रो'
+            elif name == 'Expert': name = 'विशेषज्ञ'
+            elif name == 'Master': name = 'मास्टर'
+            
+            if benefits == 'Basic referral rate': benefits = 'बेसिक रेफरल दर'
+            elif benefits == '50% higher referral rate': benefits = '50% अधिक रेफरल दर'
+            elif benefits == '2.5x referral rate': benefits = '2.5x रेफरल दर'
+            elif benefits == '5x referral rate': benefits = '5x रेफरल दर'
+        
+        message += f"🏅 <b>Level {tier}: {name}</b>\n"
+        message += f"💰 Rate: ₹{info['rate']:.2f}\n"
+        message += f"📋 Unlocks at: ₹{info['min_earnings']} total earnings\n"
+        message += f"✨ Benefit: {benefits}\n"
+        
+        if tier == user_tier:
+            message += "</b><i>(Your Current Tier)</i>\n" if lang == 'en' else "</b><i>(आपका वर्तमान टियर)</i>\n"
+            
+        message += "\n"
+
+    keyboard = [[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+# --- SPIN WHEEL ---
 
 async def spin_wheel_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -425,8 +732,9 @@ async def spin_wheel_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
         parse_mode='HTML'
     )
 
-async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (Logic remains the same, but ensuring spin button uses new message)
+# --- WITHDRAWAL FUNCTIONS ---
+
+async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
     
@@ -438,38 +746,83 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await query.edit_message_text("User data not found.")
         return
 
-    # Get user stats
     earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
-    referrals_count = referrals_collection.count_documents({"referrer_id": user.id})
-    user_tier = await get_user_tier(user.id)
-    tier_info = TIERS.get(user_tier, TIERS[1]) 
     
-    # Enhanced earning panel message
-    message = (
-        f"<b>💰 Earning Panel</b>\n\n"
-        f"🏅 <b>Current Tier:</b> {tier_info['name']} (Level {user_tier})\n"
-        f"💵 <b>Balance:</b> ₹{earnings_inr:.2f}\n"
-        f"👥 <b>Total Referrals:</b> {referrals_count}\n"
-        f"🎯 <b>Referral Rate:</b> ₹{tier_info['rate']:.2f}/referral\n\n"
-        f"<i>Earn more to unlock higher tiers with better rates!</i>"
+    if earnings_inr < 80:
+        await query.edit_message_text(
+            MESSAGES[lang]["withdrawal_insufficient"],
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
+        )
+        return
+
+    existing_request = withdrawals_collection.find_one({"user_id": user.id, "status": "pending"})
+    if existing_request:
+        await query.edit_message_text(
+            "❌ <b>Request Already Pending!</b>\n\nYour previous withdrawal request is still being processed.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]),
+            parse_mode='HTML'
+        )
+        return
+
+    # Create withdrawal request
+    withdrawal_data = {
+        "user_id": user.id,
+        "username": user.username,
+        "full_name": user.full_name,
+        "amount_inr": earnings_inr,
+        "status": "pending",
+        "request_date": datetime.now(),
+        "approved_date": None
+    }
+    
+    withdrawals_collection.insert_one(withdrawal_data)
+
+    # Notify admin
+    if ADMIN_ID:
+        try:
+            admin_message = (
+                f"🔄 <b>New Withdrawal Request</b>\n\n"
+                f"👤 User: {user.full_name} (@{user.username})\n"
+                f"🆔 ID: <code>{user.id}</code>\n"
+                f"💰 Amount: ₹{earnings_inr:.2f}\n"
+                f"📅 Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            )
+            await context.bot.send_message(
+                chat_id=ADMIN_ID,
+                text=admin_message,
+                parse_mode='HTML',
+                reply_markup=InlineKeyboardMarkup([[
+                    InlineKeyboardButton("✅ Approve", callback_data=f"approve_withdraw_{user.id}"),
+                    InlineKeyboardButton("❌ Reject", callback_data=f"reject_withdraw_{user.id}")
+                ]])
+            )
+        except Exception as e:
+            logger.error(f"Could not notify admin about withdrawal: {e}")
+
+    await query.edit_message_text(
+        MESSAGES[lang]["withdrawal_request_sent"].format(amount=earnings_inr),
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]),
+        parse_mode='HTML'
     )
     
+async def show_withdraw_details_new(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # This function is kept for legacy button, but new button is "request_withdrawal"
+    query = update.callback_query
+    await query.answer()
+    lang = await get_user_lang(query.from_user.id)
+    
+    message = MESSAGES[lang]["withdrawal_message_updated"]
+    
     keyboard = [
-        [InlineKeyboardButton("🔗 My Refer Link", callback_data="show_refer_link")],
-        [InlineKeyboardButton(MESSAGES[lang]["spin_wheel_button"], callback_data="spin_wheel")], # Updated button text
+        [InlineKeyboardButton("Contact Admin", url=f"https://t.me/{YOUR_TELEGRAM_HANDLE}")],
         [InlineKeyboardButton("💸 Request Withdrawal", callback_data="request_withdrawal")],
-        [InlineKeyboardButton("🎁 Daily Bonus", callback_data="claim_daily_bonus")],
-        [InlineKeyboardButton("🎯 Daily Missions", callback_data="show_missions")],
-        [InlineKeyboardButton("📊 Tier Benefits", callback_data="show_tier_benefits")],
-        [InlineKeyboardButton("🆘 Help", callback_data="show_help")],
-        [InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]
+        [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
 
-# --- IMPROVED ADMIN PANEL IMPLEMENTATION ---
+# --- ADMIN PANEL AND COMMANDS ---
 
 async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
@@ -479,11 +832,8 @@ async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         await update.message.reply_html(MESSAGES[lang]["broadcast_admin_only"])
         return
     
-    settings = settings_collection.find_one({"_id": "referral_rate"})
-    rate = settings.get("rate_inr", 0.40) if settings else 0.40
-    
-    settings_bonus = settings_collection.find_one({"_id": "welcome_bonus"})
-    bonus = settings_bonus.get("amount_inr", 5.00) if settings_bonus else 5.00
+    rate = await get_referral_bonus_inr()
+    bonus = await get_welcome_bonus()
     
     message = (
         f"<b>⚙️ Admin Panel</b>\n\n"
@@ -511,31 +861,32 @@ async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_T
         await query.answer(MESSAGES[lang]["broadcast_admin_only"], show_alert=True)
         return
     
+    await query.answer() # Answer callback first
+    
     if data == "admin_set_rate":
         await query.edit_message_text("✍️ **Enter New Referral Rate (in INR):**\n\nExample: `/setrate 1.00`")
     elif data == "admin_set_welbonus":
         await query.edit_message_text("✍️ **Enter New Welcome Bonus (in INR):**\n\nExample: `/setwelbonus 5.00`")
     elif data == "admin_check_withdrawals":
-        pending_requests = withdrawals_collection.find({"status": "pending"})
+        pending_requests = list(withdrawals_collection.find({"status": "pending"}))
         
         message = "💸 <b>Pending Withdrawal Requests</b> 💸\n\n"
-        count = 0
         keyboard = []
         
-        for req in pending_requests:
-            count += 1
-            username_display = f"@{req.get('username')}" if req.get('username') else f"ID: {req['user_id']}"
-            message += (
-                f"👤 {username_display}\n"
-                f"💰 Amount: ₹{req['amount_inr']:.2f}\n"
-                f"⏰ Date: {req['request_date'].strftime('%Y-%m-%d %H:%M')}\n\n"
-            )
-            keyboard.append([
-                InlineKeyboardButton(f"✅ Approve {req['amount_inr']:.2f} (ID: {req['user_id']})", callback_data=f"approve_withdraw_{req['user_id']}"),
-            ])
-
-        if count == 0:
+        if not pending_requests:
             message += "✅ No pending requests found."
+        else:
+            for req in pending_requests:
+                username_display = f"@{req.get('username')}" if req.get('username') else f"ID: {req['user_id']}"
+                message += (
+                    f"👤 {username_display}\n"
+                    f"💰 Amount: ₹{req['amount_inr']:.2f}\n"
+                    f"⏰ Date: {req['request_date'].strftime('%Y-%m-%d %H:%M')}\n\n"
+                )
+                keyboard.append([
+                    InlineKeyboardButton(f"✅ Approve (ID: {req['user_id']})", callback_data=f"approve_withdraw_{req['user_id']}"),
+                    InlineKeyboardButton(f"❌ Reject (ID: {req['user_id']})", callback_data=f"reject_withdraw_{req['user_id']}")
+                ])
         
         keyboard.append([InlineKeyboardButton("⬅️ Back to Admin Panel", callback_data="admin_back")])
         
@@ -546,11 +897,22 @@ async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_T
         
     elif data == "admin_back":
         # Re-run admin_panel logic to show the main panel again
-        await admin_panel(update, context)
+        # We need to send it as a new message or edit the existing one
+        try:
+            await admin_panel(update, context)
+            if query.message: # if called from a button
+                await query.delete_message()
+        except Exception as e:
+            logger.error(f"Error returning to admin panel: {e}")
+            # Fallback if update is not a message
+            if query.message:
+                await query.edit_message_text("Returning to admin panel...")
+                await admin_panel(query, context) # Pass query
 
-# --- NEW ADMIN COMMAND: set_bot_commands ---
 async def set_bot_commands_command(update: Update, context: ContextTypes.DEFAULT_TYPE, query=None) -> None:
-    user = update.effective_user
+    """Sets the bot commands for users and admin."""
+    effective_update = query if query else update
+    user = effective_update.from_user
     lang = await get_user_lang(user.id)
 
     if user.id != ADMIN_ID:
@@ -562,19 +924,16 @@ async def set_bot_commands_command(update: Update, context: ContextTypes.DEFAULT
     
     bot = context.bot
     try:
-        # 1. Set User Commands (for all users)
-        await bot.set_my_commands(USER_COMMANDS, scope=None, language_code='en')
-        await bot.set_my_commands(USER_COMMANDS, scope=None, language_code='hi')
-
-        # 2. Set Admin Commands (for admin only)
-        # Using the ADMIN_ID as a specific chat_id scope for the commands to appear only to the admin
-        await bot.set_my_commands(ADMIN_COMMANDS, scope=None, language_code='en')
-        await bot.set_my_commands(ADMIN_COMMANDS, scope=None, language_code='hi')
+        # Set User Commands (for all users)
+        await bot.set_my_commands(USER_COMMANDS)
+        
+        # Set Admin Commands (for admin only)
+        await bot.set_my_commands(USER_COMMANDS + ADMIN_COMMANDS, scope=None)
         
         message = (
             "✅ **Commands Set Successfully!**\n\n"
-            "User commands (`/start`, `/earn`) are set for all.\n"
-            "Admin commands (`/admin`, `/stats`, etc.) are now visible."
+            "All commands are set for admin.\n"
+            "User commands (`/start`, `/earn`) are set for all users."
         )
         
     except Exception as e:
@@ -586,8 +945,6 @@ async def set_bot_commands_command(update: Update, context: ContextTypes.DEFAULT
         await query.edit_message_text(message, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='HTML')
     else:
         await update.message.reply_html(message, parse_mode='HTML')
-
-# --- EXISTING ADMIN COMMANDS IMPROVED ---
 
 async def set_welcome_bonus_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
@@ -637,8 +994,6 @@ async def set_referral_rate_command(update: Update, context: ContextTypes.DEFAUL
     except ValueError:
         await update.message.reply_html(MESSAGES[lang]["invalid_rate"])
 
-# --- WITHDRAWAL APPROVAL LOGIC IMPROVED ---
-
 async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
@@ -657,23 +1012,27 @@ async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAU
         await query.edit_message_text("❌ Invalid User ID in callback data.")
         return
     
-    withdrawal = withdrawals_collection.find_one_and_update(
-        {"user_id": user_id, "status": "pending"},
-        {"$set": {"status": f"{action}ed", "approved_date": datetime.now() if action == 'approve' else None}},
-        return_document=True
+    withdrawal = withdrawals_collection.find_one(
+        {"user_id": user_id, "status": "pending"}
     )
     
     if not withdrawal:
         await query.edit_message_text(f"❌ No **pending** withdrawal request found for user {user_id}. It might have been processed already.")
         return
-    
+        
     amount_inr = withdrawal['amount_inr']
 
     if action == "approve":
-        # Reset user earnings
+        # Update withdrawal status
+        withdrawals_collection.update_one(
+            {"_id": withdrawal["_id"]},
+            {"$set": {"status": "approved", "approved_date": datetime.now()}}
+        )
+        
+        # Reset user earnings (subtract the withdrawn amount)
         users_collection.update_one(
             {"user_id": user_id},
-            {"$set": {"earnings": 0.0}} # Set to 0 USD (or 0 INR after conversion)
+            {"$inc": {"earnings": -(amount_inr / DOLLAR_TO_INR)}}
         )
         
         # Notify user
@@ -687,9 +1046,17 @@ async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAU
         except Exception as e:
             logger.error(f"Could not notify user {user_id} about withdrawal approval: {e}")
         
-        await query.edit_message_text(f"✅ Withdrawal of ₹{amount_inr:.2f} **approved** for user {user_id}. Earnings reset.")
+        await query.edit_message_text(f"✅ Withdrawal of ₹{amount_inr:.2f} **approved** for user {user_id}. Earnings updated.")
             
     elif action == "reject":
+        # Update withdrawal status
+        withdrawals_collection.update_one(
+            {"_id": withdrawal["_id"]},
+            {"$set": {"status": "rejected"}}
+        )
+        
+        # Note: We do NOT reset/subtract earnings if rejected. The money stays in their balance.
+        
         # Notify user
         try:
             user_lang = await get_user_lang(user_id)
@@ -703,74 +1070,74 @@ async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAU
 
         await query.edit_message_text(f"❌ Withdrawal of ₹{amount_inr:.2f} **rejected** for user {user_id}.")
 
-# --- MESSAGE HANDLER FOR MISSIONS AND REFERRAL (Kept as is) ---
-# handle_group_messages and add_payment_after_delay functions are kept the same 
-# as they manage the core referral/shortlink and mission logic.
+# --- MESSAGE HANDLER (MISSIONS AND REFERRAL) ---
 
 async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     chat = update.effective_chat
     
-    if not users_collection.find_one({"user_id": user.id}):
+    user_data = users_collection.find_one({"user_id": user.id})
+    if not user_data:
         return 
 
     if chat.type in ["group", "supergroup"]:
         logger.info(f"Message received in group from user: {user.id}")
+        lang = user_data.get("lang", "en")
 
-        # Mission: Search movies
-        user_data = users_collection.find_one({"user_id": user.id})
-        if user_data:
-            today = datetime.now().date()
-            last_search_date = user_data.get("last_search_date")
+        # --- Mission: Search movies ---
+        today = datetime.now().date()
+        last_search_date = user_data.get("last_search_date")
+        
+        daily_searches = user_data.get("daily_searches", 0)
+        
+        if not last_search_date or not isinstance(last_search_date, datetime) or last_search_date.date() != today:
+            # First search of the day
+            daily_searches = 1
+            users_collection.update_one(
+                {"user_id": user.id},
+                {"$set": {"daily_searches": 1, "last_search_date": datetime.now()}}
+            )
+        else:
+            # Increment search count
+            daily_searches += 1
+            users_collection.update_one(
+                {"user_id": user.id},
+                {"$inc": {"daily_searches": 1}}
+            )
+        
+        mission_key = "search_3_movies"
+        missions_completed = user_data.get("missions_completed", {})
+        
+        if daily_searches == DAILY_MISSIONS[mission_key]["target"] and not missions_completed.get(mission_key):
+            mission = DAILY_MISSIONS[mission_key]
+            reward_usd = mission["reward"] / DOLLAR_TO_INR
             
-            # Use find_one_and_update for atomic updates
-            if not last_search_date or not isinstance(last_search_date, datetime) or last_search_date.date() != today:
-                users_collection.update_one(
-                    {"user_id": user.id},
-                    {"$set": {"daily_searches": 1, "last_search_date": datetime.now()}}
-                )
-            else:
-                users_collection.update_one(
-                    {"user_id": user.id},
-                    {"$inc": {"daily_searches": 1}}
-                )
+            users_collection.update_one(
+                {"user_id": user.id},
+                {
+                    "$inc": {"earnings": reward_usd},
+                    "$set": {f"missions_completed.{mission_key}": True}
+                }
+            )
             
-            current_data = users_collection.find_one({"user_id": user.id})
-            daily_searches = current_data.get("daily_searches", 0)
-            
-            mission_key = "search_3_movies"
-            missions_completed = current_data.get("missions_completed", {})
-            
-            if daily_searches >= DAILY_MISSIONS[mission_key]["target"] and not missions_completed.get(mission_key):
-                mission = DAILY_MISSIONS[mission_key]
-                reward_usd = mission["reward"] / DOLLAR_TO_INR
+            try:
+                updated_data = users_collection.find_one({"user_id": user.id})
+                updated_earnings_inr = updated_data.get("earnings", 0.0) * DOLLAR_TO_INR
+                mission_name = mission["name"] if lang == "en" else mission["name_hi"]
                 
-                users_collection.update_one(
-                    {"user_id": user.id},
-                    {
-                        "$inc": {"earnings": reward_usd},
-                        "$set": {f"missions_completed.{mission_key}": True}
-                    }
+                await context.bot.send_message(
+                    chat_id=user.id,
+                    text=MESSAGES[lang]["mission_complete"].format(
+                        mission_name=mission_name,
+                        reward=mission["reward"],
+                        new_balance=updated_earnings_inr
+                    ),
+                    parse_mode='HTML'
                 )
-                
-                try:
-                    lang = await get_user_lang(user.id)
-                    updated_data = users_collection.find_one({"user_id": user.id})
-                    updated_earnings_inr = updated_data.get("earnings", 0.0) * DOLLAR_TO_INR
-                    
-                    await context.bot.send_message(
-                        chat_id=user.id,
-                        text=MESSAGES[lang]["mission_complete"].format(
-                            mission_name=mission["name"],
-                            reward=mission["reward"],
-                            new_balance=updated_earnings_inr
-                        ),
-                        parse_mode='HTML'
-                    )
-                except Exception as e:
-                    logger.error(f"Could not notify user about mission completion: {e}")
+            except Exception as e:
+                logger.error(f"Could not notify user about mission completion: {e}")
 
-        # Existing referral earning logic
+        # --- Existing referral earning logic ---
         referral_data = referrals_collection.find_one({"referred_user_id": user.id})
         if referral_data:
             referrer_id = referral_data["referrer_id"]
@@ -785,70 +1152,65 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
                 today = datetime.now().date()
 
                 if not last_earning_date or not isinstance(last_earning_date, datetime) or last_earning_date.date() < today:
-                    asyncio.create_task(add_payment_after_delay(context, user.id))
+                    # Schedule payment only if it hasn't been paid today
+                    asyncio.create_task(add_payment_after_delay(context, user.id, referrer_id))
                     logger.info(f"Payment task scheduled for user {user.id} after 5 minutes.")
                 else:
                     logger.info(f"Daily earning limit reached for referrer {referrer_id} from user {user.id}.")
 
-async def add_payment_after_delay(context: ContextTypes.DEFAULT_TYPE, user_id: int):
+async def add_payment_after_delay(context: ContextTypes.DEFAULT_TYPE, user_id: int, referrer_id: int):
     await asyncio.sleep(300)  # 5 minutes delay
     
-    user_data = users_collection.find_one({"user_id": user_id})
-    if user_data:
-        referral_data = referrals_collection.find_one({"referred_user_id": user_id})
-        
-        if referral_data:
-            referrer_id = referral_data["referrer_id"]
-            referrer_data = users_collection.find_one({"user_id": referrer_id})
-            
-            if referrer_data:
-                last_earning_date_doc = referrals_collection.find_one({
-                    "referred_user_id": user_id, 
-                    "referrer_id": referrer_id
-                })
-                last_earning_date = last_earning_date_doc.get("last_earning_date") if last_earning_date_doc else None
-                
-                today = datetime.now().date()
-                
-                if not last_earning_date or not isinstance(last_earning_date, datetime) or last_earning_date.date() < today:
-                    
-                    referrer_tier = await get_user_tier(referrer_id)
-                    tier_rate = await get_tier_referral_rate(referrer_tier)
-                    earning_rate_usd = tier_rate / DOLLAR_TO_INR
-                    
-                    users_collection.update_one(
-                        {"user_id": referrer_id},
-                        {"$inc": {"earnings": earning_rate_usd}}
-                    )
+    # Re-check to ensure payment wasn't already made today (e.g., by another quick search)
+    last_earning_date_doc = referrals_collection.find_one({
+        "referred_user_id": user_id, 
+        "referrer_id": referrer_id
+    })
+    last_earning_date = last_earning_date_doc.get("last_earning_date") if last_earning_date_doc else None
+    today = datetime.now().date()
 
-                    referrals_collection.update_one(
-                        {"referred_user_id": user_id},
-                        {"$set": {"last_earning_date": datetime.now()}}
-                    )
-                    
-                    updated_referrer_data = users_collection.find_one({"user_id": referrer_id})
-                    new_balance_inr = updated_referrer_data.get("earnings", 0.0) * DOLLAR_TO_INR
-                    
-                    # Notify referrer (omitting level up for brevity, but it's in the original code)
-                    referrer_lang = await get_user_lang(referrer_id)
-                    try:
-                        await context.bot.send_message(
-                            chat_id=referrer_id,
-                            text=MESSAGES[referrer_lang]["daily_earning_update"].format(
-                                full_name=user_data.get("full_name"), new_balance=new_balance_inr
-                            ),
-                            parse_mode='HTML'
-                        )
-                    except (TelegramError, TimedOut) as e:
-                        logger.error(f"Could not send daily earning update to referrer {referrer_id}: {e}")
-                        
-                    logger.info(f"Updated earnings for referrer {referrer_id}. New balance (INR): {new_balance_inr}")
-                else:
-                    logger.info(f"Daily earning limit reached for referrer {referrer_id} from user {user_id}. No new payment scheduled after delay.")
-# --- OTHER EXISTING FUNCTIONS (Kept as is) ---
+    if not last_earning_date or not isinstance(last_earning_date, datetime) or last_earning_date.date() < today:
+        
+        referrer_tier = await get_user_tier(referrer_id)
+        tier_rate = await get_tier_referral_rate(referrer_tier)
+        earning_rate_usd = tier_rate / DOLLAR_TO_INR
+        
+        users_collection.update_one(
+            {"user_id": referrer_id},
+            {"$inc": {"earnings": earning_rate_usd}}
+        )
+
+        referrals_collection.update_one(
+            {"referred_user_id": user_id},
+            {"$set": {"last_earning_date": datetime.now()}}
+        )
+        
+        updated_referrer_data = users_collection.find_one({"user_id": referrer_id})
+        new_balance_inr = updated_referrer_data.get("earnings", 0.0) * DOLLAR_TO_INR
+        
+        user_data = users_collection.find_one({"user_id": user_id})
+        
+        # Notify referrer
+        referrer_lang = await get_user_lang(referrer_id)
+        try:
+            await context.bot.send_message(
+                chat_id=referrer_id,
+                text=MESSAGES[referrer_lang]["daily_earning_update"].format(
+                    full_name=user_data.get("full_name", "your referral"), 
+                    new_balance=new_balance_inr
+                ),
+                parse_mode='HTML'
+            )
+        except (TelegramError, TimedOut) as e:
+            logger.error(f"Could not send daily earning update to referrer {referrer_id}: {e}")
+            
+        logger.info(f"Updated earnings for referrer {referrer_id}. New balance (INR): {new_balance_inr}")
+    else:
+        logger.info(f"Payment for {user_id} to {referrer_id} already processed today. Skipping delayed payment.")
+
+# --- OTHER COMMANDS (STATS, BROADCAST, ETC.) ---
 
 async def show_movie_groups_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (Function remains the same)
     query = update.callback_query
     await query.answer()
 
@@ -870,7 +1232,6 @@ async def show_movie_groups_menu(update: Update, context: ContextTypes.DEFAULT_T
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
 async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (Function remains the same)
     query = update.callback_query
     await query.answer()
 
@@ -889,141 +1250,6 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
     )
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-
-async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (Function remains the same)
-    query = update.callback_query
-    await query.answer()
-    user = query.from_user
-    lang = await get_user_lang(user.id)
-    
-    help_message = MESSAGES[lang]["help_message_text"]
-    
-    keyboard = [
-        [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await query.edit_message_text(help_message, reply_markup=reply_markup, parse_mode='HTML')
-
-async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (Function remains the same)
-    query = update.callback_query
-    await query.answer()
-    user = query.from_user
-    lang = await get_user_lang(user.id)
-    
-    bot_info = await context.bot.get_me()
-    bot_username = bot_info.username
-    referral_link = f"https://t.me/{bot_username}?start=ref_{user.id}"
-    
-    user_tier = await get_user_tier(user.id)
-    tier_rate = await get_tier_referral_rate(user_tier)
-    
-    message = MESSAGES[lang]["ref_link_message"].format(
-        referral_link=referral_link,
-        tier_rate=tier_rate
-    )
-    
-    keyboard = [
-        [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-
-async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (Function remains the same)
-    query = update.callback_query
-    await query.answer()
-    
-    user = query.from_user
-    lang = await get_user_lang(user.id)
-    user_data = users_collection.find_one({"user_id": user.id})
-    
-    if not user_data:
-        await query.edit_message_text("User data not found.")
-        return
-
-    earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
-    
-    if earnings_inr < 80:
-        await query.edit_message_text(
-            MESSAGES[lang]["withdrawal_insufficient"],
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
-        )
-        return
-
-    existing_request = withdrawals_collection.find_one({"user_id": user.id, "status": "pending"})
-    if existing_request:
-        await query.edit_message_text(
-            "❌ <b>Request Already Pending!</b>\n\nYour previous withdrawal request is still being processed.",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
-        )
-        return
-
-    # Create withdrawal request
-    withdrawal_data = {
-        "user_id": user.id,
-        "username": user.username,
-        "full_name": user.full_name,
-        "amount_inr": earnings_inr,
-        "status": "pending",
-        "request_date": datetime.now(),
-        "approved_date": None
-    }
-    
-    withdrawals_collection.insert_one(withdrawal_data)
-
-    # Notify admin
-    if ADMIN_ID:
-        try:
-            admin_message = (
-                f"🔄 <b>New Withdrawal Request</b>\n\n"
-                f"👤 User: {user.full_name} (@{user.username})\n"
-                f"🆔 ID: <code>{user.id}</code>\n"
-                f"💰 Amount: ₹{earnings_inr:.2f}\n"
-                f"📅 Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-            )
-            await context.bot.send_message(
-                chat_id=ADMIN_ID,
-                text=admin_message,
-                parse_mode='HTML',
-                reply_markup=InlineKeyboardMarkup([[
-                    InlineKeyboardButton("✅ Approve", callback_data=f"approve_withdraw_{user.id}"),
-                    InlineKeyboardButton("❌ Reject", callback_data=f"reject_withdraw_{user.id}")
-                ]])
-            )
-        except Exception as e:
-            logger.error(f"Could not notify admin about withdrawal: {e}")
-
-    await query.edit_message_text(
-        MESSAGES[lang]["withdrawal_request_sent"].format(amount=earnings_inr),
-        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]),
-        parse_mode='HTML'
-    )
-    
-async def show_withdraw_details_new(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (Function remains the same - updated button text)
-    query = update.callback_query
-    await query.answer()
-    lang = await get_user_lang(query.from_user.id)
-    
-    user_data = users_collection.find_one({"user_id": query.from_user.id})
-    earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
-    
-    message = MESSAGES[lang]["withdrawal_message_updated"]
-    
-    keyboard = [
-        [InlineKeyboardButton("Contact Admin", url=f"https://t.me/{YOUR_TELEGRAM_HANDLE}")],
-        [InlineKeyboardButton("💸 Request Withdrawal", callback_data="request_withdrawal")],
-        [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-
-
-# --- PLACEHOLDER COMMANDS (Updated) ---
 
 async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Use inline button to access panel from /earn
@@ -1080,7 +1306,6 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await update.message.reply_html(MESSAGES[lang]["stats_message"].format(total_users=total_users, approved_users=approved_users))
 
 async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (Broadcasting logic remains the same)
     lang = await get_user_lang(update.effective_user.id)
     if update.effective_user.id != ADMIN_ID:
         await update.message.reply_html(MESSAGES[lang]["broadcast_admin_only"])
@@ -1092,13 +1317,14 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         
     forwarded_message = update.message.reply_to_message
     
-    users = users_collection.find({})
+    users_cursor = users_collection.find({})
+    total_users = users_collection.count_documents({})
     count = 0
     failed_count = 0
     
-    await update.message.reply_html(f"📢 **Starting broadcast to all {users_collection.count_documents({})} users...**")
+    await update.message.reply_html(f"📢 **Starting broadcast to all {total_users} users...**")
 
-    for user in users:
+    for user in users_cursor:
         try:
             await context.bot.forward_message(
                 chat_id=user["user_id"],
@@ -1109,7 +1335,7 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             await asyncio.sleep(0.05) # Delay to avoid flood limits
         except Exception:
             failed_count += 1
-            pass # Ignore failed sends (e.g., user blocked the bot)
+            pass 
 
     await update.message.reply_html(f"✅ **Broadcast Finished!**\n\nSent to: **{count}** users.\nFailed to send (blocked/error): **{failed_count}** users.")
 
@@ -1134,26 +1360,26 @@ def main() -> None:
     application.add_handler(CommandHandler("broadcast", broadcast_command))
     application.add_handler(CommandHandler("setrate", set_referral_rate_command))
     application.add_handler(CommandHandler("setwelbonus", set_welcome_bonus_command))
-    application.add_handler(CommandHandler("setcommands", set_bot_commands_command)) # New Command
+    application.add_handler(CommandHandler("setcommands", set_bot_commands_command))
     
     # Callback Handlers
     application.add_handler(CallbackQueryHandler(show_earning_panel, pattern="^show_earning_panel$"))
     application.add_handler(CallbackQueryHandler(show_movie_groups_menu, pattern="^show_movie_groups_menu$"))
     application.add_handler(CallbackQueryHandler(back_to_main_menu, pattern="^back_to_main_menu$"))
-    application.add_handler(CallbackQueryHandler(language_menu, pattern="^select_lang$"))
-    application.add_handler(CallbackQueryHandler(handle_lang_choice, pattern="^lang_"))
+    application.add_handler(CallbackQueryHandler(language_menu, pattern="^select_lang$")) # <-- FIXED
+    application.add_handler(CallbackQueryHandler(handle_lang_choice, pattern="^lang_")) # <-- ADDED
     application.add_handler(CallbackQueryHandler(show_help, pattern="^show_help$"))
     application.add_handler(CallbackQueryHandler(show_refer_link, pattern="^show_refer_link$"))
     application.add_handler(CallbackQueryHandler(show_withdraw_details_new, pattern="^show_withdraw_details_new$"))
-    application.add_handler(CallbackQueryHandler(claim_daily_bonus, pattern="^claim_daily_bonus$"))
+    application.add_handler(CallbackQueryHandler(claim_daily_bonus, pattern="^claim_daily_bonus$")) # <-- ADDED
     
     # New Features Callback Handlers
     application.add_handler(CallbackQueryHandler(spin_wheel_command, pattern="^spin_wheel$"))
-    application.add_handler(CallbackQueryHandler(show_missions, pattern="^show_missions$"))
+    application.add_handler(CallbackQueryHandler(show_missions, pattern="^show_missions$")) # <-- ADDED
     application.add_handler(CallbackQueryHandler(request_withdrawal, pattern="^request_withdrawal$"))
-    application.add_handler(CallbackQueryHandler(show_tier_benefits, pattern="^show_tier_benefits$"))
+    application.add_handler(CallbackQueryHandler(show_tier_benefits, pattern="^show_tier_benefits$")) # <-- ADDED
     
-    # Admin Panel Callbacks (Implemented)
+    # Admin Panel Callbacks
     application.add_handler(CallbackQueryHandler(handle_admin_callbacks, pattern="^admin_")) 
     application.add_handler(CallbackQueryHandler(handle_withdrawal_approval, pattern="^(approve|reject)_withdraw_\\d+$"))
     
@@ -1169,8 +1395,9 @@ def main() -> None:
             webhook_url=f"{WEB_SERVER_URL}/{BOT_TOKEN}",
             allowed_updates=Update.ALL_TYPES
         )
-        logger.info("Bot started in Webhook Mode.")
+        logger.info(f"Bot started in Webhook Mode on port {PORT}.")
     else:
+        logger.info("WEB_SERVER_URL not found, starting in Polling Mode.")
         application.run_polling(allowed_updates=Update.ALL_TYPES)
         logger.info("Bot started in Polling Mode.")
 
