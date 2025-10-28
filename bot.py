@@ -42,7 +42,7 @@ EXAMPLE_SCREENSHOT_URL = os.getenv("EXAMPLE_SCREENSHOT_URL", "https://envs.sh/ri
 # NEW: Channel Join Configuration
 CHANNEL_USERNAME = "@asbhai_bsr"
 CHANNEL_ID = -1002283182645 # Channel ID for checking membership
-CHANNEL_BONUS = 5.00 # 15 Rs for joining once
+CHANNEL_BONUS = 15.00 # 15 Rs for joining once
 
 # Load Render-specific variables
 WEB_SERVER_URL = os.getenv("WEB_SERVER_URL")
@@ -100,6 +100,7 @@ DAILY_MISSIONS = {
 }
 
 # --- ALL MESSAGES (INCL. MISSING ONES) ---
+# FIX 1: Removed ** around bold text, made sure code blocks are only for links/IDs.
 MESSAGES = {
     "en": {
         "start_greeting": "Hey 👋! Welcome to the Movies Group Bot. Get your favorite movies by following these simple steps:",
@@ -131,6 +132,9 @@ MESSAGES = {
         "spin_wheel_win": "🎉 <b>Congratulations!</b>\n\nYou won: ₹{amount:.2f}!\n\nNew balance: ₹{new_balance:.2f}",
         "spin_wheel_lose": "😢 <b>Better luck next time!</b>\n\nYou didn't win anything this time.\n\nRemaining balance: ₹{new_balance:.2f}",
         "missions_title": "🎯 <b>Daily Missions</b>\n\nComplete missions to earn extra rewards! Check your progress below:",
+        # FIX 3: Added mission specific messages
+        "mission_search_note": "⏳ Search 3 Movies ({current}/{target}) [In Progress]\n\n**Note:** This mission is completed when your *referred friend* searches 3 movies, not you.",
+        "mission_search_progress": "⏳ Search 3 Movies ({current}/{target}) [In Progress]",
         "mission_complete": "✅ <b>Mission Completed!</b>\n\nYou earned ₹{reward:.2f} for {mission_name}!\nNew balance: ₹{new_balance:.2f}",
         "withdrawal_request_sent": "✅ <b>Withdrawal Request Sent!</b>\n\nYour request for ₹{amount:.2f} has been sent to admin. You will receive payment within 24 hours.",
         "withdrawal_insufficient": "❌ <b>Insufficient Balance!</b>\n\nMinimum withdrawal amount is ₹80.00",
@@ -150,10 +154,10 @@ MESSAGES = {
         "channel_not_joined": "❌ <b>Channel Not Joined!</b>\nYou must join our channel {channel} to claim the bonus.",
         "channel_already_claimed": "⏳ <b>Bonus Already Claimed!</b>\nYou have already claimed the channel join bonus.",
         "top_users_title": "🏆 <b>Top 10 Earners</b> 🏆\n\n",
-        "clear_junk_success": "✅ **Junk Data Cleared!**\n\nUsers: {deleted_users} deleted.\nReferrals: {deleted_referrals} deleted.",
+        "clear_junk_success": "✅ <b>Junk Data Cleared!</b>\n\nUsers: {deleted_users} deleted.\nReferrals: {deleted_referrals} deleted.",
         "clear_junk_admin_only": "❌ This command is for the bot admin only.",
         "tier_benefits_title": "👑 <b>Tier System Benefits</b> 👑\n\nYour earning rate increases as you earn more. Reach higher tiers for more money per referral!",
-        "tier_info": "🔸 **{tier_name} (Level {tier}):** Min Earning: ₹{min_earnings:.2f}\n   - Benefit: {benefit}",
+        "tier_info": "🔸 <b>{tier_name} (Level {tier}):</b> Min Earning: ₹{min_earnings:.2f}\n   - Benefit: {benefit}",
         "help_menu_title": "🆘 <b>Help & Support</b>",
         "help_menu_text": "If you have any questions, payment issues, or need to contact the admin, use the button below. Remember to read the 'How to Earn' (Referral Example) section first!",
     },
@@ -187,6 +191,9 @@ MESSAGES = {
         "spin_wheel_win": "🎉 <b>बधाई हो!</b>\n\nआपने जीता: ₹{amount:.2f}!\n\nनया बैलेंस: ₹{new_balance:.2f}",
         "spin_wheel_lose": "😢 <b>अगली बार बेहतर किस्मत!</b>\n\nइस बार आप कुछ नहीं जीत पाए।\n\nशेष बैलेंस: ₹{new_balance:.2f}",
         "missions_title": "🎯 <b>दैनिक मिशन</b>\n\nअतिरिक्त इनाम पाने के लिए मिशन पूरे करें! अपनी प्रगति नीचे देखें:",
+        # FIX 3: Added mission specific messages
+        "mission_search_note": "⏳ 3 फिल्में खोजें ({current}/{target}) [प्रगति में]\n\n**ध्यान दें:** यह मिशन तब पूरा होता है जब आपका *रेफर किया गया दोस्त* 3 फिल्में खोजता है, न कि आप।",
+        "mission_search_progress": "⏳ 3 फिल्में खोजें ({current}/{target}) [प्रगति में]",
         "mission_complete": "✅ <b>मिशन पूरा हुआ!</b>\n\nआपने {mission_name} के लिए ₹{reward:.2f} कमाए!\nनया बैलेंस: ₹{new_balance:.2f}",
         "withdrawal_request_sent": "✅ <b>निकासी का अनुरोध भेज दिया गया!</b>\n\n₹{amount:.2f} के आपके अनुरोध को एडमिन को भेज दिया गया है। आपको 24 घंटे के भीतर भुगतान मिल जाएगा।",
         "withdrawal_insufficient": "❌ <b>पर्याप्त बैलेंस नहीं!</b>\n\nन्यूनतम निकासी राशि ₹80.00 है",
@@ -206,10 +213,10 @@ MESSAGES = {
         "channel_not_joined": "❌ <b>चैनल जॉइन नहीं किया!</b>\nबोनस क्लेम करने के लिए आपको हमारा चैनल {channel} जॉइन करना होगा।",
         "channel_already_claimed": "⏳ <b>बोनस पहले ही क्लेम किया जा चुका है!</b>\nआप पहले ही चैनल जॉइन बोनस क्लेम कर चुके हैं।",
         "top_users_title": "🏆 <b>शीर्ष 10 कमाने वाले</b> 🏆\n\n",
-        "clear_junk_success": "✅ **जंक डेटा साफ़!**\n\nयूज़र्स: {deleted_users} डिलीट किए गए।\nरेफरल: {deleted_referrals} डिलीट किए गए।",
+        "clear_junk_success": "✅ <b>जंक डेटा साफ़!</b>\n\nयूज़र्स: {deleted_users} डिलीट किए गए।\nरेफरल: {deleted_referrals} डिलीट किए गए।",
         "clear_junk_admin_only": "❌ यह कमांड केवल बॉट एडमिन के लिए है।",
         "tier_benefits_title": "👑 <b>टियर सिस्टम के लाभ</b> 👑\n\nजैसे-जैसे आप अधिक कमाते हैं, आपकी कमाई दर बढ़ती जाती है। प्रति रेफरल अधिक पैसे के लिए उच्च टियर पर पहुँचें!",
-        "tier_info": "🔸 **{tier_name} (लेवल {tier}):** न्यूनतम कमाई: ₹{min_earnings:.2f}\n   - लाभ: {benefit}",
+        "tier_info": "🔸 <b>{tier_name} (लेवल {tier}):</b> न्यूनतम कमाई: ₹{min_earnings:.2f}\n   - लाभ: {benefit}",
         "help_menu_title": "🆘 <b>सहायता और समर्थन</b>",
         "help_menu_text": "यदि आपके कोई प्रश्न हैं, भुगतान संबंधी समस्याएँ हैं, या एडमिन से संपर्क करने की आवश्यकता है, तो नीचे दिए गए बटन का उपयोग करें। 'पैसे कैसे कमाएं' (रेफरल उदाहरण) अनुभाग को पहले पढ़ना याद रखें!",
     }
@@ -549,19 +556,19 @@ async def show_refer_example(update: Update, context: ContextTypes.DEFAULT_TYPE)
         message = """
 <b>🔥 यह है कमाई का प्रूफ!</b>\n
 देखिए, दोंस्तो! मैंने अपने एक दोस्त को रेफ़र किया, और उसने मेरी लिंक से बॉट जॉइन किया। 
-वह रोज़ाना मूवी सर्च करके शॉर्टलिंक पूरी करता है, और उसकी कमाई का हिस्सा **सीधे मेरे वॉलेट में आता है!**
+वह रोज़ाना मूवी सर्च करके शॉर्टलिंक पूरी करता है, और उसकी कमाई का हिस्सा <b>सीधे मेरे वॉलेट में आता है!</b>
 
-<b>याद रखें:</b> अगर वह यूज़र हर दिन 3 बार शॉर्टलिंक पूरी करता है, तो आपको उससे **हर दिन** पैसा मिलेगा (दिन में 3 बार तक)।
-जितने ज़्यादा लोगों को आप रेफ़र करेंगे, उतनी ही ज़्यादा कमाई होगी! **अभी शेयर करें!**
+<b>याद रखें:</b> अगर वह यूज़र हर दिन 3 बार शॉर्टलिंक पूरी करता है, तो आपको उससे <b>हर दिन</b> पैसा मिलेगा (दिन में 3 बार तक)।
+जितने ज़्यादा लोगों को आप रेफ़र करेंगे, उतनी ही ज़्यादा कमाई होगी! <b>अभी शेयर करें!</b>
 """
     else:
         message = """
 <b>🔥 Earning Proof is Here!</b>\n
 See, friends! I referred a friend, and they joined the bot using my link.
-They search movies daily and complete shortlinks, and a share of their earning **comes directly to my wallet!**
+They search movies daily and complete shortlinks, and a share of their earning <b>comes directly to my wallet!</b>
 
-<b>Remember:</b> If that user completes 3 shortlinks every day, you will earn money from them **daily** (up to 3 times per day).
-The more people you refer, the higher your earnings will be! **Share Now!**
+<b>Remember:</b> If that user completes 3 shortlinks every day, you will earn money from them <b>daily</b> (up to 3 times per day).
+The more people you refer, the higher your earnings will be! <b>Share Now!</b>
 """
     
     keyboard = [[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]
@@ -574,12 +581,12 @@ The more people you refer, the higher your earnings will be! **Share Now!**
         pass # Ignore if it fails
     
     try:
-        # Check if URL is a placeholder/not set properly
+        # FIX 2: Check if URL is a placeholder/not set properly
         if not EXAMPLE_SCREENSHOT_URL or "ric.jpg" in EXAMPLE_SCREENSHOT_URL or "example.png" in EXAMPLE_SCREENSHOT_URL:
-            # Fallback if URL is not set
+            # Fallback if URL is not set - now displays only a note to the user
             await context.bot.send_message(
                 chat_id=query.message.chat_id,
-                text=message + "\n\n(<b>Admin Note:</b> Screenshot not configured. Please set `EXAMPLE_SCREENSHOT_URL` in the environment variables.)",
+                text=message + "\n\n(<b>Note:</b> Referral screenshot link is not yet configured by the admin.)",
                 reply_markup=reply_markup,
                 parse_mode='HTML'
             )
@@ -593,7 +600,7 @@ The more people you refer, the higher your earnings will be! **Share Now!**
             )
     except Exception as e:
         logger.error(f"Failed to send refer example photo: {e}")
-        # Fallback to text only
+        # Fallback to text only if photo sending fails
         await context.bot.send_message(
             chat_id=query.message.chat_id,
             text=message + "\n\n(Screenshot could not be loaded. Check EXAMPLE_SCREENSHOT_URL)",
@@ -804,6 +811,7 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     last_search_date = user_data.get("last_search_date")
     daily_searches = user_data.get("daily_searches", 0)
     
+    # FIX: Ensure searches are reset correctly
     if not last_search_date or not isinstance(last_search_date, datetime) or last_search_date.date() != today:
         daily_searches = 0 # Reset search count
         # Also reset mission completion status for "search_3_movies"
@@ -811,7 +819,6 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             {"user_id": user.id},
             {"$set": {"daily_searches": 0, "missions_completed.search_3_movies": False}}
         )
-
     # 2. Check/Reset daily bonus mission status if not claimed today
     last_checkin_date = user_data.get("last_checkin_date")
     is_bonus_claimed_today = last_checkin_date and isinstance(last_checkin_date, datetime) and last_checkin_date.date() == today
@@ -843,27 +850,22 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     newly_completed_message = ""
     total_reward = 0.0
 
-    # --- Mission: Search 3 Movies ---
+    # --- Mission: Search 3 Movies (FIXED DISPLAY LOGIC) ---
     mission_key = "search_3_movies"
     mission = DAILY_MISSIONS[mission_key]
     name = mission["name"] if lang == "en" else mission["name_hi"]
-    if daily_searches >= mission['target'] and not missions_completed.get(mission_key):
-        reward_usd = mission["reward"] / DOLLAR_TO_INR
-        total_reward += mission["reward"]
-        users_collection.update_one(
-            {"user_id": user.id},
-            {
-                "$inc": {"earnings": reward_usd},
-                "$set": {f"missions_completed.{mission_key}": True}
-            }
-        )
-        newly_completed_message += f"✅ **{name}**: +₹{mission['reward']:.2f}\n"
-        missions_completed[mission_key] = True # Update for display below
-        message += f"✅ {name} ({mission['target']}/{mission['target']}) [<b>Completed</b>]\n"
-    elif missions_completed.get(mission_key):
+    
+    # NOTE: The search_3_movies mission completion logic is handled in handle_group_messages.
+    # Here we only check for completion and display the progress.
+    
+    if missions_completed.get(mission_key):
         message += f"✅ {name} ({mission['target']}/{mission['target']}) [<b>Completed</b>]\n"
     else:
-        message += f"⏳ {name} ({min(daily_searches, mission['target'])}/{mission['target']}) [In Progress]\n"
+        # FIX 3: Display a special note about the movie search mission logic
+        message += MESSAGES[lang]["mission_search_note"].format(
+            current=min(daily_searches, mission['target']),
+            target=mission['target']
+        ) + "\n"
         
     # --- Mission: Refer 2 Friends ---
     mission_key = "refer_2_friends"
@@ -879,7 +881,7 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 "$set": {f"missions_completed.{mission_key}": True}
             }
         )
-        newly_completed_message += f"✅ **{name}**: +₹{mission['reward']:.2f}\n"
+        newly_completed_message += f"✅ <b>{name}</b>: +₹{mission['reward']:.2f}\n"
         missions_completed[mission_key] = True # Update for display below
         message += f"✅ {name} ({mission['target']}/{mission['target']}) [<b>Completed</b>]\n"
     elif missions_completed.get(mission_key):
@@ -1165,18 +1167,18 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
                     "daily_searches": {
                         "$cond": [
                             # If last_search_date is not today, reset to 1
-                            {"$eq": [{"$dateToString": {"format": "%Y-%m-%d", "date": "$last_search_date"}}, {"$dateToString": {"format": "%Y-%m-%d", "date": datetime.now()}}]},
+                            {"$ne": [{"$dateToString": {"format": "%Y-%m-%d", "date": "$last_search_date"}}, {"$dateToString": {"format": "%Y-%m-%d", "date": datetime.now()}}]},
+                            1, # Reset to 1 (first search of the day)
                             # Else, increment
-                            {"$add": ["$daily_searches", 1]},
-                            1 
+                            {"$add": ["$daily_searches", 1]} 
                         ]
                     },
                     "last_search_date": datetime.now(),
+                    # Only reset mission if it's a new day
                     "missions_completed.search_3_movies": {
                         "$cond": [
-                            # If it's a new day, reset mission to False
                             {"$ne": [{"$dateToString": {"format": "%Y-%m-%d", "date": "$last_search_date"}}, {"$dateToString": {"format": "%Y-%m-%d", "date": datetime.now()}}]},
-                            False,
+                            False, # Reset mission to False on a new day
                             "$missions_completed.search_3_movies" # Keep current status
                         ]
                     }
@@ -1408,7 +1410,7 @@ async def clearjunk_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         await update.message.reply_html(MESSAGES[await get_user_lang(update.effective_user.id)]["clear_junk_admin_only"])
         return
 
-    await update.message.reply_html("⏳ **Starting junk data cleanup...**")
+    await update.message.reply_html("⏳ <b>Starting junk data cleanup...</b>", parse_mode='HTML')
     
     thirty_days_ago = datetime.now() - timedelta(days=30)
     
@@ -1443,7 +1445,8 @@ async def clearjunk_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         MESSAGES[lang]["clear_junk_success"].format(
             deleted_users=deleted_users_count, 
             deleted_referrals=deleted_referrals_count
-        )
+        ),
+        parse_mode='HTML'
     )
 
 # --- REST OF THE FUNCTIONS (Existing logic maintained) ---
@@ -1462,8 +1465,8 @@ async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     message = (
         f"<b>⚙️ Admin Panel</b>\n\n"
         f"Current Settings:\n"
-        f"🔗 **Tier 1 Base Rate:** ₹{rate:.2f}\n"
-        f"🎁 **Welcome Bonus:** ₹{bonus:.2f}\n"
+        f"🔗 <b>Tier 1 Base Rate:</b> ₹{rate:.2f}\n"
+        f"🎁 <b>Welcome Bonus:</b> ₹{bonus:.2f}\n"
     )
     
     keyboard = [
@@ -1494,9 +1497,9 @@ async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_T
     await query.answer() 
     
     if data == "admin_set_rate":
-        await query.edit_message_text("✍️ **Enter New Tier 1 (Base) Referral Rate (in INR):**\n\nExample: `/setrate 0.40`", parse_mode='HTML')
+        await query.edit_message_text("✍️ <b>Enter New Tier 1 (Base) Referral Rate (in INR):</b>\n\nExample: <code>/setrate 0.40</code>", parse_mode='HTML')
     elif data == "admin_set_welbonus":
-        await query.edit_message_text("✍️ **Enter New Welcome Bonus (in INR):**\n\nExample: `/setwelbonus 5.00`", parse_mode='HTML')
+        await query.edit_message_text("✍️ <b>Enter New Welcome Bonus (in INR):</b>\n\nExample: <code>/setwelbonus 5.00</code>", parse_mode='HTML')
     elif data == "admin_stats":
         total_users = users_collection.count_documents({})
         approved_users = users_collection.count_documents({"is_approved": True})
@@ -1562,14 +1565,14 @@ async def set_bot_commands_command(update: Update, context: ContextTypes.DEFAULT
         await bot.set_my_commands(USER_COMMANDS + ADMIN_COMMANDS)
         
         message = (
-            "✅ **Commands Set Successfully!**\n\n"
+            "✅ <b>Commands Set Successfully!</b>\n\n"
             "All commands are set for admin.\n"
-            "User commands (`/start`, `/earn`) are set for all users."
+            "User commands (<code>/start</code>, <code>/earn</code>) are set for all users."
         )
         
     except Exception as e:
         logger.error(f"Failed to set bot commands: {e}")
-        message = f"❌ **Failed to set commands:** {e}"
+        message = f"❌ <b>Failed to set commands:</b> {e}"
     
     if query:
         keyboard = [[InlineKeyboardButton("⬅️ Back to Admin Panel", callback_data="admin_back")]]
@@ -1657,7 +1660,7 @@ async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAU
     )
     
     if not withdrawal:
-        await query.edit_message_text(f"❌ No **pending** withdrawal request found for user <code>{user_id}</code>. It might have been processed already.", parse_mode='HTML')
+        await query.edit_message_text(f"❌ No <b>pending</b> withdrawal request found for user <code>{user_id}</code>. It might have been processed already.", parse_mode='HTML')
         return
         
     amount_inr = withdrawal['amount_inr']
@@ -1681,7 +1684,7 @@ async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAU
         except Exception as e:
             logger.error(f"Could not notify user {user_id} about withdrawal approval: {e}")
         
-        msg = f"✅ Withdrawal of ₹{amount_inr:.2f} **approved** for user {username_display}."
+        msg = f"✅ Withdrawal of ₹{amount_inr:.2f} <b>approved</b> for user {username_display}."
         await query.edit_message_text(msg, parse_mode='HTML')
         await send_log_message(context, msg)
             
@@ -1699,7 +1702,7 @@ async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAU
         except Exception as e:
             logger.error(f"Could not notify user {user_id} about withdrawal rejection: {e}")
 
-        msg = f"❌ Withdrawal of ₹{amount_inr:.2f} **rejected** for user {username_display}."
+        msg = f"❌ Withdrawal of ₹{amount_inr:.2f} <b>rejected</b> for user {username_display}."
         await query.edit_message_text(msg, parse_mode='HTML')
         await send_log_message(context, msg)
 
@@ -1829,7 +1832,7 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     count = 0
     failed_count = 0
     
-    await update.message.reply_html(f"📢 **Starting broadcast to all {total_users} users...**")
+    await update.message.reply_html(f"📢 <b>Starting broadcast to all {total_users} users...</b>", parse_mode='HTML')
 
     for user in users_cursor:
         try:
@@ -1844,7 +1847,7 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             failed_count += 1
             pass 
 
-    await update.message.reply_html(f"✅ **Broadcast Finished!**\n\nSent to: **{count}** users.\nFailed to send (blocked/error): **{failed_count}** users.")
+    await update.message.reply_html(f"✅ <b>Broadcast Finished!</b>\n\nSent to: <b>{count}</b> users.\nFailed to send (blocked/error): <b>{failed_count}</b> users.", parse_mode='HTML')
 
 
 # --- MAIN FUNCTION ---
@@ -1877,7 +1880,7 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(back_to_main_menu, pattern="^back_to_main_menu$"))
     application.add_handler(CallbackQueryHandler(language_menu, pattern="^select_lang$")) 
     application.add_handler(CallbackQueryHandler(handle_lang_choice, pattern="^lang_")) 
-    application.add_handler(CallbackQueryHandler(show_help, pattern="^show_help$")) # ADDED
+    application.add_handler(CallbackQueryHandler(show_help, pattern="^show_help$")) 
     application.add_handler(CallbackQueryHandler(show_refer_link, pattern="^show_refer_link$"))
     application.add_handler(CallbackQueryHandler(show_withdraw_details_new, pattern="^show_withdraw_details_new$"))
     application.add_handler(CallbackQueryHandler(claim_daily_bonus, pattern="^claim_daily_bonus$")) 
@@ -1887,7 +1890,7 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(spin_wheel_command, pattern="^spin_wheel$"))
     application.add_handler(CallbackQueryHandler(show_missions, pattern="^show_missions$")) 
     application.add_handler(CallbackQueryHandler(request_withdrawal, pattern="^request_withdrawal$"))
-    application.add_handler(CallbackQueryHandler(show_tier_benefits, pattern="^show_tier_benefits$")) # ADDED
+    application.add_handler(CallbackQueryHandler(show_tier_benefits, pattern="^show_tier_benefits$")) 
     application.add_handler(CallbackQueryHandler(claim_channel_bonus, pattern="^claim_channel_bonus$")) 
     
     # Admin Panel Callbacks
