@@ -2044,9 +2044,14 @@ def main() -> None:
 
     # --- Job Queue: Daily Alerts ---
     job_queue = application.job_queue
-    # Run the alert task every 2 hours (timedelta(hours=2))
-    job_queue.run_repeating(send_random_alerts_task, interval=timedelta(hours=2), first=timedelta(minutes=5))
-    logger.info("Random alert task scheduled to run every 2 hours.")
+    
+    # FIX: Job Queue तभी चलाएँ जब वह None न हो (Webhook Mode में यह None हो सकता है)
+    if job_queue: 
+        # Run the alert task every 2 hours (timedelta(hours=2))
+        job_queue.run_repeating(send_random_alerts_task, interval=timedelta(hours=2), first=timedelta(minutes=5))
+        logger.info("Random alert task scheduled to run every 2 hours.")
+    else:
+        logger.warning("Job Queue is not initialized. Skipping random alert task (common in Webhook mode).")
 
 
     # Start the Bot
