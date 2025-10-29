@@ -170,9 +170,9 @@ MESSAGES = {
         "help_menu_title": "🆘 <b>Help & Support</b>",
         "help_menu_text": "If you have any questions, payment issues, or need to contact the admin, use the button below. Remember to read the 'How to Earn' (Referral Example) section first!",
         
-        # New Alert Messages
-        "alert_daily_bonus": "🔔 <b>Reminder!</b>\n\nHey there, you haven't claimed your 🎁 **Daily Bonus** yet! Don't miss out on free money. Go to the Earning Panel now!",
-        "alert_mission": "🎯 <b>Mission Alert!</b>\n\nYour **Daily Missions** are waiting! Complete them to earn extra cash today. Need help? Refer a friend and complete the 'Search 3 Movies' mission!",
+        # New Alert Messages (Removed ** as per user request)
+        "alert_daily_bonus": "🔔 <b>Reminder!</b>\n\nHey there, you haven't claimed your 🎁 <b>Daily Bonus</b> yet! Don't miss out on free money. Go to the Earning Panel now!",
+        "alert_mission": "🎯 <b>Mission Alert!</b>\n\nYour <b>Daily Missions</b> are waiting! Complete them to earn extra cash today. Need help? Refer a friend and complete the 'Search 3 Movies' mission!",
         "alert_refer": "🔗 <b>Huge Earning Opportunity!</b>\n\nYour friends are missing out on the best movie bot! Share your referral link now and earn up to ₹{max_rate:.2f} per person daily!",
         "alert_spin": "🎰 <b>Free Spin Alert!</b>\n\nDo you have a free spin left? Spin the wheel now for a chance to win up to ₹10.00! Refer a friend to get more spins!"
     },
@@ -237,9 +237,9 @@ MESSAGES = {
         "help_menu_title": "🆘 <b>सहायता और समर्थन</b>",
         "help_menu_text": "यदि आपके कोई प्रश्न हैं, भुगतान संबंधी समस्याएँ हैं, या एडमिन से संपर्क करने की आवश्यकता है, तो नीचे दिए गए बटन का उपयोग करें। 'पैसे कैसे कमाएं' (रेफरल उदाहरण) अनुभाग को पहले पढ़ना याद रखें!",
 
-        # New Alert Messages
-        "alert_daily_bonus": "🔔 <b>याद दिलाना!</b>\n\nअरे, आपने अभी तक अपना 🎁 **दैनिक बोनस** क्लेम नहीं किया है! मुफ्त पैसे गँवाएं नहीं। अभी कमाई पैनल पर जाएँ!",
-        "alert_mission": "🎯 <b>मिशन अलर्ट!</b>\n\nआपके **दैनिक मिशन** आपका इंतज़ार कर रहे हैं! आज ही अतिरिक्त नकद कमाने के लिए उन्हें पूरा करें। मदद चाहिए? एक दोस्त को रेफ़र करें और '3 फिल्में खोजें' मिशन पूरा करें!",
+        # New Alert Messages (Removed ** as per user request)
+        "alert_daily_bonus": "🔔 <b>याद दिलाना!</b>\n\nअरे, आपने अभी तक अपना 🎁 <b>दैनिक बोनस</b> क्लेम नहीं किया है! मुफ्त पैसे गँवाएं नहीं। अभी कमाई पैनल पर जाएँ!",
+        "alert_mission": "🎯 <b>मिशन अलर्ट!</b>\n\nआपके <b>दैनिक मिशन</b> आपका इंतज़ार कर रहे हैं! आज ही अतिरिक्त नकद कमाने के लिए उन्हें पूरा करें। मदद चाहिए? एक दोस्त को रेफ़र करें और '3 फिल्में खोजें' मिशन पूरा करें!",
         "alert_refer": "🔗 <b>बड़ी कमाई का मौका!</b>\n\nआपके दोस्त सबसे अच्छे मूवी बॉट से चूक रहे हैं! अपनी रेफरल लिंक अभी साझा करें और प्रति व्यक्ति रोज़ाना ₹{max_rate:.2f} तक कमाएँ!",
         "alert_spin": "🎰 <b>फ्री स्पिन अलर्ट!</b>\n\nक्या आपके पास कोई फ्री स्पिन बची है? ₹10.00 तक जीतने के मौका पाने के लिए अभी व्हील स्पिन करें! अधिक स्पिन पाने के लिए एक दोस्त को रेफ़र करें!"
     }
@@ -505,13 +505,18 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
     lang = await get_user_lang(user.id)
     user_data = users_collection.find_one({"user_id": user.id})
     
-    if not user_data:
-        await query.answer("User data not found.", show_alert=True)
-        await query.edit_message_text("User data not found.")
-        return
-    
+    # FIX: Await query.answer() immediately to avoid the error from the screenshot
     await query.answer()
 
+    if not user_data:
+        # Re-answer with alert since initial answer was just to clear the spinning circle
+        await query.answer("User data not found.", show_alert=True)
+        try:
+             await query.edit_message_text("User data not found.")
+        except Exception:
+             await context.bot.send_message(user.id, "User data not found.")
+        return
+    
     # Get user stats
     earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
     referrals_count = referrals_collection.count_documents({"referrer_id": user.id})
@@ -563,13 +568,13 @@ async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         f"<b>💡 Secret Tip:</b> Your friends must <b>search 3 movies</b> in the group to get your full daily earning! Share this now!"
     )
 
-    # NEW: More appealing share message
+    # NEW: More appealing share message (Removed stars here too)
     share_message_text = (
-        f"🎉 **सबसे बेहतरीन मूवी बॉट को अभी जॉइन करें और रोज़ कमाएँ!**\n\n"
+        f"🎉 <b>सबसे बेहतरीन मूवी बॉट को अभी जॉइन करें और रोज़ कमाएँ!</b>\n\n"
         f"🎬 हर नई हॉलीवुड/बॉलीवुड मूवी पाएँ!\n"
-        f"💰 **₹{await get_welcome_bonus():.2f} वेलकम बोनस** तुरंत पाएँ!\n"
-        f"💸 **हर रेफ़र पर ₹{TIERS[4]['rate']:.2f} तक** कमाएँ!\n\n"
-        f"🚀 **मेरी स्पेशल लिंक से जॉइन करें और अपनी कमाई शुरू करें:** {referral_link}"
+        f"💰 <b>₹{await get_welcome_bonus():.2f} वेलकम बोनस</b> तुरंत पाएँ!\n"
+        f"💸 <b>हर रेफ़र पर ₹{TIERS[4]['rate']:.2f} तक</b> कमाएँ!\n\n"
+        f"🚀 <b>मेरी स्पेशल लिंक से जॉइन करें और अपनी कमाई शुरू करें:</b> {referral_link}"
     )
     
     # URL encode the message (using standard library)
@@ -973,7 +978,7 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def show_spin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    await query.answer()
+    await query.answer() # FIX: Added immediate answer to avoid error
     
     user = query.from_user
     lang = await get_user_lang(user.id)
@@ -991,7 +996,7 @@ async def show_spin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         ]
     else:
         # User has 0 spins, show back button only
-        message += "\n\n❌ **No Spins Left!** Refer a friend to get 1 free spin."
+        message += "\n\n❌ <b>No Spins Left!</b> Refer a friend to get 1 free spin."
         keyboard = [
             [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
         ]
@@ -1065,7 +1070,8 @@ async def perform_spin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             )
             await asyncio.sleep(0.5) # 0.5s * 4 frames = 2s spin
         except TelegramError: 
-            pass # Ignore if message not modified
+            # FIX: Ignore "Message not modified" error which often occurs during rapid edits
+            pass 
 
     # 2. Determine Prize
     prize_inr = random.choices(SPIN_PRIZES, weights=SPIN_WEIGHTS, k=1)[0]
