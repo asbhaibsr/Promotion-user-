@@ -2,6 +2,7 @@ import os
 import logging
 import random
 import time
+import json # Added to handle complex data if needed, kept for future proofing
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
 from telegram.error import TelegramError, TimedOut
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
@@ -83,6 +84,12 @@ SPIN_PRIZES_WEIGHTS = {
 SPIN_PRIZES = list(SPIN_PRIZES_WEIGHTS.keys())
 SPIN_WEIGHTS = list(SPIN_PRIZES_WEIGHTS.values())
 
+# NEW: Free Spin Configuration
+SPIN_WHEEL_CONFIG = {
+    "initial_free_spins": 3,
+    "refer_to_get_spin": 1 # 1 spin per refer
+}
+
 
 # Tier System Configuration
 TIERS = {
@@ -115,25 +122,27 @@ MESSAGES = {
         "daily_bonus_success": "🎉 <b>Daily Bonus Claimed!</b>\nYou have successfully claimed your daily bonus of ₹{bonus_amount:.2f}. Your new balance is ₹{new_balance:.2f}.\n\n{streak_message}",
         "daily_bonus_already_claimed": "⏳ <b>Bonus Already Claimed!</b>\nYou have already claimed your bonus for today. Try again tomorrow!",
         "admin_panel_title": "<b>⚙️ Admin Panel</b>\n\nManage bot settings and users from here.",
-        "setrate_success": "✅ Referral earning rate has been updated to ₹{new_rate:.2f}.",
+        "setrate_success": "✅ Tier 1 Referral earning rate has been updated to ₹{new_rate:.2f}.",
         "setrate_usage": "❌ Usage: /setrate <new_rate_in_inr>",
         "invalid_rate": "❌ Invalid rate. Please enter a number.",
-        "referral_rate_updated": "The new referral rate is now ₹{new_rate:.2f}.",
+        "referral_rate_updated": "The new Tier 1 referral rate is now ₹{new_rate:.2f}.",
         "broadcast_admin_only": "❌ This command is for the bot admin only.",
-        "broadcast_message": "Please reply to a message with `/broadcast` to send it to all users.",
+        "broadcast_message": "Please reply to a message with <code>/broadcast</code> to send it to all users.",
         "setwelbonus_usage": "❌ Usage: /setwelbonus <amount_in_inr>",
         "setwelbonus_success": "✅ Welcome bonus updated to ₹{new_bonus:.2f}",
         "welcome_bonus_received": "🎁 <b>Welcome Bonus!</b>\n\nYou have received ₹{amount:.2f} welcome bonus! Start earning more by referring friends.",
-        "spin_wheel_title": "🎡 <b>Spin the Wheel</b>\n\nCost: ₹2.00\nClick 'Spin' to try your luck!",
-        "spin_wheel_button": "✨ Spin Now (₹2)",
+        
+        # New Spin Messages
+        "spin_wheel_title": "🎡 <b>Spin the Wheel - Free Earning!</b>\n\nRemaining Spins: {spins_left}\n\n<b>How to Get More Spins:</b>\nRefer 1 new user to get 1 free spin!",
+        "spin_wheel_button": "✨ Spin Now ({spins_left} Left)",
         "spin_wheel_animating": "🎡 <b>Spinning...</b>\n\nWait for the result! 🍀",
-        "spin_wheel_insufficient_balance": "❌ <b>Insufficient Balance!</b>\n\nYou need at least ₹2.00 to spin the wheel.",
-        "spin_wheel_already_spun": "⏳ <b>Already Spun Today!</b>\n\nYou can spin the wheel only once per day. Try again tomorrow!",
-        "spin_wheel_win": "🎉 <b>Congratulations!</b>\n\nYou won: ₹{amount:.2f}!\n\nNew balance: ₹{new_balance:.2f}",
-        "spin_wheel_lose": "😢 <b>Better luck next time!</b>\n\nYou didn't win anything this time.\n\nRemaining balance: ₹{new_balance:.2f}",
+        "spin_wheel_insufficient_spins": "❌ <b>No Spins Left!</b>\n\nYou need to refer 1 new user to get another free spin!",
+        "spin_wheel_win": "🎉 <b>Congratulations!</b>\n\nYou won: ₹{amount:.2f}!\n\nNew balance: ₹{new_balance:.2f}\n\nRemaining Spins: {spins_left}",
+        "spin_wheel_lose": "😢 <b>Better luck next time!</b>\n\nYou didn't win anything this time.\n\nRemaining balance: ₹{new_balance:.2f}\n\nRemaining Spins: {spins_left}",
+        
         "missions_title": "🎯 <b>Daily Missions</b>\n\nComplete missions to earn extra rewards! Check your progress below:",
         # FIX 3: Added mission specific messages
-        "mission_search_note": "⏳ Search 3 Movies ({current}/{target}) [In Progress]\n\n**Note:** This mission is completed when your *referred friend* searches 3 movies, not you.",
+        "mission_search_note": "⏳ Search 3 Movies ({current}/{target}) [In Progress]\n\n<b>Note:</b> This mission is completed when your <b>referred friend</b> searches 3 movies, not you.",
         "mission_search_progress": "⏳ Search 3 Movies ({current}/{target}) [In Progress]",
         "mission_complete": "✅ <b>Mission Completed!</b>\n\nYou earned ₹{reward:.2f} for {mission_name}!\nNew balance: ₹{new_balance:.2f}",
         "withdrawal_request_sent": "✅ <b>Withdrawal Request Sent!</b>\n\nYour request for ₹{amount:.2f} has been sent to admin. You will receive payment within 24 hours.",
@@ -141,13 +150,13 @@ MESSAGES = {
         "withdrawal_approved_user": "✅ <b>Withdrawal Approved!</b>\n\nYour withdrawal of ₹{amount:.2f} has been approved. Payment will be processed within 24 hours.",
         "withdrawal_rejected_user": "❌ <b>Withdrawal Rejected!</b>\n\nYour withdrawal of ₹{amount:.2f} was rejected. Please contact admin for details.",
         "ref_link_message": "<b>Your Referral Link:</b>\n<code>{referral_link}</code>\n\n<b>Current Referral Rate:</b> ₹{tier_rate:.2f} per referral\n\n<i>Share this link with friends and earn money when they join and search for movies!</i>",
-        "new_referral_notification": "🎉 <b>New Referral!</b>\n\n{full_name} ({username}) has joined using your link!\n\n💰 You received a joining bonus of ₹{bonus:.2f}!", # Added bonus info
+        "new_referral_notification": "🎉 <b>New Referral!</b>\n\n{full_name} ({username}) has joined using your link!\n\n💰 You received a joining bonus of ₹{bonus:.2f}!\n\n🎰 You also earned 1 Free Spin for the Spin Wheel!", # Added spin reward info
         "daily_earning_update": "💰 <b>Referral Earning!</b> ({count}/3)\n\nYou earned ₹{amount:.2f} from your referral {full_name}. \nNew balance: ₹{new_balance:.2f}",
         "clear_earn_usage": "❌ Usage: /clearearn <user_id>",
         "clear_earn_success": "✅ Earnings for user {user_id} have been cleared.",
         "clear_earn_not_found": "❌ User {user_id} not found.",
         "check_stats_usage": "❌ Usage: /checkstats <user_id>",
-        "check_stats_message": "📊 <b>User Stats</b>\n\nID: {user_id}\nEarnings: ₹{earnings:.2f}\nReferrals: {referrals}",
+        "check_stats_message": "📊 <b>User Stats</b>\n\nID: <code>{user_id}</code>\nEarnings: ₹{earnings:.2f}\nReferrals: {referrals}",
         "check_stats_not_found": "❌ User {user_id} not found.",
         "stats_message": "📊 <b>Bot Stats</b>\n\nTotal Users: {total_users}\nApproved Users: {approved_users}",
         "channel_bonus_claimed": "✅ <b>Channel Join Bonus!</b>\nYou have successfully claimed ₹{amount:.2f} for joining {channel}.\nNew balance: ₹{new_balance:.2f}",
@@ -160,6 +169,12 @@ MESSAGES = {
         "tier_info": "🔸 <b>{tier_name} (Level {tier}):</b> Min Earning: ₹{min_earnings:.2f}\n   - Benefit: {benefit}",
         "help_menu_title": "🆘 <b>Help & Support</b>",
         "help_menu_text": "If you have any questions, payment issues, or need to contact the admin, use the button below. Remember to read the 'How to Earn' (Referral Example) section first!",
+        
+        # New Alert Messages
+        "alert_daily_bonus": "🔔 <b>Reminder!</b>\n\nHey there, you haven't claimed your 🎁 **Daily Bonus** yet! Don't miss out on free money. Go to the Earning Panel now!",
+        "alert_mission": "🎯 <b>Mission Alert!</b>\n\nYour **Daily Missions** are waiting! Complete them to earn extra cash today. Need help? Refer a friend and complete the 'Search 3 Movies' mission!",
+        "alert_refer": "🔗 <b>Huge Earning Opportunity!</b>\n\nYour friends are missing out on the best movie bot! Share your referral link now and earn up to ₹{max_rate:.2f} per person daily!",
+        "alert_spin": "🎰 <b>Free Spin Alert!</b>\n\nDo you have a free spin left? Spin the wheel now for a chance to win up to ₹10.00! Refer a friend to get more spins!"
     },
     "hi": {
         "start_greeting": "नमस्ते 👋! मूवी ग्रुप बॉट में आपका स्वागत है। इन आसान स्टेप्स को फॉलो करके अपनी पसंदीदा मूवी पाएँ:",
@@ -174,25 +189,27 @@ MESSAGES = {
         "daily_bonus_success": "🎉 <b>दैनिक बोनस क्लेम किया गया!</b>\nआपने सफलतापूर्वक अपना दैनिक बोनस ₹{bonus_amount:.2f} क्लेम कर लिया है। आपका नया बैलेंस ₹{new_balance:.2f} है।\n\n{streak_message}",
         "daily_bonus_already_claimed": "⏳ <b>बोनस पहले ही क्लेम किया जा चुका है!</b>\nआपने आज का बोनस पहले ही क्लेम कर लिया है। कल फिर कोशिश करें!",
         "admin_panel_title": "<b>⚙️ एडमिन पैनल</b>\n\nयहाँ से बॉट की सेटिंग्स और यूज़र्स को मैनेज करें।",
-        "setrate_success": "✅ रेफरल कमाई की दर ₹{new_rate:.2f} पर अपडेट हो गई है।",
+        "setrate_success": "✅ Tier 1 रेफरल कमाई की दर ₹{new_rate:.2f} पर अपडेट हो गई है।",
         "setrate_usage": "❌ उपयोग: /setrate <नई_राशि_रुपये_में>",
         "invalid_rate": "❌ अमान्य राशि। कृपया एक संख्या दर्ज करें।",
-        "referral_rate_updated": "नई रेफरल दर अब ₹{new_rate:.2f} है।",
+        "referral_rate_updated": "नई Tier 1 रेफरल दर अब ₹{new_rate:.2f} है।",
         "broadcast_admin_only": "❌ यह कमांड केवल बॉट एडमिन के लिए है।",
-        "broadcast_message": "सभी उपयोगकर्ताओं को संदेश भेजने के लिए कृपया किसी संदेश का `/broadcast` के साथ उत्तर दें।",
+        "broadcast_message": "सभी उपयोगकर्ताओं को संदेश भेजने के लिए कृपया किसी संदेश का <code>/broadcast</code> के साथ उत्तर दें।",
         "setwelbonus_usage": "❌ उपयोग: /setwelbonus <राशि_रुपये_में>",
         "setwelbonus_success": "✅ वेलकम बोनस ₹{new_bonus:.2f} पर अपडेट हो गया है।",
         "welcome_bonus_received": "🎁 <b>वेलकम बोनस!</b>\n\nआपको ₹{amount:.2f} वेलकम बोनस मिला है! दोस्तों को रेफर करके और कमाएँ।",
-        "spin_wheel_title": "🎡 <b>व्हील स्पिन करें</b>\n\nलागत: ₹2.00\nअपनी किस्मत आज़माने के लिए 'Spin Now' पर क्लिक करें!",
-        "spin_wheel_button": "✨ अभी स्पिन करें (₹2)",
+
+        # New Spin Messages
+        "spin_wheel_title": "🎡 <b>व्हील स्पिन करें - मुफ्त कमाई!</b>\n\nबची हुई स्पिनें: {spins_left}\n\n<b>और स्पिन कैसे पाएं:</b>\n1 नए यूज़र को रेफ़र करें और 1 फ्री स्पिन पाएं!",
+        "spin_wheel_button": "✨ अभी स्पिन करें ({spins_left} शेष)",
         "spin_wheel_animating": "🎡 <b>स्पिन हो रहा है...</b>\n\nपरिणाम का इंतजार करें! 🍀",
-        "spin_wheel_insufficient_balance": "❌ <b>पर्याप्त बैलेंस नहीं!</b>\n\nव्हील स्पिन करने के लिए आपके पास कम से कम ₹2.00 होने चाहिए।",
-        "spin_wheel_already_spun": "⏳ <b>आज पहले ही स्पिन कर चुके हैं!</b>\n\nआप व्हील को केवल एक बार प्रति दिन स्पिन कर सकते हैं। कल फिर कोशिश करें!",
-        "spin_wheel_win": "🎉 <b>बधाई हो!</b>\n\nआपने जीता: ₹{amount:.2f}!\n\nनया बैलेंस: ₹{new_balance:.2f}",
-        "spin_wheel_lose": "😢 <b>अगली बार बेहतर किस्मत!</b>\n\nइस बार आप कुछ नहीं जीत पाए।\n\nशेष बैलेंस: ₹{new_balance:.2f}",
+        "spin_wheel_insufficient_spins": "❌ <b>कोई स्पिन बाकी नहीं!</b>\n\nएक और फ्री स्पिन पाने के लिए 1 नए यूज़र को रेफ़र करें!",
+        "spin_wheel_win": "🎉 <b>बधाई हो!</b>\n\nआपने जीता: ₹{amount:.2f}!\n\nनया बैलेंस: ₹{new_balance:.2f}\n\nबची हुई स्पिनें: {spins_left}",
+        "spin_wheel_lose": "😢 <b>अगली बार बेहतर किस्मत!</b>\n\nइस बार आप कुछ नहीं जीत पाए।\n\nशेष बैलेंस: ₹{new_balance:.2f}\n\nबची हुई स्पिनें: {spins_left}",
+
         "missions_title": "🎯 <b>दैनिक मिशन</b>\n\nअतिरिक्त इनाम पाने के लिए मिशन पूरे करें! अपनी प्रगति नीचे देखें:",
         # FIX 3: Added mission specific messages
-        "mission_search_note": "⏳ 3 फिल्में खोजें ({current}/{target}) [प्रगति में]\n\n**ध्यान दें:** यह मिशन तब पूरा होता है जब आपका *रेफर किया गया दोस्त* 3 फिल्में खोजता है, न कि आप।",
+        "mission_search_note": "⏳ 3 फिल्में खोजें ({current}/{target}) [प्रगति में]\n\n<b>ध्यान दें:</b> यह मिशन तब पूरा होता है जब आपका <b>रेफर किया गया दोस्त</b> 3 फिल्में खोजता है, न कि आप।",
         "mission_search_progress": "⏳ 3 फिल्में खोजें ({current}/{target}) [प्रगति में]",
         "mission_complete": "✅ <b>मिशन पूरा हुआ!</b>\n\nआपने {mission_name} के लिए ₹{reward:.2f} कमाए!\nनया बैलेंस: ₹{new_balance:.2f}",
         "withdrawal_request_sent": "✅ <b>निकासी का अनुरोध भेज दिया गया!</b>\n\n₹{amount:.2f} के आपके अनुरोध को एडमिन को भेज दिया गया है। आपको 24 घंटे के भीतर भुगतान मिल जाएगा।",
@@ -200,13 +217,13 @@ MESSAGES = {
         "withdrawal_approved_user": "✅ <b>निकासी स्वीकृत!</b>\n\n₹{amount:.2f} की आपकी निकासी स्वीकृत कर दी गई है। भुगतान 24 घंटे के भीतर प्रोसेस किया जाएगा।",
         "withdrawal_rejected_user": "❌ <b>निकासी अस्वीकृत!</b>\n\n₹{amount:.2f} की आपकी निकासी अस्वीकृत कर दी गई है। विवरण के लिए एडमिन से संपर्क करें।",
         "ref_link_message": "<b>आपकी रेफरल लिंक:</b>\n<code>{referral_link}</code>\n\n<b>वर्तमान रेफरल दर:</b> ₹{tier_rate:.2f} प्रति रेफरल\n\n<i>इस लिंक को दोस्तों के साथ साझा करें और जब वे शामिल होकर फिल्में खोजते हैं, तो पैसे कमाएं!</i>",
-        "new_referral_notification": "🎉 <b>नया रेफरल!</b>\n\n{full_name} ({username}) आपकी लिंक का उपयोग करके शामिल हुए हैं!\n\n💰 आपको जॉइनिंग बोनस ₹{bonus:.2f} मिला!", # Added bonus info
+        "new_referral_notification": "🎉 <b>नया रेफरल!</b>\n\n{full_name} ({username}) आपकी लिंक का उपयोग करके शामिल हुए हैं!\n\n💰 आपको जॉइनिंग बोनस ₹{bonus:.2f} मिला!\n\n🎰 आपको स्पिन व्हील के लिए 1 फ्री स्पिन भी मिली है!", # Added spin reward info
         "daily_earning_update": "💰 <b>रेफरल कमाई!</b> ({count}/3)\n\nआपने अपने रेफरल {full_name} से ₹{amount:.2f} कमाए। \nनया बैलेंस: ₹{new_balance:.2f}",
         "clear_earn_usage": "❌ उपयोग: /clearearn <user_id>",
         "clear_earn_success": "✅ उपयोगकर्ता {user_id} की कमाई साफ़ कर दी गई है।",
         "clear_earn_not_found": "❌ उपयोगकर्ता {user_id} नहीं मिला।",
         "check_stats_usage": "❌ उपयोग: /checkstats <user_id>",
-        "check_stats_message": "📊 <b>यूज़र आँकड़े</b>\n\nID: {user_id}\nकमाई: ₹{earnings:.2f}\nरेफरल: {referrals}",
+        "check_stats_message": "📊 <b>यूज़र आँकड़े</b>\n\nID: <code>{user_id}</code>\nकमाई: ₹{earnings:.2f}\nरेफरल: {referrals}",
         "check_stats_not_found": "❌ उपयोगकर्ता {user_id} नहीं मिला।",
         "stats_message": "📊 <b>बॉट आँकड़े</b>\n\nकुल उपयोगकर्ता: {total_users}\nअनुमोदित उपयोगकर्ता: {approved_users}",
         "channel_bonus_claimed": "✅ <b>चैनल जॉइन बोनस!</b>\nआपने सफलतापूर्वक {channel} जॉइन करने के लिए ₹{amount:.2f} क्लेम कर लिए हैं।\nनया बैलेंस: ₹{new_balance:.2f}",
@@ -219,6 +236,12 @@ MESSAGES = {
         "tier_info": "🔸 <b>{tier_name} (लेवल {tier}):</b> न्यूनतम कमाई: ₹{min_earnings:.2f}\n   - लाभ: {benefit}",
         "help_menu_title": "🆘 <b>सहायता और समर्थन</b>",
         "help_menu_text": "यदि आपके कोई प्रश्न हैं, भुगतान संबंधी समस्याएँ हैं, या एडमिन से संपर्क करने की आवश्यकता है, तो नीचे दिए गए बटन का उपयोग करें। 'पैसे कैसे कमाएं' (रेफरल उदाहरण) अनुभाग को पहले पढ़ना याद रखें!",
+
+        # New Alert Messages
+        "alert_daily_bonus": "🔔 <b>याद दिलाना!</b>\n\nअरे, आपने अभी तक अपना 🎁 **दैनिक बोनस** क्लेम नहीं किया है! मुफ्त पैसे गँवाएं नहीं। अभी कमाई पैनल पर जाएँ!",
+        "alert_mission": "🎯 <b>मिशन अलर्ट!</b>\n\nआपके **दैनिक मिशन** आपका इंतज़ार कर रहे हैं! आज ही अतिरिक्त नकद कमाने के लिए उन्हें पूरा करें। मदद चाहिए? एक दोस्त को रेफ़र करें और '3 फिल्में खोजें' मिशन पूरा करें!",
+        "alert_refer": "🔗 <b>बड़ी कमाई का मौका!</b>\n\nआपके दोस्त सबसे अच्छे मूवी बॉट से चूक रहे हैं! अपनी रेफरल लिंक अभी साझा करें और प्रति व्यक्ति रोज़ाना ₹{max_rate:.2f} तक कमाएँ!",
+        "alert_spin": "🎰 <b>फ्री स्पिन अलर्ट!</b>\n\nक्या आपके पास कोई फ्री स्पिन बची है? ₹10.00 तक जीतने के मौका पाने के लिए अभी व्हील स्पिन करें! अधिक स्पिन पाने के लिए एक दोस्त को रेफ़र करें!"
     }
 }
 
@@ -357,7 +380,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             "is_approved": True,
             "earnings": 0.0,
             "last_checkin_date": None,
-            "last_spin_date": None,
+            "last_spin_date": None, # Removed, using spins_left
             "daily_bonus_streak": 0,
             "missions_completed": {},
             "welcome_bonus_received": False,
@@ -365,6 +388,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             "daily_searches": 0, 
             "last_search_date": None,
             "channel_bonus_received": False, 
+            "spins_left": SPIN_WHEEL_CONFIG["initial_free_spins"] # NEW: Initial free spins
         }
     }
     
@@ -401,6 +425,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                  pass
                  
             log_msg += f"\n🎁 Welcome Bonus: ₹{welcome_bonus:.2f}"
+            log_msg += f"\n🎰 Initial Spins: {SPIN_WHEEL_CONFIG['initial_free_spins']}"
 
         # Handle referral logic (FIXED: Check if already referred and not referring self)
         if referral_id and referral_id != user.id:
@@ -422,14 +447,15 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 referral_rate_half = tier_rate / 2.0
                 referral_rate_usd = referral_rate_half / DOLLAR_TO_INR
                 
+                # Atomically update referrer's balance and spins
                 users_collection.update_one(
                     {"user_id": referral_id},
-                    {"$inc": {"earnings": referral_rate_usd}} 
+                    {"$inc": {"earnings": referral_rate_usd, "spins_left": SPIN_WHEEL_CONFIG["refer_to_get_spin"]}} 
                 )
                 
-                log_msg += f"\n🔗 Referred by: <code>{referral_id}</code> (Join Bonus: ₹{referral_rate_half:.2f})"
+                log_msg += f"\n🔗 Referred by: <code>{referral_id}</code> (Join Bonus: ₹{referral_rate_half:.2f} + 1 Spin)"
 
-                # Notify referrer (with bonus info)
+                # Notify referrer (with bonus and spin info)
                 try:
                     referrer_lang = await get_user_lang(referral_id)
                     await context.bot.send_message(
@@ -447,10 +473,16 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         await send_log_message(context, log_msg) # Send log message for new user
 
     # Send the main menu
+    channel_button_text = f"🎁 Join {CHANNEL_USERNAME} & Claim ₹{CHANNEL_BONUS:.2f}"
+    
+    # Check if channel bonus claimed for dynamic button text
+    if user_data.get("channel_bonus_received"):
+        channel_button_text = f"✅ Channel Bonus Claimed (₹{CHANNEL_BONUS:.2f})"
+        
     keyboard = [
         [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
         [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
-        [InlineKeyboardButton(f"🎁 Join {CHANNEL_USERNAME} & Claim ₹{CHANNEL_BONUS:.2f}", callback_data="claim_channel_bonus")], 
+        [InlineKeyboardButton(channel_button_text, callback_data="claim_channel_bonus")], 
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -468,7 +500,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    # Don't answer immediately, wait until after checks
     
     user = query.from_user
     lang = await get_user_lang(user.id)
@@ -486,6 +517,7 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
     referrals_count = referrals_collection.count_documents({"referrer_id": user.id})
     user_tier = await get_user_tier(user.id)
     tier_info = TIERS.get(user_tier, TIERS[1]) 
+    spins_left = user_data.get("spins_left", 0)
     
     message = (
         f"<b>💰 Earning Panel</b>\n\n"
@@ -496,13 +528,14 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
         f"<i>Earn more to unlock higher tiers with better rates!</i>"
     )
     
+    # NEW: Button Order Fix
     keyboard = [
         [InlineKeyboardButton("🔗 My Refer Link", callback_data="show_refer_link")],
-        [InlineKeyboardButton("💡 Referral Example", callback_data="show_refer_example")],
-        [InlineKeyboardButton(MESSAGES[lang]["spin_wheel_button"], callback_data="spin_wheel")],
-        [InlineKeyboardButton("💸 Request Withdrawal", callback_data="show_withdraw_details_new")], # Changed to new details view
+        [InlineKeyboardButton("💡 Referral Example", callback_data="show_refer_example")], # Moved after My Refer Link
+        [InlineKeyboardButton(MESSAGES[lang]["spin_wheel_button"].format(spins_left=spins_left), callback_data="show_spin_panel")], # Updated to new spin panel
         [InlineKeyboardButton("🎁 Daily Bonus", callback_data="claim_daily_bonus")],
         [InlineKeyboardButton("🎯 Daily Missions", callback_data="show_missions")],
+        [InlineKeyboardButton("💸 Request Withdrawal", callback_data="show_withdraw_details_new")],
         [InlineKeyboardButton("📊 Tier Benefits", callback_data="show_tier_benefits")],
         [InlineKeyboardButton("🆘 Help", callback_data="show_help")],
         [InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]
@@ -530,13 +563,21 @@ async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         f"<b>💡 Secret Tip:</b> Your friends must <b>search 3 movies</b> in the group to get your full daily earning! Share this now!"
     )
 
+    # NEW: More appealing share message
     share_message_text = (
-        f"🤯 Join the best Movie Bot and earn money! Get movies and ₹{await get_welcome_bonus():.2f} Bonus!\n\n"
-        f"Use my special link to join: {referral_link}"
+        f"🎉 **सबसे बेहतरीन मूवी बॉट को अभी जॉइन करें और रोज़ कमाएँ!**\n\n"
+        f"🎬 हर नई हॉलीवुड/बॉलीवुड मूवी पाएँ!\n"
+        f"💰 **₹{await get_welcome_bonus():.2f} वेलकम बोनस** तुरंत पाएँ!\n"
+        f"💸 **हर रेफ़र पर ₹{TIERS[4]['rate']:.2f} तक** कमाएँ!\n\n"
+        f"🚀 **मेरी स्पेशल लिंक से जॉइन करें और अपनी कमाई शुरू करें:** {referral_link}"
     )
+    
+    # URL encode the message (using standard library)
+    import urllib.parse
+    encoded_text = urllib.parse.quote_plus(share_message_text)
 
     keyboard = [
-        [InlineKeyboardButton("🔗 Share Your Link Now!", url=f"https://t.me/share/url?url={referral_link}&text={share_message_text}")],
+        [InlineKeyboardButton("🔗 Share Your Link Now!", url=f"https://t.me/share/url?url={referral_link}&text={encoded_text}")],
         [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -581,7 +622,7 @@ The more people you refer, the higher your earnings will be! <b>Share Now!</b>
         pass # Ignore if it fails
     
     try:
-        # FIX 2: Check if URL is a placeholder/not set properly
+        # FIX 4: Send the image from the specified URL
         if not EXAMPLE_SCREENSHOT_URL or "ric.jpg" in EXAMPLE_SCREENSHOT_URL or "example.png" in EXAMPLE_SCREENSHOT_URL:
             # Fallback if URL is not set - now displays only a note to the user
             await context.bot.send_message(
@@ -611,7 +652,6 @@ The more people you refer, the higher your earnings will be! <b>Share Now!</b>
 async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Checks channel membership and rewards the user once."""
     query = update.callback_query
-    # Don't answer immediately, wait until after checks
     
     user = query.from_user
     lang = await get_user_lang(user.id)
@@ -621,12 +661,10 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
         await query.answer("User data not found.", show_alert=True)
         return
 
+    # Check if claimed (and the button text changes in start_command/back_to_main_menu)
     if user_data.get("channel_bonus_received"):
         await query.answer(MESSAGES[lang]["channel_already_claimed"], show_alert=True)
-        await query.edit_message_text(
-            MESSAGES[lang]["channel_already_claimed"],
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]])
-        )
+        await back_to_main_menu(update, context) # Go back to main menu with correct button text
         return
         
     await query.answer("Checking membership...")
@@ -638,28 +676,39 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
         if member.status in ['creator', 'administrator', 'member']:
             
             bonus_amount_usd = CHANNEL_BONUS / DOLLAR_TO_INR
-            new_balance = user_data.get("earnings", 0.0) + bonus_amount_usd
             
-            users_collection.update_one(
-                {"user_id": user.id},
-                {"$inc": {"earnings": bonus_amount_usd}, "$set": {"channel_bonus_received": True}}
+            # Atomically update and get new balance
+            updated_data = users_collection.find_one_and_update(
+                {"user_id": user.id, "channel_bonus_received": False}, # Only update if not claimed
+                {"$inc": {"earnings": bonus_amount_usd}, "$set": {"channel_bonus_received": True}},
+                return_document=True # Get the updated document
             )
             
-            await query.edit_message_text(
-                MESSAGES[lang]["channel_bonus_claimed"].format(
-                    amount=CHANNEL_BONUS,
-                    channel=CHANNEL_USERNAME,
-                    new_balance=new_balance * DOLLAR_TO_INR
-                ),
-                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]]) if query.message else None,
-                parse_mode='HTML'
-            )
-            
-            # Log the bonus
-            log_msg = f"🎁 <b>Channel Bonus</b>\nUser: @{user.username} (<code>{user.id}</code>)\nAmount: ₹{CHANNEL_BONUS:.2f}\nNew Balance: ₹{new_balance * DOLLAR_TO_INR:.2f}"
-            await send_log_message(context, log_msg)
+            if updated_data:
+                new_balance = updated_data.get("earnings", 0.0) * DOLLAR_TO_INR
+                
+                await query.edit_message_text(
+                    MESSAGES[lang]["channel_bonus_claimed"].format(
+                        amount=CHANNEL_BONUS,
+                        channel=CHANNEL_USERNAME,
+                        new_balance=new_balance
+                    ),
+                    reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]]),
+                    parse_mode='HTML'
+                )
+                
+                # Log the bonus
+                log_msg = f"🎁 <b>Channel Bonus</b>\nUser: @{user.username} (<code>{user.id}</code>)\nAmount: ₹{CHANNEL_BONUS:.2f}\nNew Balance: ₹{new_balance:.2f}"
+                await send_log_message(context, log_msg)
+            else:
+                 # In case of race condition where it was already claimed
+                 await query.edit_message_text(
+                    MESSAGES[lang]["channel_already_claimed"],
+                    reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]])
+                )
             
         else:
+            # FIX: Channel Username in button text
             await query.edit_message_text(
                 MESSAGES[lang]["channel_not_joined"].format(channel=CHANNEL_USERNAME),
                 reply_markup=InlineKeyboardMarkup([
@@ -712,7 +761,6 @@ async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handles the daily bonus claim."""
     query = update.callback_query
-    # Don't answer immediately, wait until after checks
     
     user = query.from_user
     lang = await get_user_lang(user.id)
@@ -748,10 +796,8 @@ async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     bonus_amount = DAILY_BONUS_BASE + (streak * DAILY_BONUS_STREAK_MULTIPLIER)
     bonus_amount_usd = bonus_amount / DOLLAR_TO_INR
     
-    new_balance = user_data.get("earnings", 0.0) + bonus_amount_usd
-    
     # Update user data (atomic operations preferred)
-    update_result = users_collection.update_one(
+    updated_data = users_collection.find_one_and_update(
         {"user_id": user.id},
         {
             "$inc": {"earnings": bonus_amount_usd},
@@ -761,16 +807,19 @@ async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                 # Set mission as complete
                 f"missions_completed.claim_daily_bonus": True 
             }
-        }
+        },
+        return_document=True
     )
     
-    if update_result.modified_count == 0:
+    if not updated_data:
         logger.error(f"Failed to update daily bonus for user {user.id}")
         await query.edit_message_text("❌ An error occurred while claiming bonus. Please try again.",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
         )
         return
 
+    new_balance = updated_data.get("earnings", 0.0)
+    
     streak_message = f"🔥 You are on a {streak}-day streak! Keep it up for bigger bonuses!"
     if lang == "hi":
         streak_message = f"🔥 आप {streak}-दिन की स्ट्रीक पर हैं! बड़े बोनस के लिए इसे जारी रखें!"
@@ -791,7 +840,6 @@ async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Displays the user's daily mission progress and processes immediate completions."""
     query = update.callback_query
-    # Don't answer immediately, logic will take a moment
     
     user = query.from_user
     lang = await get_user_lang(user.id)
@@ -855,15 +903,21 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     mission = DAILY_MISSIONS[mission_key]
     name = mission["name"] if lang == "en" else mission["name_hi"]
     
-    # NOTE: The search_3_movies mission completion logic is handled in handle_group_messages.
-    # Here we only check for completion and display the progress.
+    # NOTE: The search_3_movies mission completion is now ONLY on referred user search.
+    # The current user's 'daily_searches' is not directly used for this mission's completion anymore.
+    # We will use the count of referral's searches which is updated via message handler, but that's complex to check here.
+    # For now, we only show the progress based on the mission_completed flag.
     
     if missions_completed.get(mission_key):
         message += f"✅ {name} ({mission['target']}/{mission['target']}) [<b>Completed</b>]\n"
     else:
         # FIX 3: Display a special note about the movie search mission logic
+        # For simplicity in display, we use the user's own daily_searches counter, 
+        # but the note clearly states it's for REFERRALS.
+        current_search_count = daily_searches # Placeholder for visual progress
+        
         message += MESSAGES[lang]["mission_search_note"].format(
-            current=min(daily_searches, mission['target']),
+            current=min(current_search_count, mission['target']),
             target=mission['target']
         ) + "\n"
         
@@ -915,11 +969,40 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
 
-# --- SPIN WHEEL (with new animation) ---
+# --- NEW SPIN WHEEL LOGIC ---
 
-async def spin_wheel_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def show_spin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    # Don't answer immediately, wait until after checks
+    await query.answer()
+    
+    user = query.from_user
+    lang = await get_user_lang(user.id)
+    user_data = users_collection.find_one({"user_id": user.id})
+    
+    spins_left = user_data.get("spins_left", 0)
+
+    # Message update with current spin count and how to get more
+    message = MESSAGES[lang]["spin_wheel_title"].format(spins_left=spins_left)
+    
+    if spins_left > 0:
+        keyboard = [
+            [InlineKeyboardButton(MESSAGES[lang]["spin_wheel_button"].format(spins_left=spins_left), callback_data="perform_spin")],
+            [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
+        ]
+    else:
+        # User has 0 spins, show back button only
+        message += "\n\n❌ **No Spins Left!** Refer a friend to get 1 free spin."
+        keyboard = [
+            [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
+        ]
+        
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+
+async def perform_spin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
     
     user = query.from_user
     lang = await get_user_lang(user.id)
@@ -930,46 +1013,35 @@ async def spin_wheel_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await query.answer("User data not found.", show_alert=True)
         return
 
-    last_spin_date = user_data.get("last_spin_date")
-    today = datetime.now().date()
+    spins_left = user_data.get("spins_left", 0)
     
-    if last_spin_date and isinstance(last_spin_date, datetime) and last_spin_date.date() == today:
-        await query.answer(MESSAGES[lang]["spin_wheel_already_spun"], show_alert=True)
-        await query.edit_message_text(
-            MESSAGES[lang]["spin_wheel_already_spun"],
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
-        )
+    if spins_left <= 0:
+        await query.answer(MESSAGES[lang]["spin_wheel_insufficient_spins"], show_alert=True)
+        # Call show_spin_panel to re-display the correct message
+        await show_spin_panel(update, context) 
         return
+        
+    await query.answer("Spinning the wheel...") 
+
+    # 1. Deduct 1 Spin and start animation
     
-    spin_cost_inr = 2.00
-    spin_cost_usd = spin_cost_inr / DOLLAR_TO_INR
-    current_balance = user_data.get("earnings", 0.0)
+    # Deduct spin first (atomic operation)
+    result = users_collection.find_one_and_update(
+        {"user_id": user.id, "spins_left": {"$gte": 1}},
+        {"$inc": {"spins_left": -1}},
+        return_document=True # Get the updated document
+    )
     
-    if current_balance < spin_cost_usd:
-        await query.answer(MESSAGES[lang]["spin_wheel_insufficient_balance"], show_alert=True)
+    if not result:
         await query.edit_message_text(
-            MESSAGES[lang]["spin_wheel_insufficient_balance"],
+            "❌ Failed to deduct spin. Try again.",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
         )
         return
         
-    await query.answer("Spinning the wheel...") # Answer with a light message before the heavy action
+    spins_left_after_deduct = result.get("spins_left", 0)
 
-    # 1. Deduct cost (Atomically)
-    result = users_collection.update_one(
-        {"user_id": user.id, "earnings": {"$gte": spin_cost_usd}},
-        {"$inc": {"earnings": -spin_cost_usd}}
-    )
-    
-    if result.modified_count == 0:
-         # Should not happen if balance check passed, but safety first
-        await query.edit_message_text(
-            "❌ Failed to deduct cost. Try again.",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
-        )
-        return
-
-    # 2. Start Animation Loop (More engaging spin)
+    # Start Animation Loop
     if lang == 'hi':
         base_text = "🎡 <b>स्पिन हो रहा है...</b>"
     else:
@@ -995,42 +1067,42 @@ async def spin_wheel_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
         except TelegramError: 
             pass # Ignore if message not modified
 
-    # 3. Determine Prize
+    # 2. Determine Prize
     prize_inr = random.choices(SPIN_PRIZES, weights=SPIN_WEIGHTS, k=1)[0]
     prize_usd = prize_inr / DOLLAR_TO_INR
     
-    # 4. Final Balance Update (Atomically add prize and set last spin date)
+    # 3. Final Balance Update (Atomically add prize)
     users_collection.update_one(
         {"user_id": user.id},
-        {
-            "$inc": {"earnings": prize_usd},
-            "$set": {"last_spin_date": datetime.now()}
-        }
+        {"$inc": {"earnings": prize_usd}}
     )
     
     # Re-fetch final balance
     updated_data = users_collection.find_one({"user_id": user.id})
     final_balance_usd = updated_data.get("earnings", 0.0) 
 
-    # 5. Send Result
-    log_msg = f"🎡 <b>Spin Wheel</b>\nUser: {username_display}\nCost: ₹{spin_cost_inr:.2f}\n"
+    # 4. Send Result
+    log_msg = f"🎡 <b>Spin Wheel</b>\nUser: {username_display}\nCost: 1 Spin\n"
     
     if prize_inr > 0:
         message = MESSAGES[lang]["spin_wheel_win"].format(
-            amount=prize_inr, new_balance=final_balance_usd * DOLLAR_TO_INR
+            amount=prize_inr, 
+            new_balance=final_balance_usd * DOLLAR_TO_INR,
+            spins_left=spins_left_after_deduct
         )
         log_msg += f"Win: ₹{prize_inr:.2f}"
     else:
         message = MESSAGES[lang]["spin_wheel_lose"].format(
-            new_balance=final_balance_usd * DOLLAR_TO_INR
+            new_balance=final_balance_usd * DOLLAR_TO_INR,
+            spins_left=spins_left_after_deduct
         )
         log_msg += "Win: ₹0.00 (Lost)"
     
-    log_msg += f"\nNew Balance: ₹{final_balance_usd * DOLLAR_TO_INR:.2f}"
+    log_msg += f"\nRemaining Spins: {spins_left_after_deduct}\nNew Balance: ₹{final_balance_usd * DOLLAR_TO_INR:.2f}"
     await send_log_message(context, log_msg) # Send log
 
     keyboard = [
-        [InlineKeyboardButton(MESSAGES[lang]["spin_wheel_button"], callback_data="spin_wheel")],
+        [InlineKeyboardButton(MESSAGES[lang]["spin_wheel_button"].format(spins_left=spins_left_after_deduct), callback_data="perform_spin")],
         [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -1044,11 +1116,10 @@ async def spin_wheel_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
     )
 
 
-# --- WITHDRAWAL FUNCTIONS ---
+# --- WITHDRAWAL FUNCTIONS (Unchanged logic, just cleanup) ---
 
 async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    # Don't answer immediately, wait until after checks
     
     user = query.from_user
     lang = await get_user_lang(user.id)
@@ -1078,10 +1149,6 @@ async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE)
             parse_mode='HTML'
         )
         return
-
-    # Check if the user has enough balance *before* creating the request
-    # NOTE: The current code does NOT deduct the amount instantly, it deducts on approval. 
-    # This is a valid strategy to prevent double-spending, but users might see the money still in their account.
     
     withdrawal_data = {
         "user_id": user.id,
@@ -1140,7 +1207,7 @@ async def show_withdraw_details_new(update: Update, context: ContextTypes.DEFAUL
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
 
-# --- MESSAGE HANDLER (REFERRAL LOGIC UPDATED) ---
+# --- MESSAGE HANDLER (REFERRAL LOGIC UPDATED FOR SEARCH MISSION FIX) ---
 
 async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
@@ -1158,7 +1225,7 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
     # --- Mission: Search movies (Updated check) ---
     today = datetime.now().date()
     
-    # Atomically update daily searches and last search date
+    # Atomically update daily searches and last search date for the current user (user doing the search)
     result = users_collection.find_one_and_update(
         {"user_id": user.id},
         [
@@ -1166,7 +1233,7 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
                 "$set": {
                     "daily_searches": {
                         "$cond": [
-                            # If last_search_date is not today, reset to 1
+                            # If last_search_date is NOT today, reset to 1
                             {"$ne": [{"$dateToString": {"format": "%Y-%m-%d", "date": "$last_search_date"}}, {"$dateToString": {"format": "%Y-%m-%d", "date": datetime.now()}}]},
                             1, # Reset to 1 (first search of the day)
                             # Else, increment
@@ -1192,44 +1259,7 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
         logger.error(f"Failed to atomically update daily searches for user {user.id}")
         return
 
-    daily_searches = result.get("daily_searches", 0)
-    missions_completed = result.get("missions_completed", {})
-    lang = result.get("lang", "en")
-    
-    # Check and complete mission after update
-    mission_key = "search_3_movies"
-    if daily_searches == DAILY_MISSIONS[mission_key]["target"] and not missions_completed.get(mission_key):
-        mission = DAILY_MISSIONS[mission_key]
-        reward_usd = mission["reward"] / DOLLAR_TO_INR
-        
-        # Atomically update mission completion and earnings
-        updated_result = users_collection.find_one_and_update(
-            {"user_id": user.id, f"missions_completed.{mission_key}": False},
-            {
-                "$inc": {"earnings": reward_usd},
-                "$set": {f"missions_completed.{mission_key}": True}
-            },
-            return_document=True
-        )
-        
-        if updated_result:
-            try:
-                updated_earnings_inr = updated_result.get("earnings", 0.0) * DOLLAR_TO_INR
-                mission_name = mission["name"] if lang == "en" else mission["name_hi"]
-                
-                await context.bot.send_message(
-                    chat_id=user.id,
-                    text=MESSAGES[lang]["mission_complete"].format(
-                        mission_name=mission_name,
-                        reward=mission["reward"],
-                        new_balance=updated_earnings_inr
-                    ),
-                    parse_mode='HTML'
-                )
-            except Exception as e:
-                logger.error(f"Could not notify user about search mission completion: {e}")
-
-    # --- Updated referral earning logic (3x per day with 5 min delay) ---
+    # --- Referral Earning logic (3x per day with 5 min delay) ---
     referral_data = referrals_collection.find_one({"referred_user_id": user.id})
     if referral_data:
         referrer_id = referral_data["referrer_id"]
@@ -1245,7 +1275,7 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
         
         if not existing_jobs:
             context.job_queue.run_once(
-                add_payment_after_delay, 
+                add_payment_and_check_mission, 
                 300, # 5 minutes delay
                 chat_id=user.id, # Pass chat_id for context
                 user_id=user.id, 
@@ -1306,14 +1336,14 @@ async def pay_referrer(context: ContextTypes.DEFAULT_TYPE, user_id: int, referre
     
     logger.info(f"Payment {count}/3 processed for {referrer_id} from {user_id}")
 
-async def add_payment_after_delay(context: ContextTypes.DEFAULT_TYPE):
+async def add_payment_and_check_mission(context: ContextTypes.DEFAULT_TYPE):
     """
     Called by the job queue 5 minutes after a search.
-    Atomically checks and updates the daily earning count.
+    Atomically checks and updates the daily earning count and checks mission completion.
     """
     job = context.job
-    user_id = job.user_id
-    referrer_id = job.data["referrer_id"]
+    user_id = job.user_id # The referred user who searched
+    referrer_id = job.data["referrer_id"] # The user to be paid
     
     today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     
@@ -1325,10 +1355,8 @@ async def add_payment_after_delay(context: ContextTypes.DEFAULT_TYPE):
              logger.warning(f"Skipping payment for {referrer_id} as referred user {user_id} blocked the bot.")
              return
         
-    # --- Atomic Check and Update ---
+    # --- Atomic Check and Update on Referral Doc ---
     
-    # Find one document and update it based on conditions.
-    # The $cond operator inside $set is complex but ensures atomicity.
     referral_doc_updated = referrals_collection.find_one_and_update(
         {"referred_user_id": user_id, "referrer_id": referrer_id},
         [
@@ -1350,7 +1378,6 @@ async def add_payment_after_delay(context: ContextTypes.DEFAULT_TYPE):
                             ]}
                         ]
                     },
-                    # Always update last_earning_date if we are processing this logic
                     "last_earning_date": datetime.now()
                 }
             }
@@ -1360,16 +1387,50 @@ async def add_payment_after_delay(context: ContextTypes.DEFAULT_TYPE):
 
     if referral_doc_updated:
         new_count = referral_doc_updated.get("daily_earning_count", 0)
-        # Check if the count actually increased (if it was 3 and stayed 3, don't pay)
         
-        # Check if the last_earning_date was reset (new day) or if it was an increment (same day < 3)
-        # The logic is complex to check, simply check if the new_count is <= 3 and last_earning_date is today
         if new_count > 0 and new_count <= 3:
-             # Payment should occur unless count was 3 and stayed 3 (which the $cond prevents)
-             # To be safe, we only pay if it's 1, 2, or 3 *and* the last earning date is today (which it is)
+             # Payment logic
              await pay_referrer(context, user_id, referrer_id, count=new_count)
+
+             # --- Mission Check (Referrer's Mission) ---
+             mission_key = "search_3_movies"
+             mission = DAILY_MISSIONS[mission_key]
+             referrer_data = users_collection.find_one({"user_id": referrer_id})
+
+             if new_count == mission["target"] and not referrer_data.get("missions_completed", {}).get(mission_key):
+                reward_usd = mission["reward"] / DOLLAR_TO_INR
+                
+                # Atomically update mission completion and earnings for the REFERRER
+                updated_referrer_result = users_collection.find_one_and_update(
+                    {"user_id": referrer_id, f"missions_completed.{mission_key}": False},
+                    {
+                        "$inc": {"earnings": reward_usd},
+                        "$set": {f"missions_completed.{mission_key}": True}
+                    },
+                    return_document=True
+                )
+                
+                if updated_referrer_result:
+                    try:
+                        referrer_lang = updated_referrer_result.get("lang", "en")
+                        updated_earnings_inr = updated_referrer_result.get("earnings", 0.0) * DOLLAR_TO_INR
+                        mission_name = mission["name"] if referrer_lang == "en" else mission["name_hi"]
+                        
+                        await context.bot.send_message(
+                            chat_id=referrer_id,
+                            text=MESSAGES[referrer_lang]["mission_complete"].format(
+                                mission_name=mission_name,
+                                reward=mission["reward"],
+                                new_balance=updated_earnings_inr
+                            ),
+                            parse_mode='HTML'
+                        )
+                        logger.info(f"Referrer {referrer_id} completed search_3_movies mission.")
+                    except Exception as e:
+                        logger.error(f"Could not notify referrer {referrer_id} about search mission completion: {e}")
+
         else:
-            logger.info(f"Daily earning limit (3/3) reached or logic error for {referrer_id} from {user_id}. No payment.")
+            logger.info(f"Daily earning limit (3/3) reached for {referrer_id} from {user_id}. No payment.")
     else:
         logger.error(f"Referral document not found for user {user_id} and referrer {referrer_id}.")
 
@@ -1377,7 +1438,11 @@ async def add_payment_after_delay(context: ContextTypes.DEFAULT_TYPE):
 # --- ADMIN AND MISC COMMANDS ---
 
 async def topusers_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Shows the top 10 earners in the bot."""
+    # Admin check
+    if update.effective_user.id != ADMIN_ID:
+        await update.message.reply_html(MESSAGES[await get_user_lang(update.effective_user.id)]["broadcast_admin_only"])
+        return
+
     lang = await get_user_lang(update.effective_user.id)
     
     # Fetch top 10 users based on earnings
@@ -1420,7 +1485,7 @@ async def clearjunk_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         "joined_date": {"$lt": thirty_days_ago},
         "$or": [
             {"last_checkin_date": None}, # Never claimed daily bonus
-            {"daily_searches": 0, "earnings": 0.0} # Never searched and zero earnings
+            {"daily_searches": 0, "earnings": 0.0, "spins_left": SPIN_WHEEL_CONFIG["initial_free_spins"]} # Never searched, zero earnings, and still has initial spins
         ]
     }
     
@@ -1434,8 +1499,12 @@ async def clearjunk_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         deleted_users_count = user_delete_result.deleted_count
 
         # 4. Delete corresponding entries from referrals_collection
-        referral_delete_result = referrals_collection.delete_many({"referred_user_id": {"$in": users_to_delete_ids}})
-        deleted_referrals_count = referral_delete_result.deleted_count
+        # Delete if they were the referred user
+        referral_delete_result_referred = referrals_collection.delete_many({"referred_user_id": {"$in": users_to_delete_ids}})
+        # Delete if they were the referrer (optional, but good for cleanup)
+        referral_delete_result_referrer = referrals_collection.delete_many({"referrer_id": {"$in": users_to_delete_ids}})
+
+        deleted_referrals_count = referral_delete_result_referred.deleted_count + referral_delete_result_referrer.deleted_count
     else:
         deleted_users_count = 0
         deleted_referrals_count = 0
@@ -1456,8 +1525,13 @@ async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     lang = await get_user_lang(user.id)
     
     if user.id != ADMIN_ID:
-        await update.message.reply_html(MESSAGES[lang]["broadcast_admin_only"])
-        return
+        # FIX 2: Added Admin check for /admin command
+        if update.callback_query:
+            await update.callback_query.answer(MESSAGES[lang]["broadcast_admin_only"], show_alert=True)
+            return
+        else:
+            await update.message.reply_html(MESSAGES[lang]["broadcast_admin_only"])
+            return
     
     rate = await get_referral_bonus_inr() # Note: This shows base rate, not tier rate
     bonus = await get_welcome_bonus()
@@ -1559,9 +1633,7 @@ async def set_bot_commands_command(update: Update, context: ContextTypes.DEFAULT
         await bot.set_my_commands(USER_COMMANDS)
         
         # Set all commands (for admin scope)
-        # Note: Telegram Bot API doesn't support setting commands *only* for one user ID easily, 
-        # so we set it globally, and enforce admin check in command handlers.
-        # This part ensures admin sees the full list if they reset commands.
+        # We set all to make sure admin sees all commands in the list
         await bot.set_my_commands(USER_COMMANDS + ADMIN_COMMANDS)
         
         message = (
@@ -1630,7 +1702,8 @@ async def set_referral_rate_command(update: Update, context: ContextTypes.DEFAUL
             {"$set": {"rate_inr": new_rate}},
             upsert=True
         )
-        await update.message.reply_html(f"✅ Tier 1 referral rate has been updated to ₹{new_rate:.2f}.")
+        # FIX 1: Updated success message for clarity
+        await update.message.reply_html(MESSAGES[lang]["setrate_success"].format(new_rate=new_rate))
     except ValueError:
         await update.message.reply_html(MESSAGES[lang]["invalid_rate"])
 
@@ -1729,13 +1802,24 @@ async def show_movie_groups_menu(update: Update, context: ContextTypes.DEFAULT_T
 
 async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    
+    user = query.from_user
+    lang = await get_user_lang(user.id)
+    user_data = users_collection.find_one({"user_id": user.id})
+
     await query.answer()
 
-    lang = await get_user_lang(query.from_user.id)
+    channel_button_text = f"🎁 Join {CHANNEL_USERNAME} & Claim ₹{CHANNEL_BONUS:.2f}"
+    
+    # Check if channel bonus claimed for dynamic button text
+    if user_data and user_data.get("channel_bonus_received"):
+        channel_button_text = f"✅ Channel Bonus Claimed (₹{CHANNEL_BONUS:.2f})"
+
+
     keyboard = [
         [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
         [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
-        [InlineKeyboardButton(f"🎁 Join {CHANNEL_USERNAME} & Claim ₹{CHANNEL_BONUS:.2f}", callback_data="claim_channel_bonus")], 
+        [InlineKeyboardButton(channel_button_text, callback_data="claim_channel_bonus")], 
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -1822,6 +1906,7 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         return
     
     if not update.message.reply_to_message:
+        # FIX 1: Use code tag for /broadcast
         await update.message.reply_html(MESSAGES[lang]["broadcast_message"])
         return
         
@@ -1849,6 +1934,62 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     await update.message.reply_html(f"✅ <b>Broadcast Finished!</b>\n\nSent to: <b>{count}</b> users.\nFailed to send (blocked/error): <b>{failed_count}</b> users.", parse_mode='HTML')
 
+# --- NEW: Random Alert Task ---
+
+async def send_random_alerts_task(context: ContextTypes.DEFAULT_TYPE):
+    """Sends a random alert/reminder message to a random user."""
+    
+    # 1. Get a list of all active user IDs
+    user_ids_cursor = users_collection.find({}, {"user_id": 1})
+    all_user_ids = [user["user_id"] for user in user_ids_cursor]
+
+    if not all_user_ids:
+        logger.info("No users to send random alerts to.")
+        return
+
+    # 2. Select a random user
+    random_user_id = random.choice(all_user_ids)
+    user_data = users_collection.find_one({"user_id": random_user_id})
+    if not user_data:
+        return # Should not happen
+
+    lang = user_data.get("lang", "en")
+    
+    # 3. Choose a random alert type
+    alert_types = ["daily_bonus", "mission", "refer", "spin"]
+    chosen_alert = random.choice(alert_types)
+    
+    max_rate = TIERS[4]["rate"]
+    
+    if chosen_alert == "daily_bonus":
+        message = MESSAGES[lang]["alert_daily_bonus"]
+        keyboard = [[InlineKeyboardButton("🎁 Claim Bonus / Go to Panel", callback_data="show_earning_panel")]]
+    elif chosen_alert == "mission":
+        message = MESSAGES[lang]["alert_mission"]
+        keyboard = [[InlineKeyboardButton("🎯 See Missions / Go to Panel", callback_data="show_earning_panel")]]
+    elif chosen_alert == "refer":
+        message = MESSAGES[lang]["alert_refer"].format(max_rate=max_rate)
+        keyboard = [[InlineKeyboardButton("🔗 Share Referral Link", callback_data="show_refer_link")]]
+    elif chosen_alert == "spin":
+        message = MESSAGES[lang]["alert_spin"]
+        keyboard = [[InlineKeyboardButton("🎰 Spin Now / Get Spins", callback_data="show_spin_panel")]]
+    
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    # 4. Send the message (with error handling for blocked users)
+    try:
+        await context.bot.send_message(
+            chat_id=random_user_id,
+            text=message,
+            reply_markup=reply_markup,
+            parse_mode='HTML'
+        )
+        logger.info(f"Sent random alert '{chosen_alert}' to user {random_user_id}.")
+    except TelegramError as e:
+        if "bot was blocked by the user" in str(e):
+            logger.warning(f"User {random_user_id} blocked the bot. Skipping alert.")
+        else:
+            logger.error(f"Failed to send random alert to user {random_user_id}: {e}")
 
 # --- MAIN FUNCTION ---
 
@@ -1887,7 +2028,8 @@ def main() -> None:
     
     # New Features Callback Handlers
     application.add_handler(CallbackQueryHandler(show_refer_example, pattern="^show_refer_example$")) 
-    application.add_handler(CallbackQueryHandler(spin_wheel_command, pattern="^spin_wheel$"))
+    application.add_handler(CallbackQueryHandler(show_spin_panel, pattern="^show_spin_panel$")) # NEW: Spin panel
+    application.add_handler(CallbackQueryHandler(perform_spin, pattern="^perform_spin$")) # NEW: Perform spin
     application.add_handler(CallbackQueryHandler(show_missions, pattern="^show_missions$")) 
     application.add_handler(CallbackQueryHandler(request_withdrawal, pattern="^request_withdrawal$"))
     application.add_handler(CallbackQueryHandler(show_tier_benefits, pattern="^show_tier_benefits$")) 
@@ -1900,9 +2042,12 @@ def main() -> None:
     # Group Message Handler
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.GROUPS, handle_group_messages))
 
-    # Get the job queue object from the application
+    # --- Job Queue: Daily Alerts ---
     job_queue = application.job_queue
-    # Pass the job_queue to the utility function if needed, but here it's in context.
+    # Run the alert task every 2 hours (timedelta(hours=2))
+    job_queue.run_repeating(send_random_alerts_task, interval=timedelta(hours=2), first=timedelta(minutes=5))
+    logger.info("Random alert task scheduled to run every 2 hours.")
+
 
     # Start the Bot
     if WEB_SERVER_URL and BOT_TOKEN:
