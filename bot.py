@@ -52,9 +52,9 @@ try:
 except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {e}")
 
-DOLLAR_TO_INR = 83.0
+DOLLAR_TO_INR = 80.0
 
-DAILY_BONUS_BASE = 0.50
+DAILY_BONUS_BASE = 0.40
 DAILY_BONUS_STREAK_MULTIPLIER = 0.10
 
 SPIN_PRIZES_WEIGHTS = {
@@ -76,16 +76,16 @@ SPIN_WHEEL_CONFIG = {
 }
 
 TIERS = {
-    1: {"min_earnings": 0, "rate": 0.40, "name": "Beginner", "benefits_en": "Basic referral rate (₹0.40)", "benefits_hi": "सामान्य रेफरल दर (₹0.40)"},
-    2: {"min_earnings": 50, "rate": 0.60, "name": "Pro", "benefits_en": "50% higher referral rate (₹0.60)", "benefits_hi": "50% ज़्यादा रेफरल दर (₹0.60)"},
-    3: {"min_earnings": 200, "rate": 1.00, "name": "Expert", "benefits_en": "2.5x referral rate (₹1.00)", "benefits_hi": "2.5 गुना रेफरल दर (₹1.00)"},
-    4: {"min_earnings": 500, "rate": 2.00, "name": "Master", "benefits_en": "5x referral rate (₹2.00)", "benefits_hi": "5 गुना रेफरल दर (₹2.00)"}
+    1: {"min_earnings": 0, "rate": 0.40, ...}, # YEH THHEEK HAI
+    2: {"min_earnings": 50, "rate": 0.55, ...}, # ISKO 0.55 KAR DEN
+    3: {"min_earnings": 200, "rate": 0.60, ...}, # ISKO 0.60 KAR DEN
+    4: {"min_earnings": 500, "rate": 0.70, ...}  # ISKO 0.70 KAR DEN
 }
 
 DAILY_MISSIONS = {
-    "search_3_movies": {"reward": 1.00, "target": 3, "name": "Search 3 Movies", "name_hi": "3 फिल्में खोजें"},
-    "refer_2_friends": {"reward": 5.00, "target": 2, "name": "Refer 2 Friends", "name_hi": "2 दोस्तों को रेफ़र करें"},
-    "claim_daily_bonus": {"reward": 0.50, "target": 1, "name": "Claim Daily Bonus", "name_hi": "दैनिक बोनस क्लेम करें"}
+    "search_3_movies": {"reward": 0.80, "target": 3, "name": "Search 3 Movies", "name_hi": "3 फिल्में खोजें"},
+    "refer_2_friends": {"reward": 1.40, "target": 2, "name": "Refer 2 Friends", "name_hi": "2 दोस्तों को रेफ़र करें"},
+    "claim_daily_bonus": {"reward": 0.40, "target": 1, "name": "Claim Daily Bonus", "name_hi": "दैनिक बोनस क्लेम करें"}
 }
 
 MESSAGES = {
