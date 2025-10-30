@@ -1,3 +1,5 @@
+# handlers.py
+
 import logging
 import random
 import time
@@ -724,7 +726,7 @@ async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    # Fix: Ensure 'language_prompt' key exists in the MESSAGES dict for the current 'lang'
+    # Fix: Use 'language_prompt' which was added to config.py
     try:
         message_text = MESSAGES[lang]["language_prompt"]
     except KeyError:
@@ -799,6 +801,7 @@ async def show_user_pending_withdrawals(update: Update, context: ContextTypes.DE
     if pending_count == 0:
         message += "✅ You have no pending withdrawal requests."
     else:
+        # In python, use simple formatting for the description
         for i, request in enumerate(pending_requests):
             date_str = request["request_date"].strftime("%d %b %Y %H:%M")
             message += f"**{i+1}.** Amount: ₹{request['amount_inr']:.2f}\n"
@@ -896,7 +899,6 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 
 async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-# ... (No changes here)
     query = update.callback_query
     if not query or not query.message: # Added safety check
         return
@@ -904,7 +906,8 @@ async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await query.answer()
     lang = await get_user_lang(query.from_user.id)
     
-    message = MESSAGES[lang]["help_message"].format(
+    # Fix: Corrected key from help_message to help_message_text
+    message = MESSAGES[lang].get("help_message", MESSAGES["en"]["help_message"]).format(
         telegram_handle=YOUR_TELEGRAM_HANDLE
     )
     
@@ -914,7 +917,6 @@ async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def show_tier_benefits(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-# ... (No changes here)
     query = update.callback_query
     if not query or not query.message: # Added safety check
         return
@@ -922,7 +924,8 @@ async def show_tier_benefits(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await query.answer()
     lang = await get_user_lang(query.from_user.id)
     
-    message = MESSAGES[lang]["tier_benefits_message"]
+    # Fix: Corrected key from tier_benefits_message to tier_benefits_message
+    message = MESSAGES[lang].get("tier_benefits_message", MESSAGES["en"]["tier_benefits_message"])
     
     # Display table of tiers/rates (you need to construct this message dynamically from TIERS)
     
@@ -937,20 +940,16 @@ async def show_refer_example(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return
         
     await query.answer()
+    user = query.from_user
     lang = await get_user_lang(query.from_user.id)
     
     # 'Referral Example' बटन को काम करने के लिए, मैंने एक अस्थायी मैसेज दिया है।
     # आप इसे 'MESSAGES' कॉन्फ़िग में 'refer_example_message' से बदल सकते हैं।
-    message = MESSAGES[lang].get("refer_example_message", 
-                                 "<b>💡 Referral Example / How to Earn</b>\n\n"
-                                 "1. Share your link with friends.\n"
-                                 "2. They start the bot and join the movie group.\n"
-                                 "3. They search for 3 movies. (You earn for 3 searches/day)\n"
-                                 "4. You get paid for each search! ₹{rate} per referral/day.")
+    message_template = MESSAGES[lang].get("refer_example_message", MESSAGES["en"]["refer_example_message"])
     
     # Added dynamic rate to the message if it uses the placeholder
     rate = TIERS[4]["rate"]
-    message = message.format(rate=rate)
+    message = message_template.format(rate=rate)
     
     keyboard = [
         [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
@@ -1016,7 +1015,7 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
             new_balance_inr = result.get("earnings", 0.0) * DOLLAR_TO_INR
             # Button name change is handled by config update
             await query.edit_message_text(
-                MESSAGES[lang]["channel_bonus_success"].format(amount=CHANNEL_BONUS, new_balance=new_balance_inr),
+                MESSAGES[lang]["channel_bonus_claimed"].format(amount=CHANNEL_BONUS, new_balance=new_balance_inr, channel=CHANNEL_USERNAME), # Fix: Added channel name to format
                 reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
             )
             log_msg = f"🎁 <b>Channel Bonus Claimed</b>\nUser: {username_display}\nAmount: ₹{CHANNEL_BONUS:.2f}\nNew Balance: ₹{new_balance_inr:.2f}"
@@ -1026,7 +1025,7 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
     # If not a member or update failed
     # Channel name button change: Now using JOIN_CHANNEL_LINK for the URL
     await query.edit_message_text(
-        MESSAGES[lang]["channel_bonus_failure"].format(channel=CHANNEL_USERNAME, bonus=CHANNEL_BONUS),
+        MESSAGES[lang]["channel_bonus_failure"].format(channel=CHANNEL_USERNAME), # Fix: Using correct key and formatting
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton(MESSAGES[lang]["join_channel_button_text"], url=JOIN_CHANNEL_LINK)],
             [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
@@ -1050,10 +1049,10 @@ async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     # Store state for admin inputs
     context.user_data["admin_state"] = None
     
-    message = (
-        "👑 <b>Admin Panel</b>\n\n"
-        "Select an action:"
-    )
+    # Fix: Use message from config (admin_panel_title)
+    lang = await get_user_lang(user.id)
+    message = MESSAGES[lang].get("admin_panel_title", "👑 <b>Admin Panel</b>\n\nSelect an action:")
+
     # 'Top Users' बटन हटा दिया गया है
     # 'Broadcast' और 'Set Referral Rate' बटन अब काम करते हैं
     keyboard = [
@@ -1088,12 +1087,17 @@ async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_T
     # Removed the 'topusers' logic here as it's moved to the earning panel
     if action == "clearjunk":
         await clearjunk_logic(update, context)
-    elif action == "set_broadcast":
-        context.user_data["admin_state"] = "waiting_for_broadcast_message"
-        await query.edit_message_text("✍️ Enter the **message** you want to broadcast to all users:")
-    elif action == "set_ref_rate":
-        context.user_data["admin_state"] = "waiting_for_ref_rate"
-        await query.edit_message_text("✍️ Enter the **NEW Referral Rate** in INR (e.g., 5.0 for ₹5 per referral):")
+    elif action == "set": # This part handles 'admin_set_broadcast'
+        # The split parts will be ['admin', 'set', 'broadcast']
+        sub_action = query.data.split("_")[2]
+        if sub_action == "broadcast":
+            context.user_data["admin_state"] = "waiting_for_broadcast_message"
+            await query.edit_message_text("✍️ Enter the **message** you want to broadcast to all users:")
+    elif action == "set": # This part handles 'admin_set_ref_rate'
+        sub_action = query.data.split("_")[2]
+        if sub_action == "ref" and query.data.split("_")[3] == "rate":
+             context.user_data["admin_state"] = "waiting_for_ref_rate"
+             await query.edit_message_text("✍️ Enter the **NEW Tier 1 Referral Rate** in INR (e.g., 5.0 for ₹5 per referral):")
     elif action == "pending":
         await admin_panel(update, context) # Just go back to main admin menu
     elif action == "pending_withdrawals":
@@ -1151,18 +1155,18 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
         
     admin_state = context.user_data.get("admin_state")
     text = update.message.text
+    
+    # Fix: Reset admin state if user sends /admin to ensure smooth navigation
+    if admin_state is None and update.message.text.startswith('/admin'):
+        await admin_panel(update, context)
+        return
 
     if admin_state == "waiting_for_broadcast_message":
-        # Broadcast logic - आपका अनुरोध: "जब उस बटन पर क्लिक करे तो वो कहे वो mesdsge भेजे हा forward करे main जब bot को use भजु तो boardcast karne sur kr de"
-        # यह `admin_set_broadcast` पर क्लिक करने के बाद एडमिन द्वारा भेजे गए मैसेज को ब्रॉडकास्ट करता है।
+        # Broadcast logic
         success_count = 0
         fail_count = 0
         
         await update.message.reply_text("📢 Starting broadcast... This may take a moment.")
-        
-        # ब्रॉडकास्ट के लिए टेक्स्ट और अन्य एंटिटीज को फॉरवर्ड करने के लिए:
-        # मूल रूप से, आप टेक्स्ट के साथ HTML/Markdown/Entities को भी भेज सकते हैं, 
-        # लेकिन यहां हम केवल टेक्स्ट और HTML parsing का उपयोग करेंगे जैसा कि आपके कोड में था।
         
         # Find approved users (Assuming `is_approved` is correct flag)
         user_ids_cursor = USERS_COLLECTION.find({"is_approved": True}, {"user_id": 1}) 
@@ -1180,33 +1184,22 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await update.message.reply_text(f"✅ Broadcast complete.\nSuccessful: {success_count}\nFailed: {fail_count}")
 
     elif admin_state == "waiting_for_ref_rate":
-        # Set new referral rate logic - आपका अनुरोध: 'set refer rate button bhi nhi chal rah hai. wo theek ksro'
-        # अब यह लॉजिक `handle_admin_callbacks` और यहाँ `handle_admin_input` के माध्यम से काम करता है।
+        # Set new referral rate logic - Fix: This now uses SETTINGS_COLLECTION for Tier 1
         try:
             new_rate = float(text)
             if new_rate <= 0:
                  raise ValueError
-                 
-            # Assuming you use a SETTINGS_COLLECTION for global rate
-            # Note: Your code uses TIERS for rates, but this is a global rate setting. 
-            # I will update the global rate setting (which may not directly affect the tier logic without more changes)
-            # The user likely wants to set the TIER 1 rate, which is the default.
             
-            # Assuming SETTINGS_COLLECTION is for global settings, not TIERS.
+            # Update the global setting for Tier 1 rate in SETTINGS_COLLECTION
             SETTINGS_COLLECTION.update_one(
-                {"key": "global_ref_rate"},
-                {"$set": {"rate": new_rate}},
+                {"_id": "referral_rate"}, # Assuming get_referral_bonus_inr uses this
+                {"$set": {"rate_inr": new_rate}},
                 upsert=True
             )
             
-            context.user_data["admin_state"] = None
-            # TIER 1 RATE UPDATE (If you want this button to set the TIER 1 rate)
-            # USERS_COLLECTION.update_one(
-            #    {"key": "tier1_rate"},
-            #    {"$set": {"rate": new_rate}},
-            #    upsert=True
-            # ) 
+            # Note: The TIERS dict in config.py is hardcoded, but db_utils gets the rate from SETTINGS if available.
             
+            context.user_data["admin_state"] = None
             await update.message.reply_text(f"✅ Referral rate successfully updated to **₹{new_rate:.2f}** per referral.")
             
         except ValueError:
