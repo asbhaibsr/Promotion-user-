@@ -17,7 +17,9 @@ from handlers import (
     show_spin_panel, perform_spin, spin_fake_btn, show_missions, 
     request_withdrawal, show_tier_benefits, claim_channel_bonus,
     handle_admin_callbacks, handle_withdrawal_approval, handle_group_messages,
-    handle_admin_input # <--- सुनिश्चित करें कि यह handlers.py में है
+    handle_admin_input,
+    show_top_users, # नया: Top Users हैंडलर
+    show_user_pending_withdrawals # नया: User Pending Withdrawals हैंडलर
 )
 from tasks import send_random_alerts_task
 
@@ -59,6 +61,10 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(request_withdrawal, pattern="^request_withdrawal$"))
     application.add_handler(CallbackQueryHandler(show_tier_benefits, pattern="^show_tier_benefits$")) 
     application.add_handler(CallbackQueryHandler(claim_channel_bonus, pattern="^claim_channel_bonus$")) 
+    
+    # नए हैंडलर (Top Users और Pending Withdrawals)
+    application.add_handler(CallbackQueryHandler(show_top_users, pattern="^show_top_users$"))
+    application.add_handler(CallbackQueryHandler(show_user_pending_withdrawals, pattern="^show_user_pending_withdrawals$"))
     
     # Admin & Withdrawal Handlers
     application.add_handler(CallbackQueryHandler(handle_admin_callbacks, pattern="^admin_")) 
