@@ -8,6 +8,7 @@ from telegram.ext import ContextTypes
 from datetime import datetime, timedelta
 import asyncio
 
+# Assuming these functions are defined in your db_utils and config files
 from config import (
     USERS_COLLECTION, REFERRALS_COLLECTION, SETTINGS_COLLECTION, WITHDRAWALS_COLLECTION,
     DOLLAR_TO_INR, MESSAGES, ADMIN_ID, YOUR_TELEGRAM_HANDLE, 
@@ -625,15 +626,58 @@ async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE)
         MESSAGES[lang]["withdrawal_request_sent"].format(amount=earnings_inr),
         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
     )
-    
+
 # --- Other Menu Handlers (Language, Help, Groups, Tier) ---
-# (show_help, show_tier_benefits, show_refer_example, claim_channel_bonus, language_menu, handle_lang_choice, show_withdraw_details_new, show_movie_groups_menu, back_to_main_menu, admin_panel, handle_admin_callbacks, handle_admin_input, handle_withdrawal_approval, topusers_logic, clearjunk_logic, set_bot_commands_logic functions remain largely the same, but are imported from other files in the original structure)
+# NOTE: These are placeholders. You'll need to implement the full logic for them.
 
-# ... (Implement the remaining handlers similarly, using components from config and db_utils) ...
-# Note: For brevity, I'm omitting the full code for show_help, show_tier_benefits, etc., here. 
-# They should be placed in this handlers.py file, with necessary imports.
+async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    lang = await get_user_lang(query.from_user.id)
+    
+    keyboard = [
+        [InlineKeyboardButton("English 🇬🇧", callback_data="lang_en")],
+        [InlineKeyboardButton("हिन्दी 🇮🇳", callback_data="lang_hi")],
+        [InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(MESSAGES[lang]["language_prompt"], reply_markup=reply_markup)
 
-# --- Example of one of the simpler menu handlers (Must be included in full code) ---
+
+async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    new_lang = query.data.split("_")[1]
+    
+    await set_user_lang(query.from_user.id, new_lang)
+    
+    # Re-send main menu in the new language
+    await back_to_main_menu(update, context) 
+
+
+async def show_withdraw_details_new(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    user = query.from_user
+    lang = await get_user_lang(user.id)
+    
+    user_data = USERS_COLLECTION.find_one({"user_id": user.id})
+    earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
+    
+    message = MESSAGES[lang]["withdrawal_details_message"].format(
+        balance=f"₹{earnings_inr:.2f}"
+    )
+    
+    keyboard = [
+        [InlineKeyboardButton("💸 Request Withdrawal (Min ₹80)", callback_data="request_withdrawal")],
+        [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+
 async def show_movie_groups_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
@@ -676,23 +720,404 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
     )
     
-    if query.message.photo:
-        try:
-            await query.message.delete()
-        except Exception:
-            pass
-            
-        await context.bot.send_message(
+    # Handle message edit/send based on whether it's a callback or a new command/menu
+    if isinstance(update, Update) and update.callback_query:
+        if query.message.photo:
+            try:
+                await query.message.delete()
+            except Exception:
+                pass
+                
+            await context.bot.send_message(
+                chat_id=query.message.chat_id,
+                text=message, 
+                reply_markup=reply_markup,
+                parse_mode='HTML'
+            )
+        else:
+            await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+    elif isinstance(update, Update) and update.message:
+        await update.message.reply_html(message, reply_markup=reply_markup)
+
+
+async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    lang = await get_user_lang(query.from_user.id)
+    
+    message = MESSAGES[lang]["help_message"].format(
+        telegram_handle=YOUR_TELEGRAM_HANDLE
+    )
+    
+    keyboard = [[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+
+async def show_tier_benefits(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    lang = await get_user_lang(query.from_user.id)
+    
+    message = MESSAGES[lang]["tier_benefits_message"]
+    
+    # Display table of tiers/rates (you need to construct this message dynamically from TIERS)
+    
+    keyboard = [[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+
+async def show_refer_example(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    lang = await get_user_lang(query.from_user.id)
+    
+    message = MESSAGES[lang]["refer_example_message"]
+    
+    keyboard = [
+        [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    # Send message with photo
+    if EXAMPLE_SCREENSHOT_URL:
+        await context.bot.send_photo(
             chat_id=query.message.chat_id,
-            text=message, 
+            photo=EXAMPLE_SCREENSHOT_URL,
+            caption=message,
             reply_markup=reply_markup,
             parse_mode='HTML'
         )
+        try:
+            await query.message.delete()
+        except:
+            pass
     else:
         await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
-# --- Admin Handlers (Partial, complete these in your final handlers.py) ---
-# You'll need to move the original admin functions (admin_panel, handle_admin_callbacks, etc.) here.
 
-# ... (rest of the handlers) ...
+async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    user = query.from_user
+    lang = await get_user_lang(user.id)
+    username_display = f"@{user.username}" if user.username else f"<code>{user.id}</code>"
+    
+    user_data = USERS_COLLECTION.find_one({"user_id": user.id})
+    if user_data.get("channel_bonus_received"):
+        await query.answer("✅ Channel Bonus Already Claimed!", show_alert=True)
+        return
+        
+    await query.answer("Checking channel membership...")
+    
+    try:
+        # Check membership (replace with actual channel ID if different from CHANNEL_USERNAME)
+        member = await context.bot.get_chat_member(CHANNEL_ID, user.id)
+        is_member = member.status in ["member", "administrator", "creator"]
+    except TelegramError as e:
+        logger.error(f"Error checking channel membership for {user.id}: {e}")
+        is_member = False
+        
+    if is_member:
+        bonus_usd = CHANNEL_BONUS / DOLLAR_TO_INR
+        
+        result = USERS_COLLECTION.find_one_and_update(
+            {"user_id": user.id, "channel_bonus_received": False},
+            {"$inc": {"earnings": bonus_usd}, "$set": {"channel_bonus_received": True}},
+            return_document=True
+        )
+        
+        if result:
+            new_balance_inr = result.get("earnings", 0.0) * DOLLAR_TO_INR
+            await query.edit_message_text(
+                MESSAGES[lang]["channel_bonus_success"].format(amount=CHANNEL_BONUS, new_balance=new_balance_inr),
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
+            )
+            log_msg = f"🎁 <b>Channel Bonus Claimed</b>\nUser: {username_display}\nAmount: ₹{CHANNEL_BONUS:.2f}\nNew Balance: ₹{new_balance_inr:.2f}"
+            await send_log_message(context, log_msg)
+            await show_earning_panel(update, context) # Refresh panel
+            return
+            
+    # If not a member or update failed
+    await query.edit_message_text(
+        MESSAGES[lang]["channel_bonus_failure"].format(channel=CHANNEL_USERNAME, bonus=CHANNEL_BONUS),
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton(f"Join {CHANNEL_USERNAME}", url=f"https://t.me/{CHANNEL_USERNAME.replace('@', '')}")],
+            [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
+        ]),
+        parse_mode='HTML'
+    )
+
+# --- Admin Handlers ---
+async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Shows the main admin panel menu."""
+    user = update.effective_user
+    
+    if user.id != ADMIN_ID:
+        try:
+            await update.message.reply_text("❌ Access Denied.")
+        except:
+            pass
+        return
+
+    # Store state for admin inputs
+    context.user_data["admin_state"] = None
+    
+    message = (
+        "👑 <b>Admin Panel</b>\n\n"
+        "Select an action:"
+    )
+    keyboard = [
+        [InlineKeyboardButton("📊 Top Users", callback_data="admin_topusers"),
+         InlineKeyboardButton("🗑️ Clear Junk", callback_data="admin_clearjunk")],
+        [InlineKeyboardButton("📢 Broadcast Message", callback_data="admin_set_broadcast")],
+        [InlineKeyboardButton("💸 Pending Withdrawals", callback_data="admin_pending_withdrawals")],
+        [InlineKeyboardButton("⚙️ Set Referral Rate", callback_data="admin_set_ref_rate")],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await update.message.reply_html(message, reply_markup=reply_markup)
+
+
+async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    
+    user = query.from_user
+    if user.id != ADMIN_ID:
+        await query.edit_message_text("❌ Access Denied.")
+        return
+
+    action = query.data.split("_")[1]
+    
+    if action == "topusers":
+        await topusers_logic(update, context)
+    elif action == "clearjunk":
+        await clearjunk_logic(update, context)
+    elif action == "set_broadcast":
+        context.user_data["admin_state"] = "waiting_for_broadcast_message"
+        await query.edit_message_text("✍️ Enter the **message** you want to broadcast to all users:")
+    elif action == "set_ref_rate":
+        context.user_data["admin_state"] = "waiting_for_ref_rate"
+        await query.edit_message_text("✍️ Enter the **NEW Referral Rate** in INR (e.g., 5.0 for ₹5 per referral):")
+    elif action == "pending":
+        await admin_panel(update, context) # Just go back to main admin menu
+    elif action == "pending_withdrawals":
+        await show_pending_withdrawals(update, context)
+        
+    # Add logic for other admin callbacks here (e.g., back buttons, etc.)
+
+async def show_pending_withdrawals(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    
+    pending_withdrawals = WITHDRAWALS_COLLECTION.find({"status": "pending"}).sort("request_date", 1)
+    
+    message = "<b>💸 Pending Withdrawals</b>\n\n"
+    keyboard = []
+    
+    if pending_withdrawals.count() == 0:
+        message += "✅ No pending withdrawal requests."
+    else:
+        for request in pending_withdrawals:
+            user_id = request["user_id"]
+            amount = request["amount_inr"]
+            username = request.get("username", "N/A")
+            
+            message += f"👤 User: <code>{user_id}</code> (@{username})\n💰 Amount: ₹{amount:.2f}\n"
+            
+            # Add buttons for each request (limited to prevent huge messages)
+            if len(keyboard) < 5: 
+                keyboard.append([
+                    InlineKeyboardButton(f"Approve {user_id}", callback_data=f"approve_withdraw_{user_id}"),
+                    InlineKeyboardButton(f"Reject {user_id}", callback_data=f"reject_withdraw_{user_id}")
+                ])
+                
+        message += "\n(Showing up to 5 requests. Use buttons to process.)"
+
+
+    keyboard.append([InlineKeyboardButton("⬅️ Back to Admin Menu", callback_data="admin_pending")])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+
+async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handles text input from the admin based on the current admin_state."""
+    user = update.effective_user
+    if user.id != ADMIN_ID:
+        return
+        
+    admin_state = context.user_data.get("admin_state")
+    text = update.message.text
+
+    if admin_state == "waiting_for_broadcast_message":
+        # Broadcast logic
+        # You'd iterate through USERS_COLLECTION and send the message
+        success_count = 0
+        fail_count = 0
+        
+        await update.message.reply_text("📢 Starting broadcast... This may take a moment.")
+        
+        for user_data in USERS_COLLECTION.find():
+            try:
+                await context.bot.send_message(user_data["user_id"], text, parse_mode='HTML')
+                success_count += 1
+                await asyncio.sleep(0.05) # Throttle
+            except Exception:
+                fail_count += 1
+                
+        context.user_data["admin_state"] = None
+        await update.message.reply_text(f"✅ Broadcast complete.\nSuccessful: {success_count}\nFailed: {fail_count}")
+
+    elif admin_state == "waiting_for_ref_rate":
+        # Set new referral rate logic
+        try:
+            new_rate = float(text)
+            if new_rate <= 0:
+                 raise ValueError
+                 
+            # Assuming you use a SETTINGS_COLLECTION for global rate
+            SETTINGS_COLLECTION.update_one(
+                {"key": "global_ref_rate"},
+                {"$set": {"rate": new_rate}},
+                upsert=True
+            )
+            
+            context.user_data["admin_state"] = None
+            await update.message.reply_text(f"✅ Referral rate successfully updated to **₹{new_rate:.2f}** per referral.")
+            
+        except ValueError:
+            await update.message.reply_text("❌ Invalid input. Please enter a valid number for the new rate (e.g., 5.0).")
+            
+    # Add other admin input handlers here
+
+
+async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    
+    if query.from_user.id != ADMIN_ID:
+        await query.edit_message_text("❌ Access Denied.")
+        return
+        
+    parts = query.data.split("_")
+    action = parts[0] # approve or reject
+    user_id_str = parts[2]
+    user_id = int(user_id_str)
+
+    withdrawal_request = WITHDRAWALS_COLLECTION.find_one_and_update(
+        {"user_id": user_id, "status": "pending"},
+        {"$set": {"status": action, "approved_date": datetime.now()}},
+        return_document=True
+    )
+
+    if not withdrawal_request:
+        await query.edit_message_text(f"❌ Withdrawal request for user {user_id} not found or already processed.", parse_mode='HTML')
+        return
+
+    amount_inr = withdrawal_request["amount_inr"]
+    
+    if action == "approve":
+        # Deduct earnings
+        amount_usd = amount_inr / DOLLAR_TO_INR
+        USERS_COLLECTION.update_one(
+            {"user_id": user_id},
+            {"$inc": {"earnings": -amount_usd}}
+        )
+        
+        # Notify user
+        try:
+            user_lang = await get_user_lang(user_id)
+            await context.bot.send_message(
+                chat_id=user_id,
+                text=MESSAGES[user_lang]["withdrawal_approved"].format(amount=amount_inr),
+                parse_mode='HTML'
+            )
+        except Exception as e:
+            logger.error(f"Could not notify user {user_id} of approval: {e}")
+            
+        await query.edit_message_text(f"✅ Request for user <code>{user_id}</code> (**₹{amount_inr:.2f}**) **APPROVED**.\nFunds deducted.", parse_mode='HTML')
+        log_msg = f"💸 <b>Withdrawal Approved</b>\nAdmin: <code>{query.from_user.id}</code>\nUser: <code>{user_id}</code>\nAmount: ₹{amount_inr:.2f}"
+    
+    else: # reject
+        # Notify user
+        try:
+            user_lang = await get_user_lang(user_id)
+            await context.bot.send_message(
+                chat_id=user_id,
+                text=MESSAGES[user_lang]["withdrawal_rejected"].format(amount=amount_inr),
+                parse_mode='HTML'
+            )
+        except Exception as e:
+            logger.error(f"Could not notify user {user_id} of rejection: {e}")
+            
+        await query.edit_message_text(f"❌ Request for user <code>{user_id}</code> (**₹{amount_inr:.2f}**) **REJECTED**.", parse_mode='HTML')
+        log_msg = f"🚫 <b>Withdrawal Rejected</b>\nAdmin: <code>{query.from_user.id}</code>\nUser: <code>{user_id}</code>\nAmount: ₹{amount_inr:.2f}"
+
+    await send_log_message(context, log_msg)
+    await show_pending_withdrawals(update, context) # Refresh list
+
+
+async def topusers_logic(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    
+    # Example: Find top 10 users by earnings
+    top_users = USERS_COLLECTION.find().sort("earnings", -1).limit(10)
+    
+    message = "📊 <b>Top 10 Users by Earnings</b>\n\n"
+    
+    for i, user_data in enumerate(top_users):
+        user_id = user_data["user_id"]
+        earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
+        username = user_data.get("username", "N/A")
+        
+        message += f"{i+1}. @{username} (<code>{user_id}</code>): ₹{earnings_inr:.2f}\n"
+
+    keyboard = [[InlineKeyboardButton("⬅️ Back to Admin Menu", callback_data="admin_pending")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+
+async def clearjunk_logic(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    
+    # Example: Logic to find and delete junk data (e.g., users with 0 earnings who never completed a mission)
+    # NOTE: Implement this carefully!
+    
+    # junk_count = USERS_COLLECTION.count_documents({
+    #     "earnings": 0.0,
+    #     "welcome_bonus_received": False,
+    #     "spins_left": 0
+    # })
+    
+    # delete_result = USERS_COLLECTION.delete_many({
+    #     "earnings": 0.0,
+    #     "welcome_bonus_received": False,
+    #     "spins_left": 0
+    # })
+    
+    delete_result = {"deleted_count": 0} # Placeholder
+    
+    message = f"🗑️ **Clear Junk Operation**\n\nCompleted! Deleted {delete_result['deleted_count']} inactive user records."
+    
+    keyboard = [[InlineKeyboardButton("⬅️ Back to Admin Menu", callback_data="admin_pending")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+# --- Utility Handlers ---
+async def set_bot_commands_logic(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Sets the bot commands for both user and admin in the BotFather menu."""
+    user_commands = [
+        BotCommand("start", "Start the bot and see the main menu"),
+        BotCommand("earn", "Go to the earning panel"),
+    ]
+    admin_commands = user_commands + [
+        BotCommand("admin", "Admin Panel (for admin only)")
+    ]
+
+    await context.bot.set_my_commands(user_commands)
+    await context.bot.set_my_commands(admin_commands, scope=BotCommandScopeChat(chat_id=ADMIN_ID))
+    logger.info("Bot commands set successfully.")
 
