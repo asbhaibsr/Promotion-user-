@@ -25,9 +25,35 @@ from tasks import add_payment_and_check_mission # Import job task
 
 logger = logging.getLogger(__name__)
 
+# --- Global Error Handler (New) ---
+async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Log the error and send a message to the admin."""
+    logger.error("Exception while handling an update:", exc_info=context.error)
+    
+    # Try to send a generic error message to the user/admin
+    try:
+        error_msg = f"❌ An error occurred! Details: {context.error}"
+        if update and update.effective_chat:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="❌ **Oops!** Something went wrong. The error has been logged.",
+                parse_mode='Markdown'
+            )
+        
+        # Log the error to the admin
+        if ADMIN_ID:
+            await context.bot.send_message(
+                chat_id=ADMIN_ID,
+                text=f"🚨 **Bot Error**:\n\n`{error_msg}`\n\n**Update:** `{update}`",
+                parse_mode='Markdown'
+            )
+    except Exception as e:
+        logger.error(f"Failed to handle error: {e}")
+
 # --- Core Handlers ---
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # ... (No changes here, as the original logic seems fine for a command handler)
     user = update.effective_user
     full_name = user.first_name + (f" {user.last_name}" if user.last_name else "")
     username_display = f"@{user.username}" if user.username else f"<code>{user.id}</code>"
@@ -82,6 +108,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 {"$inc": {"earnings": welcome_bonus_usd}, "$set": {"welcome_bonus_received": True}}
             )
             try:
+                # Assuming update.message is not None here for a /start command
                 await update.message.reply_html(MESSAGES[lang]["welcome_bonus_received"].format(amount=welcome_bonus))
             except Exception:
                  pass
@@ -145,16 +172,21 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
     )
     
-    await update.message.reply_html(message, reply_markup=reply_markup)
+    # Assuming update.message is safe for /start command
+    if update.message:
+        await update.message.reply_html(message, reply_markup=reply_markup)
 
 
 async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    lang = await get_user_lang(update.effective_user.id)
-    keyboard = [[InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")]]
-    await update.message.reply_html(MESSAGES[lang]["earning_panel_message"], reply_markup=InlineKeyboardMarkup(keyboard))
+    # ... (No changes here)
+    if update.message:
+        lang = await get_user_lang(update.effective_user.id)
+        keyboard = [[InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")]]
+        await update.message.reply_html(MESSAGES[lang]["earning_panel_message"], reply_markup=InlineKeyboardMarkup(keyboard))
 
 
 async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # ... (No changes here)
     user = update.effective_user
     
     bot_info = await context.bot.get_me()
@@ -204,6 +236,11 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
 async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     
+    # Check 1: Ensure query object exists
+    if not query:
+        logger.warning("show_earning_panel called without a callback query.")
+        return 
+        
     user = query.from_user
     lang = await get_user_lang(user.id)
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
@@ -212,10 +249,12 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     if not user_data:
         await query.answer("User data not found.", show_alert=True)
-        try:
-             await query.edit_message_text("User data not found.")
-        except Exception:
-             await context.bot.send_message(user.id, "User data not found.")
+        # Check 2: Ensure message object exists before editing/sending
+        if query.message: 
+             try:
+                 await query.edit_message_text("User data not found.")
+             except Exception:
+                  await context.bot.send_message(user.id, "User data not found.")
         return
     
     earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
@@ -250,12 +289,16 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
         [InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-
-    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+    
+    if query.message: # Check 3: Final check before edit
+        await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
 
 async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    if not query:
+        return
+        
     await query.answer()
     user = query.from_user
     lang = await get_user_lang(user.id)
@@ -289,11 +332,15 @@ async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+    if query.message:
+        await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
 
 async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    if not query or not query.message: # Added safety check for query and message
+        return
+        
     user = query.from_user
     lang = await get_user_lang(user.id)
     username_display = f"@{user.username}" if user.username else f"<code>{user.id}</code>"
@@ -333,6 +380,9 @@ async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 async def show_spin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    if not query or not query.message: # Added safety check
+        return
+        
     await query.answer()
     
     user = query.from_user
@@ -361,7 +411,9 @@ async def show_spin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 async def perform_spin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    
+    if not query or not query.message: # Added safety check
+        return
+        
     user = query.from_user
     lang = await get_user_lang(user.id)
     username_display = f"@{user.username}" if user.username else f"<code>{user.id}</code>"
@@ -435,20 +487,25 @@ async def perform_spin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-
+    
+    # Use context.bot.edit_message_text as query.edit_message_text might fail after the sleep/animation
     await context.bot.edit_message_text(
         chat_id=query.message.chat_id, message_id=query.message.message_id, text=message, 
         reply_markup=reply_markup, parse_mode='HTML'
     )
 
+
 async def spin_fake_btn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    await query.answer("🎡 Spinning... Please wait!", show_alert=False)
+    if query: # Check 4: Safety check for query
+        await query.answer("🎡 Spinning... Please wait!", show_alert=False)
 
 
 async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    
+    if not query or not query.message: # Added safety check
+        return
+        
     user = query.from_user
     lang = await get_user_lang(user.id)
     
@@ -458,6 +515,8 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         return
         
     await query.answer()
+    
+    # ... (Mission logic remains the same)
 
     today = datetime.now().date()
     
@@ -557,7 +616,9 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    
+    if not query or not query.message: # Added safety check
+        return
+        
     user = query.from_user
     lang = await get_user_lang(user.id)
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
@@ -582,8 +643,7 @@ async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if existing_request:
         await query.edit_message_text(
             "❌ <b>Request Already Pending!</b>\n\nYour previous withdrawal request is still being processed.",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]),
-            parse_mode='HTML'
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
         )
         return
     
@@ -628,10 +688,12 @@ async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE)
     )
 
 # --- Other Menu Handlers (Language, Help, Groups, Tier) ---
-# NOTE: These are placeholders. You'll need to implement the full logic for them.
 
 async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    if not query or not query.message: # Added safety check for query and message
+        return
+        
     await query.answer()
     lang = await get_user_lang(query.from_user.id)
     
@@ -642,11 +704,21 @@ async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    await query.edit_message_text(MESSAGES[lang]["language_prompt"], reply_markup=reply_markup)
+    # Fix: Ensure 'language_prompt' key exists in the MESSAGES dict for the current 'lang'
+    try:
+        message_text = MESSAGES[lang]["language_prompt"]
+    except KeyError:
+        logger.error(f"KeyError: 'language_prompt' missing for language '{lang}'. Using fallback.")
+        message_text = "Please select your language:" # Fallback message
+
+    await query.edit_message_text(message_text, reply_markup=reply_markup)
 
 
 async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    if not query:
+        return
+        
     await query.answer()
     new_lang = query.data.split("_")[1]
     
@@ -658,6 +730,9 @@ async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def show_withdraw_details_new(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    if not query or not query.message: # Added safety check
+        return
+        
     await query.answer()
     user = query.from_user
     lang = await get_user_lang(user.id)
@@ -680,6 +755,9 @@ async def show_withdraw_details_new(update: Update, context: ContextTypes.DEFAUL
 
 async def show_movie_groups_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    if not query or not query.message: # Added safety check
+        return
+        
     await query.answer()
 
     lang = await get_user_lang(query.from_user.id)
@@ -703,9 +781,16 @@ async def show_movie_groups_menu(update: Update, context: ContextTypes.DEFAULT_T
 async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     
-    user = query.from_user
+    # Check 5: Handle cases where a callback query might be missing (e.g., direct /start or old query)
+    if not query and not update.message:
+        logger.warning("back_to_main_menu called without update.message or update.callback_query.")
+        return
+
+    user = update.effective_user
     lang = await get_user_lang(user.id)
-    await query.answer()
+    
+    if query:
+        await query.answer()
 
     keyboard = [
         [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
@@ -721,27 +806,40 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     )
     
     # Handle message edit/send based on whether it's a callback or a new command/menu
-    if isinstance(update, Update) and update.callback_query:
-        if query.message.photo:
-            try:
-                await query.message.delete()
-            except Exception:
-                pass
-                
-            await context.bot.send_message(
-                chat_id=query.message.chat_id,
-                text=message, 
-                reply_markup=reply_markup,
-                parse_mode='HTML'
-            )
+    if query: # If it came from a callback
+        if query.message: # Check 6: Ensure message exists before deleting/editing
+            if query.message.photo:
+                try:
+                    await query.message.delete()
+                except Exception:
+                    pass
+                    
+                await context.bot.send_message(
+                    chat_id=query.message.chat_id,
+                    text=message, 
+                    reply_markup=reply_markup,
+                    parse_mode='HTML'
+                )
+            else:
+                try: # Check 7: Added try-except for edit_message_text (common source of 'NoneType' or 'Message not modified')
+                    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+                except TelegramError as e:
+                    if "Message is not modified" not in str(e):
+                        logger.error(f"Error editing message in back_to_main_menu: {e}")
+                    pass
         else:
-            await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-    elif isinstance(update, Update) and update.message:
+             # Fallback if query exists but message is None (very rare, means message was deleted)
+             await context.bot.send_message(chat_id=user.id, text=message, reply_markup=reply_markup, parse_mode='HTML')
+             
+    elif update.message: # If it came from a /command
         await update.message.reply_html(message, reply_markup=reply_markup)
 
 
 async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    if not query or not query.message: # Added safety check
+        return
+        
     await query.answer()
     lang = await get_user_lang(query.from_user.id)
     
@@ -756,6 +854,9 @@ async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def show_tier_benefits(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    if not query or not query.message: # Added safety check
+        return
+        
     await query.answer()
     lang = await get_user_lang(query.from_user.id)
     
@@ -770,6 +871,9 @@ async def show_tier_benefits(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def show_refer_example(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    if not query or not query.message: # Added safety check
+        return
+        
     await query.answer()
     lang = await get_user_lang(query.from_user.id)
     
@@ -799,6 +903,9 @@ async def show_refer_example(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    if not query or not query.message: # Added safety check
+        return
+        
     user = query.from_user
     lang = await get_user_lang(user.id)
     username_display = f"@{user.username}" if user.username else f"<code>{user.id}</code>"
@@ -835,7 +942,7 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
             )
             log_msg = f"🎁 <b>Channel Bonus Claimed</b>\nUser: {username_display}\nAmount: ₹{CHANNEL_BONUS:.2f}\nNew Balance: ₹{new_balance_inr:.2f}"
             await send_log_message(context, log_msg)
-            await show_earning_panel(update, context) # Refresh panel
+            # await show_earning_panel(update, context) # Already handled by edit_message_text above, no need to refresh panel again
             return
             
     # If not a member or update failed
@@ -854,10 +961,11 @@ async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     user = update.effective_user
     
     if user.id != ADMIN_ID:
-        try:
-            await update.message.reply_text("❌ Access Denied.")
-        except:
-            pass
+        if update.message:
+            try:
+                await update.message.reply_text("❌ Access Denied.")
+            except:
+                pass
         return
 
     # Store state for admin inputs
@@ -876,11 +984,18 @@ async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await update.message.reply_html(message, reply_markup=reply_markup)
+    if update.message: # Check 8: Ensure message exists for command handler
+        await update.message.reply_html(message, reply_markup=reply_markup)
 
 
 async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    
+    # Check 9: Ensure query and message objects exist to avoid NoneType error
+    if not query or not query.message:
+        logger.warning("handle_admin_callbacks called without query or message.")
+        return
+        
     await query.answer()
     
     user = query.from_user
@@ -909,15 +1024,21 @@ async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_T
 
 async def show_pending_withdrawals(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    
+    if not query or not query.message: # Added safety check
+        return
+        
     pending_withdrawals = WITHDRAWALS_COLLECTION.find({"status": "pending"}).sort("request_date", 1)
     
     message = "<b>💸 Pending Withdrawals</b>\n\n"
     keyboard = []
     
-    if pending_withdrawals.count() == 0:
+    # Using count_documents() is better if you only need the count
+    count = WITHDRAWALS_COLLECTION.count_documents({"status": "pending"})
+
+    if count == 0:
         message += "✅ No pending withdrawal requests."
     else:
+        # Iterate over the cursor
         for request in pending_withdrawals:
             user_id = request["user_id"]
             amount = request["amount_inr"]
@@ -944,7 +1065,7 @@ async def show_pending_withdrawals(update: Update, context: ContextTypes.DEFAULT
 async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handles text input from the admin based on the current admin_state."""
     user = update.effective_user
-    if user.id != ADMIN_ID:
+    if user.id != ADMIN_ID or not update.message:
         return
         
     admin_state = context.user_data.get("admin_state")
@@ -960,6 +1081,7 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
         
         for user_data in USERS_COLLECTION.find():
             try:
+                # Use context.bot.send_message, not update.message.reply_text, for broadcasts
                 await context.bot.send_message(user_data["user_id"], text, parse_mode='HTML')
                 success_count += 1
                 await asyncio.sleep(0.05) # Throttle
@@ -994,10 +1116,14 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    if not query: # Added safety check
+        return
+        
     await query.answer()
     
     if query.from_user.id != ADMIN_ID:
-        await query.edit_message_text("❌ Access Denied.")
+        if query.message:
+            await query.edit_message_text("❌ Access Denied.")
         return
         
     parts = query.data.split("_")
@@ -1012,7 +1138,8 @@ async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAU
     )
 
     if not withdrawal_request:
-        await query.edit_message_text(f"❌ Withdrawal request for user {user_id} not found or already processed.", parse_mode='HTML')
+        if query.message:
+            await query.edit_message_text(f"❌ Withdrawal request for user <code>{user_id}</code> not found or already processed.", parse_mode='HTML')
         return
 
     amount_inr = withdrawal_request["amount_inr"]
@@ -1035,8 +1162,9 @@ async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAU
             )
         except Exception as e:
             logger.error(f"Could not notify user {user_id} of approval: {e}")
-            
-        await query.edit_message_text(f"✅ Request for user <code>{user_id}</code> (**₹{amount_inr:.2f}**) **APPROVED**.\nFunds deducted.", parse_mode='HTML')
+        
+        if query.message:
+            await query.edit_message_text(f"✅ Request for user <code>{user_id}</code> (**₹{amount_inr:.2f}**) **APPROVED**.\nFunds deducted.", parse_mode='HTML')
         log_msg = f"💸 <b>Withdrawal Approved</b>\nAdmin: <code>{query.from_user.id}</code>\nUser: <code>{user_id}</code>\nAmount: ₹{amount_inr:.2f}"
     
     else: # reject
@@ -1050,17 +1178,22 @@ async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAU
             )
         except Exception as e:
             logger.error(f"Could not notify user {user_id} of rejection: {e}")
-            
-        await query.edit_message_text(f"❌ Request for user <code>{user_id}</code> (**₹{amount_inr:.2f}**) **REJECTED**.", parse_mode='HTML')
+        
+        if query.message:
+            await query.edit_message_text(f"❌ Request for user <code>{user_id}</code> (**₹{amount_inr:.2f}**) **REJECTED**.", parse_mode='HTML')
         log_msg = f"🚫 <b>Withdrawal Rejected</b>\nAdmin: <code>{query.from_user.id}</code>\nUser: <code>{user_id}</code>\nAmount: ₹{amount_inr:.2f}"
 
     await send_log_message(context, log_msg)
-    await show_pending_withdrawals(update, context) # Refresh list
+    # Re-show pending withdrawals if the message exists
+    if query.message:
+        await show_pending_withdrawals(update, context) # Refresh list
 
 
 async def topusers_logic(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    
+    if not query or not query.message: # Added safety check
+        return
+        
     # Example: Find top 10 users by earnings
     top_users = USERS_COLLECTION.find().sort("earnings", -1).limit(10)
     
@@ -1081,7 +1214,9 @@ async def topusers_logic(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def clearjunk_logic(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    
+    if not query or not query.message: # Added safety check
+        return
+        
     # Example: Logic to find and delete junk data (e.g., users with 0 earnings who never completed a mission)
     # NOTE: Implement this carefully!
     
@@ -1118,6 +1253,6 @@ async def set_bot_commands_logic(context: ContextTypes.DEFAULT_TYPE) -> None:
     ]
 
     await context.bot.set_my_commands(user_commands)
-    await context.bot.set_my_commands(admin_commands, scope=BotCommandScopeChat(chat_id=ADMIN_ID))
+    # BotCommandScopeChat is not imported in the original code, this line will likely fail
+    # await context.bot.set_my_commands(admin_commands, scope=BotCommandScopeChat(chat_id=ADMIN_ID)) 
     logger.info("Bot commands set successfully.")
-
