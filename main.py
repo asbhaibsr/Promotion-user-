@@ -1,3 +1,5 @@
+# main.py
+
 import logging
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler
 from datetime import timedelta
@@ -14,14 +16,16 @@ from handlers import (
     show_withdraw_details_new, claim_daily_bonus, show_refer_example,
     show_spin_panel, perform_spin, spin_fake_btn, show_missions, 
     request_withdrawal, show_tier_benefits, claim_channel_bonus,
-    handle_admin_callbacks, handle_withdrawal_approval, handle_group_messages
-    # You need to manually add handle_admin_input and other admin functions here as well if you split them up.
+    handle_admin_callbacks, handle_withdrawal_approval, handle_group_messages,
+    handle_admin_input # <--- सुनिश्चित करें कि यह handlers.py में है
 )
 from tasks import send_random_alerts_task
 
 # --- Logging Setup ---
 logging.basicConfig(
-    format='%(asctime}s - %(name}s - %(levelname}s - %(message}s', level=logging.INFO
+    # Fix: Corrected '}' to ')' in format string
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
+    level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
@@ -61,9 +65,8 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(handle_withdrawal_approval, pattern="^(approve|reject)_withdraw_\\d+$"))
     
     # --- Message Handlers ---
-    # Handle admin input in private chat (setrate, broadcast, etc.)
-    # Note: handle_admin_input needs to be implemented in handlers.py and imported.
-    # application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_admin_input)) 
+    # Handle admin input in private chat (for broadcast, setrate etc.)
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_admin_input)) 
     
     # Handle group messages (movie searches)
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.GROUPS, handle_group_messages))
