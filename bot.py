@@ -76,10 +76,10 @@ SPIN_WHEEL_CONFIG = {
 }
 
 TIERS = {
-    1: {"min_earnings": 0, "rate": 0.40, ...}, # YEH THHEEK HAI
-    2: {"min_earnings": 50, "rate": 0.55, ...}, # ISKO 0.55 KAR DEN
-    3: {"min_earnings": 200, "rate": 0.60, ...}, # ISKO 0.60 KAR DEN
-    4: {"min_earnings": 500, "rate": 0.70, ...}  # ISKO 0.70 KAR DEN
+    1: {"min_earnings": 0, "rate": 0.30, "name": "Beginner", "benefits_en": "Basic referral rate (₹0.30)", "benefits_hi": "सामान्य रेफरल दर (₹0.30)"},
+    2: {"min_earnings": 500, "rate": 0.40, "name": "Pro", "benefits_en": "50% higher referral rate (₹0.40)", "benefits_hi": "50% ज़्यादा रेफरल दर (₹0.40)"},
+    3: {"min_earnings": 1000, "rate": 0.50, "name": "Expert", "benefits_en": "2.5x referral rate (₹0.50)", "benefits_hi": "2.5 गुना रेफरल दर (₹0.50)"},
+    4: {"min_earnings": 2000, "rate": 0.60, "name": "Master", "benefits_en": "5x referral rate (₹0.60)", "benefits_hi": "5 गुना रेफरल दर (₹0.60)"}
 }
 
 DAILY_MISSIONS = {
