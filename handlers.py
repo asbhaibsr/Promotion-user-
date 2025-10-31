@@ -5,7 +5,8 @@ import random
 import time
 import urllib.parse
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
-from telegram.error import TelegramError, TimedOut
+# FIX: FloodWait is now explicitly imported for broadcast handling
+from telegram.error import TelegramError, TimedOut, Forbidden, BadRequest, RetryAfter as FloodWait 
 from telegram.ext import ContextTypes
 from datetime import datetime, timedelta
 import asyncio
@@ -578,18 +579,21 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     # The mission is now **completed when 3 referred users have successfully triggered a payment (3 paid searches) today**.
     
     # Fetch all referral records for the current user (referrer)
-    referral_records = list(REFERRALS_COLLECTION.find({"referrer_id": user.id}))
-    
-    # Count how many of these referred users have been paid today (paid_search_count_today > 0)
+    # FIX: This logic needs to be robust, counting only unique *referred_user_id* that have been paid *today*
     paid_searches_today_count = 0
+    referral_records = list(REFERRALS_COLLECTION.find({"referrer_id": user.id}))
+    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # FIX: Recalculate paid_searches_today_count based on successful daily payments
     for ref_record in referral_records:
-        paid_searches_today_count += ref_record.get("paid_search_count_today", 0)
+        if ref_record.get("last_paid_date") and ref_record["last_paid_date"] >= today_start:
+             paid_searches_today_count += 1
         
     # Mission: Refer 2 Friends (New user joins)
     referrals_today_count = REFERRALS_COLLECTION.count_documents({
         "referrer_id": user.id,
         "referred_user_id": {"$ne": user.id}, # Exclude self-referral checks
-        "join_date": {"$gte": datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)}
+        "join_date": {"$gte": today_start} # Use today_start
     })
     
     user_data = USERS_COLLECTION.find_one({"user_id": user.id}) # Re-fetch updated data
@@ -933,7 +937,7 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                     pass
         else:
              # Fallback if query exists but message is None (very rare, means message was deleted)
-             await context.bot.send_message(chat_id=user.id, text=message, reply_mode=reply_markup, parse_mode='HTML')
+             await context.bot.send_message(chat_id=user.id, text=message, reply_markup=reply_markup, parse_mode='HTML')
              
     elif update.message: # If it came from a /command
         await update.message.reply_html(message, reply_markup=reply_markup)
@@ -1235,22 +1239,68 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
         success_count = 0
         fail_count = 0
         
-        await update.message.reply_text("📢 Starting broadcast... This may take a moment.")
+        # Initial message to admin
+        status_message = await update.message.reply_text("📢 Starting broadcast... This may take a moment. Updates will be shown here.")
         
         # Find approved users (Assuming `is_approved` is correct flag)
         user_ids_cursor = USERS_COLLECTION.find({"is_approved": True}, {"user_id": 1}) 
+        total_users = USERS_COLLECTION.count_documents({"is_approved": True})
         
-        for user_data in user_ids_cursor:
+        for i, user_data in enumerate(user_ids_cursor):
+            user_id = user_data["user_id"]
+            
+            # Update admin message every 100 users
+            if i % 100 == 0 and i != 0:
+                 try:
+                    await context.bot.edit_message_text(
+                        chat_id=status_message.chat_id, 
+                        message_id=status_message.message_id,
+                        text=f"📢 Broadcasting in progress...\nSent to {i} of {total_users} users.\nSuccess: {success_count} / Failed: {fail_count}"
+                    )
+                 except Exception as e:
+                     logger.warning(f"Failed to edit broadcast status message: {e}")
+            
             try:
-                # Use context.bot.send_message, not update.message.reply_text, for broadcasts
-                await context.bot.send_message(user_data["user_id"], text, parse_mode='HTML')
+                # Use HTML parse mode for the broadcast message
+                await context.bot.send_message(user_id, text, parse_mode='HTML', disable_web_page_preview=True)
                 success_count += 1
-                await asyncio.sleep(0.05) # Throttle
-            except Exception:
+                await asyncio.sleep(0.05) # Throttle to respect rate limits (20 messages per minute in private chats)
+                
+            except FloodWait as e:
+                wait_time = e.retry_after + 1 
+                logger.warning(f"FloodWait encountered for user {user_id}. Waiting for {wait_time} seconds. Success: {success_count}, Fail: {fail_count}")
+                await context.bot.edit_message_text(
+                     chat_id=status_message.chat_id, 
+                     message_id=status_message.message_id,
+                     text=f"⚠️ **PAUSED: FloodWait**\nWaiting for {wait_time} seconds...\nSent to {i} of {total_users} users.\nSuccess: {success_count} / Failed: {fail_count}"
+                )
+                await asyncio.sleep(wait_time)
+                # After waiting, retry sending to the *current* user (important!)
+                try:
+                    await context.bot.send_message(user_id, text, parse_mode='HTML', disable_web_page_preview=True)
+                    success_count += 1
+                    await asyncio.sleep(0.05)
+                except Exception:
+                     fail_count += 1
+                
+            except (Forbidden, BadRequest) as e:
+                # Forbidden: User blocked the bot. BadRequest: Chat not found, message invalid, etc.
                 fail_count += 1
+                USERS_COLLECTION.update_one({"user_id": user_id}, {"$set": {"is_approved": False}}) # Optional: Mark as unapproved
+                logger.warning(f"Failed to send to user {user_id} due to API Error: {e}. User marked unapproved (optional).")
+                
+            except Exception as e:
+                fail_count += 1
+                logger.error(f"Unknown error sending to user {user_id}: {e}")
                 
         context.user_data["admin_state"] = None
-        await update.message.reply_text(f"✅ Broadcast complete.\nSuccessful: {success_count}\nFailed: {fail_count}")
+        # Final status update
+        await context.bot.edit_message_text(
+            chat_id=status_message.chat_id, 
+            message_id=status_message.message_id,
+            text=f"✅ **Broadcast complete**.\nSuccessful: {success_count}\nFailed: {fail_count}\nTotal users processed: {total_users}"
+        )
+
 
     elif admin_state == "waiting_for_ref_rate":
         # Set new referral rate logic - Fix: This now uses SETTINGS_COLLECTION for Tier 1
@@ -1352,7 +1402,6 @@ async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAU
         # Avoid show_pending_withdrawals if it came from the earning panel withdraw button
         if "admin" in query.data:
             await show_pending_withdrawals(update, context) # Refresh list
-
 
 # --- Top Users Logic (Moved to Earning Panel) ---
 async def show_top_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
