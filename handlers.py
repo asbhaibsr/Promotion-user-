@@ -1,3 +1,5 @@
+# Handlers.py
+
 import logging
 import random
 import time
@@ -8,7 +10,6 @@ from telegram.ext import ContextTypes
 from datetime import datetime, timedelta
 import asyncio
 
-# IMPORTANT: Ensure all modules and variables in config.py and db_utils.py are accessible and correct.
 from config import (
     USERS_COLLECTION, REFERRALS_COLLECTION, SETTINGS_COLLECTION, WITHDRAWALS_COLLECTION,
     DOLLAR_TO_INR, MESSAGES, ADMIN_ID, YOUR_TELEGRAM_HANDLE, 
@@ -26,9 +27,8 @@ from db_utils import (
 
 logger = logging.getLogger(__name__)
 
-# --- CRITICAL FIX: Job Queue Function ---
+
 async def referral_payment_job(context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Scheduled job to pay the referrer and update their mission status."""
     job_data = context.job.data
     referrer_id = job_data.get("referrer_id")
     referred_user_id = job_data.get("referred_user_id") 
@@ -37,21 +37,15 @@ async def referral_payment_job(context: ContextTypes.DEFAULT_TYPE) -> None:
         logger.error("Job data missing referrer_id or referred_user_id.")
         return
 
-    # Call the core logic to pay the referrer and update mission
-    # This logic is implemented inside db_utils.py/pay_referrer_and_update_mission
-    # This function also handles the spin award to the referrer
     success, amount = await pay_referrer_and_update_mission(context, referred_user_id, referrer_id)
     
     if success:
         logger.info(f"Job: Successfully paid referrer {referrer_id} from user {referred_user_id} (₹{amount:.2f}).")
     else:
-        # This will only happen if the payment was already processed today or other conditions failed.
         logger.warning(f"Job: Referral payment for {referred_user_id} to {referrer_id} failed or already processed.")
 
 
-# --- Global Error Handler ---
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Log the error and send a message to the admin."""
     logger.error("Exception while handling an update:", exc_info=context.error)
     
     try:
@@ -73,7 +67,6 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     except Exception as e:
         logger.error(f"Failed to handle error: {e}")
 
-# --- Core Handlers ---
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
@@ -86,7 +79,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
     is_new_user = not user_data
 
-    # 1. User Upsert and Initialization
     update_data = {
         "$setOnInsert": {
             "user_id": user.id,
@@ -116,13 +108,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
     lang = user_data.get("lang", "en")
     
-    # 2. New User Logic (Welcome Bonus, Referral)
     if is_new_user:
         log_msg = f"👤 <b>New User</b>\nID: <code>{user.id}</code>\nName: {full_name}\nUsername: {username_display}"
         
-        # Welcome Bonus
         if not user_data.get("welcome_bonus_received", False):
-            # Fetch the welcome bonus from settings or use a default
             welcome_bonus_inr = await get_welcome_bonus()
             welcome_bonus_usd = welcome_bonus_inr / DOLLAR_TO_INR
             
@@ -137,7 +126,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             log_msg += f"\n🎁 Welcome Bonus: ₹{welcome_bonus_inr:.2f}"
             log_msg += f"\n🎰 Initial Spins: {SPIN_WHEEL_CONFIG['initial_free_spins']}"
 
-        # Referral Logic - CRITICAL FIX: Remove immediate payment/spin here. Only record the referral.
         if referral_id and referral_id != user.id:
             existing_referral = REFERRALS_COLLECTION.find_one({"referred_user_id": user.id})
             
@@ -151,18 +139,14 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                     "paid_search_count_today": 0 
                 })
                 
-                # Notify referrer about the *new* referral, without mentioning immediate bonus
                 log_msg += f"\n🔗 Referred by: <code>{referral_id}</code> (Referral Recorded, Payment Pending on Search)"
 
-                # Use a slightly modified message key if available, otherwise fallback
                 try:
                     referrer_lang = await get_user_lang(referral_id)
-                    # Temporary: Revert back to the original message template as requested by the user's provided code structure
                     await context.bot.send_message(
                         chat_id=referral_id,
-                        # The original template mentions a bonus, we keep it as it's in the user's config
                         text=MESSAGES[referrer_lang]["new_referral_notification"].format(
-                            full_name=full_name, username=username_display, bonus=0.00 # Set bonus to 0.00 for no immediate bonus
+                            full_name=full_name, username=username_display, bonus=0.00 
                         ),
                         parse_mode='HTML'
                     )
@@ -173,7 +157,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
         await send_log_message(context, log_msg)
 
-    # 3. Send Main Menu
     keyboard = [
         [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
         [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
@@ -200,7 +183,6 @@ async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # 1. Ensure message is a text message and in a group/supergroup
     if not update.message or not update.message.text:
         return
         
@@ -218,10 +200,8 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
     if not user_data:
         return 
 
-    # 2. Update User's Daily Search Count (for their *own* mission progress)
     await update_daily_searches_and_mission(user.id)
     
-    # 3. Check for referrer and schedule payment task
     referral_data = REFERRALS_COLLECTION.find_one({"referred_user_id": user.id})
     
     if referral_data:
@@ -234,19 +214,14 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
         last_paid_date = referral_data.get("last_paid_date")
         today = datetime.now().date()
         
-        # Check if payment already processed today
         if last_paid_date and isinstance(last_paid_date, datetime) and last_paid_date.date() == today:
             logger.info(f"Referral payment for user {user.id} to referrer {referrer_id} already processed today. Skipping job scheduling.")
             return
 
-        # Schedule the job if not paid today
         job_name = f"pay_{user.id}" 
         existing_jobs = context.job_queue.get_jobs_by_name(job_name)
         
-        # CRITICAL FIX: Schedule payment only if a job isn't already running/scheduled for this referred user.
         if not existing_jobs:
-            # Payment check scheduled after a delay (e.g., 5 minutes = 300 seconds)
-            # This delay ensures that the message is actually a movie search and not bot spam.
             context.job_queue.run_once(
                 referral_payment_job, 
                 300, 
@@ -259,10 +234,6 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
         else:
              logger.info(f"Payment task for {user.id} already pending. Ignoring job creation.")
     
-    # The payment is now silent as requested.
-
-
-# --- Callback Handlers (Menus, Actions) ---
 
 async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -286,10 +257,8 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
                   await context.bot.send_message(user.id, "User data not found.")
         return
     
-    # CRITICAL FIX: Calculate earnings_inr correctly
     earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
     
-    # CRITICAL FIX: Referrals count needs to exclude self-referral if any weird data exists.
     referrals_count = REFERRALS_COLLECTION.count_documents({"referrer_id": user.id, "referred_user_id": {"$ne": user.id}})
     user_tier = await get_user_tier(user.id)
     tier_info = TIERS.get(user_tier, TIERS[1]) 
@@ -309,7 +278,6 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
         channel_button_text = f"✅ Channel Bonus Claimed (₹{CHANNEL_BONUS:.2f})"
 
     keyboard = [
-        # NEW BUTTON: My Referrals (This button will now work as intended)
         [InlineKeyboardButton("🔗 My Refer Link", callback_data="show_refer_link"), 
          InlineKeyboardButton("👥 My Referrals", callback_data="show_my_referrals")],
         
@@ -333,7 +301,6 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
 
-# --- NEW FUNCTION: Show My Referrals (CRITICAL FIX for the user's issue 1) ---
 async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message:
@@ -343,14 +310,11 @@ async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     lang = await get_user_lang(user.id)
     await query.answer()
 
-    # Get all referrals for this user
-    # CRITICAL FIX: Exclude self-referral if any exists
     referral_records = list(REFERRALS_COLLECTION.find({"referrer_id": user.id, "referred_user_id": {"$ne": user.id}}).sort("join_date", -1))
     
     total_referrals = len(referral_records)
     today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     
-    # Count today's paid referrals
     paid_searches_today_count = 0
     for ref_record in referral_records:
         last_paid = ref_record.get("last_paid_date")
@@ -366,7 +330,6 @@ async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     if total_referrals == 0:
         message += "❌ You have not referred anyone yet. Share your link now!"
     else:
-        # Displaying last 10 referrals
         for i, ref_record in enumerate(referral_records[:10]):
             referred_id = ref_record['referred_user_id']
             join_date = ref_record['join_date'].strftime("%d %b %Y")
@@ -376,13 +339,11 @@ async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             if last_paid and last_paid.date() == today_start.date():
                  status_emoji = "✅ (Paid Today)"
             elif last_paid:
-                 # Check if last paid was yesterday or before
                  if (today_start - last_paid.date()).days == 1:
                      status_emoji = f"⚠️ (Last Paid: Yesterday)"
                  else:
                      status_emoji = f"⚠️ (Last Paid: {last_paid.strftime('%d %b')})"
 
-            # Using HTML <a> tag to display user ID
             user_link = f"tg://user?id={referred_id}"
             display_id = f"<a href='{user_link}'><code>{referred_id}</code></a>"
             
@@ -412,13 +373,11 @@ async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     bot_username = bot_info.username
     referral_link = f"https://t.me/{bot_username}?start=ref_{user.id}"
     
-    # Using the highest tier rate to attract users
     max_tier_rate = TIERS[max(TIERS.keys())]["rate"]
     
     message = (
         f"<b>🤑 ₹{max_tier_rate:.2f} Per Referral! Get Rich Fast!</b>\n\n"
         f"{MESSAGES[lang]['ref_link_message'].format(referral_link=referral_link, tier_rate=max_tier_rate)}\n\n"
-        # CRITICAL FIX: Adjusted the tip to reflect the new payment logic
         f"<b>💡 Secret Tip:</b> Your friends must <b>search one movie</b> in the group to unlock your daily earning! Share this now!"
     )
 
@@ -455,7 +414,6 @@ async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     
     if already_claimed:
         await query.answer(MESSAGES[lang]["daily_bonus_already_claimed"], show_alert=True)
-        # CRITICAL FIX: Ensure to edit the message back to the correct panel content
         await query.edit_message_text(
             MESSAGES[lang]["daily_bonus_already_claimed"],
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
@@ -500,7 +458,6 @@ async def show_spin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     message = MESSAGES[lang]["spin_wheel_title"].format(spins_left=spins_left)
     
-    # CRITICAL FIX: The logic was previously saying "Refer a friend to get 1 free spin" which is now incorrect.
     if spins_left > 0:
         keyboard = [
             [InlineKeyboardButton(MESSAGES[lang]["spin_wheel_button"].format(spins_left=spins_left), callback_data="perform_spin")],
@@ -555,10 +512,8 @@ async def perform_spin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         
     spins_left_after_deduct = result.get("spins_left", 0)
 
-    # UI Animation Simulation
     button_prizes = list(SPIN_PRIZES)
     random.shuffle(button_prizes)
-    # Ensure there are enough unique prizes to fill the 8 buttons
     temp_prizes = [p for p in SPIN_PRIZES if p > 0.0]
     while len(temp_prizes) < 8: temp_prizes.append(0.0) 
     
@@ -573,7 +528,6 @@ async def perform_spin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
     await asyncio.sleep(3)
 
-    # Actual Spin Result and Database Update
     prize_inr = random.choices(SPIN_PRIZES, weights=SPIN_WEIGHTS, k=1)[0]
     prize_usd = prize_inr / DOLLAR_TO_INR
     
@@ -630,18 +584,15 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     today = datetime.now().date()
     today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     
-    # Reset mission status and counts if the date has changed (Logic simplified for clarity)
     last_search_date = user_data.get("last_search_date")
     last_checkin_date = user_data.get("last_checkin_date")
     
-    # CRITICAL FIX: Reset own daily searches only if last_search_date is before today
     if not last_search_date or not isinstance(last_search_date, datetime) or last_search_date.date() != today:
         USERS_COLLECTION.update_one(
             {"user_id": user.id},
-            {"$set": {"daily_searches": 0, "missions_completed.search_3_movies": False}} # This mission is now driven by paid searches
+            {"$set": {"daily_searches": 0, "missions_completed.search_3_movies": False}}
         )
     
-    # CRITICAL FIX: Reset daily bonus mission status
     is_bonus_claimed_today = last_checkin_date and isinstance(last_checkin_date, datetime) and last_checkin_date.date() == today
     if not is_bonus_claimed_today:
         USERS_COLLECTION.update_one(
@@ -649,9 +600,7 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             {"$set": {"missions_completed.claim_daily_bonus": False}}
         )
         
-    # Get the count of referred users who have triggered a payment today
     paid_searches_today_count = 0
-    # CRITICAL FIX: Only count referrals who are NOT the user themselves
     referral_records = list(REFERRALS_COLLECTION.find({"referrer_id": user.id, "referred_user_id": {"$ne": user.id}}))
     
     for ref_record in referral_records:
@@ -659,14 +608,12 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         if last_paid and isinstance(last_paid, datetime) and last_paid.date() == today_start.date():
              paid_searches_today_count += 1
         
-    # Mission: Refer 2 Friends (New user joins)
     referrals_today_count = REFERRALS_COLLECTION.count_documents({
         "referrer_id": user.id,
         "referred_user_id": {"$ne": user.id}, 
         "join_date": {"$gte": today_start}
     })
     
-    # Re-fetch user data to get updated mission status after potential resets
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
     missions_completed = user_data.get("missions_completed", {})
     daily_searches = user_data.get("daily_searches", 0) 
@@ -675,14 +622,11 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     newly_completed_message = ""
     total_reward = 0.0
 
-    # 1. search_3_movies Mission (Completed by referred users' paid searches)
     mission_key = "search_3_movies"
     mission = DAILY_MISSIONS[mission_key]
     name = mission["name"] if lang == "en" else mission["name_hi"]
     
-    # CRITICAL FIX: Check against 'paid_searches_today_count' (referred users who searched)
     if paid_searches_today_count >= mission['target'] and not missions_completed.get(mission_key):
-        # Mission completed, give reward
         reward_usd = mission["reward"] / DOLLAR_TO_INR
         total_reward += mission["reward"]
         USERS_COLLECTION.update_one(
@@ -698,17 +642,14 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     elif missions_completed.get(mission_key):
         message += f"✅ {name} ({mission['target']}/{mission['target']}) [<b>Completed</b>]\n"
     else:
-        # CRITICAL FIX: The message should reflect referred users' searches
         message += f"⏳ {name} ({min(paid_searches_today_count, mission['target'])}/{mission['target']}) [In Progress]\n"
         message += f"   - <i>Tip: Your referred user must search a movie for this count to increase!</i>\n"
         
-    # 2. refer_2_friends Mission (New user joins)
     mission_key = "refer_2_friends"
     mission = DAILY_MISSIONS[mission_key]
     name = mission["name"] if lang == "en" else mission["name_hi"]
     
     if referrals_today_count >= mission['target'] and not missions_completed.get(mission_key):
-        # Mission completed, give reward
         reward_usd = mission["reward"] / DOLLAR_TO_INR
         total_reward += mission["reward"]
         USERS_COLLECTION.update_one(
@@ -726,15 +667,12 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     else:
         message += f"⏳ {name} ({min(referrals_today_count, mission['target'])}/{mission['target']}) [In Progress]\n"
 
-    # 3. claim_daily_bonus Mission
     mission_key = "claim_daily_bonus"
     mission = DAILY_MISSIONS[mission_key]
     name = mission["name"] if lang == "en" else mission["name_hi"]
     
-    # CRITICAL FIX: Check if daily bonus was claimed today
     if is_bonus_claimed_today:
         if not missions_completed.get(mission_key):
-             # Mission complete, give reward only if not already done
             reward_usd = mission["reward"] / DOLLAR_TO_INR
             total_reward += mission["reward"]
             USERS_COLLECTION.update_one(
@@ -753,7 +691,6 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         message += f"⏳ {name} [In Progress]\n"
 
 
-    # Display total reward if any new missions were completed
     if total_reward > 0:
         updated_data = USERS_COLLECTION.find_one({"user_id": user.id})
         updated_earnings_inr = updated_data.get("earnings", 0.0) * DOLLAR_TO_INR
@@ -841,7 +778,6 @@ async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE)
         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
     )
 
-# --- Other Menu Handlers (Language, Help, Groups, Tier) ---
 
 async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -1102,7 +1038,6 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
     if user_data.get("channel_bonus_received"):
         await query.answer(MESSAGES[lang]["channel_already_claimed"], show_alert=True)
-        # CRITICAL FIX: Ensure to return to the earning panel if already claimed
         await show_earning_panel(update, context) 
         return
         
@@ -1110,16 +1045,14 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     is_member = False
     try:
-        # CRITICAL FIX: Check if the user is a member of the CHANNEL_ID
         member = await context.bot.get_chat_member(CHANNEL_ID, user.id)
         is_member = member.status in ["member", "administrator", "creator"]
     except Forbidden:
-        # If bot is not in the channel or channel is private
         logger.warning(f"Bot or channel error for {CHANNEL_ID}. Cannot verify membership for {user.id}. Assuming non-member for safety.")
-        pass # is_member remains False
+        pass
     except Exception as e:
         logger.error(f"Error checking channel membership for {user.id}: {e}")
-        pass # is_member remains False
+        pass
         
     if is_member:
         bonus_usd = CHANNEL_BONUS / DOLLAR_TO_INR
@@ -1132,7 +1065,6 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
         
         if result:
             new_balance_inr = result.get("earnings", 0.0) * DOLLAR_TO_INR
-            # If successfully claimed, show only the back button
             await query.edit_message_text(
                 MESSAGES[lang]["channel_bonus_claimed"].format(amount=CHANNEL_BONUS, new_balance=new_balance_inr, channel=CHANNEL_USERNAME), 
                 reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
@@ -1141,17 +1073,19 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
             await send_log_message(context, log_msg)
             return
         
-    # If not a member or update failed
     
-    # CRITICAL FIX for the user's issue 2: Single button for join and retry
     join_button = InlineKeyboardButton(
-        MESSAGES[lang]["join_channel_button_text"], 
+        "🔗 Join Channel", 
         url=JOIN_CHANNEL_LINK 
+    )
+    retry_button = InlineKeyboardButton(
+        "🔄 Try Again", 
+        callback_data="claim_channel_bonus"
     )
     back_button = InlineKeyboardButton("⬅️ Back to Earning Panel", callback_data="show_earning_panel")
     
     keyboard = [
-        [join_button], # This button will take the user to the channel and they can press it again to verify/claim
+        [join_button, retry_button],
         [back_button] 
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -1162,9 +1096,8 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
         parse_mode='HTML'
     )
 
-# --- Admin Handlers (Kept as is) ---
+
 async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Shows the main admin panel menu."""
     user = update.effective_user
     
     if user.id != ADMIN_ID:
@@ -1236,7 +1169,6 @@ async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_T
 
 
 async def show_bot_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Shows overall bot statistics."""
     query = update.callback_query
     if not query or not query.message:
         return
@@ -1293,7 +1225,6 @@ async def show_pending_withdrawals(update: Update, context: ContextTypes.DEFAULT
 
 
 async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handles text input from the admin based on the current admin_state."""
     user = update.effective_user
     if user.id != ADMIN_ID or not update.message:
         return
@@ -1383,7 +1314,7 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
         except ValueError:
             await update.message.reply_text("❌ Invalid input. Please enter a valid number for the new rate (e.g., 5.0).")
             
-    # Add other admin input handlers here
+    
 
 
 async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1437,7 +1368,7 @@ async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAU
             await query.edit_message_text(f"✅ Request for user <code>{user_id}</code> (**₹{amount_inr:.2f}**) **APPROVED**.\nFunds deducted.", parse_mode='HTML')
         log_msg = f"💸 <b>Withdrawal Approved</b>\nAdmin: <code>{query.from_user.id}</code>\nUser: <code>{user_id}</code>\nAmount: ₹{amount_inr:.2f}"
     
-    else: # reject
+    else: 
         try:
             user_lang = await get_user_lang(user_id)
             await context.bot.send_message(
@@ -1471,7 +1402,6 @@ async def show_top_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     
     for i, user_data in enumerate(top_users_cursor):
         user_id = user_data["user_id"]
-        # CRITICAL FIX: Convert USD to INR
         earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
         username = user_data.get("username")
         
@@ -1508,9 +1438,8 @@ async def clearjunk_logic(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
-# --- Utility Handlers ---
+
 async def set_bot_commands_logic(context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Sets the bot commands for both user and admin in the BotFather menu."""
     user_commands = [
         BotCommand("start", "Start the bot and see the main menu"),
         BotCommand("earn", "Go to the earning panel"),
