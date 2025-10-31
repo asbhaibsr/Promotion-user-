@@ -3,7 +3,7 @@
 from telegram.ext import ContextTypes
 import logging
 from datetime import datetime, timedelta
-from telegram.error import TelegramError, TimedOut
+from telegram.error import TelegramError, TimedOut, Forbidden
 
 from config import (
     LOG_CHANNEL_ID, USERS_COLLECTION, SETTINGS_COLLECTION, TIERS, 
@@ -164,13 +164,9 @@ async def pay_referrer_and_update_mission(context: ContextTypes.DEFAULT_TYPE, us
             ]
         },
         {
+            # **FIX: Ensure last_paid_date is updated here to mark the payment for today**
             "$set": {
-                "last_paid_date": datetime.now()
-            },
-            # FIX: Only set paid_search_count_today to 1 if it's a new day's payment. 
-            # This field should ideally be updated elsewhere or only reflect the success of a payment.
-            # However, for mission check in handler, we rely on checking all referral records' last_paid_date
-            "$set": {
+                "last_paid_date": datetime.now(), 
                 "paid_search_count_today": 1 # Setting it to 1 to simplify logic for mission check if needed
             }
         },
@@ -194,14 +190,16 @@ async def pay_referrer_and_update_mission(context: ContextTypes.DEFAULT_TYPE, us
     updated_referrer_data = USERS_COLLECTION.find_one({"user_id": referrer_id})
     new_balance_inr = updated_referrer_data.get("earnings", 0.0) * DOLLAR_TO_INR
     
+    # **FIX: Fetch referred user's data to send notification to referrer**
     user_data = USERS_COLLECTION.find_one({"user_id": user_id})
     user_full_name = user_data.get("full_name", f"User {user_id}")
     
-    # Notify Referrer
+    # Notify Referrer (Only in private chat with the bot)
     referrer_lang = await get_user_lang(referrer_id)
     try:
+        # **FIX: Sending message to referrer_id (private chat)**
         await context.bot.send_message(
-            chat_id=referrer_id,
+            chat_id=referrer_id, # Private chat ID
             text=MESSAGES[referrer_lang]["daily_earning_update_new"].format( # Using new key
                 amount=tier_rate,
                 full_name=user_full_name, 
@@ -209,17 +207,18 @@ async def pay_referrer_and_update_mission(context: ContextTypes.DEFAULT_TYPE, us
             ),
             parse_mode='HTML'
         )
+    except Forbidden:
+        logger.warning(f"Referrer {referrer_id} blocked the bot. Cannot send earning update.")
     except (TelegramError, TimedOut) as e:
         logger.error(f"Could not send daily earning update to referrer {referrer_id}: {e}")
         
-    # Notify Referred User
-    user_lang = await get_user_lang(user_id)
-    try:
-        # User already received the 'search_success_message' from handle_group_messages
-        # No extra message needed here, but you could add one if the payment delay is significant
-        pass
-    except Exception as e:
-        logger.error(f"Could not send confirmation to referred user {user_id}: {e}")
+    # Notify Referred User (No extra message needed here, as it's sent immediately in handler)
+    # user_lang = await get_user_lang(user_id)
+    # try:
+    #     # User already received the 'search_success_message' from handle_group_messages
+    #     pass
+    # except Exception as e:
+    #     logger.error(f"Could not send confirmation to referred user {user_id}: {e}")
     
     referrer_username = f"@{updated_referrer_data.get('username')}" if updated_referrer_data.get('username') else f"<code>{referrer_id}</code>"
     user_username = f"@{user_data.get('username')}" if user_data.get('username') else f"<code>{user_id}</code>"
@@ -243,12 +242,11 @@ async def pay_referrer_and_update_mission(context: ContextTypes.DEFAULT_TYPE, us
     
     # Count total paid searches today from ALL referred users
     paid_searches_today_count = 0
-    referral_records = list(REFERRALS_COLLECTION.find({"referrer_id": referrer_id}))
-    
-    for ref_record in referral_records:
-        # Check if the payment happened TODAY
-        if ref_record.get("last_paid_date") and ref_record["last_paid_date"].date() == today:
-             paid_searches_today_count += 1
+    # FIX: Use find with correct date query for robustness
+    paid_searches_today_count = REFERRALS_COLLECTION.count_documents({
+        "referrer_id": referrer_id, 
+        "last_paid_date": {"$gte": today_start} # Count only payments made today
+    })
              
     # Only award mission if they are at the target count AND haven't completed the mission today
     if paid_searches_today_count >= mission["target"] and not referrer_data.get("missions_completed", {}).get(mission_key):
