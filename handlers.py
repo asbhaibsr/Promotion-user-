@@ -56,7 +56,6 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 # --- Core Handlers ---
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (No changes here, as the original logic seems fine for a command handler)
     user = update.effective_user
     full_name = user.first_name + (f" {user.last_name}" if user.last_name else "")
     username_display = f"@{user.username}" if user.username else f"<code>{user.id}</code>"
@@ -181,7 +180,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (No changes here)
     if update.message:
         lang = await get_user_lang(update.effective_user.id)
         keyboard = [[InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")]]
@@ -189,7 +187,6 @@ async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (No changes here)
     user = update.effective_user
     
     bot_info = await context.bot.get_me()
@@ -305,7 +302,6 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-# ... (No changes here)
     query = update.callback_query
     if not query:
         return
@@ -348,7 +344,6 @@ async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 
 async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-# ... (No changes here)
     query = update.callback_query
     if not query or not query.message: # Added safety check for query and message
         return
@@ -391,7 +386,6 @@ async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 
 async def show_spin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-# ... (No changes here)
     query = update.callback_query
     if not query or not query.message: # Added safety check
         return
@@ -423,7 +417,6 @@ async def show_spin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 
 async def perform_spin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-# ... (No changes here)
     query = update.callback_query
     if not query or not query.message: # Added safety check
         return
@@ -510,14 +503,12 @@ async def perform_spin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 async def spin_fake_btn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-# ... (No changes here)
     query = update.callback_query
     if query: # Check 4: Safety check for query
         await query.answer("🎡 Spinning... Please wait!", show_alert=False)
 
 
 async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-# ... (No changes here)
     query = update.callback_query
     if not query or not query.message: # Added safety check
         return
@@ -631,7 +622,6 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # ... (No changes here, as it's the action handler for request)
     query = update.callback_query
     if not query or not query.message: # Added safety check
         return
@@ -689,7 +679,7 @@ async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE)
         try:
             # Added a unique identifier to the callback_data for withdrawal ID if available, 
             # though using user_id is fine for simple pending checks.
-            withdrawal_id = withdrawal_data.get("_id") # Assuming MongoDB provides this after insert
+            # withdrawal_id = withdrawal_data.get("_id") # Assuming MongoDB provides this after insert
             
             await context.bot.send_message(
                 chat_id=ADMIN_ID,
@@ -711,7 +701,6 @@ async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE)
 # --- Other Menu Handlers (Language, Help, Groups, Tier) ---
 
 async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-# ... (No changes here)
     query = update.callback_query
     if not query or not query.message: # Added safety check for query and message
         return
@@ -737,7 +726,6 @@ async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-# ... (No changes here)
     query = update.callback_query
     if not query:
         return
@@ -815,7 +803,6 @@ async def show_user_pending_withdrawals(update: Update, context: ContextTypes.DE
 
 
 async def show_movie_groups_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-# ... (No changes here)
     query = update.callback_query
     if not query or not query.message: # Added safety check
         return
@@ -841,7 +828,6 @@ async def show_movie_groups_menu(update: Update, context: ContextTypes.DEFAULT_T
 
 
 async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-# ... (No changes here)
     query = update.callback_query
     
     # Check 5: Handle cases where a callback query might be missing (e.g., direct /start or old query)
@@ -892,7 +878,7 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                     pass
         else:
              # Fallback if query exists but message is None (very rare, means message was deleted)
-             await context.bot.send_message(chat_id=user.id, text=message, reply_markup=reply_markup, parse_mode='HTML')
+             await context.bot.send_message(chat_id=user.id, text=message, reply_mode=reply_markup, parse_mode='HTML')
              
     elif update.message: # If it came from a /command
         await update.message.reply_html(message, reply_markup=reply_markup)
@@ -1065,6 +1051,13 @@ async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
     if update.message: # Check 8: Ensure message exists for command handler
         await update.message.reply_html(message, reply_markup=reply_markup)
+    elif update.callback_query and update.callback_query.message:
+        await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+# Added a function to go back to admin menu for clarity
+async def back_to_admin_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    update.callback_query.answer()
+    await admin_panel(update, context)
 
 
 async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1082,32 +1075,29 @@ async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_T
         await query.edit_message_text("❌ Access Denied.")
         return
 
-    action = query.data.split("_")[1]
+    # Correct parsing of callback data
+    data = query.data.split("_")
+    action = data[1]
+    sub_action = data[2] if len(data) > 2 else None
     
-    # Removed the 'topusers' logic here as it's moved to the earning panel
     if action == "clearjunk":
         await clearjunk_logic(update, context)
-    elif action == "set": # This part handles 'admin_set_broadcast'
-        # The split parts will be ['admin', 'set', 'broadcast']
-        sub_action = query.data.split("_")[2]
+    elif action == "pending" and sub_action == "withdrawals":
+        await show_pending_withdrawals(update, context)
+    elif action == "set": 
         if sub_action == "broadcast":
             context.user_data["admin_state"] = "waiting_for_broadcast_message"
             await query.edit_message_text("✍️ Enter the **message** you want to broadcast to all users:")
-    elif action == "set": # This part handles 'admin_set_ref_rate'
-        sub_action = query.data.split("_")[2]
-        if sub_action == "ref" and query.data.split("_")[3] == "rate":
+        elif sub_action == "ref" and data[3] == "rate":
              context.user_data["admin_state"] = "waiting_for_ref_rate"
              await query.edit_message_text("✍️ Enter the **NEW Tier 1 Referral Rate** in INR (e.g., 5.0 for ₹5 per referral):")
-    elif action == "pending":
-        await admin_panel(update, context) # Just go back to main admin menu
-    elif action == "pending_withdrawals":
-        await show_pending_withdrawals(update, context)
-        
-    # Add logic for other admin callbacks here (e.g., back buttons, etc.)
+    elif action == "pending": # Back button from withdrawals
+        await back_to_admin_menu(update, context) 
+    
+    # Withdrawal approval/rejection is handled by handle_withdrawal_approval
 
 
 async def show_pending_withdrawals(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-# ... (No changes here, this handler seems correct for admin panel)
     query = update.callback_query
     if not query or not query.message: # Added safety check
         return
@@ -1209,7 +1199,6 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-# ... (No changes here)
     query = update.callback_query
     if not query: # Added safety check
         return
@@ -1327,7 +1316,6 @@ async def topusers_logic(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 async def clearjunk_logic(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-# ... (No changes here)
     query = update.callback_query
     if not query or not query.message: # Added safety check
         return
@@ -1347,6 +1335,7 @@ async def clearjunk_logic(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     #     "spins_left": 0
     # })
     
+    # Use delete_many with a specific, safe query if needed, or leave it as a placeholder:
     delete_result = {"deleted_count": 0} # Placeholder
     
     message = f"🗑️ **Clear Junk Operation**\n\nCompleted! Deleted {delete_result['deleted_count']} inactive user records."
@@ -1358,7 +1347,6 @@ async def clearjunk_logic(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 # --- Utility Handlers ---
 async def set_bot_commands_logic(context: ContextTypes.DEFAULT_TYPE) -> None:
-# ... (No changes here)
     """Sets the bot commands for both user and admin in the BotFather menu."""
     user_commands = [
         BotCommand("start", "Start the bot and see the main menu"),
