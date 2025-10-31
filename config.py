@@ -80,7 +80,7 @@ TIERS = {
 }
 
 DAILY_MISSIONS = {
-    "search_3_movies": {"reward": 1.00, "target": 3, "name": "Search 3 Movies", "name_hi": "3 फिल्में खोजें"},
+    "search_3_movies": {"reward": 1.00, "target": 3, "name": "Search 3 Movies (Ref. Paid Search)", "name_hi": "3 फिल्में खोजें (रेफ़रल का भुगतान)"},
     "refer_2_friends": {"reward": 5.00, "target": 2, "name": "Refer 2 Friends", "name_hi": "2 दोस्तों को रेफ़र करें"},
     "claim_daily_bonus": {"reward": 0.50, "target": 1, "name": "Claim Daily Bonus", "name_hi": "दैनिक बोनस क्लेम करें"}
 }
@@ -118,7 +118,7 @@ MESSAGES = {
         "spin_wheel_win": "🎉 <b>Congratulations!</b>\n\nYou won: ₹{amount:.2f}!\n\nNew balance: ₹{new_balance:.2f}\n\nRemaining Spins: {spins_left}",
         "spin_wheel_lose": "😢 <b>Better luck next time!</b>\n\nYou didn't win anything this time.\n\nRemaining balance: ₹{new_balance:.2f}\n\nRemaining Spins: {spins_left}",
         "missions_title": "🎯 <b>Daily Missions</b>\n\nComplete missions to earn extra rewards! Check your progress below:",
-        "mission_search_note": "⏳ Search 3 Movies ({current}/{target}) [In Progress]\n\n<b>Note:</b> This mission is completed when your <b>referred friend</b> searches 3 movies, not you.",
+        "mission_search_note": "⏳ Search 3 Movies (Paid Search) ({current}/{target}) [In Progress]\n\n<b>Note:</b> This mission is completed when you receive payment from your referred users 3 times today.",
         "mission_search_progress": "⏳ Search 3 Movies ({current}/{target}) [In Progress]",
         "mission_complete": "✅ <b>Mission Completed!</b>\n\nYou earned ₹{reward:.2f} for {mission_name}!\nNew balance: ₹{new_balance:.2f}",
         "withdrawal_request_sent": "✅ <b>Withdrawal Request Sent!</b>\n\nYour request for ₹{amount:.2f} has been sent to admin. You will receive payment within 24 hours.",
@@ -127,7 +127,9 @@ MESSAGES = {
         "withdrawal_rejected_user": "❌ <b>Withdrawal Rejected!</b>\n\nYour withdrawal of ₹{amount:.2f} was rejected. Please contact admin for details.",
         "ref_link_message": "<b>Your Referral Link:</b>\n<code>{referral_link}</code>\n\n<b>Current Referral Rate:</b> ₹{tier_rate:.2f} per referral\n\n<i>Share this link with friends and earn money when they join and search for movies!</i>",
         "new_referral_notification": "🎉 <b>New Referral!</b>\n\n{full_name} ({username}) has joined using your link!\n\n💰 You received a joining bonus of ₹{bonus:.2f}!\n\n🎰 You also earned 1 Free Spin for the Spin Wheel!",
-        "daily_earning_update": "💰 <b>Referral Earning!</b> ({count}/3)\n\nYou earned ₹{amount:.2f} from your referral {full_name}. \nNew balance: ₹{new_balance:.2f}",
+        # NEW key for daily payment (one payment per referred user per day)
+        "daily_earning_update_new": "💰 <b>Daily Referral Earning!</b>\n\nYou earned ₹{amount:.2f} from your referral {full_name} for a paid search today. \nNew balance: ₹{new_balance:.2f}",
+        "search_success_message": "✅ <b>Movie Search Complete!</b>\n\nYour shortlink process is complete. Your referrer has received their payment for today from your search! Find your movie link now.", # New Message
         "clear_earn_usage": "❌ Usage: /clearearn <user_id>",
         "clear_earn_success": "✅ Earnings for user {user_id} have been cleared.",
         "clear_earn_not_found": "❌ User {user_id} not found.",
@@ -185,7 +187,7 @@ MESSAGES = {
         "spin_wheel_win": "🎉 <b>बधाई हो!</b>\n\nआपने जीता: ₹{amount:.2f}!\n\nनया बैलेंस: ₹{new_balance:.2f}\n\nबची हुई स्पिनें: {spins_left}",
         "spin_wheel_lose": "😢 <b>अगली बार बेहतर किस्मत!</b>\n\nइस बार आप कुछ नहीं जीत पाए।\n\nशेष बैलेंस: ₹{new_balance:.2f}\n\nबची हुई स्पिनें: {spins_left}",
         "missions_title": "🎯 <b>दैनिक मिशन</b>\n\nअतिरिक्त इनाम पाने के लिए मिशन पूरे करें! अपनी प्रगति नीचे देखें:",
-        "mission_search_note": "⏳ 3 फिल्में खोजें ({current}/{target}) [प्रगति में]\n\n<b>ध्यान दें:</b> यह मिशन तब पूरा होता है जब आपका <b>रेफर किया गया दोस्त</b> 3 फिल्में खोजता है, न कि आप।",
+        "mission_search_note": "⏳ 3 फिल्में खोजें (भुगतान प्राप्त) ({current}/{target}) [प्रगति में]\n\n<b>ध्यान दें:</b> यह मिशन तब पूरा होता है जब आपको आज आपके रेफर किए गए यूज़र्स से 3 बार भुगतान मिलता है।",
         "mission_search_progress": "⏳ 3 फिल्में खोजें ({current}/{target}) [प्रगति में]",
         "mission_complete": "✅ <b>मिशन पूरा हुआ!</b>\n\nआपने {mission_name} के लिए ₹{reward:.2f} कमाए!\nनया बैलेंस: ₹{new_balance:.2f}",
         "withdrawal_request_sent": "✅ <b>निकासी का अनुरोध भेज दिया गया!</b>\n\n₹{amount:.2f} के आपके अनुरोध को एडमिन को भेज दिया गया है। आपको 24 घंटे के भीतर भुगतान मिल जाएगा।",
@@ -194,7 +196,9 @@ MESSAGES = {
         "withdrawal_rejected_user": "❌ <b>निकासी अस्वीकृत!</b>\n\n₹{amount:.2f} की आपकी निकासी अस्वीकृत कर दी गई है। विवरण के लिए एडमिन से संपर्क करें।",
         "ref_link_message": "<b>आपकी रेफरल लिंक:</b>\n<code>{referral_link}</code>\n\n<b>वर्तमान रेफरल दर:</b> ₹{tier_rate:.2f} प्रति रेफरल\n\n<i>इस लिंक को दोस्तों के साथ साझा करें और जब वे शामिल होकर फिल्में खोजते हैं, तो पैसे कमाएं!</i>",
         "new_referral_notification": "🎉 <b>नया रेफरल!</b>\n\n{full_name} ({username}) आपकी लिंक का उपयोग करके शामिल हुए हैं!\n\n💰 आपको जॉइनिंग बोनस ₹{bonus:.2f} मिला!\n\n🎰 आपको स्पिन व्हील के लिए 1 फ्री स्पिन भी मिली है!",
-        "daily_earning_update": "💰 <b>रेफरल कमाई!</b> ({count}/3)\n\nआपने अपने रेफरल {full_name} से ₹{amount:.2f} कमाए। \nनया बैलेंस: ₹{new_balance:.2f}",
+        # NEW key for daily payment (one payment per referred user per day)
+        "daily_earning_update_new": "💰 <b>रोजाना रेफरल कमाई!</b>\n\nआज एक पेड सर्च के लिए आपने अपने रेफरल {full_name} से ₹{amount:.2f} कमाए। \nनया बैलेंस: ₹{new_balance:.2f}",
+        "search_success_message": "✅ <b>मूवी सर्च पूरी!</b>\n\nआपकी शॉर्टलिंक प्रक्रिया पूरी हो गई है। आपके रेफ़र करने वाले को आपकी खोज के लिए आज का भुगतान मिल गया है! अब अपनी मूवी लिंक ढूंढें।", # New Message
         "clear_earn_usage": "❌ उपयोग: /clearearn <user_id>",
         "clear_earn_success": "✅ उपयोगकर्ता {user_id} की कमाई साफ़ कर दी गई है।",
         "clear_earn_not_found": "❌ उपयोगकर्ता {user_id} नहीं मिला।",
