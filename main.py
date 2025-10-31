@@ -17,9 +17,9 @@ from handlers import (
     show_spin_panel, perform_spin, spin_fake_btn, show_missions, 
     request_withdrawal, show_tier_benefits, claim_channel_bonus,
     handle_admin_callbacks, handle_withdrawal_approval, handle_group_messages,
-    handle_admin_input,
-    show_top_users, # नया: Top Users हैंडलर
-    show_user_pending_withdrawals # नया: User Pending Withdrawals हैंडलर
+    handle_admin_input, show_bot_stats, # New: Bot Stats Handler
+    show_top_users, 
+    show_user_pending_withdrawals 
 )
 from tasks import send_random_alerts_task
 
@@ -62,7 +62,7 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(show_tier_benefits, pattern="^show_tier_benefits$")) 
     application.add_handler(CallbackQueryHandler(claim_channel_bonus, pattern="^claim_channel_bonus$")) 
     
-    # नए हैंडलर (Top Users और Pending Withdrawals)
+    # New Handlers
     application.add_handler(CallbackQueryHandler(show_top_users, pattern="^show_top_users$"))
     application.add_handler(CallbackQueryHandler(show_user_pending_withdrawals, pattern="^show_user_pending_withdrawals$"))
     
@@ -75,6 +75,35 @@ def main() -> None:
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_admin_input)) 
     
     # Handle group messages (movie searches)
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.GROUPS, handle_group_messages))
+    
+    # --- Job Queue (Background Tasks) ---
+    job_queue = application.job_queue
+    
+    if job_queue: 
+        job_queue.run_repeating(send_random_alerts_task, interval=timedelta(hours=2), first=timedelta(minutes=5))
+        logger.info("Random alert task scheduled to run every 2 hours.")
+    else:
+        logger.warning("Job Queue is not initialized. Skipping random alert task (common in Webhook mode).")
+
+
+    # --- Running the Bot ---
+    if WEB_SERVER_URL and BOT_TOKEN:
+        application.run_webhook(
+            listen="0.0.0.0",
+            port=PORT,
+            url_path=BOT_TOKEN,
+            webhook_url=f"{WEB_SERVER_URL}/{BOT_TOKEN}",
+            allowed_updates=Update.ALL_TYPES
+        )
+        logger.info(f"Bot started in Webhook Mode on port {PORT}.")
+    else:
+        logger.info("WEB_SERVER_URL not found, starting in Polling Mode.")
+        application.run_polling(allowed_updates=Update.ALL_TYPES)
+        logger.info("Bot started in Polling Mode.")
+
+if __name__ == "__main__":
+    main()
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.GROUPS, handle_group_messages))
     
     # --- Job Queue (Background Tasks) ---
