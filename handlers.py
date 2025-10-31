@@ -1,17 +1,13 @@
-# handlers.py
-
 import logging
 import random
 import time
 import urllib.parse
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
-# FIX: FloodWait is now explicitly imported for broadcast handling
 from telegram.error import TelegramError, TimedOut, Forbidden, BadRequest, RetryAfter as FloodWait 
 from telegram.ext import ContextTypes
 from datetime import datetime, timedelta
 import asyncio
 
-# Assuming these functions are defined in your db_utils and config files
 from config import (
     USERS_COLLECTION, REFERRALS_COLLECTION, SETTINGS_COLLECTION, WITHDRAWALS_COLLECTION,
     DOLLAR_TO_INR, MESSAGES, ADMIN_ID, YOUR_TELEGRAM_HANDLE, 
@@ -24,19 +20,17 @@ from db_utils import (
     send_log_message, get_user_lang, set_user_lang, get_referral_bonus_inr, 
     get_welcome_bonus, get_user_tier, get_tier_referral_rate, 
     claim_and_update_daily_bonus, update_daily_searches_and_mission,
-    get_bot_stats, pay_referrer_and_update_mission # Import the core logic function
+    get_bot_stats, pay_referrer_and_update_mission
 )
-# from tasks import add_payment_and_check_mission # OLD: Removed as we define the job here
 
 logger = logging.getLogger(__name__)
 
 # --- CRITICAL FIX: Job Queue Function ---
-# This function is the actual job that will run after the delay
 async def referral_payment_job(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Scheduled job to pay the referrer and update their mission status."""
     job_data = context.job.data
     referrer_id = job_data.get("referrer_id")
-    referred_user_id = job_data.get("referred_user_id") # Stored referred user ID in the job
+    referred_user_id = job_data.get("referred_user_id") 
     
     if not referrer_id or not referred_user_id:
         logger.error("Job data missing referrer_id or referred_user_id.")
@@ -51,16 +45,14 @@ async def referral_payment_job(context: ContextTypes.DEFAULT_TYPE) -> None:
         logger.warning(f"Job: Referral payment for {referred_user_id} to {referrer_id} failed or already processed.")
 
 
-# --- Global Error Handler (New) ---
+# --- Global Error Handler ---
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Log the error and send a message to the admin."""
     logger.error("Exception while handling an update:", exc_info=context.error)
     
-    # Try to send a generic error message to the user/admin
     try:
         error_msg = f"❌ An error occurred! Details: {context.error}"
         if update and update.effective_chat:
-            # FIX: Only reply if the message is NOT in a group to avoid spamming the group with error messages
             if update.effective_chat.type == 'private' or (update.effective_chat.type != 'private' and update.message and update.message.text and update.message.text.startswith('/')):
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id,
@@ -68,7 +60,6 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                     parse_mode='Markdown'
                 )
         
-        # Log the error to the admin
         if ADMIN_ID:
             await context.bot.send_message(
                 chat_id=ADMIN_ID,
@@ -135,7 +126,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 {"$inc": {"earnings": welcome_bonus_usd}, "$set": {"welcome_bonus_received": True}}
             )
             try:
-                # Assuming update.message is not None here for a /start command
                 await update.message.reply_html(MESSAGES[lang]["welcome_bonus_received"].format(amount=welcome_bonus))
             except Exception:
                  pass
@@ -152,14 +142,13 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                     "referred_user_id": user.id,
                     "referred_username": user.username,
                     "join_date": datetime.now(),
-                    # IMPORTANT: These fields are crucial for the new daily payment logic
                     "last_paid_date": None, 
                     "paid_search_count_today": 0
                 })
                 
                 referrer_tier = await get_user_tier(referral_id)
                 tier_rate = await get_tier_referral_rate(referrer_tier)
-                referral_rate_half = tier_rate / 2.0 # Join bonus is half the daily rate
+                referral_rate_half = tier_rate / 2.0 
                 referral_rate_usd = referral_rate_half / DOLLAR_TO_INR
                 
                 USERS_COLLECTION.update_one(
@@ -200,7 +189,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
     )
     
-    # Assuming update.message is safe for /start command
     if update.message:
         await update.message.reply_html(message, reply_markup=reply_markup)
 
@@ -213,13 +201,12 @@ async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # **FIX 1: Ensure message is a text message and in a group/supergroup before proceeding.**
+    # 1. Ensure message is a text message and in a group/supergroup
     if not update.message or not update.message.text:
         return
         
     chat_type = update.effective_chat.type
     if chat_type not in ["group", "supergroup"]:
-        # Only process group messages here.
         return
         
     user = update.effective_user
@@ -232,82 +219,55 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
     if not user_data:
         return 
 
-    # 1. Update User's Daily Search Count and last_search_date (for mission)
-    # The function ensures a user is only credited one search per day for their *own* mission progress.
-    result = await update_daily_searches_and_mission(user.id)
+    # 2. Update User's Daily Search Count (for their *own* mission progress, not needed here but kept for integrity)
+    await update_daily_searches_and_mission(user.id)
     
-    if not result:
-        logger.error(f"Failed to atomically update daily searches for user {user.id}")
-        return
-
-    # 2. Check for referrer and schedule payment task
+    # 3. Check for referrer and schedule payment task
     referral_data = REFERRALS_COLLECTION.find_one({"referred_user_id": user.id})
     
     if referral_data:
         referrer_id = referral_data["referrer_id"]
         
-        # Security check: Self-referral protection
         if referrer_id == user.id:
             logger.warning(f"Self-referral detected and ignored for user {user.id}")
             return
             
-        # Daily payment check: Has this referred user already triggered a payment today for the referrer?
         last_paid_date = referral_data.get("last_paid_date")
         today = datetime.now().date()
         
-        # CRITICAL FIX: Check if last_paid_date exists, is a datetime, and is today
+        # Check if payment already processed today
         if last_paid_date and isinstance(last_paid_date, datetime) and last_paid_date.date() == today:
             logger.info(f"Referral payment for user {user.id} to referrer {referrer_id} already processed today. Skipping job scheduling.")
-            # Still send the success message to the referred user's PRIVATE CHAT
-            lang = await get_user_lang(user.id)
-            try:
-                # User ID is used as chat_id to send to private chat
-                await context.bot.send_message(chat_id=user.id, text=MESSAGES[lang]["search_success_message"], parse_mode='HTML') 
-            except Exception as e:
-                logger.error(f"Failed to send search success message to user {user.id} (already paid): {e}")
+            # **IMPORTANT:** Removed the search success message entirely as per user request.
             return
 
-        # If it hasn't been paid today, schedule the job.
-        # Job name ensures only one job per referred user is pending at a time
+        # Schedule the job if not paid today
         job_name = f"pay_{user.id}" 
         existing_jobs = context.job_queue.get_jobs_by_name(job_name)
         
         if not existing_jobs:
             # Payment check scheduled after a delay (e.g., 5 minutes = 300 seconds)
-            # The job will call pay_referrer_and_update_mission which handles payment, message to referrer, and last_paid_date update.
             context.job_queue.run_once(
-                referral_payment_job, # Use the dedicated job function
-                300, # 5 minutes delay (as requested)
-                # The chat_id is the referred user's ID, but only for logging purposes in the job_queue
+                referral_payment_job, 
+                300, 
                 chat_id=user.id, 
-                user_id=user.id, # The referred user
-                data={"referrer_id": referrer_id, "referred_user_id": user.id}, # Pass data to the job
+                user_id=user.id, 
+                data={"referrer_id": referrer_id, "referred_user_id": user.id}, 
                 name=job_name
             )
             logger.info(f"Payment task scheduled for user {user.id} (referrer {referrer_id}). Job Name: {job_name}")
         else:
              logger.info(f"Payment task for {user.id} already pending. Ignoring job creation.")
     
-    # **CRITICAL FIX: Send search success message to the REFERRED USER'S PRIVATE CHAT, NOT the group.**
-    # This addresses the user's issue: "bot us user ke movie search karne ke paise [...] update kr deta hai movie sewrch krne ke 5 minute baad"
-    lang = await get_user_lang(user.id)
-    try:
-        # User ID is used as chat_id to send to private chat
-        await context.bot.send_message(chat_id=user.id, text=MESSAGES[lang]["search_success_message"], parse_mode='HTML') 
-    except Exception as e:
-        # This will catch cases where the user has not started the bot (Forbidden error)
-        logger.error(f"Failed to send search success message to user {user.id} (Private Chat): {e}")
+    # **CRITICAL FIX:** Removed the search success message to the REFERRED USER'S PRIVATE CHAT and the GROUP.
+    # The payment is now silent.
 
 
 # --- Callback Handlers (Menus, Actions) ---
-# ... (All other handlers remain the same as provided)
-# The rest of the handlers are the same to minimize risk outside the critical path.
-# ...
 
 async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     
-    # Check 1: Ensure query object exists
     if not query:
         logger.warning("show_earning_panel called without a callback query.")
         return 
@@ -320,7 +280,6 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     if not user_data:
         await query.answer("User data not found.", show_alert=True)
-        # Check 2: Ensure message object exists before editing/sending
         if query.message: 
              try:
                  await query.edit_message_text("User data not found.")
@@ -329,7 +288,6 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return
     
     earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
-    # Count only non-self referrals
     referrals_count = REFERRALS_COLLECTION.count_documents({"referrer_id": user.id, "referred_user_id": {"$ne": user.id}})
     user_tier = await get_user_tier(user.id)
     tier_info = TIERS.get(user_tier, TIERS[1]) 
@@ -348,29 +306,88 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if user_data.get("channel_bonus_received"):
         channel_button_text = f"✅ Channel Bonus Claimed (₹{CHANNEL_BONUS:.2f})"
 
-    # सारे बटन अब काम कर रहे हैं और 'Top Users' को यहाँ जोड़ा गया है।
     keyboard = [
+        # NEW BUTTON: My Referrals
         [InlineKeyboardButton("🔗 My Refer Link", callback_data="show_refer_link"), 
-         InlineKeyboardButton("💡 Referral Example", callback_data="show_refer_example")], # काम कर रहा है
+         InlineKeyboardButton("👥 My Referrals", callback_data="show_my_referrals")],
         
         [InlineKeyboardButton("🎁 Daily Bonus", callback_data="claim_daily_bonus"),
          InlineKeyboardButton("🎯 Daily Missions", callback_data="show_missions")],
 
         [InlineKeyboardButton(MESSAGES[lang]["spin_wheel_button"].format(spins_left=spins_left), callback_data="show_spin_panel"),
-         InlineKeyboardButton("📊 Top 10 Users", callback_data="show_top_users")], # नया बटन
+         InlineKeyboardButton("📊 Top 10 Users", callback_data="show_top_users")], 
          
-        [InlineKeyboardButton("💸 Request Withdrawal", callback_data="show_withdraw_details_new"), # काम कर रहा है (show_withdraw_details_new)
-         InlineKeyboardButton("📈 Tier Benefits", callback_data="show_tier_benefits")], # काम कर रहा है
+        [InlineKeyboardButton("💸 Request Withdrawal", callback_data="show_withdraw_details_new"),
+         InlineKeyboardButton("📈 Tier Benefits", callback_data="show_tier_benefits")],
          
         [InlineKeyboardButton(channel_button_text, callback_data="claim_channel_bonus")],
         
-        [InlineKeyboardButton("🆘 Help", callback_data="show_help"), # काम कर रहा है
+        [InlineKeyboardButton("🆘 Help", callback_data="show_help"),
          InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    if query.message: # Check 3: Final check before edit
+    if query.message: 
         await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+
+# --- NEW FUNCTION: Show My Referrals ---
+async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    if not query or not query.message:
+        return
+        
+    user = query.from_user
+    lang = await get_user_lang(user.id)
+    await query.answer()
+
+    # Get all referrals for this user
+    referral_records = list(REFERRALS_COLLECTION.find({"referrer_id": user.id}).sort("join_date", -1))
+    
+    total_referrals = len(referral_records)
+    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # Count today's paid referrals
+    paid_searches_today_count = 0
+    for ref_record in referral_records:
+        if ref_record.get("last_paid_date") and isinstance(ref_record["last_paid_date"], datetime) and ref_record["last_paid_date"] >= today_start:
+             paid_searches_today_count += 1
+        
+    
+    message = f"👥 <b>My Referrals</b>\n\n"
+    message += f"🔗 Total Referrals: <b>{total_referrals}</b>\n"
+    message += f"✅ Paid Referrals Today: <b>{paid_searches_today_count}</b>\n"
+    message += f"ℹ️ <i>Showing last 10 referrals.</i>\n\n"
+    
+    if total_referrals == 0:
+        message += "❌ You have not referred anyone yet. Share your link now!"
+    else:
+        # Displaying last 10 referrals
+        for i, ref_record in enumerate(referral_records[:10]):
+            referred_id = ref_record['referred_user_id']
+            referred_username = ref_record.get('referred_username', 'N/A')
+            join_date = ref_record['join_date'].strftime("%d %b %Y")
+            last_paid = ref_record.get('last_paid_date')
+            
+            status_emoji = "❌"
+            if last_paid and last_paid.date() == datetime.now().date():
+                 status_emoji = "✅ (Paid Today)"
+            
+            # Using HTML <a> tag to display user ID (Bus ye dikaye okey)
+            user_link = f"tg://user?id={referred_id}"
+            display_id = f"<a href='{user_link}'><code>{referred_id}</code></a>"
+            
+            message += f"🔸 <b>{i+1}. User ID:</b> {display_id}\n"
+            message += f"   - Joined: {join_date}\n"
+            message += f"   - Status: {status_emoji}\n"
+
+    keyboard = [
+        [InlineKeyboardButton("💡 Referral Example", callback_data="show_refer_example")],
+        [InlineKeyboardButton("⬅️ Back to Earning Panel", callback_data="show_earning_panel")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
 
 async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -386,12 +403,12 @@ async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     bot_username = bot_info.username
     referral_link = f"https://t.me/{bot_username}?start=ref_{user.id}"
     
-    user_tier = await get_user_tier(user.id)
-    tier_rate = await get_tier_referral_rate(user_tier)
+    # Using the highest tier rate to attract users
+    max_tier_rate = TIERS[max(TIERS.keys())]["rate"]
     
     message = (
-        f"<b>🤑 ₹{TIERS[4]['rate']:.2f} Per Referral! Get Rich Fast!</b>\n\n"
-        f"{MESSAGES[lang]['ref_link_message'].format(referral_link=referral_link, tier_rate=tier_rate)}\n\n"
+        f"<b>🤑 ₹{max_tier_rate:.2f} Per Referral! Get Rich Fast!</b>\n\n"
+        f"{MESSAGES[lang]['ref_link_message'].format(referral_link=referral_link, tier_rate=max_tier_rate)}\n\n"
         f"<b>💡 Secret Tip:</b> Your friends must <b>search 3 movies</b> in the group to get your full daily earning! Share this now!"
     )
 
@@ -399,7 +416,7 @@ async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         f"🎉 <b>सबसे बेहतरीन मूवी बॉट को अभी जॉइन करें और रोज़ कमाएँ!</b>\n\n"
         f"🎬 हर नई हॉलीवुड/बॉलीवुड मूवी पाएँ!\n"
         f"💰 <b>₹{await get_welcome_bonus():.2f} वेलकम बोनस</b> तुरंत पाएँ!\n"
-        f"💸 <b>हर रेफ़र पर ₹{TIERS[4]['rate']:.2f} तक</b> कमाएँ!\n\n"
+        f"💸 <b>हर रेफ़र पर ₹{max_tier_rate:.2f} तक</b> कमाएँ!\n\n"
         f"🚀 <b>मेरी स्पेशल लिंक से जॉइन करें और अपनी कमाई शुरू करें:</b> {referral_link}"
     )
     
@@ -417,7 +434,7 @@ async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    if not query or not query.message: # Added safety check for query and message
+    if not query or not query.message: 
         return
         
     user = query.from_user
@@ -459,7 +476,7 @@ async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 async def show_spin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    if not query or not query.message: # Added safety check
+    if not query or not query.message: 
         return
         
     await query.answer()
@@ -490,7 +507,7 @@ async def show_spin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 async def perform_spin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    if not query or not query.message: # Added safety check
+    if not query or not query.message: 
         return
         
     user = query.from_user
@@ -567,7 +584,6 @@ async def perform_spin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    # Use context.bot.edit_message_text as query.edit_message_text might fail after the sleep/animation
     await context.bot.edit_message_text(
         chat_id=query.message.chat_id, message_id=query.message.message_id, text=message, 
         reply_markup=reply_markup, parse_mode='HTML'
@@ -576,13 +592,13 @@ async def perform_spin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 async def spin_fake_btn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    if query: # Check 4: Safety check for query
+    if query: 
         await query.answer("🎡 Spinning... Please wait!", show_alert=False)
 
 
 async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    if not query or not query.message: # Added safety check
+    if not query or not query.message: 
         return
         
     user = query.from_user
@@ -601,7 +617,6 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     last_search_date = user_data.get("last_search_date")
     last_checkin_date = user_data.get("last_checkin_date")
     
-    # Check and reset daily searches and mission completion for 'search_3_movies' and 'claim_daily_bonus' if needed
     if not last_search_date or not isinstance(last_search_date, datetime) or last_search_date.date() != today:
         USERS_COLLECTION.update_one(
             {"user_id": user.id},
@@ -615,16 +630,11 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             {"$set": {"missions_completed.claim_daily_bonus": False}}
         )
         
-    # Get the count of referred users who have triggered a payment today (1 user = 1 paid trigger/day)
-    # The mission is now **completed when 3 referred users have successfully triggered a payment (3 paid searches) today**.
-    
-    # Fetch all referral records for the current user (referrer)
-    # FIX: This logic needs to be robust, counting only unique *referred_user_id* that have been paid *today*
+    # Get the count of referred users who have triggered a payment today
     paid_searches_today_count = 0
     referral_records = list(REFERRALS_COLLECTION.find({"referrer_id": user.id}))
     today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     
-    # FIX: Recalculate paid_searches_today_count based on successful daily payments
     for ref_record in referral_records:
         if ref_record.get("last_paid_date") and isinstance(ref_record["last_paid_date"], datetime) and ref_record["last_paid_date"] >= today_start:
              paid_searches_today_count += 1
@@ -632,13 +642,13 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     # Mission: Refer 2 Friends (New user joins)
     referrals_today_count = REFERRALS_COLLECTION.count_documents({
         "referrer_id": user.id,
-        "referred_user_id": {"$ne": user.id}, # Exclude self-referral checks
-        "join_date": {"$gte": today_start} # Use today_start
+        "referred_user_id": {"$ne": user.id}, 
+        "join_date": {"$gte": today_start}
     })
     
-    user_data = USERS_COLLECTION.find_one({"user_id": user.id}) # Re-fetch updated data
+    user_data = USERS_COLLECTION.find_one({"user_id": user.id})
     missions_completed = user_data.get("missions_completed", {})
-    daily_searches = user_data.get("daily_searches", 0) # This is the user's *own* search count
+    daily_searches = user_data.get("daily_searches", 0) 
     
     message = f"{MESSAGES[lang]['missions_title']}\n\n"
     newly_completed_message = ""
@@ -661,13 +671,13 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             }
         )
         newly_completed_message += f"✅ <b>{name}</b>: +₹{mission['reward']:.2f}\n"
-        missions_completed[mission_key] = True # Update local dict for message display
+        missions_completed[mission_key] = True 
         message += f"✅ {name} ({mission['target']}/{mission['target']}) [<b>Completed</b>]\n"
     elif missions_completed.get(mission_key):
         message += f"✅ {name} ({mission['target']}/{mission['target']}) [<b>Completed</b>]\n"
     else:
         message += MESSAGES[lang]["mission_search_note"].format(
-            current=min(paid_searches_today_count, mission['target']), # Show actual paid searches count
+            current=min(paid_searches_today_count, mission['target']), 
             target=mission['target']
         ) + "\n"
         
@@ -688,7 +698,7 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             }
         )
         newly_completed_message += f"✅ <b>{name}</b>: +₹{mission['reward']:.2f}\n"
-        missions_completed[mission_key] = True # Update local dict for message display
+        missions_completed[mission_key] = True 
         message += f"✅ {name} ({mission['target']}/{mission['target']}) [<b>Completed</b>]\n"
     elif missions_completed.get(mission_key):
         message += f"✅ {name} ({mission['target']}/{mission['target']}) [<b>Completed</b>]\n"
@@ -722,7 +732,7 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    if not query or not query.message: # Added safety check
+    if not query or not query.message: 
         return
         
     user = query.from_user
@@ -776,10 +786,6 @@ async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     if ADMIN_ID:
         try:
-            # Added a unique identifier to the callback_data for withdrawal ID if available, 
-            # though using user_id is fine for simple pending checks.
-            # withdrawal_id = withdrawal_data.get("_id") # Assuming MongoDB provides this after insert
-            
             await context.bot.send_message(
                 chat_id=ADMIN_ID,
                 text=admin_message,
@@ -801,7 +807,7 @@ async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    if not query or not query.message: # Added safety check for query and message
+    if not query or not query.message: 
         return
         
     await query.answer()
@@ -814,12 +820,11 @@ async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    # Fix: Use 'language_prompt' which was added to config.py
     try:
         message_text = MESSAGES[lang]["language_prompt"]
     except KeyError:
         logger.error(f"KeyError: 'language_prompt' missing for language '{lang}'. Using fallback.")
-        message_text = "Please select your language:" # Fallback message
+        message_text = "Please select your language:"
 
     await query.edit_message_text(message_text, reply_markup=reply_markup)
 
@@ -834,13 +839,12 @@ async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
     
     await set_user_lang(query.from_user.id, new_lang)
     
-    # Re-send main menu in the new language
     await back_to_main_menu(update, context) 
 
 
 async def show_withdraw_details_new(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    if not query or not query.message: # Added safety check
+    if not query or not query.message: 
         return
         
     await query.answer()
@@ -849,7 +853,6 @@ async def show_withdraw_details_new(update: Update, context: ContextTypes.DEFAUL
     
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
     
-    # --- Pending Withdrawal Check ---
     pending_count = WITHDRAWALS_COLLECTION.count_documents({"user_id": user.id, "status": "pending"})
     
     earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
@@ -858,19 +861,18 @@ async def show_withdraw_details_new(update: Update, context: ContextTypes.DEFAUL
         balance=f"₹{earnings_inr:.2f}"
     )
     
-    # "Pending Withdrawal" बटन का लॉजिक
     pending_button = InlineKeyboardButton(f"⏳ Pending Withdrawals ({pending_count})", callback_data="show_user_pending_withdrawals")
     
     keyboard = [
         [InlineKeyboardButton("💸 Request Withdrawal (Min ₹80)", callback_data="request_withdrawal")],
-        [pending_button], # नया बटन जोड़ा गया है
+        [pending_button], 
         [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
-# --- नया फ़ंक्शन: यूज़र के लिए लंबित निकासी (Pending Withdrawals) दिखाना ---
+
 async def show_user_pending_withdrawals(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message:
@@ -888,7 +890,6 @@ async def show_user_pending_withdrawals(update: Update, context: ContextTypes.DE
     if pending_count == 0:
         message += "✅ You have no pending withdrawal requests."
     else:
-        # In python, use simple formatting for the description
         for i, request in enumerate(pending_requests):
             date_str = request["request_date"].strftime("%d %b %Y %H:%M")
             message += f"**{i+1}.** Amount: ₹{request['amount_inr']:.2f}\n"
@@ -903,7 +904,7 @@ async def show_user_pending_withdrawals(update: Update, context: ContextTypes.DE
 
 async def show_movie_groups_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    if not query or not query.message: # Added safety check
+    if not query or not query.message: 
         return
         
     await query.answer()
@@ -929,7 +930,6 @@ async def show_movie_groups_menu(update: Update, context: ContextTypes.DEFAULT_T
 async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     
-    # Check 5: Handle cases where a callback query might be missing (e.g., direct /start or old query)
     if not query and not update.message:
         logger.warning("back_to_main_menu called without update.message or update.callback_query.")
         return
@@ -953,9 +953,8 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
     )
     
-    # Handle message edit/send based on whether it's a callback or a new command/menu
-    if query: # If it came from a callback
-        if query.message: # Check 6: Ensure message exists before deleting/editing
+    if query: 
+        if query.message: 
             if query.message.photo:
                 try:
                     await query.message.delete()
@@ -969,29 +968,27 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                     parse_mode='HTML'
                 )
             else:
-                try: # Check 7: Added try-except for edit_message_text (common source of 'NoneType' or 'Message not modified')
+                try: 
                     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
                 except TelegramError as e:
                     if "Message is not modified" not in str(e):
                         logger.error(f"Error editing message in back_to_main_menu: {e}")
                     pass
         else:
-             # Fallback if query exists but message is None (very rare, means message was deleted)
              await context.bot.send_message(chat_id=user.id, text=message, reply_markup=reply_markup, parse_mode='HTML')
              
-    elif update.message: # If it came from a /command
+    elif update.message: 
         await update.message.reply_html(message, reply_markup=reply_markup)
 
 
 async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    if not query or not query.message: # Added safety check
+    if not query or not query.message: 
         return
         
     await query.answer()
     lang = await get_user_lang(query.from_user.id)
     
-    # Fix: Corrected key from help_message to help_message_text
     message = MESSAGES[lang].get("help_message", MESSAGES["en"]["help_message"]).format(
         telegram_handle=YOUR_TELEGRAM_HANDLE
     )
@@ -1003,16 +1000,13 @@ async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def show_tier_benefits(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    if not query or not query.message: # Added safety check
+    if not query or not query.message: 
         return
         
     await query.answer()
     lang = await get_user_lang(query.from_user.id)
     
-    # Fix: Corrected key from tier_benefits_message to tier_benefits_message
     message = MESSAGES[lang].get("tier_benefits_message", MESSAGES["en"]["tier_benefits_message"])
-    
-    # Display table of tiers/rates (you need to construct this message dynamically from TIERS)
     
     keyboard = [[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -1021,19 +1015,16 @@ async def show_tier_benefits(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def show_refer_example(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    if not query or not query.message: # Added safety check
+    if not query or not query.message: 
         return
         
     await query.answer()
     user = query.from_user
     lang = await get_user_lang(query.from_user.id)
     
-    # 'Referral Example' बटन को काम करने के लिए, मैंने एक अस्थायी मैसेज दिया है।
-    # आप इसे 'MESSAGES' कॉन्फ़िग में 'refer_example_message' से बदल सकते हैं।
     message_template = MESSAGES[lang].get("refer_example_message", MESSAGES["en"]["refer_example_message"])
     
-    # Added dynamic rate to the message if it uses the placeholder
-    rate = TIERS[4]["rate"]
+    rate = TIERS[max(TIERS.keys())]["rate"]
     message = message_template.format(rate=rate)
     
     keyboard = [
@@ -1041,7 +1032,6 @@ async def show_refer_example(update: Update, context: ContextTypes.DEFAULT_TYPE)
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    # Send message with photo - Added delete on success check
     if EXAMPLE_SCREENSHOT_URL:
         try:
             await context.bot.send_photo(
@@ -1052,7 +1042,6 @@ async def show_refer_example(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 parse_mode='HTML'
             )
             try:
-                # Original message delete
                 await query.message.delete()
             except:
                 pass
@@ -1065,7 +1054,7 @@ async def show_refer_example(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    if not query or not query.message: # Added safety check
+    if not query or not query.message: 
         return
         
     user = query.from_user
@@ -1079,13 +1068,14 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
         
     await query.answer("Checking channel membership...")
     
+    is_member = False
     try:
-        # Check membership (replace with actual channel ID if different from CHANNEL_USERNAME)
         member = await context.bot.get_chat_member(CHANNEL_ID, user.id)
         is_member = member.status in ["member", "administrator", "creator"]
     except TelegramError as e:
+        # Forbidden error usually means the bot is not an admin, or the channel is private
         logger.error(f"Error checking channel membership for {user.id}: {e}")
-        is_member = False
+        # Assuming failure to check means they might not have joined via the link provided
         
     if is_member:
         bonus_usd = CHANNEL_BONUS / DOLLAR_TO_INR
@@ -1098,27 +1088,41 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
         
         if result:
             new_balance_inr = result.get("earnings", 0.0) * DOLLAR_TO_INR
-            # Button name change is handled by config update
+            # If successfully claimed, show only the back button
             await query.edit_message_text(
-                MESSAGES[lang]["channel_bonus_claimed"].format(amount=CHANNEL_BONUS, new_balance=new_balance_inr, channel=CHANNEL_USERNAME), # Fix: Added channel name to format
+                MESSAGES[lang]["channel_bonus_claimed"].format(amount=CHANNEL_BONUS, new_balance=new_balance_inr, channel=CHANNEL_USERNAME), 
                 reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
             )
             log_msg = f"🎁 <b>Channel Bonus Claimed</b>\nUser: {username_display}\nAmount: ₹{CHANNEL_BONUS:.2f}\nNew Balance: ₹{new_balance_inr:.2f}"
             await send_log_message(context, log_msg)
             return
-            
+        
     # If not a member or update failed
-    # Channel name button change: Now using JOIN_CHANNEL_LINK for the URL
+    # Show Join Channel button with link, and a separate Try Again button without link
+    
+    # 1. Join Button (with Link)
+    join_button = InlineKeyboardButton(MESSAGES[lang]["join_channel_button_text"], url=JOIN_CHANNEL_LINK)
+    # 2. Try Again/Back Button (without Link, back to earning panel)
+    back_button = InlineKeyboardButton("⬅️ Back to Earning Panel", callback_data="show_earning_panel")
+    
+    # The user wanted a separate 'Try Again' button with no link.
+    # The best practice is to have the primary action (Join) with the link, 
+    # and then the user can manually navigate back to the earning panel to "Try Again"
+    # The message here will be: "Join Channel, then Try Again (Back button below)"
+    
+    keyboard = [
+        [join_button],
+        [back_button] # This acts as the 'Try Again' - they click to go back and then re-click 'Claim Bonus'
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
     await query.edit_message_text(
-        MESSAGES[lang]["channel_bonus_failure"].format(channel=CHANNEL_USERNAME), # Fix: Using correct key and formatting
-        reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton(MESSAGES[lang]["join_channel_button_text"], url=JOIN_CHANNEL_LINK)],
-            [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
-        ]),
+        MESSAGES[lang]["channel_bonus_failure"].format(channel=CHANNEL_USERNAME), 
+        reply_markup=reply_markup,
         parse_mode='HTML'
     )
 
-# --- Admin Handlers ---
+# --- Admin Handlers (Kept as is) ---
 async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Shows the main admin panel menu."""
     user = update.effective_user
@@ -1131,29 +1135,24 @@ async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
                 pass
         return
 
-    # Store state for admin inputs
     context.user_data["admin_state"] = None
     
-    # Fix: Use message from config (admin_panel_title)
     lang = await get_user_lang(user.id)
     message = MESSAGES[lang].get("admin_panel_title", "👑 <b>Admin Panel</b>\n\nSelect an action:")
 
-    # 'Top Users' बटन हटा दिया गया है
-    # 'Broadcast' और 'Set Referral Rate' बटन अब काम करते हैं
     keyboard = [
         [InlineKeyboardButton("📢 Broadcast Message", callback_data="admin_set_broadcast"),
          InlineKeyboardButton("💸 Pending Withdrawals", callback_data="admin_pending_withdrawals")],
         [InlineKeyboardButton("⚙️ Set Referral Rate", callback_data="admin_set_ref_rate"),
-         InlineKeyboardButton("📊 Bot Stats", callback_data="admin_stats")], # New button for Bot Stats
+         InlineKeyboardButton("📊 Bot Stats", callback_data="admin_stats")], 
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    if update.message: # Check 8: Ensure message exists for command handler
+    if update.message: 
         await update.message.reply_html(message, reply_markup=reply_markup)
     elif update.callback_query and update.callback_query.message:
         await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
-# Added a function to go back to admin menu for clarity
 async def back_to_admin_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if query:
@@ -1164,7 +1163,6 @@ async def back_to_admin_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     
-    # Check 9: Ensure query and message objects exist to avoid NoneType error
     if not query or not query.message:
         logger.warning("handle_admin_callbacks called without query or message.")
         return
@@ -1176,16 +1174,15 @@ async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_T
         await query.edit_message_text("❌ Access Denied.")
         return
 
-    # Correct parsing of callback data
     data = query.data.split("_")
     action = data[1]
     sub_action = data[2] if len(data) > 2 else None
     
     if action == "clearjunk":
-        await clearjunk_logic(update, context) # Placeholder, not requested in final fix but kept
+        await clearjunk_logic(update, context) 
     elif action == "pending" and sub_action == "withdrawals":
         await show_pending_withdrawals(update, context)
-    elif action == "stats": # New logic for Bot Stats
+    elif action == "stats": 
         await show_bot_stats(update, context)
     elif action == "set": 
         if sub_action == "broadcast":
@@ -1194,10 +1191,8 @@ async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_T
         elif sub_action == "ref" and data[3] == "rate":
              context.user_data["admin_state"] = "waiting_for_ref_rate"
              await query.edit_message_text("✍️ Enter the **NEW Tier 1 Referral Rate** in INR (e.g., 5.0 for ₹5 per referral):")
-    elif action == "pending" or action == "stats": # Back button from withdrawals or stats
+    elif action == "pending" or action == "stats": 
         await back_to_admin_menu(update, context) 
-    
-    # Withdrawal approval/rejection is handled by handle_withdrawal_approval
 
 
 async def show_bot_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1207,7 +1202,7 @@ async def show_bot_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         return
 
     lang = await get_user_lang(query.from_user.id)
-    stats = await get_bot_stats() # New function in db_utils.py
+    stats = await get_bot_stats()
 
     message = MESSAGES[lang].get("stats_message", "📊 <b>Bot Stats</b>\n\nTotal Users: {total_users}\nApproved Users: {approved_users}").format(
         total_users=stats["total_users"],
@@ -1222,7 +1217,7 @@ async def show_bot_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def show_pending_withdrawals(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    if not query or not query.message: # Added safety check
+    if not query or not query.message: 
         return
         
     pending_withdrawals = WITHDRAWALS_COLLECTION.find({"status": "pending"}).sort("request_date", 1)
@@ -1230,13 +1225,11 @@ async def show_pending_withdrawals(update: Update, context: ContextTypes.DEFAULT
     message = "<b>💸 Pending Withdrawals</b>\n\n"
     keyboard = []
     
-    # Using count_documents() is better if you only need the count
     count = WITHDRAWALS_COLLECTION.count_documents({"status": "pending"})
 
     if count == 0:
         message += "✅ No pending withdrawal requests."
     else:
-        # Iterate over the cursor
         for request in pending_withdrawals:
             user_id = request["user_id"]
             amount = request["amount_inr"]
@@ -1244,7 +1237,6 @@ async def show_pending_withdrawals(update: Update, context: ContextTypes.DEFAULT
             
             message += f"👤 User: <code>{user_id}</code> (@{username})\n💰 Amount: ₹{amount:.2f}\n"
             
-            # Add buttons for each request (limited to prevent huge messages)
             if len(keyboard) < 5: 
                 keyboard.append([
                     InlineKeyboardButton(f"Approve {user_id}", callback_data=f"approve_withdraw_{user_id}"),
@@ -1269,27 +1261,22 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
     admin_state = context.user_data.get("admin_state")
     text = update.message.text
     
-    # Fix: Reset admin state if user sends /admin to ensure smooth navigation
     if admin_state is None and update.message.text and update.message.text.startswith('/admin'):
         await admin_panel(update, context)
         return
 
     if admin_state == "waiting_for_broadcast_message":
-        # Broadcast logic
         success_count = 0
         fail_count = 0
         
-        # Initial message to admin
         status_message = await update.message.reply_text("📢 Starting broadcast... This may take a moment. Updates will be shown here.")
         
-        # Find approved users (Assuming `is_approved` is correct flag)
         user_ids_cursor = USERS_COLLECTION.find({"is_approved": True}, {"user_id": 1}) 
         total_users = USERS_COLLECTION.count_documents({"is_approved": True})
         
         for i, user_data in enumerate(user_ids_cursor):
             user_id = user_data["user_id"]
             
-            # Update admin message every 100 users
             if i % 100 == 0 and i != 0:
                  try:
                     await context.bot.edit_message_text(
@@ -1301,10 +1288,9 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
                      logger.warning(f"Failed to edit broadcast status message: {e}")
             
             try:
-                # Use HTML parse mode for the broadcast message
                 await context.bot.send_message(user_id, text, parse_mode='HTML', disable_web_page_preview=True)
                 success_count += 1
-                await asyncio.sleep(0.05) # Throttle to respect rate limits (20 messages per minute in private chats)
+                await asyncio.sleep(0.05) 
                 
             except FloodWait as e:
                 wait_time = e.retry_after + 1 
@@ -1315,7 +1301,6 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
                      text=f"⚠️ **PAUSED: FloodWait**\nWaiting for {wait_time} seconds...\nSent to {i} of {total_users} users.\nSuccess: {success_count} / Failed: {fail_count}"
                 )
                 await asyncio.sleep(wait_time)
-                # After waiting, retry sending to the *current* user (important!)
                 try:
                     await context.bot.send_message(user_id, text, parse_mode='HTML', disable_web_page_preview=True)
                     success_count += 1
@@ -1324,17 +1309,15 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
                      fail_count += 1
                 
             except (Forbidden, BadRequest) as e:
-                # Forbidden: User blocked the bot. BadRequest: Chat not found, message invalid, etc.
                 fail_count += 1
-                USERS_COLLECTION.update_one({"user_id": user_id}, {"$set": {"is_approved": False}}) # Optional: Mark as unapproved
+                USERS_COLLECTION.update_one({"user_id": user_id}, {"$set": {"is_approved": False}}) 
                 logger.warning(f"Failed to send to user {user_id} due to API Error: {e}. User marked unapproved (optional).")
                 
             except Exception as e:
                 fail_count += 1
-                logger.error(f"Unknown error sending to user {user_id}: {e}")
+                logger.error(f"Unknown error sending to user {user.id}: {e}")
                 
         context.user_data["admin_state"] = None
-        # Final status update
         await context.bot.edit_message_text(
             chat_id=status_message.chat_id, 
             message_id=status_message.message_id,
@@ -1343,20 +1326,16 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
     elif admin_state == "waiting_for_ref_rate":
-        # Set new referral rate logic - Fix: This now uses SETTINGS_COLLECTION for Tier 1
         try:
             new_rate = float(text)
             if new_rate <= 0:
                  raise ValueError
             
-            # Update the global setting for Tier 1 rate in SETTINGS_COLLECTION
             SETTINGS_COLLECTION.update_one(
-                {"_id": "referral_rate"}, # Assuming get_referral_bonus_inr uses this
+                {"_id": "referral_rate"}, 
                 {"$set": {"rate_inr": new_rate}},
                 upsert=True
             )
-            
-            # Note: The TIERS dict in config.py is hardcoded, but db_utils gets the rate from SETTINGS if available.
             
             context.user_data["admin_state"] = None
             await update.message.reply_text(f"✅ Referral rate successfully updated to **₹{new_rate:.2f}** per referral.")
@@ -1369,7 +1348,7 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    if not query: # Added safety check
+    if not query: 
         return
         
     await query.answer()
@@ -1380,7 +1359,7 @@ async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAU
         return
         
     parts = query.data.split("_")
-    action = parts[0] # approve or reject
+    action = parts[0] 
     user_id_str = parts[2]
     user_id = int(user_id_str)
 
@@ -1398,19 +1377,17 @@ async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAU
     amount_inr = withdrawal_request["amount_inr"]
     
     if action == "approve":
-        # Deduct earnings
         amount_usd = amount_inr / DOLLAR_TO_INR
         USERS_COLLECTION.update_one(
             {"user_id": user_id},
             {"$inc": {"earnings": -amount_usd}}
         )
         
-        # Notify user
         try:
             user_lang = await get_user_lang(user_id)
             await context.bot.send_message(
                 chat_id=user_id,
-                text=MESSAGES[user_lang]["withdrawal_approved_user"].format(amount=amount_inr), # Fix: Use _user version
+                text=MESSAGES[user_lang]["withdrawal_approved_user"].format(amount=amount_inr), 
                 parse_mode='HTML'
             )
         except Exception as e:
@@ -1421,12 +1398,11 @@ async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAU
         log_msg = f"💸 <b>Withdrawal Approved</b>\nAdmin: <code>{query.from_user.id}</code>\nUser: <code>{user_id}</code>\nAmount: ₹{amount_inr:.2f}"
     
     else: # reject
-        # Notify user
         try:
             user_lang = await get_user_lang(user_id)
             await context.bot.send_message(
                 chat_id=user_id,
-                text=MESSAGES[user_lang]["withdrawal_rejected_user"].format(amount=amount_inr), # Fix: Use _user version
+                text=MESSAGES[user_lang]["withdrawal_rejected_user"].format(amount=amount_inr), 
                 parse_mode='HTML'
             )
         except Exception as e:
@@ -1437,13 +1413,11 @@ async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAU
         log_msg = f"🚫 <b>Withdrawal Rejected</b>\nAdmin: <code>{query.from_user.id}</code>\nUser: <code>{user_id}</code>\nAmount: ₹{amount_inr:.2f}"
 
     await send_log_message(context, log_msg)
-    # Re-show pending withdrawals if the message exists
     if query.message:
-        # Avoid show_pending_withdrawals if it came from the earning panel withdraw button
         if "admin" in query.data:
-            await show_pending_withdrawals(update, context) # Refresh list
+            await show_pending_withdrawals(update, context) 
 
-# --- Top Users Logic (Moved to Earning Panel) ---
+
 async def show_top_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message:
@@ -1451,7 +1425,6 @@ async def show_top_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         
     await query.answer()
     
-    # Find top 10 users by earnings
     top_users_cursor = USERS_COLLECTION.find().sort("earnings", -1).limit(10)
     
     message = "🏆 <b>Top 10 Earners</b> 🏆\n\n"
@@ -1464,11 +1437,8 @@ async def show_top_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         
         display_name = f"@{username}" if username else f"User {user_id}"
         
-        # Link Logic: Blue name, click to view profile. 
-        # Using a t.me link for profile view.
         user_link = f"tg://user?id={user_id}"
         
-        # Add to the message as bold/blue text (HTML 'a' tag)
         message += f"{i+1}. <a href='{user_link}'><b>{display_name}</b></a>: ₹{earnings_inr:.2f}\n"
 
     keyboard = [[InlineKeyboardButton("⬅️ Back to Earning Panel", callback_data="show_earning_panel")]]
@@ -1478,33 +1448,15 @@ async def show_top_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     
 
 async def topusers_logic(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # This is the old admin logic, which is now obsolete but kept for reference/cleanup.
-    # The actual 'Top Users' logic is in show_top_users
-    await show_top_users(update, context) # Forwarding to the new public view
+    await show_top_users(update, context)
 
 
 async def clearjunk_logic(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    if not query or not query.message: # Added safety check
+    if not query or not query.message: 
         return
         
-    # Example: Logic to find and delete junk data (e.g., users with 0 earnings who never completed a mission)
-    # NOTE: Implement this carefully!
-    
-    # junk_count = USERS_COLLECTION.count_documents({
-    #     "earnings": 0.0,
-    #     "welcome_bonus_received": False,
-    #     "spins_left": 0
-    # })
-    
-    # delete_result = USERS_COLLECTION.delete_many({
-    #     "earnings": 0.0,
-    #     "welcome_bonus_received": False,
-    #     "spins_left": 0
-    # })
-    
-    # Use delete_many with a specific, safe query if needed, or leave it as a placeholder:
-    delete_result = {"deleted_count": 0} # Placeholder
+    delete_result = {"deleted_count": 0} 
     
     message = f"🗑️ **Clear Junk Operation**\n\nCompleted! Deleted {delete_result['deleted_count']} inactive user records."
     
@@ -1525,6 +1477,4 @@ async def set_bot_commands_logic(context: ContextTypes.DEFAULT_TYPE) -> None:
     ]
 
     await context.bot.set_my_commands(user_commands)
-    # BotCommandScopeChat is not imported in the original code, this line will likely fail
-    # await context.bot.set_my_commands(admin_commands, scope=BotCommandScopeChat(chat_id=ADMIN_ID)) 
     logger.info("Bot commands set successfully.")
