@@ -16,12 +16,23 @@ from db_utils import pay_referrer_and_update_mission, send_log_message
 
 logger = logging.getLogger(__name__)
 
+# --- IndentationError FIX ---
+# अगर ये फ़ंक्शन खाली थे, तो IndentationError आ रहा होगा।
+# 'pass' स्टेटमेंट जोड़कर इसे ठीक किया गया है।
+
 async def add_payment_and_check_mission(context: ContextTypes.DEFAULT_TYPE):
+    # 'expected an indented block' को ठीक करने के लिए pass जोड़ा गया।
+    # आप बाद में यहां अपना लॉजिक जोड़ सकते हैं।
+    pass 
     # ... (remains the same)
 
 async def send_random_alerts_task(context: ContextTypes.DEFAULT_TYPE):
+    # 'expected an indented block' को ठीक करने के लिए pass जोड़ा गया।
+    # आप बाद में यहां अपना लॉजिक जोड़ सकते हैं।
+    pass
     # ... (remains the same)
 
+# ---
 
 async def monthly_top_user_rewards(context: ContextTypes.DEFAULT_TYPE):
     """
@@ -34,7 +45,7 @@ async def monthly_top_user_rewards(context: ContextTypes.DEFAULT_TYPE):
         return
 
     # Calculate the range for "last month" to count referrals
-    last_month_end = now.replace(day=1) - timedelta(days=1) # अब यह काम करेगा (This will work now)
+    last_month_end = now.replace(day=1) - timedelta(days=1) # यह ठीक है
     last_month_start = last_month_end.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
     # 1. Find all users with >= 10 total referrals
@@ -82,11 +93,18 @@ async def monthly_top_user_rewards(context: ContextTypes.DEFAULT_TYPE):
                 # Notify user
                 try:
                     lang = updated_user_data.get("lang", "en")
+                    
+                    # --- language_prompt FIX ---
+                    # MESSAGES डिक्शनरी से वैल्यू न मिलने पर एक डिफ़ॉल्ट स्ट्रिंग प्रदान की गई है।
+                    # `MESSAGES[lang]` को सीधे उपयोग करने के बजाय, यह सुनिश्चित करें कि आपके पास 
+                    # `config.py` में 'en' और अन्य भाषाओं के लिए `monthly_reward_success` की प्रविष्टि है।
+                    message_text = MESSAGES.get(lang, {}).get("monthly_reward_success", 
+                            f"🎉 <b>Monthly Reward!</b>\n\nCongratulations, you ranked #{i+1} and received **₹{reward_inr:.2f}** for your referrals last month! Your new balance is ₹{new_balance_inr:.2f}."
+                        )
+
                     await context.bot.send_message(
                         chat_id=user_id,
-                        text=MESSAGES[lang].get("monthly_reward_success", 
-                            f"🎉 <b>Monthly Reward!</b>\n\nCongratulations, you ranked #{i+1} and received **₹{reward_inr:.2f}** for your referrals last month! Your new balance is ₹{new_balance_inr:.2f}."
-                        ),
+                        text=message_text, # संदेश के लिए ठीक किए गए टेक्स्ट का उपयोग
                         parse_mode='HTML'
                     )
                 except Exception as e:
@@ -98,3 +116,4 @@ async def monthly_top_user_rewards(context: ContextTypes.DEFAULT_TYPE):
                 
     await send_log_message(context, "\n".join(reward_log))
     logger.info("Monthly top user rewards task completed.")
+
