@@ -2,7 +2,8 @@
 
 import logging
 from telegram.ext import ContextTypes
-from datetime import datetime
+# यहाँ बदलाव किया गया है! (Change made here!)
+from datetime import datetime, timedelta 
 import asyncio
 import random
 from telegram.error import TelegramError
@@ -33,7 +34,7 @@ async def monthly_top_user_rewards(context: ContextTypes.DEFAULT_TYPE):
         return
 
     # Calculate the range for "last month" to count referrals
-    last_month_end = now.replace(day=1) - timedelta(days=1)
+    last_month_end = now.replace(day=1) - timedelta(days=1) # अब यह काम करेगा (This will work now)
     last_month_start = last_month_end.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
     # 1. Find all users with >= 10 total referrals
