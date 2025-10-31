@@ -31,7 +31,7 @@ EXAMPLE_SCREENSHOT_URL = os.getenv("EXAMPLE_SCREENSHOT_URL", "https://envs.sh/v3
 
 CHANNEL_USERNAME = "@asbhai_bsr"
 CHANNEL_ID = -1002283182645
-CHANNEL_BONUS = 15.00
+CHANNEL_BONUS = 5.00
 JOIN_CHANNEL_LINK = f"https://t.me/{CHANNEL_USERNAME.replace('@', '')}" # नया: चैनल लिंक
 
 WEB_SERVER_URL = os.getenv("WEB_SERVER_URL")
@@ -49,7 +49,7 @@ except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {e}")
 
 # --- Constants and Configuration ---
-DOLLAR_TO_INR = 79.0
+DOLLAR_TO_INR = 75.0
 
 DAILY_BONUS_BASE = 0.10
 DAILY_BONUS_STREAK_MULTIPLIER = 0.10
