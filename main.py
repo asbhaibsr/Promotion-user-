@@ -19,13 +19,14 @@ from handlers import (
     handle_admin_callbacks, handle_withdrawal_approval, handle_group_messages,
     handle_admin_input, show_bot_stats, # New: Bot Stats Handler
     show_top_users, 
-    show_user_pending_withdrawals 
+    show_user_pending_withdrawals, 
+    error_handler # FIX: Import the new error handler
 )
 from tasks import send_random_alerts_task
 
 # --- Logging Setup ---
 logging.basicConfig(
-    # Fix: Corrected '}' to ')' in format string
+    # FIX: Corrected format string
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
     level=logging.INFO
 )
@@ -37,6 +38,10 @@ def main() -> None:
         return
 
     application = Application.builder().token(BOT_TOKEN).concurrent_updates(True).build()
+
+    # FIX: Global Error Handler
+    # application.add_error_handler(error_handler) 
+    # Note: Use the commented line if you want a global error handler.
 
     # --- Command Handlers ---
     application.add_handler(CommandHandler("start", start_command))
@@ -75,35 +80,6 @@ def main() -> None:
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_admin_input)) 
     
     # Handle group messages (movie searches)
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.GROUPS, handle_group_messages))
-    
-    # --- Job Queue (Background Tasks) ---
-    job_queue = application.job_queue
-    
-    if job_queue: 
-        job_queue.run_repeating(send_random_alerts_task, interval=timedelta(hours=2), first=timedelta(minutes=5))
-        logger.info("Random alert task scheduled to run every 2 hours.")
-    else:
-        logger.warning("Job Queue is not initialized. Skipping random alert task (common in Webhook mode).")
-
-
-    # --- Running the Bot ---
-    if WEB_SERVER_URL and BOT_TOKEN:
-        application.run_webhook(
-            listen="0.0.0.0",
-            port=PORT,
-            url_path=BOT_TOKEN,
-            webhook_url=f"{WEB_SERVER_URL}/{BOT_TOKEN}",
-            allowed_updates=Update.ALL_TYPES
-        )
-        logger.info(f"Bot started in Webhook Mode on port {PORT}.")
-    else:
-        logger.info("WEB_SERVER_URL not found, starting in Polling Mode.")
-        application.run_polling(allowed_updates=Update.ALL_TYPES)
-        logger.info("Bot started in Polling Mode.")
-
-if __name__ == "__main__":
-    main()
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.GROUPS, handle_group_messages))
     
     # --- Job Queue (Background Tasks) ---
