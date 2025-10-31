@@ -138,6 +138,7 @@ async def pay_referrer_and_update_mission(context: ContextTypes.DEFAULT_TYPE, us
     # Check if this user has already triggered a PAID search today.
     today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     
+    # --- FIX 1: Find the referral record ---
     referral_check = REFERRALS_COLLECTION.find_one({
         "referrer_id": referrer_id,
         "referred_user_id": user_id
@@ -149,7 +150,7 @@ async def pay_referrer_and_update_mission(context: ContextTypes.DEFAULT_TYPE, us
     
     last_paid_date = referral_check.get("last_paid_date")
     
-    if last_paid_date and last_paid_date.date() == today:
+    if last_paid_date and isinstance(last_paid_date, datetime) and last_paid_date.date() == today:
         logger.warning(f"Payment for {user_id} to {referrer_id} already processed today. Skipping.")
         return False, 0 # Already paid today
 
@@ -158,13 +159,14 @@ async def pay_referrer_and_update_mission(context: ContextTypes.DEFAULT_TYPE, us
         {
             "referrer_id": referrer_id,
             "referred_user_id": user_id,
+            # CRITICAL FIX: Ensure we only update if not paid today
             "$or": [
                 {"last_paid_date": None},
                 {"last_paid_date": {"$lt": today_start}} # Check if not paid today
             ]
         },
         {
-            # **FIX: Ensure last_paid_date is updated here to mark the payment for today**
+            # **CRITICAL FIX: Ensure last_paid_date is updated here to mark the payment for today**
             "$set": {
                 "last_paid_date": datetime.now(), 
                 "paid_search_count_today": 1 # Setting it to 1 to simplify logic for mission check if needed
@@ -174,6 +176,7 @@ async def pay_referrer_and_update_mission(context: ContextTypes.DEFAULT_TYPE, us
     )
     
     if not result:
+        # This means the payment was processed by another job or just missed the race condition
         logger.warning(f"Payment update failed for user {user_id} to referrer {referrer_id}. Already processed?")
         return False, 0
     
@@ -190,19 +193,21 @@ async def pay_referrer_and_update_mission(context: ContextTypes.DEFAULT_TYPE, us
     updated_referrer_data = USERS_COLLECTION.find_one({"user_id": referrer_id})
     new_balance_inr = updated_referrer_data.get("earnings", 0.0) * DOLLAR_TO_INR
     
-    # **FIX: Fetch referred user's data to send notification to referrer**
+    # Fetch referred user's data to send notification to referrer
     user_data = USERS_COLLECTION.find_one({"user_id": user_id})
-    user_full_name = user_data.get("full_name", f"User {user_id}")
+    # If user_data is None (highly unlikely here), use fallback
+    user_full_name = user_data.get("full_name", f"User {user_id}") if user_data else f"User {user_id}"
     
     # Notify Referrer (Only in private chat with the bot)
     referrer_lang = await get_user_lang(referrer_id)
     try:
-        # **FIX: Sending message to referrer_id (private chat)**
+        # **CRITICAL FIX: Sending message to referrer_id (private chat)**
+        # This addresses the user's issue: "ये message उस user को जाये जिसने उस user को अपनी link से बायला था"
         await context.bot.send_message(
             chat_id=referrer_id, # Private chat ID
             text=MESSAGES[referrer_lang]["daily_earning_update_new"].format( # Using new key
                 amount=tier_rate,
-                full_name=user_full_name, 
+                full_name=user_full_name, # Referred user's name
                 new_balance=new_balance_inr
             ),
             parse_mode='HTML'
@@ -212,16 +217,9 @@ async def pay_referrer_and_update_mission(context: ContextTypes.DEFAULT_TYPE, us
     except (TelegramError, TimedOut) as e:
         logger.error(f"Could not send daily earning update to referrer {referrer_id}: {e}")
         
-    # Notify Referred User (No extra message needed here, as it's sent immediately in handler)
-    # user_lang = await get_user_lang(user_id)
-    # try:
-    #     # User already received the 'search_success_message' from handle_group_messages
-    #     pass
-    # except Exception as e:
-    #     logger.error(f"Could not send confirmation to referred user {user_id}: {e}")
     
-    referrer_username = f"@{updated_referrer_data.get('username')}" if updated_referrer_data.get('username') else f"<code>{referrer_id}</code>"
-    user_username = f"@{user_data.get('username')}" if user_data.get('username') else f"<code>{user_id}</code>"
+    referrer_username = f"@{updated_referrer_data.get('username')}" if updated_referrer_data and updated_referrer_data.get('username') else f"<code>{referrer_id}</code>"
+    user_username = f"@{user_data.get('username')}" if user_data and user_data.get('username') else f"<code>{user_id}</code>"
     log_msg = (
         f"💸 <b>Referral Earning</b> (Daily Payment)\n"
         f"Referrer: {referrer_username}\n"
