@@ -136,6 +136,8 @@ async def pay_referrer_and_update_mission(context: ContextTypes.DEFAULT_TYPE, us
     
     # 1. Check and Update Referral Record (Atomically)
     # Check if this user has already triggered a PAID search today.
+    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    
     referral_check = REFERRALS_COLLECTION.find_one({
         "referrer_id": referrer_id,
         "referred_user_id": user_id
@@ -158,16 +160,18 @@ async def pay_referrer_and_update_mission(context: ContextTypes.DEFAULT_TYPE, us
             "referred_user_id": user_id,
             "$or": [
                 {"last_paid_date": None},
-                {"last_paid_date": {"$lt": datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)}} # Check if not paid today
+                {"last_paid_date": {"$lt": today_start}} # Check if not paid today
             ]
         },
         {
             "$set": {
                 "last_paid_date": datetime.now()
             },
-            # Count the successful daily paid search. Used for the referrer's mission check.
-            "$inc": {
-                "paid_search_count_today": 1
+            # FIX: Only set paid_search_count_today to 1 if it's a new day's payment. 
+            # This field should ideally be updated elsewhere or only reflect the success of a payment.
+            # However, for mission check in handler, we rely on checking all referral records' last_paid_date
+            "$set": {
+                "paid_search_count_today": 1 # Setting it to 1 to simplify logic for mission check if needed
             }
         },
         return_document=True
@@ -240,6 +244,7 @@ async def pay_referrer_and_update_mission(context: ContextTypes.DEFAULT_TYPE, us
     # Count total paid searches today from ALL referred users
     paid_searches_today_count = 0
     referral_records = list(REFERRALS_COLLECTION.find({"referrer_id": referrer_id}))
+    
     for ref_record in referral_records:
         # Check if the payment happened TODAY
         if ref_record.get("last_paid_date") and ref_record["last_paid_date"].date() == today:
