@@ -27,7 +27,7 @@ NEW_MOVIE_GROUP_LINK = "https://t.me/asfilter_bot"
 MOVIE_GROUP_LINK = "https://t.me/asfilter_group" 
 ALL_GROUPS_LINK = "https://t.me/addlist/6urdhhdLRqhiZmQ1"
 
-EXAMPLE_SCREENSHOT_URL = os.getenv("EXAMPLE_SCREENSHOT_URL", "https://envs.sh/ric.jpg")
+EXAMPLE_SCREENSHOT_URL = os.getenv("EXAMPLE_SCREENSHOT_URL", "https://envs.sh/v3A.jpg")
 
 CHANNEL_USERNAME = "@asbhai_bsr"
 CHANNEL_ID = -1002283182645
@@ -49,9 +49,9 @@ except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {e}")
 
 # --- Constants and Configuration ---
-DOLLAR_TO_INR = 83.0
+DOLLAR_TO_INR = 79.0
 
-DAILY_BONUS_BASE = 0.50
+DAILY_BONUS_BASE = 0.10
 DAILY_BONUS_STREAK_MULTIPLIER = 0.10
 
 SPIN_PRIZES_WEIGHTS = {
@@ -60,9 +60,9 @@ SPIN_PRIZES_WEIGHTS = {
     0.50: 3,
     0.80: 2,
     1.00: 2,
+    2.00: 1,
     3.00: 1,
-    5.00: 1,
-    10.00: 1
+    5.00: 1
 }
 SPIN_PRIZES = list(SPIN_PRIZES_WEIGHTS.keys())
 SPIN_WEIGHTS = list(SPIN_PRIZES_WEIGHTS.values())
@@ -73,16 +73,16 @@ SPIN_WHEEL_CONFIG = {
 }
 
 TIERS = {
-    1: {"min_earnings": 0, "rate": 0.40, "name": "Beginner", "benefits_en": "Basic referral rate (₹0.40)", "benefits_hi": "सामान्य रेफरल दर (₹0.40)"},
-    2: {"min_earnings": 50, "rate": 0.60, "name": "Pro", "benefits_en": "50% higher referral rate (₹0.60)", "benefits_hi": "50% ज़्यादा रेफरल दर (₹0.60)"},
-    3: {"min_earnings": 200, "rate": 1.00, "name": "Expert", "benefits_en": "2.5x referral rate (₹1.00)", "benefits_hi": "2.5 गुना रेफरल दर (₹1.00)"},
-    4: {"min_earnings": 500, "rate": 2.00, "name": "Master", "benefits_en": "5x referral rate (₹2.00)", "benefits_hi": "5 गुना रेफरल दर (₹2.00)"}
+    1: {"min_earnings": 0, "rate": 0.20, "name": "Beginner", "benefits_en": "Basic referral rate (₹0.20)", "benefits_hi": "सामान्य रेफरल दर (₹0.20)"},
+    2: {"min_earnings": 500, "rate": 0.40, "name": "Pro", "benefits_en": "50% higher referral rate (₹0.40)", "benefits_hi": "50% ज़्यादा रेफरल दर (₹0.40)"},
+    3: {"min_earnings": 1000, "rate": 0.60, "name": "Expert", "benefits_en": "2.5x referral rate (₹0.60)", "benefits_hi": "2.5 गुना रेफरल दर (₹0.60)"},
+    4: {"min_earnings": 1500, "rate": 0.80, "name": "Master", "benefits_en": "5x referral rate (₹0.80)", "benefits_hi": "5 गुना रेफरल दर (₹0.80)"}
 }
 
 DAILY_MISSIONS = {
-    "search_3_movies": {"reward": 1.00, "target": 3, "name": "Search 3 Movies (Ref. Paid Search)", "name_hi": "3 फिल्में खोजें (रेफ़रल का भुगतान)"},
-    "refer_2_friends": {"reward": 5.00, "target": 2, "name": "Refer 2 Friends", "name_hi": "2 दोस्तों को रेफ़र करें"},
-    "claim_daily_bonus": {"reward": 0.50, "target": 1, "name": "Claim Daily Bonus", "name_hi": "दैनिक बोनस क्लेम करें"}
+    "search_3_movies": {"reward": 0.60, "target": 3, "name": "Search 3 Movies (Ref. Paid Search)", "name_hi": "3 फिल्में खोजें (रेफ़रल का भुगतान)"},
+    "refer_2_friends": {"reward": 1.40, "target": 2, "name": "Refer 2 Friends", "name_hi": "2 दोस्तों को रेफ़र करें"},
+    "claim_daily_bonus": {"reward": 0.10, "target": 1, "name": "Claim Daily Bonus", "name_hi": "दैनिक बोनस क्लेम करें"}
 }
 
 # --- Messages and Text ---
