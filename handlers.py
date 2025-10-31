@@ -48,6 +48,24 @@ async def referral_payment_job(context: ContextTypes.DEFAULT_TYPE) -> None:
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.error("Exception while handling an update:", exc_info=context.error)
     
+    # --- FIX 1: Add a specific check for "Message is not modified" error.
+    error_detail = str(context.error)
+    if "Message is not modified" in error_detail:
+        logger.warning("Ignoring 'Message is not modified' error.")
+        # Do not send a message to the user for this specific, benign error
+        # but still log the event to the admin if necessary.
+        if ADMIN_ID:
+            try:
+                await context.bot.send_message(
+                    chat_id=ADMIN_ID,
+                    text=f"⚠️ **Bot Warning: Message Not Modified**:\n\n`{error_detail}`\n\n**Update:** `{update}`",
+                    parse_mode='Markdown'
+                )
+            except Exception:
+                pass
+        return
+    # --- END FIX 1
+
     try:
         error_msg = f"❌ An error occurred! Details: {context.error}"
         if update and update.effective_chat:
@@ -298,7 +316,14 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     if query.message: 
-        await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+        try:
+            await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+        # --- FIX 2: Handle "Message is not modified" error gracefully.
+        except TelegramError as e:
+            if "Message is not modified" not in str(e):
+                logger.error(f"Error editing message in show_earning_panel: {e}")
+            pass
+        # --- END FIX 2
 
 
 async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -414,10 +439,17 @@ async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     
     if already_claimed:
         await query.answer(MESSAGES[lang]["daily_bonus_already_claimed"], show_alert=True)
-        await query.edit_message_text(
-            MESSAGES[lang]["daily_bonus_already_claimed"],
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
-        )
+        # --- FIX 3: Add a try-except for 'Message is not modified' error
+        try:
+            await query.edit_message_text(
+                MESSAGES[lang]["daily_bonus_already_claimed"],
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
+            )
+        except TelegramError as e:
+            if "Message is not modified" not in str(e):
+                logger.error(f"Error editing message in claim_daily_bonus (already_claimed): {e}")
+            pass
+        # --- END FIX 3
         return
     
     if bonus_amount is None:
@@ -732,10 +764,17 @@ async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     existing_request = WITHDRAWALS_COLLECTION.find_one({"user_id": user.id, "status": "pending"})
     if existing_request:
-        await query.edit_message_text(
-            "❌ <b>Request Already Pending!</b>\n\nYour previous withdrawal request is still being processed.",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
-        )
+        # --- FIX 4: Add a try-except for 'Message is not modified' error
+        try:
+            await query.edit_message_text(
+                "❌ <b>Request Already Pending!</b>\n\nYour previous withdrawal request is still being processed.",
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
+            )
+        except TelegramError as e:
+            if "Message is not modified" not in str(e):
+                logger.error(f"Error editing message in request_withdrawal (already pending): {e}")
+            pass
+        # --- END FIX 4
         return
     
     withdrawal_data = {
@@ -929,10 +968,12 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     
     if query: 
         if query.message: 
+            # --- FIX 5: Handle messages with photos/captions gracefully
             if query.message.photo:
                 try:
                     await query.message.delete()
-                except Exception:
+                except Exception as e:
+                    logger.warning(f"Failed to delete photo message in back_to_main_menu: {e}")
                     pass
                     
                 await context.bot.send_message(
@@ -1016,8 +1057,9 @@ async def show_refer_example(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 parse_mode='HTML'
             )
             try:
+                # Delete the previous message (which likely had no photo/caption)
                 await query.message.delete()
-            except:
+            except Exception:
                 pass
         except Exception as e:
             logger.error(f"Failed to send photo in show_refer_example: {e}")
@@ -1036,8 +1078,12 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
     username_display = f"@{user.username}" if user.username else f"<code>{user.id}</code>"
     
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
+    
+    # Check 1: Already claimed
     if user_data.get("channel_bonus_received"):
         await query.answer(MESSAGES[lang]["channel_already_claimed"], show_alert=True)
+        # --- FIX 6: Directly call show_earning_panel to update the message
+        # This will rely on show_earning_panel's try-except for 'Message is not modified'
         await show_earning_panel(update, context) 
         return
         
@@ -1054,6 +1100,7 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
         logger.error(f"Error checking channel membership for {user.id}: {e}")
         pass
         
+    # Check 2: Member and not claimed
     if is_member:
         bonus_usd = CHANNEL_BONUS / DOLLAR_TO_INR
         
@@ -1073,6 +1120,7 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
             await send_log_message(context, log_msg)
             return
         
+    # Check 3: Not a member or update failed
     
     join_button = InlineKeyboardButton(
         "🔗 Join Channel", 
@@ -1090,11 +1138,18 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    await query.edit_message_text(
-        MESSAGES[lang]["channel_bonus_failure"].format(channel=CHANNEL_USERNAME), 
-        reply_markup=reply_markup,
-        parse_mode='HTML'
-    )
+    # --- FIX 7: Add a try-except for 'Message is not modified' error when showing failure
+    try:
+        await query.edit_message_text(
+            MESSAGES[lang]["channel_bonus_failure"].format(channel=CHANNEL_USERNAME), 
+            reply_markup=reply_markup,
+            parse_mode='HTML'
+        )
+    except TelegramError as e:
+        if "Message is not modified" not in str(e):
+            logger.error(f"Error editing message in claim_channel_bonus (failure): {e}")
+        pass
+    # --- END FIX 7
 
 
 async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
