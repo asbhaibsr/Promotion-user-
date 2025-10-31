@@ -24,11 +24,32 @@ from db_utils import (
     send_log_message, get_user_lang, set_user_lang, get_referral_bonus_inr, 
     get_welcome_bonus, get_user_tier, get_tier_referral_rate, 
     claim_and_update_daily_bonus, update_daily_searches_and_mission,
-    get_bot_stats
+    get_bot_stats, pay_referrer_and_update_mission # Import the core logic function
 )
-from tasks import add_payment_and_check_mission # Import job task
+# from tasks import add_payment_and_check_mission # OLD: Removed as we define the job here
 
 logger = logging.getLogger(__name__)
+
+# --- CRITICAL FIX: Job Queue Function ---
+# This function is the actual job that will run after the delay
+async def referral_payment_job(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Scheduled job to pay the referrer and update their mission status."""
+    job_data = context.job.data
+    referrer_id = job_data.get("referrer_id")
+    referred_user_id = job_data.get("referred_user_id") # Stored referred user ID in the job
+    
+    if not referrer_id or not referred_user_id:
+        logger.error("Job data missing referrer_id or referred_user_id.")
+        return
+
+    # Call the core logic after the delay
+    success, amount = await pay_referrer_and_update_mission(context, referred_user_id, referrer_id)
+    
+    if success:
+        logger.info(f"Job: Successfully paid referrer {referrer_id} from user {referred_user_id} (₹{amount:.2f}).")
+    else:
+        logger.warning(f"Job: Referral payment for {referred_user_id} to {referrer_id} failed or already processed.")
+
 
 # --- Global Error Handler (New) ---
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -234,37 +255,41 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
         last_paid_date = referral_data.get("last_paid_date")
         today = datetime.now().date()
         
-        if last_paid_date and last_paid_date.date() == today:
-            logger.info(f"Referral payment for user {user.id} to referrer {referrer_id} already processed today. Skipping.")
-            # **FIX 3: If already paid, still send the success message to the referred user's PRIVATE CHAT, but skip scheduling the payment job.**
+        # CRITICAL FIX: Check if last_paid_date exists, is a datetime, and is today
+        if last_paid_date and isinstance(last_paid_date, datetime) and last_paid_date.date() == today:
+            logger.info(f"Referral payment for user {user.id} to referrer {referrer_id} already processed today. Skipping job scheduling.")
+            # Still send the success message to the referred user's PRIVATE CHAT
             lang = await get_user_lang(user.id)
             try:
+                # User ID is used as chat_id to send to private chat
                 await context.bot.send_message(chat_id=user.id, text=MESSAGES[lang]["search_success_message"], parse_mode='HTML') 
             except Exception as e:
                 logger.error(f"Failed to send search success message to user {user.id} (already paid): {e}")
             return
 
         # If it hasn't been paid today, schedule the job.
-        job_name = f"pay_{user.id}"
+        # Job name ensures only one job per referred user is pending at a time
+        job_name = f"pay_{user.id}" 
         existing_jobs = context.job_queue.get_jobs_by_name(job_name)
         
         if not existing_jobs:
             # Payment check scheduled after a delay (e.g., 5 minutes = 300 seconds)
-            # The job will handle the payment, the message to the referrer, and updating `last_paid_date`
+            # The job will call pay_referrer_and_update_mission which handles payment, message to referrer, and last_paid_date update.
             context.job_queue.run_once(
-                add_payment_and_check_mission, 
-                300, # 5 minutes delay
-                chat_id=user.id,
-                user_id=user.id, # Referred user ID
-                data={"referrer_id": referrer_id},
+                referral_payment_job, # Use the dedicated job function
+                300, # 5 minutes delay (as requested)
+                # The chat_id is the referred user's ID, but only for logging purposes in the job_queue
+                chat_id=user.id, 
+                user_id=user.id, # The referred user
+                data={"referrer_id": referrer_id, "referred_user_id": user.id}, # Pass data to the job
                 name=job_name
             )
-            logger.info(f"Payment task scheduled for user {user.id} (referrer {referrer_id}).")
+            logger.info(f"Payment task scheduled for user {user.id} (referrer {referrer_id}). Job Name: {job_name}")
         else:
-             logger.info(f"Payment task for {user.id} already pending. Ignoring.")
+             logger.info(f"Payment task for {user.id} already pending. Ignoring job creation.")
     
-    # **FIX 2: Send search success message to the REFERRED USER'S PRIVATE CHAT, NOT the group.**
-    # This addresses the screenshot and message issue. The message will be sent to the user's ID.
+    # **CRITICAL FIX: Send search success message to the REFERRED USER'S PRIVATE CHAT, NOT the group.**
+    # This addresses the user's issue: "bot us user ke movie search karne ke paise [...] update kr deta hai movie sewrch krne ke 5 minute baad"
     lang = await get_user_lang(user.id)
     try:
         # User ID is used as chat_id to send to private chat
@@ -275,11 +300,8 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
 
 
 # --- Callback Handlers (Menus, Actions) ---
-# ... (All other handlers remain the same as provided, ensuring they only reply to private chats)
-# I have added a FIX in error_handler to avoid group replies for errors.
-# I have updated the admin handlers to ensure admin_state is reset when /admin is sent
-# I have updated show_top_users logic to be more robust.
-# ... (The rest of handlers.py remains the same to keep the changes focused)
+# ... (All other handlers remain the same as provided)
+# The rest of the handlers are the same to minimize risk outside the critical path.
 # ...
 
 async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -604,7 +626,7 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     
     # FIX: Recalculate paid_searches_today_count based on successful daily payments
     for ref_record in referral_records:
-        if ref_record.get("last_paid_date") and ref_record["last_paid_date"] >= today_start:
+        if ref_record.get("last_paid_date") and isinstance(ref_record["last_paid_date"], datetime) and ref_record["last_paid_date"] >= today_start:
              paid_searches_today_count += 1
         
     # Mission: Refer 2 Friends (New user joins)
