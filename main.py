@@ -17,16 +17,17 @@ from handlers import (
     show_spin_panel, perform_spin, spin_fake_btn, show_missions, 
     request_withdrawal, show_tier_benefits, claim_channel_bonus,
     handle_admin_callbacks, handle_withdrawal_approval, handle_group_messages,
-    handle_admin_input, show_bot_stats, # New: Bot Stats Handler
+    handle_admin_input, show_bot_stats, 
     show_top_users, 
     show_user_pending_withdrawals, 
-    error_handler # FIX: Import the new error handler
+    show_my_referrals, # <-- FIX 1: Imported
+    set_bot_commands_logic, # <-- FIX 3: Imported
+    error_handler 
 )
 from tasks import send_random_alerts_task
 
 # --- Logging Setup ---
 logging.basicConfig(
-    # FIX: Corrected format string
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
     level=logging.INFO
 )
@@ -39,9 +40,11 @@ def main() -> None:
 
     application = Application.builder().token(BOT_TOKEN).concurrent_updates(True).build()
 
-    # FIX: Global Error Handler
-    # application.add_error_handler(error_handler) 
-    # Note: Use the commented line if you want a global error handler.
+    # FIX 3: Set bot commands on startup
+    application.post_init = set_bot_commands_logic
+
+    # FIX 2: Global Error Handler Enabled
+    application.add_error_handler(error_handler) 
 
     # --- Command Handlers ---
     application.add_handler(CommandHandler("start", start_command))
@@ -71,15 +74,15 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(show_top_users, pattern="^show_top_users$"))
     application.add_handler(CallbackQueryHandler(show_user_pending_withdrawals, pattern="^show_user_pending_withdrawals$"))
     
+    # FIX 1: Added handler for 'My Referrals' button
+    application.add_handler(CallbackQueryHandler(show_my_referrals, pattern="^show_my_referrals$"))
+    
     # Admin & Withdrawal Handlers
     application.add_handler(CallbackQueryHandler(handle_admin_callbacks, pattern="^admin_")) 
     application.add_handler(CallbackQueryHandler(handle_withdrawal_approval, pattern="^(approve|reject)_withdraw_\\d+$"))
     
     # --- Message Handlers ---
-    # Handle admin input in private chat (for broadcast, setrate etc.)
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_admin_input)) 
-    
-    # Handle group messages (movie searches)
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.GROUPS, handle_group_messages))
     
     # --- Job Queue (Background Tasks) ---
