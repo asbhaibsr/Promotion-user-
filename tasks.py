@@ -16,23 +16,68 @@ from db_utils import pay_referrer_and_update_mission, send_log_message
 
 logger = logging.getLogger(__name__)
 
-# --- IndentationError FIX ---
-# अगर ये फ़ंक्शन खाली थे, तो IndentationError आ रहा होगा।
-# 'pass' स्टेटमेंट जोड़कर इसे ठीक किया गया है।
-
 async def add_payment_and_check_mission(context: ContextTypes.DEFAULT_TYPE):
-    # 'expected an indented block' को ठीक करने के लिए pass जोड़ा गया।
-    # आप बाद में यहां अपना लॉजिक जोड़ सकते हैं।
-    pass 
-    # ... (remains the same)
+    """
+    Scheduled job to process payment and mission check for a referred user's search.
+    This runs after a 5-minute delay from handle_group_messages.
+    """
+    job = context.job
+    user_id = job.user_id # Referred user ID
+    referrer_id = job.data.get("referrer_id")
+    
+    if not referrer_id:
+        logger.error(f"Job data missing referrer_id for user {user_id}.")
+        return
+
+    # Call the core payment logic, which also handles:
+    # 1. Checking if already paid today (once-per-day rule for that referrer-referred pair).
+    # 2. Updating referrer's earnings.
+    # 3. Notifying referrer and referred user (confirmation).
+    # 4. Checking and updating the referrer's 'search_3_movies' mission progress.
+    success, amount = await pay_referrer_and_update_mission(context, user_id, referrer_id)
+    
+    if success:
+        logger.info(f"Payment job completed for user {user_id} (referrer {referrer_id}). Amount: ₹{amount:.2f}")
+    else:
+        logger.info(f"Payment job finished for user {user_id}, but payment was skipped (already paid today or an error occurred).")
+        
 
 async def send_random_alerts_task(context: ContextTypes.DEFAULT_TYPE):
-    # 'expected an indented block' को ठीक करने के लिए pass जोड़ा गया।
-    # आप बाद में यहां अपना लॉजिक जोड़ सकते हैं।
-    pass
-    # ... (remains the same)
-
-# ---
+    """Sends random alerts to a subset of users every few hours."""
+    # This is placeholder logic, but ensures the job is not empty.
+    
+    # Example alert logic:
+    # 1. Select a random user (or users)
+    user_cursor = USERS_COLLECTION.aggregate([{"$sample": {"size": 50}}])
+    
+    for user_data in user_cursor:
+        user_id = user_data["user_id"]
+        lang = user_data.get("lang", "en")
+        
+        alert_type = random.choice(["daily_bonus", "mission", "refer", "spin"])
+        
+        message_key = ""
+        if alert_type == "daily_bonus":
+            message_key = "alert_daily_bonus"
+        elif alert_type == "mission":
+            message_key = "alert_mission"
+        elif alert_type == "refer":
+            message_key = "alert_refer"
+        elif alert_type == "spin":
+            message_key = "alert_spin"
+            
+        message = MESSAGES[lang].get(message_key)
+        
+        if message:
+            # Add dynamic data for 'refer' alert
+            if alert_type == "refer":
+                message = message.format(max_rate=TIERS[4]["rate"])
+                
+            try:
+                await context.bot.send_message(chat_id=user_id, text=message, parse_mode='HTML')
+                await asyncio.sleep(0.05) # Throttle to avoid rate limits
+            except Exception as e:
+                logger.debug(f"Failed to send alert to user {user_id}: {e}")
 
 async def monthly_top_user_rewards(context: ContextTypes.DEFAULT_TYPE):
     """
@@ -96,8 +141,6 @@ async def monthly_top_user_rewards(context: ContextTypes.DEFAULT_TYPE):
                     
                     # --- language_prompt FIX ---
                     # MESSAGES डिक्शनरी से वैल्यू न मिलने पर एक डिफ़ॉल्ट स्ट्रिंग प्रदान की गई है।
-                    # `MESSAGES[lang]` को सीधे उपयोग करने के बजाय, यह सुनिश्चित करें कि आपके पास 
-                    # `config.py` में 'en' और अन्य भाषाओं के लिए `monthly_reward_success` की प्रविष्टि है।
                     message_text = MESSAGES.get(lang, {}).get("monthly_reward_success", 
                             f"🎉 <b>Monthly Reward!</b>\n\nCongratulations, you ranked #{i+1} and received **₹{reward_inr:.2f}** for your referrals last month! Your new balance is ₹{new_balance_inr:.2f}."
                         )
@@ -116,4 +159,3 @@ async def monthly_top_user_rewards(context: ContextTypes.DEFAULT_TYPE):
                 
     await send_log_message(context, "\n".join(reward_log))
     logger.info("Monthly top user rewards task completed.")
-
