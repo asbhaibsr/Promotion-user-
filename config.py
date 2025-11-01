@@ -24,9 +24,10 @@ YOUR_TELEGRAM_HANDLE = os.getenv("YOUR_TELEGRAM_HANDLE", "telegram")
 LOG_CHANNEL_ID = os.getenv("LOG_CHANNEL_ID")
 
 # --- ग्रुप और चैनल लिंक्स ---
-NEW_MOVIE_GROUP_LINK = "[https://t.me/asfilter_bot](https://tme/asfilter_bot)"
-MOVIE_GROUP_LINK = "[https://t.me/asfilter_group](https://tme/asfilter_group)" 
-ALL_GROUPS_LINK = "[https://t.me/addlist/6urdhhdLRqhiZmQ1](https://tme/addlist/6urdhhdLRqhiZmQ1)"
+# ✅ ERROR FIX: 'https://tme/' को 'https://t.me/' से बदल दिया गया।
+NEW_MOVIE_GROUP_LINK = "[https://t.me/asfilter_bot](https://t.me/asfilter_bot)"
+MOVIE_GROUP_LINK = "[https://t.me/asfilter_group](https://t.me/asfilter_group)" 
+ALL_GROUPS_LINK = "[https://t.me/addlist/6urdhhdLRqhiZmQ1](https://t.me/addlist/6urdhhdLRqhiZmQ1)"
 
 EXAMPLE_SCREENSHOT_URL = os.getenv("EXAMPLE_SCREENSHOT_URL", "[https://envs.sh/v3A.jpg](https://envs.sh/v3A.jpg)")
 
