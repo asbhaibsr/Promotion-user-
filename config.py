@@ -24,9 +24,9 @@ YOUR_TELEGRAM_HANDLE = os.getenv("YOUR_TELEGRAM_HANDLE", "telegram")
 LOG_CHANNEL_ID = os.getenv("LOG_CHANNEL_ID")
 
 # --- ग्रुप और चैनल लिंक्स ---
-NEW_MOVIE_GROUP_LINK = "[https://t.me/asfilter_bot](https://t.me/asfilter_bot)"
-MOVIE_GROUP_LINK = "[https://t.me/asfilter_group](https://t.me/asfilter_group)" 
-ALL_GROUPS_LINK = "[https://t.me/addlist/6urdhhdLRqhiZmQ1](https://t.me/addlist/6urdhhdLRqhiZmQ1)"
+NEW_MOVIE_GROUP_LINK = "[https://t.me/asfilter_bot](https://tme/asfilter_bot)"
+MOVIE_GROUP_LINK = "[https://t.me/asfilter_group](https://tme/asfilter_group)" 
+ALL_GROUPS_LINK = "[https://t.me/addlist/6urdhhdLRqhiZmQ1](https://tme/addlist/6urdhhdLRqhiZmQ1)"
 
 EXAMPLE_SCREENSHOT_URL = os.getenv("EXAMPLE_SCREENSHOT_URL", "[https://envs.sh/v3A.jpg](https://envs.sh/v3A.jpg)")
 
@@ -57,6 +57,11 @@ DOLLAR_TO_INR = 75.0
 DAILY_BONUS_BASE = 0.10
 # 'STREAK_MULTIPLIER' से 'STREAK' हटाकर 'DAILY_BONUS_MULTIPLIER' किया गया
 DAILY_BONUS_MULTIPLIER = 0.10 
+
+# ✅ ERROR FIX: पुरानी इम्पोर्ट त्रुटि को ठीक करने के लिए
+# यह वेरिएबल अब आपके कोड के पुराने हिस्से (जैसे db_utils) द्वारा
+# अपेक्षित है, इसलिए इसे DAILY_BONUS_MULTIPLIER के बराबर सेट किया गया है।
+DAILY_BONUS_STREAK_MULTIPLIER = DAILY_BONUS_MULTIPLIER 
 
 # --- स्पिन व्हील सेटिंग्स ---
 # 'SPIN_PRIZES_WEIGHTS' नाम सही किया गया, 'SPIN_PRIZES_WEIGHTS' में से 'SPIN' हटाया गया
