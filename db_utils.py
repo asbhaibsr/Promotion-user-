@@ -8,7 +8,8 @@ from telegram.error import TelegramError, TimedOut, Forbidden
 from config import (
     LOG_CHANNEL_ID, USERS_COLLECTION, SETTINGS_COLLECTION, TIERS, 
     DOLLAR_TO_INR, DAILY_BONUS_BASE, DAILY_BONUS_STREAK_MULTIPLIER, 
-    MESSAGES, ADMIN_ID, DAILY_MISSIONS, REFERRALS_COLLECTION
+    MESSAGES, ADMIN_ID, DAILY_MISSIONS, REFERRALS_COLLECTION,
+    WITHDRAWALS_COLLECTION  # <-- YEH LINE ADD KI GAYI HAI
 )
 
 logger = logging.getLogger(__name__)
@@ -288,4 +289,79 @@ async def get_bot_stats():
     return {
         "total_users": total_users,
         "approved_users": approved_users
+    }
+
+# --- NAYE FUNCTIONS YAHAN ADD HUE HAIN (get_bot_stats ke theek neeche) ---
+
+async def get_user_stats(user_id: int):
+    """Fetches comprehensive stats for a single user for the admin panel."""
+    user_data = USERS_COLLECTION.find_one({"user_id": user_id})
+    if not user_data:
+        return None
+    
+    referrals_count = REFERRALS_COLLECTION.count_documents({"referrer_id": user_id})
+    
+    return {
+        "user_id": user_data["user_id"],
+        "full_name": user_data.get("full_name", f"User {user_id}"),
+        "username": user_data.get("username", "N/A"),
+        "earnings_inr": user_data.get("earnings", 0.0) * DOLLAR_TO_INR,
+        "referrals": referrals_count
+    }
+
+async def admin_add_money(user_id: int, amount_inr: float):
+    """Adds a specific amount (in INR) to a user's balance."""
+    amount_usd = amount_inr / DOLLAR_TO_INR
+    
+    result = USERS_COLLECTION.find_one_and_update(
+        {"user_id": user_id},
+        {"$inc": {"earnings": amount_usd}},
+        return_document=True
+    )
+    
+    if result:
+        return result.get("earnings", 0.0) * DOLLAR_TO_INR
+    return None
+
+async def admin_clear_earnings(user_id: int):
+    """Resets a user's earnings to 0."""
+    result = USERS_COLLECTION.update_one(
+        {"user_id": user_id},
+        {"$set": {"earnings": 0.0}}
+    )
+    return result.modified_count > 0
+
+async def admin_delete_user(user_id: int):
+    """Deletes all data associated with a user."""
+    deleted_user = USERS_COLLECTION.delete_one({"user_id": user_id})
+    deleted_referrals_1 = REFERRALS_COLLECTION.delete_many({"referrer_id": user_id})
+    deleted_referrals_2 = REFERRALS_COLLECTION.delete_many({"referred_user_id": user_id})
+    deleted_withdrawals = WITHDRAWALS_COLLECTION.delete_many({"user_id": user_id})
+    
+    return deleted_user.deleted_count > 0
+
+async def clear_junk_users():
+    """Finds and deletes all users marked as 'is_approved': False (e.g., blocked bot)."""
+    
+    # 1. Find all users who blocked the bot
+    junk_users_cursor = USERS_COLLECTION.find({"is_approved": False}, {"user_id": 1})
+    junk_user_ids = [user["user_id"] for user in junk_users_cursor]
+    
+    if not junk_user_ids:
+        return {"users": 0, "referrals": 0, "withdrawals": 0}
+
+    # 2. Delete them from all relevant collections
+    deleted_users_result = USERS_COLLECTION.delete_many({"user_id": {"$in": junk_user_ids}})
+    
+    deleted_referrals_result_1 = REFERRALS_COLLECTION.delete_many({"referrer_id": {"$in": junk_user_ids}})
+    deleted_referrals_result_2 = REFERRALS_COLLECTION.delete_many({"referred_user_id": {"$in": junk_user_ids}})
+    
+    deleted_withdrawals_result = WITHDRAWALS_COLLECTION.delete_many({"user_id": {"$in": junk_user_ids}})
+    
+    total_referrals_deleted = deleted_referrals_result_1.deleted_count + deleted_referrals_result_2.deleted_count
+    
+    return {
+        "users": deleted_users_result.deleted_count,
+        "referrals": total_referrals_deleted,
+        "withdrawals": deleted_withdrawals_result.deleted_count
     }
