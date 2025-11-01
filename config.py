@@ -155,8 +155,13 @@ MESSAGES = {
         "channel_not_joined": "❌ <b>Channel Not Joined!</b>\nYou must join our channel {channel} to claim the bonus.",
         "channel_already_claimed": "⏳ <b>Bonus Already Claimed!</b>\nYou have already claimed the channel join bonus.",
         "channel_bonus_failure": "❌ <b>Channel Not Joined!</b>\nYou must join our channel {channel} to claim the bonus.",
-        "top_users_title": "🏆 <b>Top 10 Earners</b> 🏆\n\n",
-        "clear_junk_success": "✅ <b>Junk Data Cleared!</b>\n\nUsers: {deleted_users} deleted.\nReferrals: {deleted_referrals} deleted.",
+        
+        # --- MESSAGES Dictionay में बदलाव ---
+        # 1. "top_users_title" को बदला गया
+        "top_users_title": "🏆 <b>Top 10 Total Earners</b> 🏆\n\n(This is different from the Monthly Leaderboard)\n\n",
+        # 2. "clear_junk_success" को बदला गया
+        "clear_junk_success": "✅ <b>Junk Data Cleared!</b>\n\nUsers deleted: {users}\nReferral records cleared: {referrals}\nWithdrawals cleared: {withdrawals}",
+        
         "clear_junk_admin_only": "❌ This command is for the bot admin only.",
         "tier_benefits_title": "👑 <b>Tier System Benefits</b> 👑\n\nYour earning rate increases as you earn more. Reach higher tiers for more money per referral!",
         "tier_info": "🔸 <b>{tier_name} (Level {tier}):</b> Min Earning: ₹{min_earnings:.2f}\n   - Benefit: {benefit}",
@@ -171,7 +176,27 @@ MESSAGES = {
         "alert_mission": "🎯 <b>Mission Alert!</b>\n\nYour <b>Daily Missions</b> are waiting! Complete them to earn extra cash today. Need help? Refer a friend and complete the 'Search 3 Movies' mission!",
         "alert_refer": "🔗 <b>Huge Earning Opportunity!</b>\n\nYour friends are missing out on the best movie bot! Share your referral link now and earn up to ₹{max_rate:.2f} per person daily!",
         "alert_spin": "🎰 <b>Free Spin Alert!</b>\n\nDo you have a free spin left? Spin the wheel now for a chance to win up to ₹2.00! Refer a friend to get more spins!", # स्पिन प्राइस के अनुसार अपडेट किया गया
-        "join_channel_button_text": "Join Channel & Try Again"
+        "join_channel_button_text": "Join Channel & Try Again",
+        
+        # --- ENGLISH (en) MESSAGES (NEW) ---
+
+        # -- ADMIN USER STATS (NEW) --
+        "admin_user_stats_prompt": "✍️ Please reply to this message with the User ID you want to check:",
+        "admin_add_money_prompt": "💰 Please reply with the amount (in INR, e.g., 10.50) you want to add to user {user_id}:",
+        "admin_clear_data_prompt": "⚠️ Are you sure?\nTo clear **only earnings**, reply with: `earning`\nTo delete **all user data**, reply with: `all`",
+        "admin_user_not_found": "❌ User {user_id} not found in the database.",
+        "admin_add_money_success": "✅ Successfully added ₹{amount:.2f} to user {user_id}. New balance: ₹{new_balance:.2f}",
+        "admin_clear_earnings_success": "✅ Successfully cleared earnings for user {user_id}. New balance: ₹0.00",
+        "admin_delete_user_success": "✅ Successfully deleted all data for user {user_id}.",
+        "admin_invalid_input": "❌ Invalid input. Please try again.",
+
+        # -- LEADERBOARD (NEW) --
+        "leaderboard_title": "🏆 <b>Monthly Leaderboard</b> 🏆\n\nTop 10 referrers of the month!",
+        "leaderboard_rank_entry": "   - <b>Monthly Referrals:</b> {monthly_refs}\n   - <b>Total Balance:</b> ₹{balance:.2f}\n",
+        "monthly_reward_notification": "🎉 <b>Leaderboard Reward!</b> 🎉\n\nCongratulations! You finished at <b>Rank #{rank}</b> on the monthly leaderboard.\n\nYou have been awarded: <b>₹{reward:.2f}</b>\n\nYour new balance is: ₹{new_balance:.2f}",
+
+        # -- CHANNEL BONUS FIX (NEW) --
+        "channel_bonus_error": "❌ <b>Verification Failed!</b>\n\nWe could not verify your membership. Please ensure you have joined the channel ({channel}) and try again in a moment.\n\nIf this problem continues, the admin has been notified.",
     },
     "hi": {
         "start_greeting": "नमस्ते 👋! मूवी ग्रुप बॉट में आपका स्वागत है। इन आसान स्टेप्स को फॉलो करके अपनी पसंदीदा मूवी पाएँ:",
@@ -226,8 +251,13 @@ MESSAGES = {
         "channel_not_joined": "❌ <b>चैनल जॉइन नहीं किया!</b>\nबोनस क्लेम करने के लिए आपको हमारा चैनल {channel} जॉइन करना होगा।",
         "channel_already_claimed": "⏳ <b>बोनस पहले ही क्लेम किया जा चुका है!</b>\nआप पहले ही चैनल जॉइन बोनस क्लेम कर चुके हैं।",
         "channel_bonus_failure": "❌ <b>चैनल जॉइन नहीं किया!</b>\nबोनस क्लेम करने के लिए आपको हमारा चैनल {channel} जॉइन करना होगा।",
-        "top_users_title": "🏆 <b>शीर्ष 10 कमाने वाले</b> 🏆\n\n",
-        "clear_junk_success": "✅ <b>जंक डेटा साफ़!</b>\n\nयूज़र्स: {deleted_users} डिलीट किए गए।\nरेफरल: {deleted_referrals} डिलीट किए गए।",
+        
+        # --- MESSAGES Dictionay में बदलाव ---
+        # 1. "top_users_title" को बदला गया
+        "top_users_title": "🏆 <b>शीर्ष 10 कुल कमाने वाले</b> 🏆\n\n(यह मासिक लीडरबोर्ड से अलग है)\n\n",
+        # 2. "clear_junk_success" को बदला गया
+        "clear_junk_success": "✅ <b>जंक डेटा साफ़!</b>\n\nडिलीट किए गए यूज़र्स: {users}\nसाफ़ किए गए रेफरल रिकॉर्ड: {referrals}\nसाफ़ की गई निकासी: {withdrawals}",
+        
         "clear_junk_admin_only": "❌ यह कमांड केवल बॉट एडमिन के लिए है।",
         "tier_benefits_title": "👑 <b>टियर सिस्टम के लाभ</b> 👑\n\nजैसे-जैसे आप अधिक कमाते हैं, आपकी कमाई दर बढ़ती जाती है। प्रति रेफरल अधिक पैसे के लिए उच्च टियर पर पहुँचें!",
         "tier_info": "🔸 <b>{tier_name} (लेवल {tier}):</b> न्यूनतम कमाई: ₹{min_earnings:.2f}\n   - लाभ: {benefit}",
@@ -242,7 +272,27 @@ MESSAGES = {
         "alert_mission": "🎯 <b>मिशन अलर्ट!</b>\n\nआपके <b>दैनिक मिशन</b> आपका इंतज़ार कर रहे हैं! आज ही अतिरिक्त नकद कमाने के लिए उन्हें पूरा करें। मदद चाहिए? एक दोस्त को रेफ़र करें और '3 फिल्में खोजें' मिशन पूरा करें!",
         "alert_refer": "🔗 <b>बड़ी कमाई का मौका!</b>\n\nआपके दोस्त सबसे अच्छे मूवी बॉट से चूक रहे हैं! अपनी रेफरल लिंक अभी साझा करें और प्रति व्यक्ति रोज़ाना ₹{max_rate:.2f} तक कमाएँ!",
         "alert_spin": "🎰 <b>फ्री स्पिन अलर्ट!</b>\n\nक्या आपके पास कोई फ्री स्पिन बची है? ₹2.00 तक जीतने के मौका पाने के लिए अभी व्हील स्पिन करें! अधिक स्पिन पाने के लिए एक दोस्त को रेफ़र करें!", # स्पिन प्राइस के अनुसार अपडेट किया गया
-        "join_channel_button_text": "चैनल जॉइन करें और फिर कोशिश करें"
+        "join_channel_button_text": "चैनल जॉइन करें और फिर कोशिश करें",
+        
+        # --- HINDI (hi) MESSAGES (NEW) ---
+
+        # -- ADMIN USER STATS (NEW) --
+        "admin_user_stats_prompt": "✍️ कृपया जिस यूज़र की जांच करनी है, उसकी User ID इस मैसेज के रिप्लाई में भेजें:",
+        "admin_add_money_prompt": "💰 कृपया वह राशि (INR में, जैसे: 10.50) रिप्लाई में भेजें जो आप यूज़र {user_id} को देना चाहते हैं:",
+        "admin_clear_data_prompt": "⚠️ क्या आप निश्चित हैं?\nकेवल **कमाई (earnings)** साफ़ करने के लिए, रिप्लाई करें: `earning`\nयूज़र का **सारा डेटा** डिलीट करने के लिए, रिप्लाई करें: `all`",
+        "admin_user_not_found": "❌ यूज़र {user_id} डेटाबेस में नहीं मिला।",
+        "admin_add_money_success": "✅ यूज़र {user_id} को ₹{amount:.2f} सफलतापूर्वक जोड़ दिए गए। नया बैलेंस: ₹{new_balance:.2f}",
+        "admin_clear_earnings_success": "✅ यूज़र {user_id} की कमाई सफलतापूर्वक साफ़ कर दी गई। नया बैलेंस: ₹0.00",
+        "admin_delete_user_success": "✅ यूज़र {user_id} का सारा डेटा सफलतापूर्वक डिलीट कर दिया गया।",
+        "admin_invalid_input": "❌ अमान्य इनपुट। कृपया पुनः प्रयास करें।",
+
+        # -- LEADERBOARD (NEW) --
+        "leaderboard_title": "🏆 <b>मासिक लीडरबोर्ड</b> 🏆\n\nइस महीने के टॉप 10 रेफरर!",
+        "leaderboard_rank_entry": "   - <b>मासिक रेफरल:</b> {monthly_refs}\n   - <b>कुल बैलेंस:</b> ₹{balance:.2f}\n",
+        "monthly_reward_notification": "🎉 <b>लीडरबोर्ड इनाम!</b> 🎉\n\nबधाई हो! आपने मासिक लीडरबोर्ड पर <b>रैंक #{rank}</b> हासिल किया है।\n\nआपको <b>₹{reward:.2f}</b> का इनाम दिया गया है।\n\nआपका नया बैलेंस है: ₹{new_balance:.2f}",
+
+        # -- CHANNEL BONUS FIX (NEW) --
+        "channel_bonus_error": "❌ <b>सत्यापन विफल!</b>\n\nहम आपकी सदस्यता को सत्यापित नहीं कर सके। कृपया सुनिश्चित करें कि आप चैनल ({channel}) से जुड़ गए हैं और कुछ देर बाद पुनः प्रयास करें।\n\nयदि यह समस्या बनी रहती है, तो एडमिन को सूचित कर दिया गया है।",
     }
 }
 
