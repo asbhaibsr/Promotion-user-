@@ -1,3 +1,5 @@
+# main.py
+
 import logging
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler
 from datetime import timedelta
@@ -17,7 +19,7 @@ from handlers import (
     request_withdrawal, show_tier_benefits, claim_channel_bonus,
     handle_admin_callbacks, handle_withdrawal_approval, handle_group_messages,
     handle_admin_input, show_bot_stats, 
-    show_leaderboard,  # <-- show_top_users को show_leaderboard से बदला गया
+    show_leaderboard, 
     show_user_pending_withdrawals, 
     show_my_referrals, 
     set_bot_commands_logic, 
@@ -73,8 +75,8 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(show_tier_benefits, pattern="^show_tier_benefits$")) 
     application.add_handler(CallbackQueryHandler(claim_channel_bonus, pattern="^claim_channel_bonus$")) 
     
-    # Leaderboard Handler (Updated)
-    application.add_handler(CallbackQueryHandler(show_leaderboard, pattern="^show_top_users$")) # <-- CHANGED LINE
+    # Leaderboard Handler (Updated and FIXED)
+    application.add_handler(CallbackQueryHandler(show_leaderboard, pattern="^show_leaderboard$")) # <-- FIXED LINE
     
     # Other Handlers
     application.add_handler(CallbackQueryHandler(show_user_pending_withdrawals, pattern="^show_user_pending_withdrawals$"))
