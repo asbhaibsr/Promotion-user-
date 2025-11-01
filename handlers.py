@@ -308,7 +308,11 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if user_data.get("channel_bonus_received"):
         channel_button_text = f"✅ Channel Bonus Claimed (₹{CHANNEL_BONUS:.2f})"
 
+    # --- START FIX: Top 10 button to Leaderboard (Big Button) ---
     keyboard = [
+        # New Big Leaderboard Button
+        [InlineKeyboardButton("🏆 Earning Leaderboard (Top 10)", callback_data="show_leaderboard")],
+
         [InlineKeyboardButton("🔗 My Refer Link", callback_data="show_refer_link"), 
          InlineKeyboardButton("👥 My Referrals", callback_data="show_my_referrals")],
         
@@ -316,16 +320,16 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
          InlineKeyboardButton("🎯 Daily Missions", callback_data="show_missions")],
 
         [InlineKeyboardButton(MESSAGES[lang]["spin_wheel_button"].format(spins_left=spins_left), callback_data="show_spin_panel"),
-         InlineKeyboardButton("📊 Top 10 Users", callback_data="topusers_logic")], 
+         InlineKeyboardButton("📈 Tier Benefits", callback_data="show_tier_benefits")], 
          
         [InlineKeyboardButton("💸 Request Withdrawal", callback_data="show_withdraw_details_new"),
-         InlineKeyboardButton("📈 Tier Benefits", callback_data="show_tier_benefits")],
+         InlineKeyboardButton(channel_button_text, callback_data="claim_channel_bonus")],
          
-        [InlineKeyboardButton(channel_button_text, callback_data="claim_channel_bonus")],
-        
         [InlineKeyboardButton("🆘 Help", callback_data="show_help"),
          InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]
     ]
+    # --- END FIX ---
+    
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     if query.message: 
@@ -1598,7 +1602,7 @@ async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAU
     user_id = int(user_id_str)
 
     withdrawal_request = WITHDRAWALS_COLLECTION.find_one_and_update(
-        {"user_id": user_id, "status": "pending"},
+        {"user_id": user.id, "status": "pending"},
         {"$set": {"status": action, "approved_date": datetime.now()}},
         return_document=True
     )
@@ -1664,7 +1668,8 @@ async def show_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     # Sort by monthly referrals, descending
     top_users_cursor = USERS_COLLECTION.find().sort("monthly_referrals", -1).limit(10)
     
-    message = MESSAGES[lang]["leaderboard_title"] + "\n"
+    # Leaderboard Title from your request
+    message = "🏆 <b>Earning Leaderboard (Top 10)</b>\n\n"
     
     found_users = False
     for i, user_data in enumerate(top_users_cursor):
@@ -1679,10 +1684,10 @@ async def show_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         user_link = f"tg://user?id={user_id}"
         
         message += f"<b>{i+1}.</b> <a href='{user_link}'><b>{display_name}</b></a>\n"
-        message += MESSAGES[lang]["leaderboard_rank_entry"].format(
-            monthly_refs=monthly_refs,
-            balance=earnings_inr
-        )
+        # Since I don't have the original MESSAGES[lang]["leaderboard_rank_entry"], 
+        # I'll create a default one based on the logic:
+        message += f"   - 👥 Referrals this month: <b>{monthly_refs}</b>\n"
+        message += f"   - 💵 Total Balance: ₹{earnings_inr:.2f}\n"
 
     if not found_users:
         message += "❌ No referrals recorded this month yet."
