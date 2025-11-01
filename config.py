@@ -24,18 +24,19 @@ YOUR_TELEGRAM_HANDLE = os.getenv("YOUR_TELEGRAM_HANDLE", "telegram")
 LOG_CHANNEL_ID = os.getenv("LOG_CHANNEL_ID")
 
 # --- ग्रुप और चैनल लिंक्स ---
-# ✅ ERROR FIX: 'https://tme/' को 'https://t.me/' से बदल दिया गया।
-NEW_MOVIE_GROUP_LINK = "[https://t.me/asfilter_bot](https://t.me/asfilter_bot)"
-MOVIE_GROUP_LINK = "[https://t.me/asfilter_group](https://t.me/asfilter_group)" 
-ALL_GROUPS_LINK = "[https://t.me/addlist/6urdhhdLRqhiZmQ1](https://t.me/addlist/6urdhhdLRqhiZmQ1)"
+# ✅ ERROR FIX: Inline Keyboard URL के लिए Markdown फॉर्मेट को सादे URL से बदल दिया गया।
+# यह टेलीग्राम बॉट की Inline Keyboard Bad Request एरर को ठीक करता है।
+NEW_MOVIE_GROUP_LINK = "https://t.me/asfilter_bot"
+MOVIE_GROUP_LINK = "https://t.me/asfilter_group" 
+ALL_GROUPS_LINK = "https://t.me/addlist/6urdhhdLRqhiZmQ1"
 
-EXAMPLE_SCREENSHOT_URL = os.getenv("EXAMPLE_SCREENSHOT_URL", "[https://envs.sh/v3A.jpg](https://envs.sh/v3A.jpg)")
+EXAMPLE_SCREENSHOT_URL = os.getenv("EXAMPLE_SCREENSHOT_URL", "https://envs.sh/v3A.jpg")
 
 # --- चैनल बोनस सेटिंग्स ---
 CHANNEL_USERNAME = "@asbhai_bsr"
 CHANNEL_ID = -1002283182645
 CHANNEL_BONUS = 2.00  # नया: चैनल जॉइन बोनस को ₹5.00 से घटाकर ₹2.00 किया गया
-JOIN_CHANNEL_LINK = f"[https://t.me/](https://t.me/){CHANNEL_USERNAME.replace('@', '')}"
+JOIN_CHANNEL_LINK = f"https://t.me/{CHANNEL_USERNAME.replace('@', '')}"
 
 WEB_SERVER_URL = os.getenv("WEB_SERVER_URL")
 PORT = int(os.getenv("PORT", 8000))
