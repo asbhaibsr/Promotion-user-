@@ -22,7 +22,9 @@ from db_utils import (
     send_log_message, get_user_lang, set_user_lang, get_referral_bonus_inr, 
     get_welcome_bonus, get_user_tier, get_tier_referral_rate, 
     claim_and_update_daily_bonus, update_daily_searches_and_mission,
-    get_bot_stats, pay_referrer_and_update_mission
+    get_bot_stats, pay_referrer_and_update_mission,
+    # Yahaan add karen:
+    get_user_stats, admin_add_money, admin_clear_earnings, admin_delete_user, clear_junk_users
 )
 
 logger = logging.getLogger(__name__)
@@ -97,6 +99,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
     is_new_user = not user_data
 
+    # --- START Change 2.1: update_data variable
     update_data = {
         "$setOnInsert": {
             "user_id": user.id,
@@ -113,9 +116,11 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             "daily_searches": 0, 
             "last_search_date": None,
             "channel_bonus_received": False, 
-            "spins_left": SPIN_WHEEL_CONFIG["initial_free_spins"]
+            "spins_left": SPIN_WHEEL_CONFIG["initial_free_spins"],
+            "monthly_referrals": 0  # <-- YEH NAYI LINE ADD KAREN
         }
     }
+    # --- END Change 2.1
     
     USERS_COLLECTION.update_one(
         {"user_id": user.id},
@@ -156,6 +161,14 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                     "last_paid_date": None, 
                     "paid_search_count_today": 0 
                 })
+                
+                # --- START Change 2.2: Increment monthly referral count
+                # Increment monthly referral count for the referrer
+                USERS_COLLECTION.update_one(
+                    {"user_id": referral_id},
+                    {"$inc": {"monthly_referrals": 1}}
+                )
+                # --- END Change 2.2
                 
                 log_msg += f"\n🔗 Referred by: <code>{referral_id}</code> (Referral Recorded, Payment Pending on Search)"
 
@@ -303,7 +316,7 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
          InlineKeyboardButton("🎯 Daily Missions", callback_data="show_missions")],
 
         [InlineKeyboardButton(MESSAGES[lang]["spin_wheel_button"].format(spins_left=spins_left), callback_data="show_spin_panel"),
-         InlineKeyboardButton("📊 Top 10 Users", callback_data="show_top_users")], 
+         InlineKeyboardButton("📊 Top 10 Users", callback_data="topusers_logic")], 
          
         [InlineKeyboardButton("💸 Request Withdrawal", callback_data="show_withdraw_details_new"),
          InlineKeyboardButton("📈 Tier Benefits", callback_data="show_tier_benefits")],
@@ -326,6 +339,7 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
         # --- END FIX 2
 
 
+# --- START Change 3: Replace show_my_referrals Function
 async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message:
@@ -350,11 +364,22 @@ async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     message = f"👥 <b>My Referrals</b>\n\n"
     message += f"🔗 Total Referrals: <b>{total_referrals}</b>\n"
     message += f"✅ Paid Referrals Today: <b>{paid_searches_today_count}</b>\n"
-    message += f"ℹ️ <i>Showing last 10 referrals.</i>\n\n"
     
     if total_referrals == 0:
-        message += "❌ You have not referred anyone yet. Share your link now!"
+        message += "\n❌ You have not referred anyone yet. Share your link now!"
     else:
+        message += f"ℹ️ <i>Showing last 10 referrals.</i>\n\n"
+        
+        # Fetch user data for the first 10 referrals to get their names
+        referred_ids = [ref['referred_user_id'] for ref in referral_records[:10]]
+        referred_users_data = USERS_COLLECTION.find({"user_id": {"$in": referred_ids}})
+        
+        # Create a map of user_id -> full_name
+        user_names_map = {
+            user_doc["user_id"]: user_doc.get("full_name", f"User {user_doc['user_id']}")
+            for user_doc in referred_users_data
+        }
+
         for i, ref_record in enumerate(referral_records[:10]):
             referred_id = ref_record['referred_user_id']
             join_date = ref_record['join_date'].strftime("%d %b %Y")
@@ -364,15 +389,16 @@ async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             if last_paid and last_paid.date() == today_start.date():
                  status_emoji = "✅ (Paid Today)"
             elif last_paid:
-                 if (today_start - last_paid.date()).days == 1:
+                 if (today_start.date() - last_paid.date()).days == 1:
                      status_emoji = f"⚠️ (Last Paid: Yesterday)"
                  else:
                      status_emoji = f"⚠️ (Last Paid: {last_paid.strftime('%d %b')})"
 
-            user_link = f"tg://user?id={referred_id}"
-            display_id = f"<a href='{user_link}'><code>{referred_id}</code></a>"
+            # Use the fetched name, or fallback to User ID
+            full_name = user_names_map.get(referred_id, f"User {referred_id}")
+            display_name_link = f"<a href='tg://user?id={referred_id}'>{full_name}</a>"
             
-            message += f"🔸 <b>{i+1}. User ID:</b> {display_id}\n"
+            message += f"🔸 <b>{i+1}. {display_name_link}</b>\n"
             message += f"   - Joined: {join_date}\n"
             message += f"   - Status: {status_emoji}\n"
 
@@ -383,6 +409,7 @@ async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+# --- END Change 3
 
 
 async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1068,6 +1095,7 @@ async def show_refer_example(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
 
+# --- START Change 4: Replace claim_channel_bonus Function
 async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message: 
@@ -1082,23 +1110,46 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
     # Check 1: Already claimed
     if user_data.get("channel_bonus_received"):
         await query.answer(MESSAGES[lang]["channel_already_claimed"], show_alert=True)
-        # --- FIX 6: Directly call show_earning_panel to update the message
-        # This will rely on show_earning_panel's try-except for 'Message is not modified'
+        # Directly call show_earning_panel to update the message
         await show_earning_panel(update, context) 
         return
         
     await query.answer("Checking channel membership...")
     
     is_member = False
+    # --- START Change 4 (Fix for exceptions) ---
     try:
         member = await context.bot.get_chat_member(CHANNEL_ID, user.id)
         is_member = member.status in ["member", "administrator", "creator"]
-    except Forbidden:
-        logger.warning(f"Bot or channel error for {CHANNEL_ID}. Cannot verify membership for {user.id}. Assuming non-member for safety.")
-        pass
     except Exception as e:
         logger.error(f"Error checking channel membership for {user.id}: {e}")
-        pass
+
+        # Notify admin about the error
+        await send_log_message(
+            context, 
+            f"🚨 **Channel Check Error!**\n\nFailed to check membership for User <code>{user.id}</code> in channel <code>{CHANNEL_ID}</code>.\nError: <code>{e}</code>\n\n<b>FIX:</b> Ensure bot is admin in the channel."
+        )
+
+        # Notify user about the error
+        await query.answer(MESSAGES[lang]["channel_bonus_error"].format(channel=CHANNEL_USERNAME), show_alert=True)
+
+        # Send the error message in the chat
+        join_button = InlineKeyboardButton("🔗 Join Channel", url=JOIN_CHANNEL_LINK)
+        retry_button = InlineKeyboardButton("🔄 Try Again", callback_data="claim_channel_bonus")
+        back_button = InlineKeyboardButton("⬅️ Back to Earning Panel", callback_data="show_earning_panel")
+        keyboard = [[join_button, retry_button], [back_button]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        try:
+            await query.edit_message_text(
+                MESSAGES[lang]["channel_bonus_error"].format(channel=CHANNEL_USERNAME), 
+                reply_markup=reply_markup,
+                parse_mode='HTML'
+            )
+        except TelegramError: pass
+
+        return # Stop execution here
+    # --- END Change 4 (Fix for exceptions) ---
         
     # Check 2: Member and not claimed
     if is_member:
@@ -1150,8 +1201,10 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
             logger.error(f"Error editing message in claim_channel_bonus (failure): {e}")
         pass
     # --- END FIX 7
+# --- END Change 4
 
 
+# --- START Change 5: Replace admin_panel Function
 async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     
@@ -1164,6 +1217,7 @@ async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         return
 
     context.user_data["admin_state"] = None
+    context.user_data["stats_user_id"] = None # Clear any pending user ID
     
     lang = await get_user_lang(user.id)
     message = MESSAGES[lang].get("admin_panel_title", "👑 <b>Admin Panel</b>\n\nSelect an action:")
@@ -1172,14 +1226,24 @@ async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         [InlineKeyboardButton("📢 Broadcast Message", callback_data="admin_set_broadcast"),
          InlineKeyboardButton("💸 Pending Withdrawals", callback_data="admin_pending_withdrawals")],
         [InlineKeyboardButton("⚙️ Set Referral Rate", callback_data="admin_set_ref_rate"),
-         InlineKeyboardButton("📊 Bot Stats", callback_data="admin_stats")], 
+         InlineKeyboardButton("📊 Bot Stats", callback_data="admin_stats")],
+        # --- NEW BUTTONS ---
+        [InlineKeyboardButton("📊 User Stats", callback_data="admin_user_stats")],
+        [InlineKeyboardButton("🗑️ Clear Junk Users", callback_data="admin_clear_junk")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     if update.message: 
         await update.message.reply_html(message, reply_markup=reply_markup)
     elif update.callback_query and update.callback_query.message:
-        await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+        try:
+            await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+        except TelegramError as e:
+            if "Message is not modified" not in str(e):
+                logger.error(f"Error editing message in admin_panel: {e}")
+            pass
+# --- END Change 5
+
 
 async def back_to_admin_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -1188,6 +1252,7 @@ async def back_to_admin_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await admin_panel(update, context)
 
 
+# --- START Change 6: Replace handle_admin_callbacks Function
 async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     
@@ -1206,21 +1271,69 @@ async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_T
     action = data[1]
     sub_action = data[2] if len(data) > 2 else None
     
-    if action == "clearjunk":
-        await clearjunk_logic(update, context) 
-    elif action == "pending" and sub_action == "withdrawals":
+    lang = await get_user_lang(user.id)
+    
+    if action == "pending" and sub_action == "withdrawals":
         await show_pending_withdrawals(update, context)
-    elif action == "stats": 
+    elif action == "stats" and sub_action is None: 
         await show_bot_stats(update, context)
+    elif action == "pending":
+        await back_to_admin_menu(update, context)
+    
+    # --- NEW ACTIONS ---
+    elif action == "user" and sub_action == "stats":
+        # 1. Prompt for User ID
+        context.user_data["admin_state"] = "waiting_for_user_id_stats"
+        await query.edit_message_text(
+            MESSAGES[lang]["admin_user_stats_prompt"],
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]])
+        )
+        
+    elif action == "clear" and sub_action == "junk":
+        # 2. Clear Junk Users
+        await query.edit_message_text("🗑️ Clearing junk users (is_approved=False)... Please wait.", parse_mode='HTML')
+        result = await clear_junk_users()
+        await query.edit_message_text(
+            MESSAGES[lang]["clear_junk_success"].format(
+                users=result.get("users", 0),
+                referrals=result.get("referrals", 0),
+                withdrawals=result.get("withdrawals", 0)
+            ),
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]]),
+            parse_mode='HTML'
+        )
+        
+    elif action == "add" and sub_action == "money":
+        # 3. Prompt for Add Money
+        user_id = context.user_data.get("stats_user_id")
+        if not user_id:
+            await query.edit_message_text("❌ Error: User ID not found in session. Please start over.", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]]))
+            return
+        context.user_data["admin_state"] = "waiting_for_add_money"
+        await query.edit_message_text(
+            MESSAGES[lang]["admin_add_money_prompt"].format(user_id=user_id),
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]]))
+        
+    elif action == "clear" and sub_action == "data":
+        # 4. Prompt for Clear Data
+        user_id = context.user_data.get("stats_user_id")
+        if not user_id:
+            await query.edit_message_text("❌ Error: User ID not found in session. Please start over.", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]]))
+            return
+        context.user_data["admin_state"] = "waiting_for_clear_data"
+        await query.edit_message_text(
+            MESSAGES[lang]["admin_clear_data_prompt"],
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]]))
+
+    # --- OLD ACTIONS (Must be last) ---
     elif action == "set": 
         if sub_action == "broadcast":
             context.user_data["admin_state"] = "waiting_for_broadcast_message"
-            await query.edit_message_text("✍️ Enter the **message** you want to broadcast to all users:")
+            await query.edit_message_text("✍️ Enter the **message** you want to broadcast to all users:", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]]))
         elif sub_action == "ref" and data[3] == "rate":
              context.user_data["admin_state"] = "waiting_for_ref_rate"
-             await query.edit_message_text("✍️ Enter the **NEW Tier 1 Referral Rate** in INR (e.g., 5.0 for ₹5 per referral):")
-    elif action == "pending" or action == "stats": 
-        await back_to_admin_menu(update, context) 
+             await query.edit_message_text("✍️ Enter the **NEW Tier 1 Referral Rate** in INR (e.g., 5.0 for ₹5 per referral):", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]]))
+# --- END Change 6
 
 
 async def show_bot_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1266,8 +1379,8 @@ async def show_pending_withdrawals(update: Update, context: ContextTypes.DEFAULT
             
             if len(keyboard) < 5: 
                 keyboard.append([
-                    InlineKeyboardButton(f"Approve {user_id}", callback_data=f"approve_withdraw_{user_id}"),
-                    InlineKeyboardButton(f"Reject {user_id}", callback_data=f"reject_withdraw_{user_id}")
+                    InlineKeyboardButton(f"✅ Approve {user_id}", callback_data=f"approve_withdraw_{user_id}"),
+                    InlineKeyboardButton(f"❌ Reject {user_id}", callback_data=f"reject_withdraw_{user_id}")
                 ])
                 
         message += "\n(Showing up to 5 requests. Use buttons to process.)"
@@ -1279,19 +1392,115 @@ async def show_pending_withdrawals(update: Update, context: ContextTypes.DEFAULT
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
 
+# --- START Change 7: Replace handle_admin_input Function
 async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
-    if user.id != ADMIN_ID or not update.message:
+    if user.id != ADMIN_ID or not update.message or not update.message.text:
         return
         
     admin_state = context.user_data.get("admin_state")
     text = update.message.text
+    lang = await get_user_lang(user.id)
     
     if admin_state is None and update.message.text and update.message.text.startswith('/admin'):
         await admin_panel(update, context)
         return
+    
+    if admin_state is None:
+        # Not waiting for any specific input, ignore
+        return
 
-    if admin_state == "waiting_for_broadcast_message":
+    # --- STATE: waiting_for_user_id_stats ---
+    if admin_state == "waiting_for_user_id_stats":
+        try:
+            user_id = int(text)
+            stats = await get_user_stats(user_id)
+            
+            if not stats:
+                await update.message.reply_text(MESSAGES[lang]["admin_user_not_found"].format(user_id=user_id))
+                return
+
+            # Store user_id in session for the buttons
+            context.user_data["stats_user_id"] = user_id
+            context.user_data["admin_state"] = None # Clear state
+
+            message = (
+                f"📊 <b>User Stats for {stats['full_name']}</b>\n\n"
+                f"<b>ID:</b> <code>{stats['user_id']}</code>\n"
+                f"<b>Username:</b> @{stats['username']}\n"
+                f"<b>Balance:</b> ₹{stats['earnings_inr']:.2f}\n"
+                f"<b>Total Referrals:</b> {stats['referrals']}"
+            )
+            
+            keyboard = [
+                [InlineKeyboardButton("💰 Add Money", callback_data="admin_add_money"),
+                 InlineKeyboardButton("🗑️ Clear Data", callback_data="admin_clear_data")],
+                [InlineKeyboardButton("⬅️ Back to Admin Panel", callback_data="admin_pending")]
+            ]
+            await update.message.reply_html(message, reply_markup=InlineKeyboardMarkup(keyboard))
+            
+        except ValueError:
+            await update.message.reply_text(MESSAGES[lang]["admin_invalid_input"])
+        except Exception as e:
+            await update.message.reply_text(f"An error occurred: {e}")
+            
+    # --- STATE: waiting_for_add_money ---
+    elif admin_state == "waiting_for_add_money":
+        user_id = context.user_data.get("stats_user_id")
+        if not user_id:
+            await update.message.reply_text("Error: Session expired. Please start over from /admin.")
+            context.user_data["admin_state"] = None
+            return
+            
+        try:
+            amount_inr = float(text)
+            new_balance = await admin_add_money(user_id, amount_inr)
+            
+            await update.message.reply_text(
+                MESSAGES[lang]["admin_add_money_success"].format(
+                    amount=amount_inr, 
+                    user_id=user_id, 
+                    new_balance=new_balance
+                )
+            )
+            # Send log
+            await send_log_message(context, f"ADMIN: <code>{user.id}</code> added ₹{amount_inr:.2f} to user <code>{user_id}</code>.")
+            
+        except ValueError:
+            await update.message.reply_text(MESSAGES[lang]["admin_invalid_input"] + " Please enter a number (e.g., 10.50).")
+        
+        context.user_data["admin_state"] = None
+        context.user_data["stats_user_id"] = None
+
+    # --- STATE: waiting_for_clear_data ---
+    elif admin_state == "waiting_for_clear_data":
+        user_id = context.user_data.get("stats_user_id")
+        choice = text.strip().lower()
+
+        if not user_id:
+            await update.message.reply_text("Error: Session expired. Please start over from /admin.")
+            context.user_data["admin_state"] = None
+            return
+        
+        if choice == "earning":
+            await admin_clear_earnings(user_id)
+            await update.message.reply_text(MESSAGES[lang]["admin_clear_earnings_success"].format(user_id=user_id))
+            await send_log_message(context, f"ADMIN: <code>{user.id}</code> cleared earnings for user <code>{user_id}</code>.")
+            
+        elif choice == "all":
+            await admin_delete_user(user_id)
+            await update.message.reply_text(MESSAGES[lang]["admin_delete_user_success"].format(user_id=user_id))
+            await send_log_message(context, f"ADMIN: <code>{user.id}</code> DELETED ALL data for user <code>{user_id}</code>.")
+            
+        else:
+            await update.message.reply_text(MESSAGES[lang]["admin_invalid_input"] + " Please reply with 'all' or 'earning'.")
+            return # Keep state active
+
+        context.user_data["admin_state"] = None
+        context.user_data["stats_user_id"] = None
+            
+    # --- STATE: waiting_for_broadcast_message ---
+    elif admin_state == "waiting_for_broadcast_message":
         success_count = 0
         fail_count = 0
         
@@ -1337,7 +1546,7 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
             except (Forbidden, BadRequest) as e:
                 fail_count += 1
                 USERS_COLLECTION.update_one({"user_id": user_id}, {"$set": {"is_approved": False}}) 
-                logger.warning(f"Failed to send to user {user_id} due to API Error: {e}. User marked unapproved (optional).")
+                logger.warning(f"Failed to send to user {user_id} due to API Error: {e}. User marked unapproved.")
                 
             except Exception as e:
                 fail_count += 1
@@ -1350,7 +1559,7 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
             text=f"✅ **Broadcast complete**.\nSuccessful: {success_count}\nFailed: {fail_count}\nTotal users processed: {total_users}"
         )
 
-
+    # --- STATE: waiting_for_ref_rate ---
     elif admin_state == "waiting_for_ref_rate":
         try:
             new_rate = float(text)
@@ -1368,8 +1577,7 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
             
         except ValueError:
             await update.message.reply_text("❌ Invalid input. Please enter a valid number for the new rate (e.g., 5.0).")
-            
-    
+# --- END Change 7
 
 
 async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1444,55 +1652,54 @@ async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAU
             await show_pending_withdrawals(update, context) 
 
 
-async def show_top_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+# --- START Change 8: Replace show_top_users with show_leaderboard
+async def show_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message:
         return
         
     await query.answer()
+    lang = await get_user_lang(query.from_user.id)
     
-    top_users_cursor = USERS_COLLECTION.find().sort("earnings", -1).limit(10)
+    # Sort by monthly referrals, descending
+    top_users_cursor = USERS_COLLECTION.find().sort("monthly_referrals", -1).limit(10)
     
-    message = "🏆 <b>Top 10 Earners</b> 🏆\n\n"
+    message = MESSAGES[lang]["leaderboard_title"] + "\n"
     
+    found_users = False
     for i, user_data in enumerate(top_users_cursor):
+        found_users = True
         user_id = user_data["user_id"]
         earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
         username = user_data.get("username")
+        full_name = user_data.get("full_name", f"User {user_id}")
+        monthly_refs = user_data.get("monthly_referrals", 0)
         
-        display_name = f"@{username}" if username else f"User {user_id}"
-        
+        display_name = f"@{username}" if username else full_name
         user_link = f"tg://user?id={user_id}"
         
-        message += f"{i+1}. <a href='{user_link}'><b>{display_name}</b></a>: ₹{earnings_inr:.2f}\n"
+        message += f"<b>{i+1}.</b> <a href='{user_link}'><b>{display_name}</b></a>\n"
+        message += MESSAGES[lang]["leaderboard_rank_entry"].format(
+            monthly_refs=monthly_refs,
+            balance=earnings_inr
+        )
+
+    if not found_users:
+        message += "❌ No referrals recorded this month yet."
 
     keyboard = [[InlineKeyboardButton("⬅️ Back to Earning Panel", callback_data="show_earning_panel")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-    
+# --- END Change 8
 
+
+# --- START Change 9.1: Replace topusers_logic
 async def topusers_logic(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await show_top_users(update, context)
+    await show_leaderboard(update, context)
+# --- END Change 9.1
 
-
-async def clearjunk_logic(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    if not query or not query.message: 
-        return
-        
-    delete_result = {"deleted_users": 0, "deleted_referrals": 0} 
-    
-    message = MESSAGES["en"]["clear_junk_success"].format(
-        deleted_users=delete_result['deleted_users'],
-        deleted_referrals=delete_result['deleted_referrals']
-    )
-    
-    keyboard = [[InlineKeyboardButton("⬅️ Back to Admin Menu", callback_data="admin_pending")]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-
+# --- Change 9.2: clearjunk_logic function has been REMOVED as per instruction ---
 
 async def set_bot_commands_logic(context: ContextTypes.DEFAULT_TYPE) -> None:
     user_commands = [
