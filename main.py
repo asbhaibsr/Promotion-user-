@@ -1,5 +1,3 @@
-# main.py
-
 import logging
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler
 from datetime import timedelta
@@ -9,6 +7,7 @@ from telegram import Update, BotCommand
 from config import (
     BOT_TOKEN, WEB_SERVER_URL, PORT, USER_COMMANDS, ADMIN_COMMANDS
 )
+# --- UPDATED IMPORTS AS PER INSTRUCTION ---
 from handlers import (
     start_command, earn_command, admin_panel,
     show_earning_panel, show_movie_groups_menu, back_to_main_menu,
@@ -18,13 +17,17 @@ from handlers import (
     request_withdrawal, show_tier_benefits, claim_channel_bonus,
     handle_admin_callbacks, handle_withdrawal_approval, handle_group_messages,
     handle_admin_input, show_bot_stats, 
-    show_top_users, 
+    show_leaderboard,  # <-- show_top_users को show_leaderboard से बदला गया
     show_user_pending_withdrawals, 
-    show_my_referrals, # <-- FIX 1: Imported
-    set_bot_commands_logic, # <-- FIX 3: Imported
+    show_my_referrals, 
+    set_bot_commands_logic, 
     error_handler 
 )
-from tasks import send_random_alerts_task
+# clearjunk_logic को हटाया गया
+# admin_panel के बाद कोई नया एडमिन हैंडलर नहीं है, इसलिए ऊपर के हैंडलर सूची को फाइनल माना गया है।
+
+# --- UPDATED TASK IMPORTS AS PER INSTRUCTION ---
+from tasks import send_random_alerts_task, process_monthly_leaderboard
 
 # --- Logging Setup ---
 logging.basicConfig(
@@ -40,10 +43,10 @@ def main() -> None:
 
     application = Application.builder().token(BOT_TOKEN).concurrent_updates(True).build()
 
-    # FIX 3: Set bot commands on startup
+    # Set bot commands on startup
     application.post_init = set_bot_commands_logic
 
-    # FIX 2: Global Error Handler Enabled
+    # Global Error Handler Enabled
     application.add_error_handler(error_handler) 
 
     # --- Command Handlers ---
@@ -70,11 +73,11 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(show_tier_benefits, pattern="^show_tier_benefits$")) 
     application.add_handler(CallbackQueryHandler(claim_channel_bonus, pattern="^claim_channel_bonus$")) 
     
-    # New Handlers
-    application.add_handler(CallbackQueryHandler(show_top_users, pattern="^show_top_users$"))
-    application.add_handler(CallbackQueryHandler(show_user_pending_withdrawals, pattern="^show_user_pending_withdrawals$"))
+    # Leaderboard Handler (Updated)
+    application.add_handler(CallbackQueryHandler(show_leaderboard, pattern="^show_top_users$")) # <-- CHANGED LINE
     
-    # FIX 1: Added handler for 'My Referrals' button
+    # Other Handlers
+    application.add_handler(CallbackQueryHandler(show_user_pending_withdrawals, pattern="^show_user_pending_withdrawals$"))
     application.add_handler(CallbackQueryHandler(show_my_referrals, pattern="^show_my_referrals$"))
     
     # Admin & Withdrawal Handlers
@@ -91,8 +94,12 @@ def main() -> None:
     if job_queue: 
         job_queue.run_repeating(send_random_alerts_task, interval=timedelta(hours=2), first=timedelta(minutes=5))
         logger.info("Random alert task scheduled to run every 2 hours.")
+
+        # --- NEW LINE ADDED HERE ---
+        job_queue.run_repeating(process_monthly_leaderboard, interval=timedelta(hours=1), first=timedelta(minutes=10))
+        logger.info("Monthly leaderboard task scheduled to run every 1 hour (to check date).")
     else:
-        logger.warning("Job Queue is not initialized. Skipping random alert task (common in Webhook mode).")
+        logger.warning("Job Queue is not initialized. Skipping scheduled tasks (common in Webhook mode).")
 
 
     # --- Running the Bot ---
