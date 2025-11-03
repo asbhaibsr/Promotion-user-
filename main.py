@@ -7,28 +7,31 @@ from telegram import Update, BotCommand
 
 # Local Imports
 from config import (
-    BOT_TOKEN, WEB_SERVER_URL, PORT, USER_COMMANDS, ADMIN_COMMANDS
+    BOT_TOKEN, WEB_SERVER_URL, PORT, ADMIN_ID
 )
-# --- UPDATED IMPORTS AS PER INSTRUCTION ---
+# --- UPDATED IMPORTS FOR USER HANDLERS ---
 from handlers import (
-    start_command, earn_command, admin_panel,
+    start_command, earn_command, 
     show_earning_panel, show_movie_groups_menu, back_to_main_menu,
     language_menu, handle_lang_choice, show_help, show_refer_link,
     show_withdraw_details_new, claim_daily_bonus, show_refer_example,
     show_spin_panel, perform_spin, spin_fake_btn, show_missions, 
     request_withdrawal, show_tier_benefits, claim_channel_bonus,
-    handle_admin_callbacks, handle_withdrawal_approval, handle_group_messages,
-    handle_admin_input, show_bot_stats, 
+    handle_group_messages,
     show_leaderboard, 
     show_user_pending_withdrawals, 
     show_my_referrals, 
     set_bot_commands_logic, 
     error_handler 
 )
-# clearjunk_logic को हटाया गया
-# admin_panel के बाद कोई नया एडमिन हैंडलर नहीं है, इसलिए ऊपर के हैंडलर सूची को फाइनल माना गया है।
 
-# --- UPDATED TASK IMPORTS AS PER INSTRUCTION ---
+# --- NEW IMPORT FOR ADMIN HANDLERS ---
+from admin_handlers import (
+    admin_panel, handle_admin_callbacks, handle_admin_input,
+    handle_withdrawal_approval
+)
+
+# --- TASK IMPORTS ---
 from tasks import send_random_alerts_task, process_monthly_leaderboard
 
 # --- Logging Setup ---
@@ -54,9 +57,9 @@ def main() -> None:
     # --- Command Handlers ---
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("earn", earn_command)) 
-    application.add_handler(CommandHandler("admin", admin_panel))
+    application.add_handler(CommandHandler("admin", admin_panel, filters=filters.User(ADMIN_ID))) # Only admin can access
     
-    # --- Callback Query Handlers ---
+    # --- USER Callback Query Handlers ---
     application.add_handler(CallbackQueryHandler(show_earning_panel, pattern="^show_earning_panel$"))
     application.add_handler(CallbackQueryHandler(show_movie_groups_menu, pattern="^show_movie_groups_menu$"))
     application.add_handler(CallbackQueryHandler(back_to_main_menu, pattern="^back_to_main_menu$"))
@@ -74,19 +77,18 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(request_withdrawal, pattern="^request_withdrawal$"))
     application.add_handler(CallbackQueryHandler(show_tier_benefits, pattern="^show_tier_benefits$")) 
     application.add_handler(CallbackQueryHandler(claim_channel_bonus, pattern="^claim_channel_bonus$")) 
-    
-    # Leaderboard Handler (Updated and FIXED)
-    application.add_handler(CallbackQueryHandler(show_leaderboard, pattern="^show_leaderboard$")) # <-- FIXED LINE
-    
-    # Other Handlers
+    application.add_handler(CallbackQueryHandler(show_leaderboard, pattern="^show_leaderboard$"))
     application.add_handler(CallbackQueryHandler(show_user_pending_withdrawals, pattern="^show_user_pending_withdrawals$"))
     application.add_handler(CallbackQueryHandler(show_my_referrals, pattern="^show_my_referrals$"))
     
-    # Admin & Withdrawal Handlers
+    # --- ADMIN Callback Query Handlers ---
+    # Note: Filters for admin are handled within the admin_handlers.py for simplicity and context.
     application.add_handler(CallbackQueryHandler(handle_admin_callbacks, pattern="^admin_")) 
+    # Withdrawal approval is specifically checked for the pattern and then access is restricted inside the function
     application.add_handler(CallbackQueryHandler(handle_withdrawal_approval, pattern="^(approve|reject)_withdraw_\\d+$"))
     
     # --- Message Handlers ---
+    # This handler must be for ALL private texts (non-commands) because it handles admin state inputs.
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_admin_input)) 
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.GROUPS, handle_group_messages))
     
@@ -97,7 +99,6 @@ def main() -> None:
         job_queue.run_repeating(send_random_alerts_task, interval=timedelta(hours=2), first=timedelta(minutes=5))
         logger.info("Random alert task scheduled to run every 2 hours.")
 
-        # --- NEW LINE ADDED HERE ---
         job_queue.run_repeating(process_monthly_leaderboard, interval=timedelta(hours=1), first=timedelta(minutes=10))
         logger.info("Monthly leaderboard task scheduled to run every 1 hour (to check date).")
     else:
