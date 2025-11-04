@@ -1,5 +1,3 @@
-# handlers.py
-
 import logging
 import random
 import time
@@ -566,10 +564,13 @@ async def perform_spin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     )
     
     if not result:
+        # --- BADLAAV 1 (Parse Mode Fix) ---
         await query.edit_message_text(
-            "❌ Failed to deduct spin. Try again.",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
+            "❌ <b>Failed to deduct spin. Try again.</b>",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]),
+            parse_mode='HTML' # <-- YEH ADD KIYA GAYA HAI
         )
+        # --- BADLAAV KHATM ---
         return
         
     spins_left_after_deduct = result.get("spins_left", 0)
@@ -795,15 +796,18 @@ async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE)
     existing_request = WITHDRAWALS_COLLECTION.find_one({"user_id": user.id, "status": "pending"})
     if existing_request:
         # --- FIX 4: Add a try-except for 'Message is not modified' error
+        # --- BADLAAV 2 (Parse Mode Fix) ---
         try:
             await query.edit_message_text(
                 "❌ <b>Request Already Pending!</b>\n\nYour previous withdrawal request is still being processed.",
-                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]),
+                parse_mode='HTML' # <-- YEH ADD KIYA GAYA HAI
             )
         except TelegramError as e:
             if "Message is not modified" not in str(e):
                 logger.error(f"Error editing message in request_withdrawal (already pending): {e}")
             pass
+        # --- BADLAAV KHATM ---
         # --- END FIX 4
         return
     
@@ -1209,6 +1213,7 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 # --- START Change 8: Replace show_top_users with show_leaderboard
+# --- BADLAAV 3 (Leaderboard Logic) ---
 async def show_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message:
@@ -1218,11 +1223,23 @@ async def show_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     user_id = query.from_user.id
     lang = await get_user_lang(user_id)
     
-    # Sort by monthly referrals, descending
+    # --- Naya Logic: Aapki rank paane ke liye ---
+    # 1. User ke current monthly referrals pata karein
+    user_data_for_rank = USERS_COLLECTION.find_one({"user_id": user_id}, {"monthly_referrals": 1})
+    user_refs = user_data_for_rank.get("monthly_referrals", 0) if user_data_for_rank else 0
+    
+    # 2. Ginti karein kitne users ke paas aapse *zyada* referrals hain
+    user_rank = USERS_COLLECTION.count_documents({"monthly_referrals": {"$gt": user_refs}}) + 1
+    # --- Rank Logic Khatm ---
+    
+    # Top 10 users ko monthly referrals ke adhaar par sort karein
     top_users_cursor = USERS_COLLECTION.find().sort("monthly_referrals", -1).limit(10)
     
-    # Leaderboard Title from your request
+    # Title
     message = "🏆 <b>Earning Leaderboard (Top 10)</b>\n\n"
+    
+    # Aapki Rank add karein
+    message += f"✨ <b>Your Rank: #{user_rank}</b>\n   (Aapke is mahine ke referrals: {user_refs})\n\n"
     
     found_users = False
     for i, user_data in enumerate(top_users_cursor):
@@ -1242,19 +1259,46 @@ async def show_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             message += " (You) "
             
         message += "\n"
-        # Since I don't have the original MESSAGES[lang]["leaderboard_rank_entry"], 
-        # I'll create a default one based on the logic:
+        # Yeh line monthly referrals dikhati hai (jaisa aapne manga)
         message += f"   - 👥 Referrals this month: <b>{monthly_refs}</b>\n"
         message += f"   - 💵 Total Balance: ₹{earnings_inr:.2f}\n"
 
     if not found_users:
-        message += "❌ No referrals recorded this month yet."
+        message += "❌ Is mahine abhi tak koi referrals record nahi hue hain."
 
-    keyboard = [[InlineKeyboardButton("⬅️ Back to Earning Panel", callback_data="show_earning_panel")]]
+    # Keyboard mein naya button add karein
+    keyboard = [
+        [InlineKeyboardButton("💡 Leaderboard Benefits", callback_data="show_leaderboard_info")],
+        [InlineKeyboardButton("⬅️ Back to Earning Panel", callback_data="show_earning_panel")]
+    ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 # --- END Change 8
+# --- BADLAAV KHATM ---
+
+
+# --- BADLAAV 4 (Naya Function) ---
+async def show_leaderboard_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Naye 'Leaderboard Benefits' button ka content dikhata hai."""
+    query = update.callback_query
+    if not query or not query.message:
+        return
+    
+    await query.answer()
+    lang = await get_user_lang(query.from_user.id)
+    
+    # config.py se text lein
+    title = MESSAGES[lang].get("leaderboard_info_title", MESSAGES["en"]["leaderboard_info_title"])
+    text = MESSAGES[lang].get("leaderboard_info_text", MESSAGES["en"]["leaderboard_info_text"])
+    
+    message = f"<b>{title}</b>\n\n{text}"
+    
+    keyboard = [[InlineKeyboardButton("⬅️ Back to Leaderboard", callback_data="show_leaderboard")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+# --- BADLAAV KHATM ---
 
 
 async def set_bot_commands_logic(context: ContextTypes.DEFAULT_TYPE) -> None:
