@@ -22,7 +22,10 @@ from handlers import (
     show_user_pending_withdrawals, 
     show_my_referrals, 
     set_bot_commands_logic, 
-    error_handler 
+    error_handler,
+    # <--- यह नई लाइन है
+    show_leaderboard_info 
+    # --->
 )
 
 # --- NEW IMPORT FOR ADMIN HANDLERS ---
@@ -80,6 +83,10 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(show_leaderboard, pattern="^show_leaderboard$"))
     application.add_handler(CallbackQueryHandler(show_user_pending_withdrawals, pattern="^show_user_pending_withdrawals$"))
     application.add_handler(CallbackQueryHandler(show_my_referrals, pattern="^show_my_referrals$"))
+    
+    # <--- यह नई लाइन है
+    application.add_handler(CallbackQueryHandler(show_leaderboard_info, pattern="^show_leaderboard_info$"))
+    # --->
     
     # --- ADMIN Callback Query Handlers ---
     # Note: Filters for admin are handled within the admin_handlers.py for simplicity and context.
