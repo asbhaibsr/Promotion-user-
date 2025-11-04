@@ -193,6 +193,12 @@ MESSAGES = {
         # -- LEADERBOARD (NEW) --
         "leaderboard_title": "🏆 Monthly Leaderboard 🏆\n\nTop 10 referrers of the month!",
         "leaderboard_rank_entry": "   - Monthly Referrals: {monthly_refs}\n   - Total Balance: ₹{balance:.2f}\n",
+        
+        # --- YAHAN NAYE MESSAGES ADD KIYE GAYE HAIN ---
+        "leaderboard_info_title": "💡 Leaderboard Benefits",
+        "leaderboard_info_text": "This leaderboard shows the Top 10 users with the most 'Monthly Referrals'.\n\n🏆 <b>What's the Benefit?</b>\nThe Top 10 users at the end of the month win a cash prize!\n\n💰 <b>How to Get Money?</b>\nOn the 1st of every month, rewards are automatically added to the winners' bot balance.\n\n🎯 <b>What is it For?</b>\nYour rank is based <i>only</i> on the number of new users you refer each month. The user with the most referrals wins!",
+        # --- BADLAAV KHATM ---
+
         "monthly_reward_notification": "🎉 Leaderboard Reward! 🎉\n\nCongratulations! You finished at Rank #{rank} on the monthly leaderboard.\n\nYou have been awarded: ₹{reward:.2f}\n\nYour new balance is: ₹{new_balance:.2f}",
 
         # -- CHANNEL BONUS FIX (NEW) --
@@ -289,6 +295,12 @@ MESSAGES = {
         # -- LEADERBOARD (NEW) --
         "leaderboard_title": "🏆 मासिक लीडरबोर्ड 🏆\n\nइस महीने के टॉप 10 रेफरर!",
         "leaderboard_rank_entry": "   - मासिक रेफरल: {monthly_refs}\n   - कुल बैलेंस: ₹{balance:.2f}\n",
+        
+        # --- YAHAN NAYE MESSAGES ADD KIYE GAYE HAIN ---
+        "leaderboard_info_title": "💡 लीडरबोर्ड के फायदे",
+        "leaderboard_info_text": "इस महीने के 'मासिक रेफ़रल' के आधार पर टॉप 10 यूज़र्स इस लीडरबोर्ड में दिखाए जाते हैं।\n\n🏆 <b>क्या फायदा है?</b>\nमहीने के अंत में टॉप 10 यूज़र्स को नकद इनाम मिलता है!\n\n💰 <b>पैसे कैसे मिलेंगे?</b>\nहर महीने की 1 तारीख को, इनाम की राशि विजेताओं के बॉट बैलेंस में अपने आप जोड़ दी जाती है।\n\n🎯 <b>यह किस लिए है?</b>\nआपकी रैंक <i>केवल</i> इस बात पर आधारित है कि आप हर महीने कितने नए यूज़र्स को रेफ़र करते हैं। सबसे ज्यादा रेफ़रल करने वाला यूज़र जीतता है!",
+        # --- BADLAAV KHATM ---
+        
         "monthly_reward_notification": "🎉 लीडरबोर्ड इनाम! 🎉\n\nबधाई हो! आपने मासिक लीडरबोर्ड पर रैंक #{rank} हासिल किया है।\n\nआपको ₹{reward:.2f} का इनाम दिया गया है।\n\nआपका नया बैलेंस है: ₹{new_balance:.2f}",
 
         # -- CHANNEL BONUS FIX (NEW) --
@@ -306,4 +318,3 @@ USER_COMMANDS = [
 ADMIN_COMMANDS = [
     BotCommand("admin", "Access Admin Panel and settings."),
 ]
-
