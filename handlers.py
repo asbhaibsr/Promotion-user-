@@ -1,4 +1,4 @@
-#  Handlers.py
+# Handlers.py
 
 import logging
 import random
@@ -16,7 +16,9 @@ from config import (
     SPIN_WHEEL_CONFIG, SPIN_PRIZES, SPIN_WEIGHTS, TIERS, DAILY_MISSIONS,
     CHANNEL_USERNAME, CHANNEL_ID, CHANNEL_BONUS,
     NEW_MOVIE_GROUP_LINK, MOVIE_GROUP_LINK, ALL_GROUPS_LINK, EXAMPLE_SCREENSHOT_URL,
-    JOIN_CHANNEL_LINK, COIN_FLIP_CONFIG # <-- COIN_FLIP_CONFIG को IMPORT किया गया
+    JOIN_CHANNEL_LINK, COIN_FLIP_CONFIG,
+    # --- NAYE IMPORTS YAHAN ADD HUE HAIN ---
+    HEAD_STICKER_ID, TAILS_STICKER_ID, PROCESSING_STICKER_ID
 )
 from db_utils import (
     send_log_message, get_user_lang, set_user_lang, get_referral_bonus_inr, 
@@ -1336,116 +1338,267 @@ async def show_games_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = "🎮 <b>Earning Games</b>\n\nKhel chunein aur extra cash jeetein!"
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
+# --------------------------------------------------------------------------------------
+# --- NEW COIN FLIP FUNCTIONS START HERE (REPLACING OLD ONES) ---
+# --------------------------------------------------------------------------------------
+
 async def handle_coin_flip(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Coin Flip game ka menu dikhata hai."""
+    """Coin Flip game ka main menu dikhata hai (Bet adjustment ke saath)"""
     query = update.callback_query
     if not query or not query.message:
         return
-    
+
     user = query.from_user
-    lang = await get_user_lang(user.id)
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
     balance_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
-    
+
+    # User ki current bet ko context se fetch karo, ya default set karo
+    min_bet = COIN_FLIP_CONFIG["min_bet"]
+    current_bet = context.user_data.get('coin_flip_bet', min_bet)
+
+    # Bet ko min/max ke andar rakho
+    current_bet = max(min_bet, min(COIN_FLIP_CONFIG["max_bet"], current_bet))
+
+    # Bet ko balance ke andar bhi rakho
+    if current_bet > balance_inr:
+        current_bet = max(min_bet, balance_inr)
+
+    context.user_data['coin_flip_bet'] = current_bet
+
     await query.answer()
 
     message = (
         f"🪙 <b>कॉइन फ्लिप गेम (Coin Flip)</b>\n\n"
-        f"Aapka Balance: <b>₹{balance_inr:.2f}</b>\n\n"
-        f"Head ya Tail chunein. Agar aap jeete, toh aapko apni bet ka <b>{COIN_FLIP_CONFIG['win_multiplier']}x</b> milega!\n\n"
-        f"Kitni bet lagana chahte hain?"
+        f"Aapka Balance: <b>₹{balance_inr:.2f}</b>\n"
+        f"Aapki Bet: <b>₹{current_bet:.2f}</b>\n\n"
+        f"Bet ko adjust karne ke liye '+' ya '-' dabayein aur fir 'Start' karein.\n"
+        f"Jeetne par <b>{COIN_FLIP_CONFIG['win_multiplier']}x</b> inaam milega."
     )
-    
-    bet_buttons = []
-    for amount in COIN_FLIP_CONFIG["bet_amounts"]:
-        bet_buttons.append(
-            InlineKeyboardButton(f"₹{amount:.2f} ki Bet", callback_data=f"game_coin_flip_play_{amount}")
-        )
-    
-    # Buttons ko 2-2 ke group mein daal dete hain
-    keyboard = [bet_buttons[i:i + 2] for i in range(0, len(bet_buttons), 2)]
-    keyboard.append([InlineKeyboardButton("⬅️ Back to Games", callback_data="show_games_menu")])
+
+    # Buttons
+    keyboard = [
+        [
+            InlineKeyboardButton("➖", callback_data="game_coin_flip_bet_dec"),
+            InlineKeyboardButton(f"Bet: ₹{current_bet:.2f}", callback_data="none"),
+            InlineKeyboardButton("➕", callback_data="game_coin_flip_bet_inc")
+        ],
+        [
+            InlineKeyboardButton("Min (₹{:.2f})".format(COIN_FLIP_CONFIG["min_bet"]), callback_data="game_coin_flip_bet_min"),
+            InlineKeyboardButton("Max (₹{:.2f})".format(COIN_FLIP_CONFIG["max_bet"]), callback_data="game_coin_flip_bet_max")
+        ],
+        [
+            InlineKeyboardButton("✅ Start Game", callback_data="game_coin_flip_start")
+        ],
+        [
+            InlineKeyboardButton("⬅️ Back to Games", callback_data="show_games_menu")
+        ]
+    ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+    try:
+        await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+    except TelegramError as e:
+        if "Message is not modified" not in str(e):
+            logger.warning(f"Coin flip menu error: {e}")
+        pass
 
-
-async def handle_coin_flip_play(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Asli Coin Flip game khelta hai."""
+async def handle_coin_flip_bet_adjust(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Bet ko '+' ya '-' karta hai"""
     query = update.callback_query
     if not query or not query.message:
         return
-    
-    try:
-        bet_amount_inr = float(query.data.split("_")[-1])
-    except (ValueError, IndexError):
-        await query.answer("❌ Invalid bet!", show_alert=True)
-        return
+
+    action = query.data.split("_")[-1] # 'inc', 'dec', 'min', 'max'
 
     user = query.from_user
-    lang = await get_user_lang(user.id)
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
     balance_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
 
+    min_bet = COIN_FLIP_CONFIG["min_bet"]
+    max_bet = min(COIN_FLIP_CONFIG["max_bet"], balance_inr) # Max bet balance se zyada nahi ho sakti
+    increment = COIN_FLIP_CONFIG["bet_increment"]
+
+    current_bet = context.user_data.get('coin_flip_bet', min_bet)
+
+    if action == "inc":
+        current_bet += increment
+    elif action == "dec":
+        current_bet -= increment
+    elif action == "min":
+        current_bet = min_bet
+    elif action == "max":
+        current_bet = max_bet
+
+    # Bet ko min/max ke beech clamp karo
+    current_bet = round(max(min_bet, min(max_bet, current_bet)), 2)
+
+    # Agar max_bet hi min_bet se kam hai (balance nahi hai)
+    if current_bet < min_bet and balance_inr < min_bet:
+        await query.answer("❌ Aapke paas minimum bet (₹{:.2f}) ke liye balance nahi hai.".format(min_bet), show_alert=True)
+        current_bet = balance_inr
+    elif current_bet < min_bet:
+        current_bet = min_bet
+
+    context.user_data['coin_flip_bet'] = current_bet
+
+    # Menu ko update karne ke liye handle_coin_flip ko call karo
+    await handle_coin_flip(update, context)
+
+async def handle_coin_flip_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Bet set hone ke baad Head/Tails poochta hai"""
+    query = update.callback_query
+    if not query or not query.message:
+        return
+
+    user = query.from_user
+    bet_amount_inr = context.user_data.get('coin_flip_bet', 0)
+
+    user_data = USERS_COLLECTION.find_one({"user_id": user.id})
+    balance_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
+
+    if bet_amount_inr < COIN_FLIP_CONFIG["min_bet"]:
+         await query.answer(f"❌ Bet kam se kam ₹{COIN_FLIP_CONFIG['min_bet']:.2f} honi chahiye.", show_alert=True)
+         return
+
     if balance_inr < bet_amount_inr:
         await query.answer(f"❌ Aapke paas पर्याप्त balance (₹{bet_amount_inr:.2f}) nahi hai!", show_alert=True)
+        context.user_data['coin_flip_bet'] = max(COIN_FLIP_CONFIG["min_bet"], balance_inr) # Bet ko balance par reset kar do
+        await handle_coin_flip(update, context) # Menu refresh karo
+        return
+
+    await query.answer()
+
+    message = (
+        f"Aapne <b>₹{bet_amount_inr:.2f}</b> ki bet lagai hai.\n\n"
+        f"Apna side chunein:"
+    )
+    keyboard = [
+        [
+            InlineKeyboardButton("🪙 Head", callback_data="game_coin_flip_choice_head"),
+            InlineKeyboardButton("🪙 Tails", callback_data="game_coin_flip_choice_tails")
+        ],
+        [
+            InlineKeyboardButton("⬅️ Cancel (Bet waapas)", callback_data="game_coin_flip_menu")
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+async def handle_coin_flip_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Asli game khelta hai (processing sticker ke saath)"""
+    query = update.callback_query
+    if not query or not query.message:
+        return
+
+    user_choice = query.data.split("_")[-1] # 'head' ya 'tails'
+    user = query.from_user
+
+    bet_amount_inr = context.user_data.get('coin_flip_bet', 0)
+
+    if bet_amount_inr <= 0:
+        await query.answer("❌ Bet error. Dobara try karein.", show_alert=True)
+        await handle_coin_flip(update, context)
         return
 
     await query.answer("Sikka uchhal raha hai...")
 
-    # 1. User se paise kaat lo
+    # 1. Bet ki rakam kaat lo
     bet_amount_usd = bet_amount_inr / DOLLAR_TO_INR
-    USERS_COLLECTION.update_one(
-        {"user_id": user.id},
-        {"$inc": {"earnings": -bet_amount_usd}}
+    user_data = USERS_COLLECTION.find_one_and_update(
+        {"user_id": user.id, "earnings": {"$gte": bet_amount_usd}},
+        {"$inc": {"earnings": -bet_amount_usd}},
+        return_document=False # Humein purana data nahi chahiye
     )
-    
-    # 2. Game khelo (50/50 chance)
-    win = random.choice([True, False])
-    
+
+    if not user_data:
+        # Aisa tab ho sakta hai jab user ke paas paise na ho (double check)
+        await query.answer(f"❌ Aapke paas पर्याप्त balance (₹{bet_amount_inr:.2f}) nahi hai!", show_alert=True)
+        await handle_coin_flip(update, context)
+        return
+
+    # 2. Processing sticker bhejo (User ke request ke mutabik)
+    try:
+        # Purana message delete karo
+        await query.message.delete()
+    except Exception:
+        pass
+
+    sticker_msg = await context.bot.send_sticker(
+        chat_id=query.message.chat_id, 
+        sticker=PROCESSING_STICKER_ID
+    )
+
+    # 3. 3 second ruko
+    await asyncio.sleep(3)
+
+    # 4. Game ka result nikalo
+    # random module yahan import ho chuka hai
+    result = random.choice(["head", "tails"])
+    win = (user_choice == result)
+
+    result_sticker = HEAD_STICKER_ID if result == "head" else TAILS_STICKER_ID
+    result_text = "Head" if result == "head" else "Tails"
+
+    # 5. Result process karo
     if win:
-        # Jeet gaya
         win_amount_inr = bet_amount_inr * COIN_FLIP_CONFIG['win_multiplier']
+        # Jeetne ki rakam (profit) add karo. 
+        # Note: win_amount_usd = total jeet. Humne bet pehle hi kaat li hai. 
+        # isliye humein total amount (bet + profit) waapas add karna hoga
+        # Example: Bet 1.0, Win 1.8. Humne 1.0 kaata. Ab 1.8 add karenge.
         win_amount_usd = win_amount_inr / DOLLAR_TO_INR
-        
-        # Jeetne ki rakam add karo
+
         updated_user = USERS_COLLECTION.find_one_and_update(
             {"user_id": user.id},
             {"$inc": {"earnings": win_amount_usd}},
             return_document=True
         )
         new_balance_inr = updated_user.get("earnings", 0.0) * DOLLAR_TO_INR
-        
+
         message = (
-            f"🎉 <b>Aap Jeet Gaye!</b> 🎉\n\n"
-            f"Aapne ₹{bet_amount_inr:.2f} ki bet lagai aur <b>₹{win_amount_inr:.2f}</b> jeete!\n\n"
+            f"🎉 <b>Aap Jeet Gaye!</b> (Result: {result_text}) 🎉\n\n"
+            f"Aapne ₹{bet_amount_inr:.2f} lagaye aur <b>₹{win_amount_inr:.2f}</b> jeete!\n\n"
             f"Aapka naya balance: <b>₹{new_balance_inr:.2f}</b>"
         )
     else:
-        # Haar gaya
+        # Haar gaye, paise pehle hi kat chuke hain
         updated_user = USERS_COLLECTION.find_one({"user_id": user.id})
         new_balance_inr = updated_user.get("earnings", 0.0) * DOLLAR_TO_INR
 
         message = (
-            f"😢 <b>Aap Haar Gaye!</b> 😢\n\n"
-            f"Aapne ₹{bet_amount_inr:.2f} ki bet haar di.\n\n"
+            f"😢 <b>Aap Haar Gaye!</b> (Result: {result_text}) 😢\n\n"
+            f"Aapne ₹{bet_amount_inr:.2f} haar diye.\n\n"
             f"Aapka naya balance: <b>₹{new_balance_inr:.2f}</b>"
         )
 
-    # Keyboard ko update karo
-    bet_buttons = []
-    for amount in COIN_FLIP_CONFIG["bet_amounts"]:
-        bet_buttons.append(
-            InlineKeyboardButton(f"₹{amount:.2f} ki Bet", callback_data=f"game_coin_flip_play_{amount}")
-        )
-    
-    keyboard = [bet_buttons[i:i + 2] for i in range(0, len(bet_buttons), 2)]
-    keyboard.append([InlineKeyboardButton("⬅️ Back to Games", callback_data="show_games_menu")])
+    # 6. Processing sticker delete karo
+    try:
+        await sticker_msg.delete()
+    except Exception:
+        pass
+
+    # 7. Result sticker bhejo 
+    await context.bot.send_sticker(chat_id=query.message.chat_id, sticker=result_sticker) 
+
+    # 8. Result message bhejo
+    keyboard = [
+        [InlineKeyboardButton("🔄 दोबारा खेलें (Play Again)", callback_data="game_coin_flip_menu")],
+        [InlineKeyboardButton("⬅️ Back to Games", callback_data="show_games_menu")]
+    ]
     reply_markup = InlineKeyboardMarkup(keyboard)
+    await context.bot.send_message(
+        chat_id=query.message.chat_id, 
+        text=message, 
+        reply_markup=reply_markup, 
+        parse_mode='HTML'
+    )
 
-    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+    # 9. Bet ko user_data se clear karo
+    context.user_data['coin_flip_bet'] = 0
 
-# --- GAME FUNCTIONS KHATM ---
+# --------------------------------------------------------------------------------------
+# --- NEW COIN FLIP FUNCTIONS END HERE ---
+# --------------------------------------------------------------------------------------
 
 
 async def set_bot_commands_logic(context: ContextTypes.DEFAULT_TYPE) -> None:
