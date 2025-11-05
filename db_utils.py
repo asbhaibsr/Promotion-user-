@@ -218,9 +218,15 @@ async def pay_referrer_and_update_mission(context: ContextTypes.DEFAULT_TYPE, us
     except (TelegramError, TimedOut) as e:
         logger.error(f"Could not send daily earning update to referrer {referrer_id}: {e}")
         
+    # YEH CODE YAHAN BADLA GAYA HAI (Request 6)
+    # Referrer ka clickable naam
+    referrer_name = updated_referrer_data.get('full_name', f'User {referrer_id}')
+    referrer_username = f"<a href='tg://user?id={referrer_id}'>{referrer_name}</a>"
     
-    referrer_username = f"@{updated_referrer_data.get('username')}" if updated_referrer_data and updated_referrer_data.get('username') else f"<code>{referrer_id}</code>"
-    user_username = f"@{user_data.get('username')}" if user_data and user_data.get('username') else f"<code>{user_id}</code>"
+    # Referred user ka clickable naam
+    user_name = user_data.get('full_name', f'User {user_id}')
+    user_username = f"<a href='tg://user?id={user_id}'>{user_name}</a>"
+
     log_msg = (
         f"💸 <b>Referral Earning</b> (Daily Payment)\n"
         f"Referrer: {referrer_username}\n"
