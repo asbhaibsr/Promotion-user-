@@ -16,7 +16,7 @@ from config import (
     SPIN_WHEEL_CONFIG, SPIN_PRIZES, SPIN_WEIGHTS, TIERS, DAILY_MISSIONS,
     CHANNEL_USERNAME, CHANNEL_ID, CHANNEL_BONUS,
     NEW_MOVIE_GROUP_LINK, MOVIE_GROUP_LINK, ALL_GROUPS_LINK, EXAMPLE_SCREENSHOT_URL,
-    JOIN_CHANNEL_LINK 
+    JOIN_CHANNEL_LINK, COIN_FLIP_CONFIG # <-- COIN_FLIP_CONFIG को IMPORT किया गया
 )
 from db_utils import (
     send_log_message, get_user_lang, set_user_lang, get_referral_bonus_inr, 
@@ -90,7 +90,8 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     full_name = user.first_name + (f" {user.last_name}" if user.last_name else "")
-    username_display = f"@{user.username}" if user.username else f"<code>{user.id}</code>"
+    # NEECHE WALI LINE BADLI GAYI HAI (Request 8)
+    username_display = f"<a href='tg://user?id={user.id}'>{full_name}</a>"
     
     referral_id_str = context.args[0].replace("ref_", "") if context.args and context.args[0].startswith("ref_") else None
     referral_id = int(referral_id_str) if referral_id_str and referral_id_str.isdigit() else None
@@ -173,6 +174,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
                 try:
                     referrer_lang = await get_user_lang(referral_id)
+                    # MESSAGES[referrer_lang]["new_referral_notification"] में {bonus} अब इस्तेमाल नहीं होगा 
                     await context.bot.send_message(
                         chat_id=referral_id,
                         text=MESSAGES[referrer_lang]["new_referral_notification"].format(
@@ -307,7 +309,7 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if user_data.get("channel_bonus_received"):
         channel_button_text = f"✅ Channel Bonus Claimed (₹{CHANNEL_BONUS:.2f})"
 
-    # --- START FIX: Top 10 button to Leaderboard (Big Button) ---
+    # --- START Change 9: Earning Panel Button (Games Button Add Kiya) ---
     keyboard = [
         # New Big Leaderboard Button
         [InlineKeyboardButton("🏆 Earning Leaderboard (Top 10)", callback_data="show_leaderboard")],
@@ -320,6 +322,8 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
         [InlineKeyboardButton(MESSAGES[lang]["spin_wheel_button"].format(spins_left=spins_left), callback_data="show_spin_panel"),
          InlineKeyboardButton("📈 Tier Benefits", callback_data="show_tier_benefits")], 
+        
+        [InlineKeyboardButton("🎮 Earning Games", callback_data="show_games_menu")], # YEH NAYI LINE HAI (Request 9)
          
         [InlineKeyboardButton("💸 Request Withdrawal", callback_data="show_withdraw_details_new"),
          InlineKeyboardButton(channel_button_text, callback_data="claim_channel_bonus")],
@@ -327,7 +331,7 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
         [InlineKeyboardButton("🆘 Help", callback_data="show_help"),
          InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]
     ]
-    # --- END FIX ---
+    # --- END Change 9 ---
     
     reply_markup = InlineKeyboardMarkup(keyboard)
     
@@ -492,13 +496,20 @@ async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     if lang == "hi":
         streak_message = f"🔥 आप {streak}-दिन की स्ट्रीक पर हैं! बड़े बोनस के लिए इसे जारी रखें!"
         
+    # Naya Keyboard "Earn More" button ke saath (Request 1)
+    keyboard = [
+        [InlineKeyboardButton("💰 Earn More", callback_data="show_earning_panel")],
+        [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
     await query.edit_message_text(
         MESSAGES[lang]["daily_bonus_success"].format(
             bonus_amount=bonus_amount,
             new_balance=new_balance_inr,
             streak_message=streak_message
         ),
-        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
+        reply_markup=reply_markup
     )
     
     log_msg = f"🎁 <b>Daily Bonus</b>\nUser: {username_display}\nAmount: ₹{bonus_amount:.2f}\nStreak: {streak} days\nNew Balance: ₹{new_balance_inr:.2f}"
@@ -694,14 +705,15 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     if paid_searches_today_count >= mission['target'] and not missions_completed.get(mission_key):
         reward_usd = mission["reward"] / DOLLAR_TO_INR
         total_reward += mission["reward"]
+        # Badlaav 1 (Request 7): Spin add kiya gaya
         USERS_COLLECTION.update_one(
             {"user_id": user.id},
             {
-                "$inc": {"earnings": reward_usd},
+                "$inc": {"earnings": reward_usd, "spins_left": 1}, # Yahaan spin add hua
                 "$set": {f"missions_completed.{mission_key}": True}
             }
         )
-        newly_completed_message += f"✅ <b>{name}</b>: +₹{mission['reward']:.2f}\n"
+        newly_completed_message += f"✅ <b>{name}</b>: +₹{mission['reward']:.2f} +1 Spin 🎰\n"
         missions_completed[mission_key] = True 
         message += f"✅ {name} ({mission['target']}/{mission['target']}) [<b>Completed</b>]\n"
     elif missions_completed.get(mission_key):
@@ -717,14 +729,15 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     if referrals_today_count >= mission['target'] and not missions_completed.get(mission_key):
         reward_usd = mission["reward"] / DOLLAR_TO_INR
         total_reward += mission["reward"]
+        # Badlaav 2 (Request 7): Spin add kiya gaya
         USERS_COLLECTION.update_one(
             {"user_id": user.id},
             {
-                "$inc": {"earnings": reward_usd},
+                "$inc": {"earnings": reward_usd, "spins_left": 1}, # Yahaan spin add hua
                 "$set": {f"missions_completed.{mission_key}": True}
             }
         )
-        newly_completed_message += f"✅ <b>{name}</b>: +₹{mission['reward']:.2f}\n"
+        newly_completed_message += f"✅ <b>{name}</b>: +₹{mission['reward']:.2f} +1 Spin 🎰\n"
         missions_completed[mission_key] = True 
         message += f"✅ {name} ({mission['target']}/{mission['target']}) [<b>Completed</b>]\n"
     elif missions_completed.get(mission_key):
@@ -740,14 +753,15 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         if not missions_completed.get(mission_key):
             reward_usd = mission["reward"] / DOLLAR_TO_INR
             total_reward += mission["reward"]
+            # Badlaav 3 (Request 7): Spin add kiya gaya
             USERS_COLLECTION.update_one(
                 {"user_id": user.id},
                 {
-                    "$inc": {"earnings": reward_usd},
+                    "$inc": {"earnings": reward_usd, "spins_left": 1}, # Yahaan spin add hua
                     "$set": {f"missions_completed.{mission_key}": True}
                 }
             )
-            newly_completed_message += f"✅ <b>{name}</b>: +₹{mission['reward']:.2f}\n"
+            newly_completed_message += f"✅ <b>{name}</b>: +₹{mission['reward']:.2f} +1 Spin 🎰\n"
             missions_completed[mission_key] = True 
             message += f"✅ {name} [<b>Completed</b>]\n"
         else:
@@ -1301,6 +1315,137 @@ async def show_leaderboard_info(update: Update, context: ContextTypes.DEFAULT_TY
     
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 # --- BADLAAV KHATM ---
+
+
+# --- NAYE GAME FUNCTIONS (Request 10) ---
+async def show_games_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Earning Games ka main menu dikhata hai."""
+    query = update.callback_query
+    if not query or not query.message:
+        return
+    await query.answer()
+    
+    keyboard = [
+        [InlineKeyboardButton("🪙 कॉइन फ्लिप (Coin Flip)", callback_data="game_coin_flip_menu")],
+        # Neeche diye gaye buttons abhi kaam nahi karenge jab tak aap unke function na banayein
+        [InlineKeyboardButton("🎰 स्लॉट मशीन (Coming Soon)", callback_data="coming_soon")],
+        [InlineKeyboardButton("🔢 नंबर प्रेडिक्शन (Coming Soon)", callback_data="coming_soon")],
+        [InlineKeyboardButton("⬅️ Back to Earning Panel", callback_data="show_earning_panel")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    message = "🎮 <b>Earning Games</b>\n\nKhel chunein aur extra cash jeetein!"
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+async def handle_coin_flip(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Coin Flip game ka menu dikhata hai."""
+    query = update.callback_query
+    if not query or not query.message:
+        return
+    
+    user = query.from_user
+    lang = await get_user_lang(user.id)
+    user_data = USERS_COLLECTION.find_one({"user_id": user.id})
+    balance_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
+    
+    await query.answer()
+
+    message = (
+        f"🪙 <b>कॉइन फ्लिप गेम (Coin Flip)</b>\n\n"
+        f"Aapka Balance: <b>₹{balance_inr:.2f}</b>\n\n"
+        f"Head ya Tail chunein. Agar aap jeete, toh aapko apni bet ka <b>{COIN_FLIP_CONFIG['win_multiplier']}x</b> milega!\n\n"
+        f"Kitni bet lagana chahte hain?"
+    )
+    
+    bet_buttons = []
+    for amount in COIN_FLIP_CONFIG["bet_amounts"]:
+        bet_buttons.append(
+            InlineKeyboardButton(f"₹{amount:.2f} ki Bet", callback_data=f"game_coin_flip_play_{amount}")
+        )
+    
+    # Buttons ko 2-2 ke group mein daal dete hain
+    keyboard = [bet_buttons[i:i + 2] for i in range(0, len(bet_buttons), 2)]
+    keyboard.append([InlineKeyboardButton("⬅️ Back to Games", callback_data="show_games_menu")])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+
+async def handle_coin_flip_play(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Asli Coin Flip game khelta hai."""
+    query = update.callback_query
+    if not query or not query.message:
+        return
+    
+    try:
+        bet_amount_inr = float(query.data.split("_")[-1])
+    except (ValueError, IndexError):
+        await query.answer("❌ Invalid bet!", show_alert=True)
+        return
+
+    user = query.from_user
+    lang = await get_user_lang(user.id)
+    user_data = USERS_COLLECTION.find_one({"user_id": user.id})
+    balance_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
+
+    if balance_inr < bet_amount_inr:
+        await query.answer(f"❌ Aapke paas पर्याप्त balance (₹{bet_amount_inr:.2f}) nahi hai!", show_alert=True)
+        return
+
+    await query.answer("Sikka uchhal raha hai...")
+
+    # 1. User se paise kaat lo
+    bet_amount_usd = bet_amount_inr / DOLLAR_TO_INR
+    USERS_COLLECTION.update_one(
+        {"user_id": user.id},
+        {"$inc": {"earnings": -bet_amount_usd}}
+    )
+    
+    # 2. Game khelo (50/50 chance)
+    win = random.choice([True, False])
+    
+    if win:
+        # Jeet gaya
+        win_amount_inr = bet_amount_inr * COIN_FLIP_CONFIG['win_multiplier']
+        win_amount_usd = win_amount_inr / DOLLAR_TO_INR
+        
+        # Jeetne ki rakam add karo
+        updated_user = USERS_COLLECTION.find_one_and_update(
+            {"user_id": user.id},
+            {"$inc": {"earnings": win_amount_usd}},
+            return_document=True
+        )
+        new_balance_inr = updated_user.get("earnings", 0.0) * DOLLAR_TO_INR
+        
+        message = (
+            f"🎉 <b>Aap Jeet Gaye!</b> 🎉\n\n"
+            f"Aapne ₹{bet_amount_inr:.2f} ki bet lagai aur <b>₹{win_amount_inr:.2f}</b> jeete!\n\n"
+            f"Aapka naya balance: <b>₹{new_balance_inr:.2f}</b>"
+        )
+    else:
+        # Haar gaya
+        updated_user = USERS_COLLECTION.find_one({"user_id": user.id})
+        new_balance_inr = updated_user.get("earnings", 0.0) * DOLLAR_TO_INR
+
+        message = (
+            f"😢 <b>Aap Haar Gaye!</b> 😢\n\n"
+            f"Aapne ₹{bet_amount_inr:.2f} ki bet haar di.\n\n"
+            f"Aapka naya balance: <b>₹{new_balance_inr:.2f}</b>"
+        )
+
+    # Keyboard ko update karo
+    bet_buttons = []
+    for amount in COIN_FLIP_CONFIG["bet_amounts"]:
+        bet_buttons.append(
+            InlineKeyboardButton(f"₹{amount:.2f} ki Bet", callback_data=f"game_coin_flip_play_{amount}")
+        )
+    
+    keyboard = [bet_buttons[i:i + 2] for i in range(0, len(bet_buttons), 2)]
+    keyboard.append([InlineKeyboardButton("⬅️ Back to Games", callback_data="show_games_menu")])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+# --- GAME FUNCTIONS KHATM ---
 
 
 async def set_bot_commands_logic(context: ContextTypes.DEFAULT_TYPE) -> None:
