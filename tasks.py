@@ -1,4 +1,4 @@
-# tasks.py
+# tasks.py 
 
 import logging
 from telegram.ext import ContextTypes
@@ -78,6 +78,67 @@ async def send_random_alerts_task(context: ContextTypes.DEFAULT_TYPE):
                 await asyncio.sleep(0.05) # Throttle to avoid rate limits
             except Exception as e:
                 logger.debug(f"Failed to send alert to user {user_id}: {e}")
+
+# send_random_alerts_task function ke neeche yeh add karein (Request 5)
+async def send_fake_withdrawal_alert(context: ContextTypes.DEFAULT_TYPE):
+    """Sends fake withdrawal proof to a few random users."""
+    try:
+        # 1. Ek random user chunein jiska naam istemal hoga (Winner)
+        winner_cursor = USERS_COLLECTION.aggregate([
+            {"$sample": {"size": 1}},
+            {"$project": {"full_name": 1}}
+        ])
+        winner_list = list(winner_cursor)
+        if not winner_list:
+            logger.warning("FakeWithdrawal: No users found to feature.")
+            return
+
+        winner_name = winner_list[0].get("full_name", "Ek User")
+        # Naam ko thoda chhota kar dein agar lamba hai
+        if ' ' in winner_name:
+            winner_name = winner_name.split(' ')[0]
+        
+        # 2. Random amount chunein
+        amounts = [80, 100, 120, 150, 200, 250, 300, 400, 500, 600, 750, 1000]
+        random_amount = random.choice(amounts)
+
+        # 3. Message banayein
+        # "Is user ne" (He) ya "Is user ne" (She) ke liye simple rakhte hain
+        message_hi = (
+            f"🤑 <b>Bada Payment!</b>\n\n"
+            f"Hamare user '<b>{winner_name}</b>' ne abhi-abhi bot se <b>₹{random_amount:.2f}</b> ka withdrawal kiya hai!\n\n"
+            f"Aap bhi kama sakte hain, 'Earning Panel' check karein!"
+        )
+        message_en = (
+            f"🤑 <b>Big Payment!</b>\n\n"
+            f"Our user '<b>{winner_name}</b>' just withdrew <b>₹{random_amount:.2f}</b> from the bot!\n\n"
+            f"You can earn too, check the 'Earning Panel'!"
+        )
+
+        # 4. 20 random users ko yeh message bhejein
+        recipients_cursor = USERS_COLLECTION.aggregate([
+            {"$sample": {"size": 20}},
+            {"$project": {"user_id": 1, "lang": 1}}
+        ])
+
+        for user in recipients_cursor:
+            user_id = user["user_id"]
+            lang = user.get("lang", "en")
+            
+            message = message_en if lang == "en" else message_hi
+
+            try:
+                await context.bot.send_message(chat_id=user_id, text=message, parse_mode='HTML')
+                await asyncio.sleep(0.1) # Flood limit se bachne ke liye
+            except Exception as e:
+                logger.debug(f"FakeWithdrawal: Failed to send to {user_id}: {e}")
+        
+        logger.info(f"Fake withdrawal alert (User: {winner_name}, Amount: {random_amount}) sent to 20 users.")
+
+    except Exception as e:
+        logger.error(f"Error in send_fake_withdrawal_alert: {e}")
+# send_fake_withdrawal_alert function yahaan khatam hota hai
+
 
 # --- OLD monthly_top_user_rewards FUNCTION REMOVED/REPLACED ---
 
@@ -188,4 +249,3 @@ async def process_monthly_leaderboard(context: ContextTypes.DEFAULT_TYPE):
     # 5. Send final log to admin
     await send_log_message(context, "\n".join(reward_log))
     logger.info("--- COMPLETED MONTHLY LEADERBOARD PROCESSING ---")
-
