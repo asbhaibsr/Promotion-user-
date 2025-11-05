@@ -85,6 +85,26 @@ SPIN_WHEEL_CONFIG = {
     "refer_to_get_spin": 1
 }
 
+# --- GAME CONFIGS (NEW) ---
+COIN_FLIP_CONFIG = {
+    "bet_amounts": [0.10, 0.20, 0.50, 1.00],
+    "win_multiplier": 1.8  # 80% return (1.8x)
+}
+
+SLOT_SYMBOLS = ["🍒", "🍋", "⭐", "7️⃣", "🔔"]
+SLOT_PAYOUTS = {
+    "🍒🍒🍒": 0.50,
+    "⭐⭐⭐": 1.00, 
+    "7️⃣7️⃣7️⃣": 5.00
+}
+
+NUMBER_PREDICTION = {
+    "entry_fee": [0.10, 0.50, 1.00, 2.00, 5.00],
+    "duration": 6,  # घंटे
+    "platform_commission": 0.20,  # 20%
+    "number_range": [1, 100]
+}
+
 # --- टियर सिस्टम सेटिंग्स (₹0.54 की कमाई को ध्यान में रखते हुए) ---
 TIERS = {
     # दरें कम रखी गईं ताकि आपको ₹0.54 प्रति क्लिक पर फायदा हो
@@ -143,7 +163,14 @@ MESSAGES = {
         "withdrawal_approved_user": "✅ Withdrawal Approved!\n\nYour withdrawal of ₹{amount:.2f} has been approved. Payment will be processed within 24 hours.",
         "withdrawal_rejected_user": "❌ Withdrawal Rejected!\n\nYour withdrawal of ₹{amount:.2f} was rejected. Please contact admin for details.",
         "ref_link_message": "Your Referral Link:\n{referral_link}\n\nCurrent Referral Rate: ₹{tier_rate:.2f} per referral\n\nShare this link with friends and earn money when they join and search for movies!", # Formatting tags removed
-        "new_referral_notification": "🎉 New Referral!\n\n{full_name} ({username}) has joined using your link!\n\n💰 You received a joining bonus of ₹{bonus:.2f}!\n\n🎰 You also earned 1 Free Spin for the Spin Wheel!",
+        
+        # --- REFERRAL MESSAGE UPDATE (Request 6) ---
+        "new_referral_notification": "🎉 New Referral!\n\n"
+                                     "{full_name} ({username}) has joined using your link!\n\n"
+                                     "🎰 You earned <b>1 Free Spin</b>!\n\n"
+                                     "💰 <b>IMPORTANT:</b> To earn money from this user, tell them to <b>search for a movie in the group</b> and complete the shortlink process. You will get paid (and they might get a spin)!",
+        # --- END REFERRAL MESSAGE UPDATE ---
+        
         "daily_earning_update_new": "💰 Daily Referral Earning!\n\nYou earned ₹{amount:.2f} from your referral {full_name} for a paid search today. \nNew balance: ₹{new_balance:.2f}",
         "search_success_message": "✅ Movie Search Complete!\n\nYour shortlink process is complete. Your referrer has received their payment for today from your search! Find your movie link now.",
         "clear_earn_usage": "❌ Usage: /clearearn <user_id>",
@@ -196,10 +223,20 @@ MESSAGES = {
         "leaderboard_title": "🏆 Monthly Leaderboard 🏆\n\nTop 10 referrers of the month!",
         "leaderboard_rank_entry": "   - Monthly Referrals: {monthly_refs}\n   - Total Balance: ₹{balance:.2f}\n",
         
-        # --- YAHAN NAYE MESSAGES ADD KIYE GAYE HAIN ---
+        # --- LEADERBOARD INFO TEXT UPDATE (Request 4) ---
         "leaderboard_info_title": "💡 Leaderboard Benefits",
-        "leaderboard_info_text": "This leaderboard shows the Top 10 users with the most 'Monthly Referrals'.\n\n🏆 <b>What's the Benefit?</b>\nThe Top 10 users at the end of the month win a cash prize!\n\n💰 <b>How to Get Money?</b>\nOn the 1st of every month, rewards are automatically added to the winners' bot balance.\n\n🎯 <b>What is it For?</b>\nYour rank is based <i>only</i> on the number of new users you refer each month. The user with the most referrals wins!",
-        # --- BADLAAV KHATM ---
+        "leaderboard_info_text": "This leaderboard shows the Top 10 users with the most 'Monthly Referrals'.\n\n"
+                               "🏆 <b>What's the Benefit?</b>\n"
+                               "The Top 10 users at the end of the month win a cash prize!\n\n"
+                               "💰 <b>Prize Money (Paid on 1st of Month):</b>\n"
+                               "🥇 Rank 1: <b>₹300.00</b> (Min 30 Refs)\n"
+                               "🥈 Rank 2: <b>₹200.00</b> (Min 20 Refs)\n"
+                               "🥉 Rank 3: <b>₹100.00</b> (Min 10 Refs)\n"
+                               "🏅 Rank 4-5: <b>₹50.00</b> (Min 5 Refs)\n"
+                               "🏅 Rank 6-10: <b>₹10.00</b> (Min 3 Refs)\n\n"
+                               "🎯 <b>How to Win?</b>\n"
+                               "Your rank is based <i>only</i> on the number of new users you refer each month. More referrals = Higher rank!",
+        # --- END LEADERBOARD INFO TEXT UPDATE ---
 
         "monthly_reward_notification": "🎉 Leaderboard Reward! 🎉\n\nCongratulations! You finished at Rank #{rank} on the monthly leaderboard.\n\nYou have been awarded: ₹{reward:.2f}\n\nYour new balance is: ₹{new_balance:.2f}",
 
@@ -245,7 +282,14 @@ MESSAGES = {
         "withdrawal_approved_user": "✅ निकासी स्वीकृत!\n\n₹{amount:.2f} की आपकी निकासी स्वीकृत कर दी गई है। भुगतान 24 घंटे के भीतर प्रोसेस किया जाएगा।",
         "withdrawal_rejected_user": "❌ निकासी अस्वीकृत!\n\n₹{amount:.2f} की आपकी निकासी अस्वीकृत कर दी गई है। विवरण के लिए एडमिन से संपर्क करें।",
         "ref_link_message": "आपकी रेफरल लिंक:\n{referral_link}\n\nवर्तमान रेफरल दर: ₹{tier_rate:.2f} प्रति रेफरल\n\nइस लिंक को दोस्तों के साथ साझा करें और जब वे शामिल होकर फिल्में खोजते हैं, तो पैसे कमाएं!", # Formatting tags removed
-        "new_referral_notification": "🎉 नया रेफरल!\n\n{full_name} ({username}) आपकी लिंक का उपयोग करके शामिल हुए हैं!\n\n💰 आपको जॉइनिंग बोनस ₹{bonus:.2f} मिला!\n\n🎰 आपको स्पिन व्हील के लिए 1 फ्री स्पिन भी मिली है!",
+        
+        # --- REFERRAL MESSAGE UPDATE (Request 6) ---
+        "new_referral_notification": "🎉 नया रेफरल!\n\n"
+                                     "{full_name} ({username}) आपकी लिंक का उपयोग करके शामिल हुए हैं!\n\n"
+                                     "🎰 आपको <b>1 फ्री स्पिन</b> मिली है!\n\n"
+                                     "💰 <b>ज़रूरी सूचना:</b> इस यूज़र से पैसे कमाने के लिए, उन्हें <b>ग्रुप में मूवी सर्च करने</b> और शॉर्टलिंक पूरा करने के लिए कहें। आपको पैसे मिलेंगे (और शायद उन्हें भी स्पिन मिले)!",
+        # --- END REFERRAL MESSAGE UPDATE ---
+        
         "daily_earning_update_new": "💰 रोजाना रेफरल कमाई!\n\nआज एक पेड सर्च के लिए आपने अपने रेफरल {full_name} से ₹{amount:.2f} कमाए। \nनया बैलेंस: ₹{new_balance:.2f}",
         "search_success_message": "✅ मूवी सर्च पूरी!\n\nआपकी शॉर्टलिंक प्रक्रिया पूरी हो गई है। आपके रेफ़र करने वाले को आपकी खोज के लिए आज का भुगतान मिल गया है! अब अपनी मूवी लिंक ढूंढें।",
         "clear_earn_usage": "❌ उपयोग: /clearearn <user_id>",
@@ -298,10 +342,20 @@ MESSAGES = {
         "leaderboard_title": "🏆 मासिक लीडरबोर्ड 🏆\n\nइस महीने के टॉप 10 रेफरर!",
         "leaderboard_rank_entry": "   - मासिक रेफरल: {monthly_refs}\n   - कुल बैलेंस: ₹{balance:.2f}\n",
         
-        # --- YAHAN NAYE MESSAGES ADD KIYE GAYE HAIN ---
+        # --- LEADERBOARD INFO TEXT UPDATE (Request 4) ---
         "leaderboard_info_title": "💡 लीडरबोर्ड के फायदे",
-        "leaderboard_info_text": "इस महीने के 'मासिक रेफ़रल' के आधार पर टॉप 10 यूज़र्स इस लीडरबोर्ड में दिखाए जाते हैं।\n\n🏆 <b>क्या फायदा है?</b>\nमहीने के अंत में टॉप 10 यूज़र्स को नकद इनाम मिलता है!\n\n💰 <b>पैसे कैसे मिलेंगे?</b>\nहर महीने की 1 तारीख को, इनाम की राशि विजेताओं के बॉट बैलेंस में अपने आप जोड़ दी जाती है।\n\n🎯 <b>यह किस लिए है?</b>\nआपकी रैंक <i>केवल</i> इस बात पर आधारित है कि आप हर महीने कितने नए यूज़र्स को रेफ़र करते हैं। सबसे ज्यादा रेफ़रल करने वाला यूज़र जीतता है!",
-        # --- BADLAAV KHATM ---
+        "leaderboard_info_text": "यह लीडरबोर्ड 'मासिक रेफ़रल' के आधार पर टॉप 10 यूज़र्स को दिखाता है।\n\n"
+                               "🏆 <b>क्या फायदा है?</b>\n"
+                               "महीने के अंत में टॉप 10 यूज़र्स को नकद इनाम मिलता है!\n\n"
+                               "💰 <b>इनाम राशि (महीने की 1 तारीख को):</b>\n"
+                               "🥇 रैंक 1: <b>₹300.00</b> (न्यूनतम 30 रेफ़रल)\n"
+                               "🥈 रैंक 2: <b>₹200.00</b> (न्यूनतम 20 रेफ़रल)\n"
+                               "🥉 रैंक 3: <b>₹100.00</b> (न्यूनतम 10 रेफ़रल)\n"
+                               "🏅 रैंक 4-5: <b>₹50.00</b> (न्यूनतम 5 रेफ़रल)\n"
+                               "🏅 रैंक 6-10: <b>₹10.00</b> (न्यूनतम 3 रेफ़रल)\n\n"
+                               "🎯 <b>कैसे जीतें?</b>\n"
+                               "आपकी रैंक <i>केवल</i> इस बात पर आधारित है कि आप हर महीने कितने नए यूज़र्स को रेफ़र करते हैं। ज़्यादा रेफ़रल = ऊँची रैंक!",
+        # --- END LEADERBOARD INFO TEXT UPDATE ---
         
         "monthly_reward_notification": "🎉 लीडरबोर्ड इनाम! 🎉\n\nबधाई हो! आपने मासिक लीडरबोर्ड पर रैंक #{rank} हासिल किया है।\n\nआपको ₹{reward:.2f} का इनाम दिया गया है।\n\nआपका नया बैलेंस है: ₹{new_balance:.2f}",
 
