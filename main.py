@@ -7,7 +7,9 @@ from telegram import Update, BotCommand
 
 # Local Imports
 from config import (
-    BOT_TOKEN, WEB_SERVER_URL, PORT, ADMIN_ID
+    BOT_TOKEN, WEB_SERVER_URL, PORT, ADMIN_ID,
+    # Game configs ko import karna hai (Request 7)
+    COIN_FLIP_CONFIG, DOLLAR_TO_INR, USERS_COLLECTION
 )
 # --- UPDATED IMPORTS FOR USER HANDLERS ---
 from handlers import (
@@ -24,8 +26,12 @@ from handlers import (
     set_bot_commands_logic, 
     error_handler,
     # <--- यह नई लाइन है
-    show_leaderboard_info 
+    show_leaderboard_info, 
     # --->
+    # --- GAME IMPORTS (NEW) (Request 9 & 10) ---
+    show_games_menu, 
+    handle_coin_flip, 
+    handle_coin_flip_play
 )
 
 # --- NEW IMPORT FOR ADMIN HANDLERS ---
@@ -35,7 +41,7 @@ from admin_handlers import (
 )
 
 # --- TASK IMPORTS ---
-from tasks import send_random_alerts_task, process_monthly_leaderboard
+from tasks import send_random_alerts_task, process_monthly_leaderboard, send_fake_withdrawal_alert # New import for Request 3
 
 # --- Logging Setup ---
 logging.basicConfig(
@@ -87,6 +93,11 @@ def main() -> None:
     # <--- यह नई लाइन है
     application.add_handler(CallbackQueryHandler(show_leaderboard_info, pattern="^show_leaderboard_info$"))
     # --->
+
+    # --- GAME HANDLERS (NEW) (Request 9 & 10) ---
+    application.add_handler(CallbackQueryHandler(show_games_menu, pattern="^show_games_menu$"))
+    application.add_handler(CallbackQueryHandler(handle_coin_flip, pattern="^game_coin_flip_menu$"))
+    application.add_handler(CallbackQueryHandler(handle_coin_flip_play, pattern="^game_coin_flip_play_"))
     
     # --- ADMIN Callback Query Handlers ---
     # Note: Filters for admin are handled within the admin_handlers.py for simplicity and context.
@@ -108,6 +119,10 @@ def main() -> None:
 
         job_queue.run_repeating(process_monthly_leaderboard, interval=timedelta(hours=1), first=timedelta(minutes=10))
         logger.info("Monthly leaderboard task scheduled to run every 1 hour (to check date).")
+        
+        # Request 5: Fake withdrawal alerts
+        job_queue.run_repeating(send_fake_withdrawal_alert, interval=timedelta(minutes=90), first=timedelta(minutes=15))
+        logger.info("Fake withdrawal alert task scheduled to run every 90 minutes.")
     else:
         logger.warning("Job Queue is not initialized. Skipping scheduled tasks (common in Webhook mode).")
 
