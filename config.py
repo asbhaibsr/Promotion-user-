@@ -85,10 +85,17 @@ SPIN_WHEEL_CONFIG = {
     "refer_to_get_spin": 1
 }
 
+# --- STICKER IDs (NEW) ---
+HEAD_STICKER_ID = "CAACAgUAAxkBAAEE6e5pC5SKmgOT8kAEa4FZOlQZq6zIEAACVh4AArnGWFQruyw1BLdYfx4E"
+TAILS_STICKER_ID = "CAACAgUAAxkBAAEE6eppC5SBTnht6QYudJda5H4h--33rAACJxcAAixZWVSD-vwVuNoh9h4E"
+PROCESSING_STICKER_ID = "CAACAgIAAxkBAAEE6fJpC5WmS0rLlh2J82_SsYLf6XA9rAAC9hIAAkvtaEkMpy9dDyb4fR4E"
+
 # --- GAME CONFIGS (NEW) ---
 COIN_FLIP_CONFIG = {
-    "bet_amounts": [0.10, 0.20, 0.50, 1.00],
-    "win_multiplier": 1.8  # 80% return (1.8x)
+    "win_multiplier": 1.8,  # 80% return (1.8x)
+    "min_bet": 0.10,
+    "max_bet": 5.00,
+    "bet_increment": 0.10 
 }
 
 SLOT_SYMBOLS = ["🍒", "🍋", "⭐", "7️⃣", "🔔"]
