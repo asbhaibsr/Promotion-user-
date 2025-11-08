@@ -98,6 +98,18 @@ COIN_FLIP_CONFIG = {
     "bet_increment": 0.10 
 }
 
+# --- YAHAN SE BADLAV HUA HAI ---
+
+# NAYA: Slot Machine ke liye bet config
+SLOT_MACHINE_CONFIG = {
+    "min_bet": 0.10,
+    "max_bet": 5.00,
+    "bet_increment": 0.10
+}
+
+# --- YAHAN TAK BADLAV HUA HAI ---
+
+
 SLOT_SYMBOLS = ["🍒", "🍋", "⭐", "7️⃣", "🔔"]
 SLOT_PAYOUTS = {
     "🍒🍒🍒": 0.50,
@@ -111,6 +123,12 @@ NUMBER_PREDICTION = {
     "platform_commission": 0.20,  # 20%
     "number_range": [1, 100]
 }
+
+# --- YAHAN BHI BADLAV HUA HAI ---
+# NAYA: Number Prediction ke liye instant win multiplier
+NUMBER_PREDICTION["win_multiplier"] = 80.0 # 1 se 100 mein guess karne par 80x inaam
+# --- BADLAV KHATAM ---
+
 
 # --- टियर सिस्टम सेटिंग्स (₹0.54 की कमाई को ध्यान में रखते हुए) ---
 TIERS = {
