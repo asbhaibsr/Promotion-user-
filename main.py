@@ -1,4 +1,5 @@
-# main.py
+## 🛠️ main.py (Corrected Code)
+
 import logging
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler
 from datetime import timedelta
@@ -26,21 +27,20 @@ from handlers import (
     # --- YAHAN SE GAME IMPORTS HATA DIYE GAYE HAIN ---
 )
 
-# --- NEW IMPORT FOR ADMIN HANDLERS ---
+# --- NEW IMPORT FOR ADMIN HANDLERS (मुख्य बदलाव यहाँ है) ---
 from admin_handlers import (
-    admin_panel, handle_admin_callbacks, handle_admin_input,
+    admin_panel, handle_admin_callbacks, 
+    handle_private_text, # <--- **handle_admin_input की जगह इसे इस्तेमाल किया गया है**
     handle_withdrawal_approval
 )
 
-# --- NAYA IMPORT GAME HANDLERS KE LIYE (PROBLEM 2) ---
-# --- YAHAN BADLAV HUA HAI ---
+# --- NAYA IMPORT GAME HANDLERS KE LIYE ---
 from games import (
     show_games_menu,
     handle_coin_flip,
     handle_coin_flip_bet_adjust, 
     handle_coin_flip_start, 
     handle_coin_flip_choice,
-    # --- YAHAN SE ADD HUA HAI ---
     handle_slot_machine_menu,
     handle_slot_machine_bet_adjust,
     handle_slot_machine_spin,
@@ -48,7 +48,6 @@ from games import (
     handle_number_prediction_select_fee,
     handle_number_prediction_select_range,
     handle_number_prediction_play
-    # --- YAHAN TAK ADD HUA HAI ---
 )
 # --- BADLAV KHATAM ---
 
@@ -105,40 +104,35 @@ def main() -> None:
     
     application.add_handler(CallbackQueryHandler(show_leaderboard_info, pattern="^show_leaderboard_info$"))
     
-    # --- GAME HANDLERS (YEH AB games.py SE AATE HAIN) ---
+    # --- GAME HANDLERS ---
     application.add_handler(CallbackQueryHandler(show_games_menu, pattern="^show_games_menu$"))
     
-    # Coin Flip Handlers (Pehle se hain)
+    # Coin Flip Handlers
     application.add_handler(CallbackQueryHandler(handle_coin_flip, pattern="^game_coin_flip_menu$"))
     application.add_handler(CallbackQueryHandler(handle_coin_flip_bet_adjust, pattern="^game_coin_flip_bet_"))
     application.add_handler(CallbackQueryHandler(handle_coin_flip_start, pattern="^game_coin_flip_start$"))
     application.add_handler(CallbackQueryHandler(handle_coin_flip_choice, pattern="^game_coin_flip_choice_"))
     
-    # --- YAHAN SE ADD HUA HAI ---
-    
-    # Slot Machine Handlers (Naye)
+    # Slot Machine Handlers
     application.add_handler(CallbackQueryHandler(handle_slot_machine_menu, pattern="^game_slot_machine_menu$"))
     application.add_handler(CallbackQueryHandler(handle_slot_machine_bet_adjust, pattern="^game_slot_bet_"))
     application.add_handler(CallbackQueryHandler(handle_slot_machine_spin, pattern="^game_slot_spin$"))
     
-    # Number Prediction Handlers (Naye)
+    # Number Prediction Handlers
     application.add_handler(CallbackQueryHandler(handle_number_prediction_menu, pattern="^game_number_pred_menu$"))
     application.add_handler(CallbackQueryHandler(handle_number_prediction_select_fee, pattern="^game_num_pred_fee_"))
     application.add_handler(CallbackQueryHandler(handle_number_prediction_select_range, pattern="^game_num_pred_range_"))
     application.add_handler(CallbackQueryHandler(handle_number_prediction_play, pattern="^game_num_pred_play_"))
     
-    # --- YAHAN TAK ADD HUA HAI ---
-    # --->
-
     # --- ADMIN Callback Query Handlers ---
-    # Note: Filters for admin are handled within the admin_handlers.py for simplicity and context.
     application.add_handler(CallbackQueryHandler(handle_admin_callbacks, pattern="^admin_")) 
-    # Withdrawal approval is specifically checked for the pattern and then access is restricted inside the function
     application.add_handler(CallbackQueryHandler(handle_withdrawal_approval, pattern="^(approve|reject)_withdraw_\\d+$"))
     
     # --- Message Handlers ---
-    # This handler must be for ALL private texts (non-commands) because it handles admin state inputs.
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_admin_input)) 
+    
+    # YEH LINE BADLI GAYI HAI (handle_admin_input की जगह handle_private_text)
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_private_text)) 
+    
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.GROUPS, handle_group_messages))
     
     # --- Job Queue (Background Tasks) ---
