@@ -1,4 +1,5 @@
 # main.py
+
 import logging
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler
 from datetime import timedelta
@@ -23,17 +24,22 @@ from handlers import (
     set_bot_commands_logic, 
     error_handler,
     show_leaderboard_info,
-    # <--- यह नई लाइनें handlers.py से इम्पोर्ट की गई हैं
-    show_games_menu,
-    handle_coin_flip, # <--- **FIX: यह इम्पोर्ट करना ज़रूरी है**
-    handle_coin_flip_bet_adjust, handle_coin_flip_start, handle_coin_flip_choice 
-    # --->
+    # --- YAHAN SE GAME IMPORTS HATA DIYE GAYE HAIN ---
 )
 
 # --- NEW IMPORT FOR ADMIN HANDLERS ---
 from admin_handlers import (
     admin_panel, handle_admin_callbacks, handle_admin_input,
     handle_withdrawal_approval
+)
+
+# --- NAYA IMPORT GAME HANDLERS KE LIYE (PROBLEM 2) ---
+from games import (
+    show_games_menu,
+    handle_coin_flip,
+    handle_coin_flip_bet_adjust, 
+    handle_coin_flip_start, 
+    handle_coin_flip_choice
 )
 
 # --- TASK IMPORTS ---
@@ -88,10 +94,9 @@ def main() -> None:
     
     application.add_handler(CallbackQueryHandler(show_leaderboard_info, pattern="^show_leaderboard_info$"))
     
-    # --- GAME HANDLERS (NEW) (Request 9 & 10) ---
+    # --- GAME HANDLERS (YEH AB games.py SE AATE HAIN) ---
     application.add_handler(CallbackQueryHandler(show_games_menu, pattern="^show_games_menu$"))
     
-    # **FIX:** Coin Flip Menu Handler को जोड़ा गया
     application.add_handler(CallbackQueryHandler(handle_coin_flip, pattern="^game_coin_flip_menu$"))
     
     application.add_handler(CallbackQueryHandler(handle_coin_flip_bet_adjust, pattern="^game_coin_flip_bet_"))
