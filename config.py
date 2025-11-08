@@ -185,6 +185,18 @@ MESSAGES = {
         "mission_complete": "✅ Mission Completed!\n\nYou earned ₹{reward:.2f} for {mission_name}!\nNew balance: ₹{new_balance:.2f}",
         "withdrawal_request_sent": "✅ Withdrawal Request Sent!\n\nYour request for ₹{amount:.2f} has been sent to admin. You will receive payment within 24 hours.",
         "withdrawal_insufficient": "❌ Insufficient Balance!\n\nMinimum withdrawal amount is ₹80.00",
+        
+        # --- YAHAN SE ADD/CHANGE KAREIN ---
+        "withdrawal_need_10_referrals": "❌ **Insufficient Referrals!**\n\nYou must have at least 10 referrals to request a withdrawal.",
+        "withdrawal_prompt_details": "✅ **Ready to Withdraw!**\n\nPlease send your payment details in a single message (e.g., UPI ID, Bank A/C + IFSC, or upload a QR Code screenshot).\n\n⚠️ **This request will expire in 30 seconds.**",
+        "withdrawal_session_expired": "⏳ **Withdrawal Session Expired!**\n\nYour 30-second window to send payment details has closed. Please start the withdrawal request again from the Earning Panel.",
+        "withdrawal_details_received": "✅ **Details Received!**\n\nYour withdrawal request for ₹{amount:.2f} with your payment details has been sent to the admin for approval.",
+        "admin_reply_prompt": "✍️ <b>Reply to User {user_id}</b>\n\nYour next message will be sent directly to this user. Send your reply now.",
+        "admin_reply_success": "✅ Message successfully sent to user {user_id}.",
+        "admin_reply_fail": "❌ Failed to send message to user {user_id}. They may have blocked the bot.",
+        "user_reply_from_admin": "🔔 <b>A Message from Admin:</b>\n\n{message}",
+        # --- YAHAN TAK ADD/CHANGE KAREIN ---
+        
         "withdrawal_approved_user": "✅ Withdrawal Approved!\n\nYour withdrawal of ₹{amount:.2f} has been approved. Payment will be processed within 24 hours.",
         "withdrawal_rejected_user": "❌ Withdrawal Rejected!\n\nYour withdrawal of ₹{amount:.2f} was rejected. Please contact admin for details.",
         "ref_link_message": "Your Referral Link:\n{referral_link}\n\nCurrent Referral Rate: ₹{tier_rate:.2f} per referral\n\nShare this link with friends and earn money when they join and search for movies!", # Formatting tags removed
@@ -304,6 +316,18 @@ MESSAGES = {
         "mission_complete": "✅ मिशन पूरा हुआ!\n\nआपने {mission_name} के लिए ₹{reward:.2f} कमाए!\nनया बैलेंस: ₹{new_balance:.2f}",
         "withdrawal_request_sent": "✅ निकासी का अनुरोध भेज दिया गया!\n\n₹{amount:.2f} के आपके अनुरोध को एडमिन को भेज दिया गया है। आपको 24 घंटे के भीतर भुगतान मिल जाएगा।",
         "withdrawal_insufficient": "❌ पर्याप्त बैलेंस नहीं!\n\nन्यूनतम निकासी राशि ₹80.00 है",
+
+        # --- YAHAN SE ADD/CHANGE KAREIN ---
+        "withdrawal_need_10_referrals": "❌ **अपर्याप्त रेफरल!**\n\nनिकासी का अनुरोध करने के लिए आपके पास कम से कम 10 रेफरल होने चाहिए।",
+        "withdrawal_prompt_details": "✅ **निकासी के लिए तैयार!**\n\nकृपया अपना भुगतान विवरण एक ही संदेश में भेजें (जैसे, UPI ID, बैंक A/C + IFSC, या QR कोड स्क्रीनशॉट अपलोड करें)।\n\n⚠️ **यह अनुरोध 30 सेकंड में समाप्त हो जाएगा।**",
+        "withdrawal_session_expired": "⏳ **निकासी सत्र समाप्त!**\n\nभुगतान विवरण भेजने के लिए आपकी 30-सेकंड की विंडो बंद हो गई है। कृपया Earning Panel से फिर से निकासी का अनुरोध शुरू करें।",
+        "withdrawal_details_received": "✅ **विवरण प्राप्त हुआ!**\n\nआपके भुगतान विवरण के साथ ₹{amount:.2f} के लिए आपका निकासी अनुरोध एडमिन को अनुमोदन के लिए भेज दिया गया है।",
+        "admin_reply_prompt": "✍️ <b>यूज़र {user_id} को जवाब दें</b>\n\nआपका अगला संदेश सीधे इस यूज़र को भेजा जाएगा। अपना जवाब अभी भेजें।",
+        "admin_reply_success": "✅ संदेश यूज़र {user_id} को सफलतापूर्वक भेज दिया गया।",
+        "admin_reply_fail": "❌ यूज़र {user_id} को संदेश भेजने में विफल। हो सकता है उन्होंने बॉट को ब्लॉक कर दिया हो।",
+        "user_reply_from_admin": "🔔 <b>एडमिन का संदेश:</b>\n\n{message}",
+        # --- YAHAN TAK ADD/CHANGE KAREIN ---
+        
         "withdrawal_approved_user": "✅ निकासी स्वीकृत!\n\n₹{amount:.2f} की आपकी निकासी स्वीकृत कर दी गई है। भुगतान 24 घंटे के भीतर प्रोसेस किया जाएगा।",
         "withdrawal_rejected_user": "❌ निकासी अस्वीकृत!\n\n₹{amount:.2f} की आपकी निकासी अस्वीकृत कर दी गई है। विवरण के लिए एडमिन से संपर्क करें।",
         "ref_link_message": "आपकी रेफरल लिंक:\n{referral_link}\n\nवर्तमान रेफरल दर: ₹{tier_rate:.2f} प्रति रेफरल\n\nइस लिंक को दोस्तों के साथ साझा करें और जब वे शामिल होकर फिल्में खोजते हैं, तो पैसे कमाएं!", # Formatting tags removed
