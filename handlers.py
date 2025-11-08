@@ -78,6 +78,28 @@ async def referral_payment_job(context: ContextTypes.DEFAULT_TYPE) -> None:
 # --- FIX KHATAM ---
 
 
+# --- YAHAN SE NAYA FUNCTION ADD KAREIN (Timer ke liye) ---
+async def clear_payment_state_job(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Timer poora hone par user ka state clear karta hai."""
+    job_data = context.job.data
+    user_id = job_data["user_id"]
+    
+    # User data ko application context se access karna
+    user_context = context.application.user_data.get(user_id)
+    
+    if user_context and user_context.get("state") == "waiting_for_payment_details":
+        user_context["state"] = None
+        lang = await get_user_lang(user_id)
+        try:
+            await context.bot.send_message(
+                chat_id=user_id, 
+                text=MESSAGES[lang].get("withdrawal_session_expired", "Session expired. Try again.")
+            )
+        except Exception as e:
+            logger.warning(f"Could not send session expired message to {user_id}: {e}")
+# --- YAHAN TAK NAYA FUNCTION ADD KAREIN ---
+
+
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.error("Exception while handling an update:", exc_info=context.error)
     
@@ -816,6 +838,7 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
 
+# --- YAHAN SE POORA FUNCTION REPLACE KAREIN ---
 async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message: 
@@ -823,17 +846,17 @@ async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE)
         
     user = query.from_user
     lang = await get_user_lang(user.id)
+    
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
-    username_display = f"@{user.username}" if user.username else f"<code>{user.id}</code>"
-
     if not user_data:
         await query.answer("User data not found.", show_alert=True)
         return
         
-    await query.answer("Processing withdrawal request...")
+    await query.answer("Checking requirements...")
 
     earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
     
+    # 1. Balance Check (₹80)
     if earnings_inr < 80:
         await query.edit_message_text(
             MESSAGES[lang]["withdrawal_insufficient"],
@@ -841,64 +864,61 @@ async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE)
         )
         return
 
+    # 2. NAYA CHECK: Referrals Check (10)
+    referrals_count = REFERRALS_COLLECTION.count_documents({"referrer_id": user.id})
+    if referrals_count < 10:
+        await query.edit_message_text(
+            MESSAGES[lang]["withdrawal_need_10_referrals"],
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]),
+            parse_mode='HTML'
+        )
+        return
+
+    # 3. Pending Request Check
     existing_request = WITHDRAWALS_COLLECTION.find_one({"user_id": user.id, "status": "pending"})
     if existing_request:
-        # --- FIX 4: Add a try-except for 'Message is not modified' error
-        # --- BADLAAV 2 (Parse Mode Fix) ---
         try:
             await query.edit_message_text(
                 "❌ <b>Request Already Pending!</b>\n\nYour previous withdrawal request is still being processed.",
                 reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]),
-                parse_mode='HTML' # <-- YEH ADD KIYA GAYA HAI
+                parse_mode='HTML'
             )
         except TelegramError as e:
             if "Message is not modified" not in str(e):
                 logger.error(f"Error editing message in request_withdrawal (already pending): {e}")
             pass
-        # --- BADLAAV KHATM ---
-        # --- END FIX 4
         return
     
-    withdrawal_data = {
-        "user_id": user.id,
-        "username": user.username,
-        "full_name": user.first_name + (f" {user.last_name}" if user.last_name else ""),
-        "amount_inr": earnings_inr,
-        "status": "pending",
-        "request_date": datetime.now(),
-        "approved_date": None
-    }
+    # 4. SABHI CHECKS PASS - Ab Payment Details Maangein
     
-    WITHDRAWALS_COLLECTION.insert_one(withdrawal_data)
+    # User ka state set karein
+    context.user_data["state"] = "waiting_for_payment_details"
+    # User ke balance ko state mein store karein (taaki jab woh reply kare tab humein pata ho)
+    context.user_data["withdrawal_amount"] = earnings_inr
+    
+    # 30 second ka timer job set karein
+    job_name = f"clear_payment_state_{user.id}"
+    
+    # Pehle se koi job hai toh remove karein (safety ke liye)
+    existing_jobs = context.job_queue.get_jobs_by_name(job_name)
+    for job in existing_jobs:
+        job.schedule_removal()
 
-    admin_message = (
-        f"🔄 <b>New Withdrawal Request</b>\n\n"
-        f"👤 User: {user.full_name} ({username_display})\n"
-        f"🆔 ID: <code>{user.id}</code>\n"
-        f"💰 Amount: ₹{earnings_inr:.2f}"
+    context.job_queue.run_once(
+        clear_payment_state_job, 
+        30,  # 30 Seconds
+        chat_id=user.id, 
+        data={"user_id": user.id}, 
+        name=job_name
     )
-    
-    await send_log_message(context, admin_message)
 
-    if ADMIN_ID:
-        try:
-            # Note: The callback pattern for admin approval/rejection is now in admin_handlers.py
-            await context.bot.send_message(
-                chat_id=ADMIN_ID,
-                text=admin_message,
-                parse_mode='HTML',
-                reply_markup=InlineKeyboardMarkup([[
-                    InlineKeyboardButton("✅ Approve", callback_data=f"approve_withdraw_{user.id}"),
-                    InlineKeyboardButton("❌ Reject", callback_data=f"reject_withdraw_{user.id}")
-                ]])
-            )
-        except Exception as e:
-            logger.error(f"Could not notify admin about withdrawal: {e}")
-
+    # User ko message bhejein
     await query.edit_message_text(
-        MESSAGES[lang]["withdrawal_request_sent"].format(amount=earnings_inr),
-        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
+        MESSAGES[lang]["withdrawal_prompt_details"],
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]),
+        parse_mode='HTML'
     )
+# --- YAHAN TAK POORA FUNCTION REPLACE KAREIN ---
 
 
 async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1362,5 +1382,3 @@ async def set_bot_commands_logic(context: ContextTypes.DEFAULT_TYPE) -> None:
     
     await context.bot.set_my_commands(user_commands)
     logger.info("User-level bot commands set successfully.")
-
-# --- End of handlers.py ---
