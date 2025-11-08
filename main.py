@@ -1,5 +1,4 @@
 # main.py
-
 import logging
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler
 from datetime import timedelta
@@ -34,13 +33,25 @@ from admin_handlers import (
 )
 
 # --- NAYA IMPORT GAME HANDLERS KE LIYE (PROBLEM 2) ---
+# --- YAHAN BADLAV HUA HAI ---
 from games import (
     show_games_menu,
     handle_coin_flip,
     handle_coin_flip_bet_adjust, 
     handle_coin_flip_start, 
-    handle_coin_flip_choice
+    handle_coin_flip_choice,
+    # --- YAHAN SE ADD HUA HAI ---
+    handle_slot_machine_menu,
+    handle_slot_machine_bet_adjust,
+    handle_slot_machine_spin,
+    handle_number_prediction_menu,
+    handle_number_prediction_select_fee,
+    handle_number_prediction_select_range,
+    handle_number_prediction_play
+    # --- YAHAN TAK ADD HUA HAI ---
 )
+# --- BADLAV KHATAM ---
+
 
 # --- TASK IMPORTS ---
 from tasks import send_random_alerts_task, process_monthly_leaderboard
@@ -97,11 +108,26 @@ def main() -> None:
     # --- GAME HANDLERS (YEH AB games.py SE AATE HAIN) ---
     application.add_handler(CallbackQueryHandler(show_games_menu, pattern="^show_games_menu$"))
     
+    # Coin Flip Handlers (Pehle se hain)
     application.add_handler(CallbackQueryHandler(handle_coin_flip, pattern="^game_coin_flip_menu$"))
-    
     application.add_handler(CallbackQueryHandler(handle_coin_flip_bet_adjust, pattern="^game_coin_flip_bet_"))
     application.add_handler(CallbackQueryHandler(handle_coin_flip_start, pattern="^game_coin_flip_start$"))
     application.add_handler(CallbackQueryHandler(handle_coin_flip_choice, pattern="^game_coin_flip_choice_"))
+    
+    # --- YAHAN SE ADD HUA HAI ---
+    
+    # Slot Machine Handlers (Naye)
+    application.add_handler(CallbackQueryHandler(handle_slot_machine_menu, pattern="^game_slot_machine_menu$"))
+    application.add_handler(CallbackQueryHandler(handle_slot_machine_bet_adjust, pattern="^game_slot_bet_"))
+    application.add_handler(CallbackQueryHandler(handle_slot_machine_spin, pattern="^game_slot_spin$"))
+    
+    # Number Prediction Handlers (Naye)
+    application.add_handler(CallbackQueryHandler(handle_number_prediction_menu, pattern="^game_number_pred_menu$"))
+    application.add_handler(CallbackQueryHandler(handle_number_prediction_select_fee, pattern="^game_num_pred_fee_"))
+    application.add_handler(CallbackQueryHandler(handle_number_prediction_select_range, pattern="^game_num_pred_range_"))
+    application.add_handler(CallbackQueryHandler(handle_number_prediction_play, pattern="^game_num_pred_play_"))
+    
+    # --- YAHAN TAK ADD HUA HAI ---
     # --->
 
     # --- ADMIN Callback Query Handlers ---
