@@ -55,7 +55,7 @@ except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {e}")
 
 # --- Constants and Configuration ---
-DOLLAR_TO_INR = 75.0
+DOLLAR_TO_INR = 60.0
 
 # --- डेली बोनस सेटिंग्स ---
 DAILY_BONUS_BASE = 0.10
@@ -70,12 +70,12 @@ DAILY_BONUS_STREAK_MULTIPLIER = DAILY_BONUS_MULTIPLIER
 # --- स्पिन व्हील सेटिंग्स ---
 # 'SPIN_PRIZES_WEIGHTS' नाम सही किया गया, 'SPIN_PRIZES_WEIGHTS' में से 'SPIN' हटाया गया
 PRIZES_WEIGHTS = {
-    0.00: 4,  # जीतने की संभावना सबसे ज़्यादा
-    0.10: 3,
-    0.20: 3,
-    0.50: 2,
-    1.00: 1,  # बड़ा इनाम, कम संभावना
-    2.00: 1 
+    0.00: 5,  # जीतने की संभावना सबसे ज़्यादा
+    1.00: 9,
+    3.00: 6,
+    5.00: 3,
+    10.00: 2,  # बड़ा इनाम, कम संभावना
+    15.00: 1 
 }
 SPIN_PRIZES = list(PRIZES_WEIGHTS.keys())
 SPIN_WEIGHTS = list(PRIZES_WEIGHTS.values())
@@ -142,9 +142,9 @@ TIERS = {
 # --- डेली मिशन सेटिंग्स ---
 DAILY_MISSIONS = {
     # 0.60 को घटाकर 0.50 किया गया ताकि यह ₹0.54 प्रति क्लिक से कम रहे।
-    "search_3_movies": {"reward": 0.50, "target": 3, "name": "Search 3 Movies (Ref. Paid Search)", "name_hi": "3 फिल्में खोजें (रेफ़रल का भुगतान)"}, 
+    "search_3_movies": {"reward": 0.60, "target": 3, "name": "Search 3 Movies (Ref. Paid Search)", "name_hi": "3 फिल्में खोजें (रेफ़रल का भुगतान)"}, 
     "refer_2_friends": {"reward": 1.40, "target": 2, "name": "Refer 2 Friends", "name_hi": "2 दोस्तों को रेफ़र करें"},
-    "claim_daily_bonus": {"reward": 0.10, "target": 1, "name": "Claim Daily Bonus", "name_hi": "दैनिक बोनस क्लेम करें"}
+    "claim_daily_bonus": {"reward": 0.20, "target": 1, "name": "Claim Daily Bonus", "name_hi": "दैनिक बोनस क्लेम करें"}
 }
 
 # --- Messages and Text ---
