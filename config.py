@@ -30,13 +30,13 @@ NEW_MOVIE_GROUP_LINK = "https://t.me/asfilter_bot"
 MOVIE_GROUP_LINK = "https://t.me/asfilter_group" 
 ALL_GROUPS_LINK = "https://t.me/addlist/6urdhhdLRqhiZmQ1"
 
-EXAMPLE_SCREENSHOT_URL = os.getenv("EXAMPLE_SCREENSHOT_URL", "https://envs.sh/v3A.jpg")
+EXAMPLE_SCREENSHOT_URL = os.getenv("EXAMPLE_SCREENSHOT_URL", "https://image2url.com/r2/default/images/1771402664534-6f584f3f-b24f-4eac-9d77-bde9ce76cc09.jpg")
 
 # --- चैनल बोनस सेटिंग्स ---
 CHANNEL_USERNAME = "@asbhai_bsr"
 CHANNEL_ID = -1002283182645
 CHANNEL_BONUS = 2.00
-JOIN_CHANNEL_LINK = f"https://t.me/{CHANNEL_USERNAME.replace('@', '')}"
+JOIN_CHANNEL_LINK = f"https://t.me/{CHANNEL_USERNAME.replace('@', 'asbhai_bsr')}"
 
 WEB_SERVER_URL = os.getenv("WEB_SERVER_URL")
 PORT = int(os.getenv("PORT", 8000))
