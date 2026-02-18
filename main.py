@@ -13,9 +13,9 @@ from handlers import (
     start_command, earn_command, 
     show_earning_panel, show_movie_groups_menu, back_to_main_menu,
     language_menu, handle_lang_choice, show_help, show_refer_link,
-    show_withdraw_details_new, claim_daily_bonus, show_refer_example,
+    claim_daily_bonus, show_refer_example,
     show_spin_panel, perform_spin, spin_fake_btn, show_missions, 
-    request_withdrawal, show_tier_benefits, claim_channel_bonus,
+    show_tier_benefits, claim_channel_bonus,
     handle_group_messages,
     show_leaderboard, 
     show_user_pending_withdrawals, 
@@ -23,7 +23,11 @@ from handlers import (
     set_bot_commands_logic, 
     error_handler,
     show_leaderboard_info,
-    verify_channel_join  # <-- YAHAN SE ADD KIYA (Import)
+    verify_channel_join,
+    # NEW WITHDRAWAL HANDLERS
+    request_withdrawal,
+    handle_method_selection,
+    process_withdraw_final
 )
 
 from admin_handlers import (
@@ -63,7 +67,6 @@ def main() -> None:
     application = Application.builder().token(BOT_TOKEN).concurrent_updates(True).build()
 
     application.post_init = set_bot_commands_logic
-
     application.add_error_handler(error_handler) 
 
     # --- Command Handlers ---
@@ -79,14 +82,12 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(handle_lang_choice, pattern="^lang_")) 
     application.add_handler(CallbackQueryHandler(show_help, pattern="^show_help$")) 
     application.add_handler(CallbackQueryHandler(show_refer_link, pattern="^show_refer_link$"))
-    application.add_handler(CallbackQueryHandler(show_withdraw_details_new, pattern="^show_withdraw_details_new$"))
     application.add_handler(CallbackQueryHandler(claim_daily_bonus, pattern="^claim_daily_bonus$")) 
     application.add_handler(CallbackQueryHandler(show_refer_example, pattern="^show_refer_example$")) 
     application.add_handler(CallbackQueryHandler(show_spin_panel, pattern="^show_spin_panel$"))
     application.add_handler(CallbackQueryHandler(perform_spin, pattern="^perform_spin$"))
     application.add_handler(CallbackQueryHandler(spin_fake_btn, pattern="^spin_fake_btn$"))
     application.add_handler(CallbackQueryHandler(show_missions, pattern="^show_missions$")) 
-    application.add_handler(CallbackQueryHandler(request_withdrawal, pattern="^request_withdrawal$"))
     application.add_handler(CallbackQueryHandler(show_tier_benefits, pattern="^show_tier_benefits$")) 
     application.add_handler(CallbackQueryHandler(claim_channel_bonus, pattern="^claim_channel_bonus$")) 
     application.add_handler(CallbackQueryHandler(show_leaderboard, pattern="^show_leaderboard$"))
@@ -94,8 +95,13 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(show_my_referrals, pattern="^show_my_referrals$"))
     application.add_handler(CallbackQueryHandler(show_leaderboard_info, pattern="^show_leaderboard_info$"))
     
-    # --- Verify Button Handler (Ise show_earning_panel ke upar jodein) ---
-    # Yahaan add kiya gaya hai (Request ke anusar)
+    # --- NEW WITHDRAWAL HANDLERS ---
+    application.add_handler(CallbackQueryHandler(request_withdrawal, pattern="^request_withdrawal$"))
+    application.add_handler(CallbackQueryHandler(handle_method_selection, pattern="^set_method_"))
+    application.add_handler(CallbackQueryHandler(process_withdraw_final, pattern="^process_withdraw_final$"))
+    application.add_handler(CallbackQueryHandler(show_user_pending_withdrawals, pattern="^show_user_pending_withdrawals$"))
+    
+    # --- Verify Button Handler ---
     application.add_handler(CallbackQueryHandler(verify_channel_join, pattern="^verify_channel_join$"))
     
     # --- GAME HANDLERS ---
@@ -134,9 +140,9 @@ def main() -> None:
         logger.info("Random alert task scheduled to run every 2 hours.")
 
         job_queue.run_repeating(process_monthly_leaderboard, interval=timedelta(hours=1), first=timedelta(minutes=10))
-        logger.info("Monthly leaderboard task scheduled to run every 1 hour (to check date).")
+        logger.info("Monthly leaderboard task scheduled to run every 1 hour.")
     else:
-        logger.warning("Job Queue is not initialized. Skipping scheduled tasks (common in Webhook mode).")
+        logger.warning("Job Queue is not initialized. Skipping scheduled tasks.")
 
     # --- Running the Bot ---
     if WEB_SERVER_URL and BOT_TOKEN:
