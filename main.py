@@ -13,42 +13,25 @@ from handlers import (
     start_command, earn_command, 
     show_earning_panel, show_movie_groups_menu, back_to_main_menu,
     language_menu, handle_lang_choice, show_help, show_refer_link,
-    claim_daily_bonus, show_refer_example,
-    show_spin_panel, perform_spin, spin_fake_btn, show_missions, 
-    show_tier_benefits, claim_channel_bonus,
-    handle_group_messages,
-    show_leaderboard, 
-    show_user_pending_withdrawals, 
-    show_my_referrals, 
-    set_bot_commands_logic, 
-    error_handler,
-    show_leaderboard_info,
-    verify_channel_join,
-    # NEW WITHDRAWAL HANDLERS
-    request_withdrawal,
-    handle_method_selection,
+    claim_daily_bonus, show_refer_example, show_spin_panel, perform_spin,
+    spin_fake_btn, show_missions, request_withdrawal, show_tier_benefits,
+    claim_channel_bonus, handle_group_messages, show_leaderboard, 
+    show_user_pending_withdrawals, show_my_referrals, show_leaderboard_info,
+    verify_channel_join, show_withdrawal_method_menu, handle_method_selection,
     process_withdraw_final
 )
 
 from admin_handlers import (
     admin_panel, handle_admin_callbacks, 
-    handle_private_text,
-    handle_withdrawal_approval
+    handle_private_text, handle_withdrawal_approval
 )
 
 from games import (
-    show_games_menu,
-    handle_coin_flip,
-    handle_coin_flip_bet_adjust, 
-    handle_coin_flip_start, 
-    handle_coin_flip_choice,
-    handle_slot_machine_menu,
-    handle_slot_machine_bet_adjust,
-    handle_slot_machine_spin,
-    handle_number_prediction_menu,
-    handle_number_prediction_select_fee,
-    handle_number_prediction_select_range,
-    handle_number_prediction_play
+    show_games_menu, handle_coin_flip, handle_coin_flip_bet_adjust,
+    handle_coin_flip_start, handle_coin_flip_choice, handle_slot_machine_menu,
+    handle_slot_machine_bet_adjust, handle_slot_machine_spin,
+    handle_number_prediction_menu, handle_number_prediction_select_fee,
+    handle_number_prediction_select_range, handle_number_prediction_play
 )
 
 from tasks import send_random_alerts_task, process_monthly_leaderboard
@@ -59,6 +42,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+async def set_bot_commands_logic(application: Application) -> None:
+    """Set bot commands."""
+    user_commands = [
+        BotCommand("start", "Start the bot and see main menu"),
+        BotCommand("earn", "Go to the earning panel"),
+    ]
+    await application.bot.set_my_commands(user_commands)
+    logger.info("User-level bot commands set successfully.")
+
 def main() -> None:
     if not BOT_TOKEN:
         logger.error("BOT_TOKEN is missing. Please set environment variables.")
@@ -67,7 +59,6 @@ def main() -> None:
     application = Application.builder().token(BOT_TOKEN).concurrent_updates(True).build()
 
     application.post_init = set_bot_commands_logic
-    application.add_error_handler(error_handler) 
 
     # --- Command Handlers ---
     application.add_handler(CommandHandler("start", start_command))
@@ -95,11 +86,11 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(show_my_referrals, pattern="^show_my_referrals$"))
     application.add_handler(CallbackQueryHandler(show_leaderboard_info, pattern="^show_leaderboard_info$"))
     
-    # --- NEW WITHDRAWAL HANDLERS ---
+    # --- New Withdrawal Handlers ---
     application.add_handler(CallbackQueryHandler(request_withdrawal, pattern="^request_withdrawal$"))
+    application.add_handler(CallbackQueryHandler(show_withdrawal_method_menu, pattern="^select_withdraw_method$"))
     application.add_handler(CallbackQueryHandler(handle_method_selection, pattern="^set_method_"))
     application.add_handler(CallbackQueryHandler(process_withdraw_final, pattern="^process_withdraw_final$"))
-    application.add_handler(CallbackQueryHandler(show_user_pending_withdrawals, pattern="^show_user_pending_withdrawals$"))
     
     # --- Verify Button Handler ---
     application.add_handler(CallbackQueryHandler(verify_channel_join, pattern="^verify_channel_join$"))
@@ -140,9 +131,9 @@ def main() -> None:
         logger.info("Random alert task scheduled to run every 2 hours.")
 
         job_queue.run_repeating(process_monthly_leaderboard, interval=timedelta(hours=1), first=timedelta(minutes=10))
-        logger.info("Monthly leaderboard task scheduled to run every 1 hour.")
+        logger.info("Monthly leaderboard task scheduled to run every 1 hour (to check date).")
     else:
-        logger.warning("Job Queue is not initialized. Skipping scheduled tasks.")
+        logger.warning("Job Queue is not initialized. Skipping scheduled tasks (common in Webhook mode).")
 
     # --- Running the Bot ---
     if WEB_SERVER_URL and BOT_TOKEN:
