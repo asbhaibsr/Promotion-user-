@@ -34,9 +34,12 @@ EXAMPLE_SCREENSHOT_URL = os.getenv("EXAMPLE_SCREENSHOT_URL", "https://example.co
 
 # --- चैनल बोनस सेटिंग्स ---
 CHANNEL_USERNAME = "@asbhai_bsr"
-CHANNEL_ID = -1002283182645
+# पुराना CHANNEL_ID हटा दिया गया है
+# नया सिस्टम: मल्टी-चैनल सपोर्ट
+raw_channels = os.getenv("FORCE_JOIN_CHANNELS", "-1002283182645")
+FORCE_JOIN_CHANNELS = [int(x.strip()) for x in raw_channels.split(",") if x.strip()]
+
 CHANNEL_BONUS = 2.00
-# JOIN_CHANNEL_LINK को हटा दिया गया है - अब Dynamic Generate होगा
 
 WEB_SERVER_URL = os.getenv("WEB_SERVER_URL")
 PORT = int(os.getenv("PORT", 8000))
@@ -54,6 +57,7 @@ except Exception as e:
 
 # --- Constants and Configuration ---
 DOLLAR_TO_INR = 60.0
+MIN_WITHDRAWAL_INR = 80.0  # न्यूनतम निकासी राशि
 
 # --- डेली बोनस सेटिंग्स ---
 DAILY_BONUS_BASE = 0.10
