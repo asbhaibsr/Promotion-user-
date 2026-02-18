@@ -1222,7 +1222,7 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
     is_member = False
     try:
         # Check all channels for bonus eligibility (using first channel for bonus)
-        channel_id = FORCE_JOIN_CHANNELS[0] if FORCE_JOIN_CHANNELS else CHANNEL_ID
+        channel_id = FORCE_JOIN_CHANNELS[0] if FORCE_JOIN_CHANNELS else 0
         member = await context.bot.get_chat_member(channel_id, user.id)
         is_member = member.status in ["member", "administrator", "creator"]
     except Exception as e:
