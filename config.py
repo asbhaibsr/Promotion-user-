@@ -30,13 +30,13 @@ NEW_MOVIE_GROUP_LINK = "https://t.me/asfilter_bot"
 MOVIE_GROUP_LINK = "https://t.me/asfilter_group" 
 ALL_GROUPS_LINK = "https://t.me/addlist/6urdhhdLRqhiZmQ1"
 
-EXAMPLE_SCREENSHOT_URL = os.getenv("EXAMPLE_SCREENSHOT_URL", "https://example.com/screenshot.jpg")
+EXAMPLE_SCREENSHOT_URL = os.getenv("EXAMPLE_SCREENSHOT_URL", "https://image2url.com/r2/default/images/1771456150486-62683d80-b9bf-42c2-a11a-e730f8fa5062.jpg")
 
 # --- चैनल बोनस सेटिंग्स ---
 CHANNEL_USERNAME = "@asbhai_bsr"
 # पुराना CHANNEL_ID हटा दिया गया है
 # नया सिस्टम: मल्टी-चैनल सपोर्ट
-raw_channels = os.getenv("FORCE_JOIN_CHANNELS", "-1002283182645")
+raw_channels = os.getenv("FORCE_JOIN_CHANNELS", "-1002283182645, -1002892671107")
 FORCE_JOIN_CHANNELS = [int(x.strip()) for x in raw_channels.split(",") if x.strip()]
 
 CHANNEL_BONUS = 2.00
