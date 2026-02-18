@@ -16,8 +16,7 @@ from config import (
     SPIN_WHEEL_CONFIG, SPIN_PRIZES, SPIN_WEIGHTS, TIERS, DAILY_MISSIONS,
     CHANNEL_USERNAME, CHANNEL_ID, CHANNEL_BONUS,
     NEW_MOVIE_GROUP_LINK, MOVIE_GROUP_LINK, ALL_GROUPS_LINK, EXAMPLE_SCREENSHOT_URL,
-    JOIN_CHANNEL_LINK, 
-    # --- GAME CONFIGS YAHAN SE HATA DIYE GAYE HAIN (PROBLEM 2) ---
+    JOIN_CHANNEL_LINK, WITHDRAWAL_REQUIREMENTS  # <-- YEH ADD KIYA
 )
 from db_utils import (
     send_log_message, get_user_lang, set_user_lang, get_referral_bonus_inr, 
@@ -30,7 +29,50 @@ from db_utils import (
 logger = logging.getLogger(__name__)
 
 
-# --- NAYA FIX (PROBLEM 1) ---
+# --- FORCE JOIN HELPER FUNCTION (NEW) ---
+async def check_channel_membership(bot, user_id):
+    """Helper function to strictly check channel membership."""
+    try:
+        member = await bot.get_chat_member(CHANNEL_ID, user_id)
+        if member.status in ["member", "administrator", "creator"]:
+            return True
+    except Exception as e:
+        logger.error(f"Force Subscribe Check Failed: {e}")
+        return False
+    return False
+
+
+# --- VERIFY CHANNEL JOIN CALLBACK (NEW) ---
+async def verify_channel_join(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    user = query.from_user
+    
+    is_member = await check_channel_membership(context.bot, user.id)
+    
+    if is_member:
+        await query.answer("✅ Verified! Welcome back.", show_alert=True)
+        lang = await get_user_lang(user.id)
+        
+        keyboard = [
+            [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
+            [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
+            [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        message = (
+            f"{MESSAGES[lang]['start_greeting']}\n\n"
+            f"<b>1.</b> {MESSAGES[lang]['start_step1']}\n"
+            f"<b>2.</b> {MESSAGES[lang]['start_step2']}\n"
+            f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
+        )
+        try:
+            await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+        except:
+            await context.bot.send_message(user.id, message, reply_markup=reply_markup, parse_mode='HTML')
+    else:
+        await query.answer("❌ You have NOT joined yet! Join first.", show_alert=True)
+
+
 async def referral_payment_job(context: ContextTypes.DEFAULT_TYPE) -> None:
     job_data = context.job.data
     referrer_id = job_data.get("referrer_id")
@@ -40,7 +82,6 @@ async def referral_payment_job(context: ContextTypes.DEFAULT_TYPE) -> None:
         logger.error("Job data missing referrer_id or referred_user_id.")
         return
 
-    # 1. Pehle check karo ki yeh pehli payment hai ya nahi
     is_first_payment = False
     try:
         referral_data = REFERRALS_COLLECTION.find_one({"referred_user_id": referred_user_id, "referrer_id": referrer_id})
@@ -49,42 +90,33 @@ async def referral_payment_job(context: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception as e:
         logger.error(f"Error checking referral data in job: {e}")
         
-    # 2. Daily search wala payment process karo (jaisa pehle tha)
-    # Yeh function user ke kehne ke mutabik "tire hai search karne wala uske paise" deta hai
     success, daily_amount = await pay_referrer_and_update_mission(context, referred_user_id, referrer_id)
     
     if success:
         logger.info(f"Job: Successfully paid DAILY search bonus to {referrer_id} from user {referred_user_id} (₹{daily_amount:.2f}).")
         
-        # 3. Agar yeh pehli successful payment thi, toh main bonus (paise) aur spin do
         if is_first_payment:
             try:
-                # Tier ke hisaab se main referral bonus (paise) calculate karo
                 bonus_inr = await get_tier_referral_rate(referrer_id)
                 bonus_usd = bonus_inr / DOLLAR_TO_INR
                 
-                # Referrer ko 1 Spin aur Bonus Money do
                 USERS_COLLECTION.update_one(
                     {"user_id": referrer_id},
                     {"$inc": {"spins_left": 1, "earnings": bonus_usd}}
                 )
                 
-                logger.info(f"Job: Awarded FIRST referral bonus (paise) to {referrer_id}: ₹{bonus_inr:.2f} + 1 Spin.")
+                logger.info(f"Job: Awarded FIRST referral bonus to {referrer_id}: ₹{bonus_inr:.2f} + 1 Spin.")
                 
             except Exception as e:
                 logger.error(f"Job: Failed to award first referral bonus/spin to {referrer_id}: {e}")
     else:
         logger.warning(f"Job: Daily referral payment for {referred_user_id} to {referrer_id} failed or already processed.")
-# --- FIX KHATAM ---
 
 
-# --- YAHAN SE NAYA FUNCTION ADD KAREIN (Timer ke liye) ---
 async def clear_payment_state_job(context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Timer poora hone par user ka state clear karta hai."""
     job_data = context.job.data
     user_id = job_data["user_id"]
     
-    # User data ko application context se access karna
     user_context = context.application.user_data.get(user_id)
     
     if user_context and user_context.get("state") == "waiting_for_payment_details":
@@ -97,18 +129,14 @@ async def clear_payment_state_job(context: ContextTypes.DEFAULT_TYPE) -> None:
             )
         except Exception as e:
             logger.warning(f"Could not send session expired message to {user_id}: {e}")
-# --- YAHAN TAK NAYA FUNCTION ADD KAREIN ---
 
 
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.error("Exception while handling an update:", exc_info=context.error)
     
-    # --- FIX 1: Add a specific check for "Message is not modified" error.
     error_detail = str(context.error)
     if "Message is not modified" in error_detail:
         logger.warning("Ignoring 'Message is not modified' error.")
-        # Do not send a message to the user for this specific, benign error
-        # but still log the event to the admin if necessary.
         if ADMIN_ID:
             try:
                 await context.bot.send_message(
@@ -119,7 +147,6 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             except Exception:
                 pass
         return
-    # --- END FIX 1
 
     try:
         error_msg = f"❌ An error occurred! Details: {context.error}"
@@ -141,11 +168,30 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         logger.error(f"Failed to handle error: {e}")
 
 
+# --- UPDATED START COMMAND WITH STRICT FORCE JOIN ---
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     full_name = user.first_name + (f" {user.last_name}" if user.last_name else "")
-    # NEECHE WALI LINE BADLI GAYI HAI (Request 8)
     username_display = f"<a href='tg://user?id={user.id}'>{full_name}</a>"
+    
+    # --- FORCE JOIN CHECK (STRICT) ---
+    is_member = await check_channel_membership(context.bot, user.id)
+    
+    if not is_member:
+        msg = (
+            f"👋 <b>Hello {user.first_name}!</b>\n\n"
+            f"⛔️ <b>Access Denied!</b>\n"
+            f"You must join our official channel to use this bot.\n\n"
+            f"👇 <b>Click below to Join & Verify:</b>"
+        )
+        keyboard = [
+            [InlineKeyboardButton("🚀 Join Channel", url=JOIN_CHANNEL_LINK)],
+            [InlineKeyboardButton("✅ Verify Join", callback_data="verify_channel_join")]
+        ]
+        if update.message:
+            await update.message.reply_html(msg, reply_markup=InlineKeyboardMarkup(keyboard))
+        return 
+    # --- END FORCE JOIN CHECK ---
     
     referral_id_str = context.args[0].replace("ref_", "") if context.args and context.args[0].startswith("ref_") else None
     referral_id = int(referral_id_str) if referral_id_str and referral_id_str.isdigit() else None
@@ -153,7 +199,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
     is_new_user = not user_data
 
-    # --- START Change 2.1: update_data variable
     update_data = {
         "$setOnInsert": {
             "user_id": user.id,
@@ -171,10 +216,9 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             "last_search_date": None,
             "channel_bonus_received": False, 
             "spins_left": SPIN_WHEEL_CONFIG["initial_free_spins"],
-            "monthly_referrals": 0  # <-- YEH NAYI LINE ADD KAREN
+            "monthly_referrals": 0
         }
     }
-    # --- END Change 2.1
     
     USERS_COLLECTION.update_one(
         {"user_id": user.id},
@@ -216,19 +260,15 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                     "paid_search_count_today": 0 
                 })
                 
-                # --- START Change 2.2: Increment monthly referral count
-                # Increment monthly referral count for the referrer
                 USERS_COLLECTION.update_one(
                     {"user_id": referral_id},
                     {"$inc": {"monthly_referrals": 1}}
                 )
-                # --- END Change 2.2
                 
                 log_msg += f"\n🔗 Referred by: <code>{referral_id}</code> (Referral Recorded, Payment Pending on Search)"
 
                 try:
                     referrer_lang = await get_user_lang(referral_id)
-                    # MESSAGES[referrer_lang]["new_referral_notification"] में {bonus} अब इस्तेमाल नहीं होगा 
                     await context.bot.send_message(
                         chat_id=referral_id,
                         text=MESSAGES[referrer_lang]["new_referral_notification"].format(
@@ -363,44 +403,32 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if user_data.get("channel_bonus_received"):
         channel_button_text = f"✅ Channel Bonus Claimed (₹{CHANNEL_BONUS:.2f})"
 
-    # --- START Change 9: Earning Panel Button (Games Button Add Kiya) ---
     keyboard = [
-        # New Big Leaderboard Button
         [InlineKeyboardButton("🏆 Earning Leaderboard (Top 10)", callback_data="show_leaderboard")],
-
         [InlineKeyboardButton("🔗 My Refer Link", callback_data="show_refer_link"), 
          InlineKeyboardButton("👥 My Referrals", callback_data="show_my_referrals")],
-        
         [InlineKeyboardButton("🎁 Daily Bonus", callback_data="claim_daily_bonus"),
          InlineKeyboardButton("🎯 Daily Missions", callback_data="show_missions")],
-
         [InlineKeyboardButton(MESSAGES[lang]["spin_wheel_button"].format(spins_left=spins_left), callback_data="show_spin_panel"),
          InlineKeyboardButton("📈 Tier Benefits", callback_data="show_tier_benefits")], 
-        
-        [InlineKeyboardButton("🎮 Earning Games", callback_data="show_games_menu")], # YEH NAYI LINE HAI (Request 9)
-         
+        [InlineKeyboardButton("🎮 Earning Games", callback_data="show_games_menu")],
         [InlineKeyboardButton("💸 Request Withdrawal", callback_data="show_withdraw_details_new"),
          InlineKeyboardButton(channel_button_text, callback_data="claim_channel_bonus")],
-         
         [InlineKeyboardButton("🆘 Help", callback_data="show_help"),
          InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]
     ]
-    # --- END Change 9 ---
     
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     if query.message: 
         try:
             await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-        # --- FIX 2: Handle "Message is not modified" error gracefully.
         except TelegramError as e:
             if "Message is not modified" not in str(e):
                 logger.error(f"Error editing message in show_earning_panel: {e}")
             pass
-        # --- END FIX 2
 
 
-# --- START Change 3: Replace show_my_referrals Function
 async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message:
@@ -431,11 +459,9 @@ async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     else:
         message += f"ℹ️ <i>Showing last 10 referrals.</i>\n\n"
         
-        # Fetch user data for the first 10 referrals to get their names
         referred_ids = [ref['referred_user_id'] for ref in referral_records[:10]]
         referred_users_data = USERS_COLLECTION.find({"user_id": {"$in": referred_ids}})
         
-        # Create a map of user_id -> full_name
         user_names_map = {
             user_doc["user_id"]: user_doc.get("full_name", f"User {user_doc['user_id']}")
             for user_doc in referred_users_data
@@ -455,7 +481,6 @@ async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                  else:
                      status_emoji = f"⚠️ (Last Paid: {last_paid.strftime('%d %b')})"
 
-            # Use the fetched name, or fallback to User ID
             full_name = user_names_map.get(referred_id, f"User {referred_id}")
             display_name_link = f"<a href='tg://user?id={referred_id}'>{full_name}</a>"
             
@@ -470,7 +495,6 @@ async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-# --- END Change 3
 
 
 async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -527,7 +551,6 @@ async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     
     if already_claimed:
         await query.answer(MESSAGES[lang]["daily_bonus_already_claimed"], show_alert=True)
-        # --- FIX 3: Add a try-except for 'Message is not modified' error
         try:
             await query.edit_message_text(
                 MESSAGES[lang]["daily_bonus_already_claimed"],
@@ -537,7 +560,6 @@ async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             if "Message is not modified" not in str(e):
                 logger.error(f"Error editing message in claim_daily_bonus (already_claimed): {e}")
             pass
-        # --- END FIX 3
         return
     
     if bonus_amount is None:
@@ -550,7 +572,6 @@ async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     if lang == "hi":
         streak_message = f"🔥 आप {streak}-दिन की स्ट्रीक पर हैं! बड़े बोनस के लिए इसे जारी रखें!"
         
-    # Naya Keyboard "Earn More" button ke saath (Request 1)
     keyboard = [
         [InlineKeyboardButton("💰 Earn More", callback_data="show_earning_panel")],
         [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
@@ -631,13 +652,11 @@ async def perform_spin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     )
     
     if not result:
-        # --- BADLAAV 1 (Parse Mode Fix) ---
         await query.edit_message_text(
             "❌ <b>Failed to deduct spin. Try again.</b>",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]),
-            parse_mode='HTML' # <-- YEH ADD KIYA GAYA HAI
+            parse_mode='HTML'
         )
-        # --- BADLAAV KHATM ---
         return
         
     spins_left_after_deduct = result.get("spins_left", 0)
@@ -759,11 +778,10 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     if paid_searches_today_count >= mission['target'] and not missions_completed.get(mission_key):
         reward_usd = mission["reward"] / DOLLAR_TO_INR
         total_reward += mission["reward"]
-        # Badlaav 1 (Request 7): Spin add kiya gaya
         USERS_COLLECTION.update_one(
             {"user_id": user.id},
             {
-                "$inc": {"earnings": reward_usd, "spins_left": 1}, # Yahaan spin add hua
+                "$inc": {"earnings": reward_usd, "spins_left": 1},
                 "$set": {f"missions_completed.{mission_key}": True}
             }
         )
@@ -783,11 +801,10 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     if referrals_today_count >= mission['target'] and not missions_completed.get(mission_key):
         reward_usd = mission["reward"] / DOLLAR_TO_INR
         total_reward += mission["reward"]
-        # Badlaav 2 (Request 7): Spin add kiya gaya
         USERS_COLLECTION.update_one(
             {"user_id": user.id},
             {
-                "$inc": {"earnings": reward_usd, "spins_left": 1}, # Yahaan spin add hua
+                "$inc": {"earnings": reward_usd, "spins_left": 1},
                 "$set": {f"missions_completed.{mission_key}": True}
             }
         )
@@ -807,11 +824,10 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         if not missions_completed.get(mission_key):
             reward_usd = mission["reward"] / DOLLAR_TO_INR
             total_reward += mission["reward"]
-            # Badlaav 3 (Request 7): Spin add kiya gaya
             USERS_COLLECTION.update_one(
                 {"user_id": user.id},
                 {
-                    "$inc": {"earnings": reward_usd, "spins_left": 1}, # Yahaan spin add hua
+                    "$inc": {"earnings": reward_usd, "spins_left": 1},
                     "$set": {f"missions_completed.{mission_key}": True}
                 }
             )
@@ -838,7 +854,7 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
 
-# --- YAHAN SE POORA FUNCTION REPLACE KAREIN ---
+# --- UPDATED WITHDRAWAL REQUEST WITH TIERED REQUIREMENTS ---
 async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message: 
@@ -856,7 +872,7 @@ async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
     
-    # 1. Balance Check (₹80)
+    # Minimum balance check
     if earnings_inr < 80:
         await query.edit_message_text(
             MESSAGES[lang]["withdrawal_insufficient"],
@@ -864,17 +880,28 @@ async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE)
         )
         return
 
-    # 2. NAYA CHECK: Referrals Check (10)
+    # --- NEW: TIERED REFERRAL CHECK ---
     referrals_count = REFERRALS_COLLECTION.count_documents({"referrer_id": user.id})
-    if referrals_count < 10:
-        await query.edit_message_text(
-            MESSAGES[lang]["withdrawal_need_10_referrals"],
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]),
-            parse_mode='HTML'
+    required_referrals = 0
+    
+    # Find required referrals based on balance
+    for requirement in WITHDRAWAL_REQUIREMENTS:
+        if earnings_inr >= requirement["min_balance"]:
+            required_referrals = requirement["required_refs"]
+            break 
+    
+    # Minimum requirement is 20 referrals (as per config)
+    if referrals_count < required_referrals:
+        msg = (
+            f"❌ <b>Insufficient Referrals!</b>\n\n"
+            f"Your balance is <b>₹{earnings_inr:.2f}</b>, you need <b>{required_referrals} referrals</b> to withdraw.\n\n"
+            f"👤 Your Current Referrals: {referrals_count}/{required_referrals}"
         )
+        await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]), parse_mode='HTML')
         return
+    # --- END NEW CHECK ---
 
-    # 3. Pending Request Check
+    # Pending Request Check
     existing_request = WITHDRAWALS_COLLECTION.find_one({"user_id": user.id, "status": "pending"})
     if existing_request:
         try:
@@ -889,36 +916,30 @@ async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE)
             pass
         return
     
-    # 4. SABHI CHECKS PASS - Ab Payment Details Maangein
-    
-    # User ka state set karein
+    # All checks passed - Ask for payment details
     context.user_data["state"] = "waiting_for_payment_details"
-    # User ke balance ko state mein store karein (taaki jab woh reply kare tab humein pata ho)
     context.user_data["withdrawal_amount"] = earnings_inr
     
-    # 30 second ka timer job set karein
     job_name = f"clear_payment_state_{user.id}"
     
-    # Pehle se koi job hai toh remove karein (safety ke liye)
     existing_jobs = context.job_queue.get_jobs_by_name(job_name)
     for job in existing_jobs:
         job.schedule_removal()
 
     context.job_queue.run_once(
         clear_payment_state_job, 
-        30,  # 30 Seconds
+        30,
         chat_id=user.id, 
         data={"user_id": user.id}, 
         name=job_name
     )
 
-    # User ko message bhejein
     await query.edit_message_text(
         MESSAGES[lang]["withdrawal_prompt_details"],
         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]),
         parse_mode='HTML'
     )
-# --- YAHAN TAK POORA FUNCTION REPLACE KAREIN ---
+# --- END WITHDRAWAL UPDATE ---
 
 
 async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1071,7 +1092,6 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     
     if query: 
         if query.message: 
-            # --- FIX 5: Handle messages with photos/captions gracefully
             if query.message.photo:
                 try:
                     await query.message.delete()
@@ -1160,7 +1180,6 @@ async def show_refer_example(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 parse_mode='HTML'
             )
             try:
-                # Delete the previous message (which likely had no photo/caption)
                 await query.message.delete()
             except Exception:
                 pass
@@ -1171,7 +1190,7 @@ async def show_refer_example(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
 
-# --- START Change 4: Replace claim_channel_bonus Function
+# --- UPDATED CLAIM CHANNEL BONUS ---
 async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message: 
@@ -1183,33 +1202,27 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
     
-    # Check 1: Already claimed
     if user_data.get("channel_bonus_received"):
         await query.answer(MESSAGES[lang]["channel_already_claimed"], show_alert=True)
-        # Directly call show_earning_panel to update the message
         await show_earning_panel(update, context) 
         return
         
     await query.answer("Checking channel membership...")
     
     is_member = False
-    # --- START Change 4 (Fix for exceptions) ---
     try:
         member = await context.bot.get_chat_member(CHANNEL_ID, user.id)
         is_member = member.status in ["member", "administrator", "creator"]
     except Exception as e:
         logger.error(f"Error checking channel membership for {user.id}: {e}")
 
-        # Notify admin about the error
         await send_log_message(
             context, 
             f"🚨 **Channel Check Error!**\n\nFailed to check membership for User <code>{user.id}</code> in channel <code>{CHANNEL_ID}</code>.\nError: <code>{e}</code>\n\n<b>FIX:</b> Ensure bot is admin in the channel."
         )
 
-        # Notify user about the error
         await query.answer(MESSAGES[lang]["channel_bonus_error"].format(channel=CHANNEL_USERNAME), show_alert=True)
 
-        # Send the error message in the chat
         join_button = InlineKeyboardButton("🔗 Join Channel", url=JOIN_CHANNEL_LINK)
         retry_button = InlineKeyboardButton("🔄 Try Again", callback_data="claim_channel_bonus")
         back_button = InlineKeyboardButton("⬅️ Back to Earning Panel", callback_data="show_earning_panel")
@@ -1224,10 +1237,8 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
             )
         except TelegramError: pass
 
-        return # Stop execution here
-    # --- END Change 4 (Fix for exceptions) ---
+        return
         
-    # Check 2: Member and not claimed
     if is_member:
         bonus_usd = CHANNEL_BONUS / DOLLAR_TO_INR
         
@@ -1247,16 +1258,8 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
             await send_log_message(context, log_msg)
             return
         
-    # Check 3: Not a member or update failed
-    
-    join_button = InlineKeyboardButton(
-        "🔗 Join Channel", 
-        url=JOIN_CHANNEL_LINK 
-    )
-    retry_button = InlineKeyboardButton(
-        "🔄 Try Again", 
-        callback_data="claim_channel_bonus"
-    )
+    join_button = InlineKeyboardButton("🔗 Join Channel", url=JOIN_CHANNEL_LINK)
+    retry_button = InlineKeyboardButton("🔄 Try Again", callback_data="claim_channel_bonus")
     back_button = InlineKeyboardButton("⬅️ Back to Earning Panel", callback_data="show_earning_panel")
     
     keyboard = [
@@ -1265,7 +1268,6 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    # --- FIX 7: Add a try-except for 'Message is not modified' error when showing failure
     try:
         await query.edit_message_text(
             MESSAGES[lang]["channel_bonus_failure"].format(channel=CHANNEL_USERNAME), 
@@ -1276,12 +1278,10 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
         if "Message is not modified" not in str(e):
             logger.error(f"Error editing message in claim_channel_bonus (failure): {e}")
         pass
-    # --- END FIX 7
-# --- END Change 4
+# --- END CHANNEL BONUS UPDATE ---
 
 
-# --- START Change 8: Replace show_top_users with show_leaderboard
-# --- BADLAAV 3 (Leaderboard Logic) ---
+# --- UPDATED LEADERBOARD FUNCTION ---
 async def show_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message:
@@ -1291,23 +1291,16 @@ async def show_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     user_id = query.from_user.id
     lang = await get_user_lang(user_id)
     
-    # --- Naya Logic: Aapki rank paane ke liye ---
-    # 1. User ke current monthly referrals pata karein
     user_data_for_rank = USERS_COLLECTION.find_one({"user_id": user_id}, {"monthly_referrals": 1})
     user_refs = user_data_for_rank.get("monthly_referrals", 0) if user_data_for_rank else 0
     
-    # 2. Ginti karein kitne users ke paas aapse *zyada* referrals hain
     user_rank = USERS_COLLECTION.count_documents({"monthly_referrals": {"$gt": user_refs}}) + 1
-    # --- Rank Logic Khatm ---
     
-    # Top 10 users ko monthly referrals ke adhaar par sort karein
     top_users_cursor = USERS_COLLECTION.find().sort("monthly_referrals", -1).limit(10)
     
-    # Title
     message = "🏆 <b>Earning Leaderboard (Top 10)</b>\n\n"
     
-    # Aapki Rank add karein
-    message += f"✨ <b>Your Rank: #{user_rank}</b>\n   (Aapke is mahine ke referrals: {user_refs})\n\n"
+    message += f"✨ <b>Your Rank: #{user_rank}</b>\n   (Your monthly referrals: {user_refs})\n\n"
     
     found_users = False
     for i, user_data in enumerate(top_users_cursor):
@@ -1327,14 +1320,12 @@ async def show_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             message += " (You) "
             
         message += "\n"
-        # Yeh line monthly referrals dikhati hai (jaisa aapne manga)
         message += f"   - 👥 Referrals this month: <b>{monthly_refs}</b>\n"
         message += f"   - 💵 Total Balance: ₹{earnings_inr:.2f}\n"
 
     if not found_users:
-        message += "❌ Is mahine abhi tak koi referrals record nahi hue hain."
+        message += "❌ No referrals recorded this month yet."
 
-    # Keyboard mein naya button add karein
     keyboard = [
         [InlineKeyboardButton("💡 Leaderboard Benefits", callback_data="show_leaderboard_info")],
         [InlineKeyboardButton("⬅️ Back to Earning Panel", callback_data="show_earning_panel")]
@@ -1342,13 +1333,10 @@ async def show_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-# --- END Change 8
-# --- BADLAAV KHATM ---
+# --- END LEADERBOARD UPDATE ---
 
 
-# --- BADLAAV 4 (Naya Function) ---
 async def show_leaderboard_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Naye 'Leaderboard Benefits' button ka content dikhata hai."""
     query = update.callback_query
     if not query or not query.message:
         return
@@ -1356,7 +1344,6 @@ async def show_leaderboard_info(update: Update, context: ContextTypes.DEFAULT_TY
     await query.answer()
     lang = await get_user_lang(query.from_user.id)
     
-    # config.py se text lein
     title = MESSAGES[lang].get("leaderboard_info_title", MESSAGES["en"]["leaderboard_info_title"])
     text = MESSAGES[lang].get("leaderboard_info_text", MESSAGES["en"]["leaderboard_info_text"])
     
@@ -1366,11 +1353,6 @@ async def show_leaderboard_info(update: Update, context: ContextTypes.DEFAULT_TY
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-# --- BADLAAV KHATM ---
-
-
-# --- YAHAN SE GAME FUNCTIONS HATA DIYE GAYE HAIN (PROBLEM 2) ---
-# --- VEH AB games.py MEIN HAIN ---
 
 
 async def set_bot_commands_logic(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1378,7 +1360,6 @@ async def set_bot_commands_logic(context: ContextTypes.DEFAULT_TYPE) -> None:
         BotCommand("start", "Start the bot and see the main menu"),
         BotCommand("earn", "Go to the earning panel"),
     ]
-    # Admin command is intentionally left out here to be set by the admin_handlers
     
     await context.bot.set_my_commands(user_commands)
     logger.info("User-level bot commands set successfully.")
