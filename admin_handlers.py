@@ -1,8 +1,8 @@
-# admin_handlers.py 
+# admin_handlers.py
 
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.error import TelegramError
+from telegram.error import TelegramError, Forbidden, BadRequest, RetryAfter as FloodWait
 from telegram.ext import ContextTypes
 from datetime import datetime
 import asyncio
@@ -18,425 +18,501 @@ from db_utils import (
 
 logger = logging.getLogger(__name__)
 
-# ==================== ADMIN PANEL ====================
-
 async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Show admin panel"""
     user = update.effective_user
     
     if user.id != ADMIN_ID:
         if update.message:
-            await update.message.reply_text("❌ Access Denied.")
+            try:
+                await update.message.reply_text("❌ Access Denied.")
+            except:
+                pass
         return
-    
-    context.user_data.clear()
-    
-    keyboard = [
-        [InlineKeyboardButton("📊 Bot Stats", callback_data="admin_stats"),
-         InlineKeyboardButton("💸 Pending", callback_data="admin_pending_withdrawals")],
-        [InlineKeyboardButton("📢 Broadcast", callback_data="admin_set_broadcast"),
-         InlineKeyboardButton("⚙️ Set Rate", callback_data="admin_set_ref_rate")],
-        [InlineKeyboardButton("📊 User Stats", callback_data="admin_user_stats"),
-         InlineKeyboardButton("🗑️ Clear Junk", callback_data="admin_clear_junk")]
-    ]
-    
-    msg = "👑 <b>Admin Panel</b>\n\nSelect an option:"
-    
-    if update.message:
-        await update.message.reply_html(msg, reply_markup=InlineKeyboardMarkup(keyboard))
-    elif update.callback_query:
-        await update.callback_query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='HTML')
 
-# ==================== ADMIN CALLBACKS ====================
+    # Clear state on entering admin panel
+    context.user_data["admin_state"] = None
+    context.user_data["stats_user_id"] = None 
+    
+    lang = await get_user_lang(user.id)
+    message = "👑 <b>Admin Panel</b>\n\nSelect an action:"
+
+    keyboard = [
+        [InlineKeyboardButton("📢 Broadcast Message", callback_data="admin_set_broadcast"),
+         InlineKeyboardButton("💸 Pending Withdrawals", callback_data="admin_pending_withdrawals")],
+        [InlineKeyboardButton("⚙️ Set Referral Rate", callback_data="admin_set_ref_rate"),
+         InlineKeyboardButton("📊 Bot Stats", callback_data="admin_stats")],
+        [InlineKeyboardButton("📊 User Stats", callback_data="admin_user_stats"),
+         InlineKeyboardButton("🗑️ Clear Junk Users", callback_data="admin_clear_junk")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    if update.message: 
+        await update.message.reply_html(message, reply_markup=reply_markup)
+    elif update.callback_query and update.callback_query.message:
+        try:
+            await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+        except TelegramError as e:
+            if "Message is not modified" not in str(e):
+                logger.error(f"Error editing message in admin_panel: {e}")
+            pass
+
+
+async def back_to_admin_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    if query:
+        await query.answer()
+    await admin_panel(update, context)
+
 
 async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle admin callback queries"""
     query = update.callback_query
+    
+    if not query or not query.message:
+        logger.warning("handle_admin_callbacks called without query or message.")
+        return
+        
     await query.answer()
     
-    if query.from_user.id != ADMIN_ID:
+    user = query.from_user
+    if user.id != ADMIN_ID:
         await query.edit_message_text("❌ Access Denied.")
         return
-    
+
     data = query.data.split("_")
     action = data[1]
-    sub = data[2] if len(data) > 2 else None
+    sub_action = data[2] if len(data) > 2 else None
     
-    lang = await get_user_lang(ADMIN_ID)
+    lang = await get_user_lang(user.id)
     
-    # Bot Stats
-    if action == "stats" and sub is None:
-        stats = await get_bot_stats()
-        msg = f"📊 <b>Bot Stats</b>\n\nTotal Users: {stats['total_users']}\nActive: {stats['approved_users']}"
-        keyboard = [[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]]
-        await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='HTML')
-    
-    # Pending Withdrawals
-    elif action == "pending" and sub == "withdrawals":
+    if action == "pending" and sub_action == "withdrawals":
         await show_pending_withdrawals(update, context)
+    elif action == "stats" and sub_action is None: 
+        await show_bot_stats(update, context)
     
     # User Stats
-    elif action == "user" and sub == "stats":
+    elif action == "user" and sub_action == "stats":
         context.user_data["admin_state"] = "waiting_for_user_id_stats"
         await query.edit_message_text(
-            "✍️ Send User ID to check:",
+            "✍️ Please reply to this message with the User ID you want to check:",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]])
         )
-    
-    # Clear Junk
-    elif action == "clear" and sub == "junk":
-        await query.edit_message_text("🗑️ Clearing junk data...")
+        
+    # Clear Junk Users
+    elif action == "clear" and sub_action == "junk":
+        await query.edit_message_text("🗑️ Clearing junk users (is_approved=False)... Please wait.", parse_mode='HTML')
         result = await clear_junk_users()
-        msg = MESSAGES[lang]["clear_junk_success"].format(
-            users=result.get("users", 0),
-            referrals=result.get("referrals", 0),
-            withdrawals=result.get("withdrawals", 0)
-        )
-        keyboard = [[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]]
-        await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='HTML')
-    
-    # Set Broadcast
-    elif action == "set" and sub == "broadcast":
-        context.user_data["admin_state"] = "waiting_for_broadcast_message"
         await query.edit_message_text(
-            "✍️ Enter broadcast message:",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]])
+            f"✅ Junk Data Cleared!\n\nUsers deleted: {result.get('users', 0)}\nReferral records cleared: {result.get('referrals', 0)}\nWithdrawals cleared: {result.get('withdrawals', 0)}",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]]),
+            parse_mode='HTML'
         )
-    
-    # Set Referral Rate
-    elif action == "set" and sub == "ref":
-        context.user_data["admin_state"] = "waiting_for_ref_rate"
-        await query.edit_message_text(
-            "✍️ Enter new Tier 1 rate (INR):",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]])
-        )
-    
-    # Reply to User
-    elif action == "reply" and sub == "user":
-        target = data[3]
-        context.user_data["admin_state"] = "admin_replying"
-        context.user_data["reply_target"] = int(target)
-        await query.edit_message_text(
-            f"✍️ Reply to user {target}:",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]])
-        )
-    
-    # Add Money
-    elif action == "add" and sub == "money":
-        uid = context.user_data.get("stats_user_id")
-        if uid:
-            context.user_data["admin_state"] = "waiting_for_add_money"
-            await query.edit_message_text(
-                f"💰 Enter amount to add to {uid}:",
-                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]])
-            )
-    
-    # Clear Data
-    elif action == "clear" and sub == "data":
-        uid = context.user_data.get("stats_user_id")
-        if uid:
-            context.user_data["admin_state"] = "waiting_for_clear_data"
-            await query.edit_message_text(
-                "⚠️ Reply 'earning' or 'all':",
-                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]])
-            )
-    
-    # Back
-    elif action == "pending":
-        await admin_panel(update, context)
 
-# ==================== PENDING WITHDRAWALS ====================
+    # Reply to User
+    elif action == "reply" and sub_action == "user":
+        user_id_to_reply = data[3]
+        context.user_data["admin_state"] = "admin_replying"
+        context.user_data["reply_target_user_id"] = int(user_id_to_reply)
+        
+        await query.edit_message_text(
+            f"✍️ <b>Reply to User {user_id_to_reply}</b>\n\nYour next message will be sent directly to this user. Send your reply now.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]]),
+            parse_mode='HTML'
+        )
+        
+    # Add Money
+    elif action == "add" and sub_action == "money":
+        user_id = context.user_data.get("stats_user_id")
+        if not user_id:
+            await query.edit_message_text("❌ Error: User ID not found in session. Please start over.", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]]))
+            return
+        context.user_data["admin_state"] = "waiting_for_add_money"
+        await query.edit_message_text(
+            f"💰 Please reply with the amount (in INR, e.g., 10.50) you want to add to user {user_id}:",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]]))
+        
+    # Clear Data
+    elif action == "clear" and sub_action == "data":
+        user_id = context.user_data.get("stats_user_id")
+        if not user_id:
+            await query.edit_message_text("❌ Error: User ID not found in session. Please start over.", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]]))
+            return
+        context.user_data["admin_state"] = "waiting_for_clear_data"
+        await query.edit_message_text(
+            "⚠️ Are you sure?\nTo clear only earnings, reply with: `earning`\nTo delete all user data, reply with: `all`",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]]))
+
+    # Broadcast and Set Rate
+    elif action == "set": 
+        if sub_action == "broadcast":
+            context.user_data["admin_state"] = "waiting_for_broadcast_message"
+            await query.edit_message_text("✍️ Enter the **message** you want to broadcast to all users:", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]]))
+        elif sub_action == "ref" and data[3] == "rate":
+             context.user_data["admin_state"] = "waiting_for_ref_rate"
+             await query.edit_message_text("✍️ Enter the **NEW Tier 1 Referral Rate** in INR (e.g., 5.0 for ₹5 per referral):", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]]))
+
+
+async def show_bot_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    if not query or not query.message:
+        return
+
+    stats = await get_bot_stats()
+
+    message = f"📊 <b>Bot Stats</b>\n\nTotal Users: {stats['total_users']}\nApproved Users: {stats['approved_users']}"
+    
+    keyboard = [[InlineKeyboardButton("⬅️ Back to Admin Menu", callback_data="admin_pending")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
 
 async def show_pending_withdrawals(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Show pending withdrawals with payment details"""
     query = update.callback_query
-    
-    pendings = list(WITHDRAWALS_COLLECTION.find({"status": "pending"}).sort("request_date", 1).limit(5))
-    count = WITHDRAWALS_COLLECTION.count_documents({"status": "pending"})
-    
-    if not pendings:
-        msg = "✅ No pending withdrawals."
-        keyboard = [[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]]
-        await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='HTML')
+    if not query or not query.message: 
         return
+        
+    pending_withdrawals = WITHDRAWALS_COLLECTION.find({"status": "pending"}).sort("request_date", 1)
     
-    msg = f"<b>💸 Pending Withdrawals ({count})</b>\n\n"
+    message = "<b>💸 Pending Withdrawals</b>\n\n"
     keyboard = []
     
-    for p in pendings:
-        uid = p["user_id"]
-        amount = p["amount_inr"]
-        details = p.get("payment_details", "N/A")
-        date = p["request_date"].strftime("%d %b %H:%M")
-        
-        msg += f"👤 <code>{uid}</code>\n"
-        msg += f"💰 ₹{amount:.2f}\n"
-        msg += f"💳 {details}\n"
-        msg += f"📅 {date}\n\n"
-        
-        keyboard.append([
-            InlineKeyboardButton(f"✅ Approve {uid}", callback_data=f"approve_withdraw_{uid}"),
-            InlineKeyboardButton(f"❌ Reject {uid}", callback_data=f"reject_withdraw_{uid}")
-        ])
-        keyboard.append([
-            InlineKeyboardButton(f"✉️ Reply {uid}", callback_data=f"admin_reply_user_{uid}")
-        ])
-    
-    keyboard.append([InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")])
-    await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='HTML')
+    count = WITHDRAWALS_COLLECTION.count_documents({"status": "pending"})
 
-# ==================== WITHDRAWAL APPROVAL ====================
+    if count == 0:
+        message += "✅ No pending withdrawal requests."
+    else:
+        for request in pending_withdrawals:
+            user_id = request["user_id"]
+            amount = request["amount_inr"]
+            username = request.get("username", "N/A")
+            payment_details = request.get("payment_details", "N/A")
 
-async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Approve or reject withdrawal"""
-    query = update.callback_query
-    await query.answer()
-    
-    if query.from_user.id != ADMIN_ID:
-        await query.edit_message_text("❌ Access Denied.")
-        return
-    
-    action = query.data.split("_")[0]
-    uid = int(query.data.split("_")[2])
-    
-    # Find and update request
-    req = WITHDRAWALS_COLLECTION.find_one_and_update(
-        {"user_id": uid, "status": "pending"},
-        {"$set": {"status": action, "approved_date": datetime.now()}},
-        return_document=True
-    )
-    
-    if not req:
-        await query.edit_message_text(f"❌ No pending request for {uid}")
-        return
-    
-    amount = req["amount_inr"]
-    
-    if action == "approve":
-        # Deduct from user
-        USERS_COLLECTION.update_one(
-            {"user_id": uid},
-            {"$inc": {"earnings": -amount/DOLLAR_TO_INR}}
-        )
-        
-        # Notify user
-        try:
-            user_lang = await get_user_lang(uid)
-            await context.bot.send_message(
-                uid,
-                MESSAGES[user_lang]["withdrawal_approved"].format(amount=f"₹{amount:.2f}"),
-                parse_mode='HTML'
-            )
-        except:
-            pass
-        
-        msg = f"✅ Approved ₹{amount:.2f} for {uid}"
-        log = f"💸 Withdrawal Approved: {uid} - ₹{amount:.2f}"
-    
-    else:  # reject
-        try:
-            user_lang = await get_user_lang(uid)
-            await context.bot.send_message(
-                uid,
-                MESSAGES[user_lang]["withdrawal_rejected"].format(amount=f"₹{amount:.2f}"),
-                parse_mode='HTML'
-            )
-        except:
-            pass
-        
-        msg = f"❌ Rejected ₹{amount:.2f} for {uid}"
-        log = f"🚫 Withdrawal Rejected: {uid} - ₹{amount:.2f}"
-    
-    await query.edit_message_text(msg, parse_mode='HTML')
-    await send_log_message(context, log)
-    
-    # Go back to pending list
-    await show_pending_withdrawals(update, context)
+            message += f"👤 User: <code>{user_id}</code> (@{username})\n"
+            message += f"💰 Amount: ₹{amount:.2f}\n"
+            message += f"💳 Details: <b>{payment_details}</b>\n"
+            
+            if len(keyboard) < 5 * 2: # Show up to 5 requests
+                keyboard.append([
+                    InlineKeyboardButton(f"✅ Approve {user_id}", callback_data=f"approve_withdraw_{user_id}"),
+                    InlineKeyboardButton(f"❌ Reject {user_id}", callback_data=f"reject_withdraw_{user_id}")
+                ])
+                keyboard.append([
+                    InlineKeyboardButton(f"✉️ Reply to {user_id}", callback_data=f"admin_reply_user_{user_id}")
+                ])
+            
+            message += "----\n"
+                
+        message += "\n(Showing up to 5 requests. Use buttons to process.)"
 
-# ==================== ADMIN TEXT HANDLER ====================
+    keyboard.append([InlineKeyboardButton("⬅️ Back to Admin Menu", callback_data="admin_pending")])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
 
 async def handle_private_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle private messages (both admin and users)"""
     user = update.effective_user
-    text = update.message.text
-    
-    # ===== ADMIN ROUTES =====
-    if user.id == ADMIN_ID:
-        state = context.user_data.get("admin_state")
+    if not update.message or not update.message.text:
+        return
         
-        # Waiting for user ID stats
-        if state == "waiting_for_user_id_stats":
+    lang = await get_user_lang(user.id)
+    text = update.message.text
+
+    # --- ROUTE 1: ADMIN LOGIC ---
+    if user.id == ADMIN_ID:
+        admin_state = context.user_data.get("admin_state")
+        
+        if admin_state is None and update.message.text.startswith('/admin'):
+            await admin_panel(update, context)
+            return
+        
+        if admin_state is None:
+            return
+
+        # STATE: waiting_for_user_id_stats
+        if admin_state == "waiting_for_user_id_stats":
             try:
-                uid = int(text)
-                stats = await get_user_stats(uid)
+                user_id = int(text)
+                stats = await get_user_stats(user_id)
                 
                 if not stats:
-                    await update.message.reply_text(f"❌ User {uid} not found.")
+                    await update.message.reply_text(f"❌ User {user_id} not found in the database.")
                     context.user_data["admin_state"] = None
                     return
-                
-                context.user_data["stats_user_id"] = uid
+
+                context.user_data["stats_user_id"] = user_id
                 context.user_data["admin_state"] = None
-                
-                msg = f"📊 <b>User {uid}</b>\n\n"
-                msg += f"Balance: ₹{stats['earnings_inr']:.2f}\n"
-                msg += f"Referrals: {stats['referrals']}\n"
-                msg += f"Name: {stats['full_name']}"
+
+                message = (
+                    f"📊 <b>User Stats for {stats['full_name']}</b>\n\n"
+                    f"<b>ID:</b> <code>{stats['user_id']}</code>\n"
+                    f"<b>Username:</b> @{stats['username']}\n"
+                    f"<b>Balance:</b> ₹{stats['earnings_inr']:.2f}\n"
+                    f"<b>Total Referrals:</b> {stats['referrals']}"
+                )
                 
                 keyboard = [
                     [InlineKeyboardButton("💰 Add Money", callback_data="admin_add_money"),
                      InlineKeyboardButton("🗑️ Clear Data", callback_data="admin_clear_data")],
-                    [InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]
+                    [InlineKeyboardButton("⬅️ Back to Admin Panel", callback_data="admin_pending")]
                 ]
-                await update.message.reply_html(msg, reply_markup=InlineKeyboardMarkup(keyboard))
+                await update.message.reply_html(message, reply_markup=InlineKeyboardMarkup(keyboard))
                 
             except ValueError:
-                await update.message.reply_text("❌ Invalid User ID.")
+                await update.message.reply_text("❌ Invalid input. Please enter a valid User ID (numbers only).")
+            except Exception as e:
+                await update.message.reply_text(f"An error occurred: {e}")
+            
+        # STATE: waiting_for_add_money
+        elif admin_state == "waiting_for_add_money":
+            user_id = context.user_data.get("stats_user_id")
+            if not user_id:
+                await update.message.reply_text("Error: Session expired. Please start over from /admin.")
                 context.user_data["admin_state"] = None
-        
-        # Waiting for add money
-        elif state == "waiting_for_add_money":
-            uid = context.user_data.get("stats_user_id")
+                return
+                
             try:
-                amount = float(text)
-                new_balance = await admin_add_money(uid, amount)
-                await update.message.reply_text(f"✅ Added ₹{amount:.2f} to {uid}. New balance: ₹{new_balance:.2f}")
-                await send_log_message(context, f"ADMIN: Added ₹{amount:.2f} to {uid}")
-            except:
-                await update.message.reply_text("❌ Invalid amount.")
+                amount_inr = float(text)
+                new_balance = await admin_add_money(user_id, amount_inr)
+                
+                await update.message.reply_text(
+                    f"✅ Successfully added ₹{amount_inr:.2f} to user {user_id}. New balance: ₹{new_balance:.2f}"
+                )
+                await send_log_message(context, f"ADMIN: <code>{user.id}</code> added ₹{amount_inr:.2f} to user <code>{user_id}</code>.")
+                
+            except ValueError:
+                await update.message.reply_text("❌ Invalid input. Please enter a number (e.g., 10.50).")
             
             context.user_data["admin_state"] = None
-        
-        # Waiting for clear data
-        elif state == "waiting_for_clear_data":
-            uid = context.user_data.get("stats_user_id")
+            context.user_data["stats_user_id"] = None
+
+        # STATE: waiting_for_clear_data
+        elif admin_state == "waiting_for_clear_data":
+            user_id = context.user_data.get("stats_user_id")
             choice = text.strip().lower()
+
+            if not user_id:
+                await update.message.reply_text("Error: Session expired. Please start over from /admin.")
+                context.user_data["admin_state"] = None
+                return
             
             if choice == "earning":
-                await admin_clear_earnings(uid)
-                await update.message.reply_text(f"✅ Cleared earnings for {uid}")
-                await send_log_message(context, f"ADMIN: Cleared earnings for {uid}")
+                await admin_clear_earnings(user_id)
+                await update.message.reply_text(f"✅ Successfully cleared earnings for user {user_id}. New balance: ₹0.00")
+                await send_log_message(context, f"ADMIN: <code>{user.id}</code> cleared earnings for user <code>{user_id}</code>.")
+                
             elif choice == "all":
-                await admin_delete_user(uid)
-                await update.message.reply_text(f"✅ Deleted all data for {uid}")
-                await send_log_message(context, f"ADMIN: Deleted user {uid}")
+                await admin_delete_user(user_id)
+                await update.message.reply_text(f"✅ Successfully deleted all data for user {user_id}.")
+                await send_log_message(context, f"ADMIN: <code>{user.id}</code> DELETED ALL data for user <code>{user_id}</code>.")
+                
             else:
-                await update.message.reply_text("❌ Invalid. Use 'earning' or 'all'.")
-            
+                await update.message.reply_text("❌ Invalid input. Please reply with 'all' or 'earning'.")
+                return
+
             context.user_data["admin_state"] = None
-        
-        # Waiting for broadcast
-        elif state == "waiting_for_broadcast_message":
-            await update.message.reply_text("📢 Broadcasting... This may take a while.")
+            context.user_data["stats_user_id"] = None
             
-            users = USERS_COLLECTION.find({"is_approved": True}, {"user_id": 1})
-            success = 0
-            fail = 0
+        # STATE: admin_replying
+        elif admin_state == "admin_replying":
+            target_user_id = context.user_data.get("reply_target_user_id")
+            reply_message = update.message.text
             
-            for u in users:
-                try:
-                    await context.bot.send_message(u["user_id"], text, parse_mode='HTML')
-                    success += 1
-                    await asyncio.sleep(0.05)
-                except:
-                    fail += 1
-            
-            await update.message.reply_text(f"✅ Broadcast complete.\nSuccess: {success}\nFailed: {fail}")
-            await send_log_message(context, f"📢 Broadcast sent. Success: {success}, Fail: {fail}")
-            context.user_data["admin_state"] = None
-        
-        # Waiting for referral rate
-        elif state == "waiting_for_ref_rate":
-            try:
-                rate = float(text)
-                SETTINGS_COLLECTION.update_one(
-                    {"_id": "referral_rate"},
-                    {"$set": {"rate_inr": rate}},
-                    upsert=True
-                )
-                await update.message.reply_text(f"✅ Referral rate set to ₹{rate:.2f}")
-                await send_log_message(context, f"ADMIN: Set referral rate to ₹{rate:.2f}")
-            except:
-                await update.message.reply_text("❌ Invalid number.")
-            
-            context.user_data["admin_state"] = None
-        
-        # Admin replying to user
-        elif state == "admin_replying":
-            target = context.user_data.get("reply_target")
-            if target:
+            if not target_user_id:
+                await update.message.reply_text("Error: Session expired (user ID not found). State cleared.")
+            else:
                 try:
                     await context.bot.send_message(
-                        target,
-                        f"🔔 <b>Admin:</b>\n\n{text}",
+                        chat_id=target_user_id, 
+                        text=f"🔔 <b>A Message from Admin:</b>\n\n{reply_message}",
                         parse_mode='HTML'
                     )
-                    await update.message.reply_text(f"✅ Message sent to {target}")
-                except:
-                    await update.message.reply_text(f"❌ Failed to send to {target}")
+                    await update.message.reply_text(f"✅ Message successfully sent to user {target_user_id}.")
+                except Exception as e:
+                    logger.error(f"Admin reply failed to user {target_user_id}: {e}")
+                    await update.message.reply_text(f"❌ Failed to send message to user {target_user_id}. They may have blocked the bot.")
             
             context.user_data["admin_state"] = None
-            context.user_data["reply_target"] = None
-        
-        return  # End admin routes
-    
-    # ===== USER ROUTES =====
-    lang = await get_user_lang(user.id)
-    user_state = context.user_data.get("state")
-    
-    # User is sending withdrawal details
-    if user_state == "waiting_for_withdraw_details":
-        method = context.user_data.get("setup_withdraw_method")
-        details = text.strip()
-        
-        # Save to user profile
-        USERS_COLLECTION.update_one(
-            {"user_id": user.id},
-            {"$set": {
-                "payment_method": method,
-                "payment_details": details
-            }}
-        )
-        
-        context.user_data["state"] = None
-        context.user_data["setup_withdraw_method"] = None
-        
-        # Show confirmation and offer to withdraw
-        msg = f"✅ <b>Details Saved!</b>\n\nMethod: {method.upper()}\nDetails: {details}\n\nNow you can withdraw."
-        keyboard = [[InlineKeyboardButton("💸 Withdraw Now", callback_data="process_withdraw_final")]]
-        await update.message.reply_html(msg, reply_markup=InlineKeyboardMarkup(keyboard))
-    
-    # User was in old withdrawal flow (for backward compatibility)
-    elif user_state == "waiting_for_payment_details":
-        earnings = context.user_data.get("withdrawal_amount", 80)
-        
-        # Create request
-        withdrawal = {
-            "user_id": user.id,
-            "username": user.username,
-            "full_name": user.full_name,
-            "amount_inr": earnings,
-            "status": "pending",
-            "request_date": datetime.now(),
-            "payment_details": text
-        }
-        WITHDRAWALS_COLLECTION.insert_one(withdrawal)
-        
-        # Notify admin
-        if ADMIN_ID:
-            admin_msg = f"🔄 New Withdrawal\nUser: {user.id}\nAmount: ₹{earnings:.2f}\nDetails: {text}"
-            await context.bot.send_message(
-                ADMIN_ID, admin_msg,
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("✅ Approve", callback_data=f"approve_withdraw_{user.id}"),
-                     InlineKeyboardButton("❌ Reject", callback_data=f"reject_withdraw_{user.id}")]
-                ])
+            context.user_data["reply_target_user_id"] = None
+
+        # STATE: waiting_for_broadcast_message
+        elif admin_state == "waiting_for_broadcast_message":
+            success_count = 0
+            fail_count = 0
+            
+            status_message = await update.message.reply_text("📢 Starting broadcast... This may take a moment. Updates will be shown here.")
+            
+            user_ids_cursor = USERS_COLLECTION.find({"is_approved": True}, {"user_id": 1}) 
+            total_users = USERS_COLLECTION.count_documents({"is_approved": True})
+            
+            for i, user_data in enumerate(user_ids_cursor):
+                user_id = user_data["user_id"]
+                
+                if i % 100 == 0 and i != 0:
+                     try:
+                        await context.bot.edit_message_text(
+                            chat_id=status_message.chat_id, 
+                            message_id=status_message.message_id,
+                            text=f"📢 Broadcasting in progress...\nSent to {i} of {total_users} users.\nSuccess: {success_count} / Failed: {fail_count}"
+                        )
+                     except Exception as e:
+                         logger.warning(f"Failed to edit broadcast status message: {e}")
+                
+                try:
+                    await context.bot.send_message(user_id, text, parse_mode='HTML', disable_web_page_preview=True)
+                    success_count += 1
+                    await asyncio.sleep(0.05) 
+                    
+                except FloodWait as e:
+                    wait_time = e.retry_after + 1 
+                    logger.warning(f"FloodWait encountered for user {user_id}. Waiting for {wait_time} seconds.")
+                    await context.bot.edit_message_text(
+                         chat_id=status_message.chat_id, 
+                         message_id=status_message.message_id,
+                         text=f"⚠️ **PAUSED: FloodWait**\nWaiting for {wait_time} seconds...\nSent to {i} of {total_users} users.\nSuccess: {success_count} / Failed: {fail_count}"
+                    )
+                    await asyncio.sleep(wait_time)
+                    try:
+                        await context.bot.send_message(user_id, text, parse_mode='HTML', disable_web_page_preview=True)
+                        success_count += 1
+                        await asyncio.sleep(0.05)
+                    except Exception:
+                         fail_count += 1
+                    
+                except (Forbidden, BadRequest) as e:
+                    fail_count += 1
+                    USERS_COLLECTION.update_one({"user_id": user_id}, {"$set": {"is_approved": False}}) 
+                    logger.warning(f"Failed to send to user {user_id} due to API Error: {e}. User marked unapproved.")
+                    
+                except Exception as e:
+                    fail_count += 1
+                    logger.error(f"Unknown error sending to user {user_id}: {e}")
+                    
+            context.user_data["admin_state"] = None
+            await context.bot.edit_message_text(
+                chat_id=status_message.chat_id, 
+                message_id=status_message.message_id,
+                text=f"✅ **Broadcast complete**.\nSuccessful: {success_count}\nFailed: {fail_count}\nTotal users processed: {total_users}"
             )
+
+        # STATE: waiting_for_ref_rate
+        elif admin_state == "waiting_for_ref_rate":
+            try:
+                new_rate = float(text)
+                if new_rate <= 0:
+                     raise ValueError
+                
+                SETTINGS_COLLECTION.update_one(
+                    {"_id": "referral_rate"}, 
+                    {"$set": {"rate_inr": new_rate}},
+                    upsert=True
+                )
+                
+                context.user_data["admin_state"] = None
+                await update.message.reply_text(f"✅ Referral rate successfully updated to **₹{new_rate:.2f}** per referral.")
+                
+            except ValueError:
+                await update.message.reply_text("❌ Invalid input. Please enter a valid number for the new rate (e.g., 5.0).")
+
+    # --- ROUTE 2: REGULAR USER LOGIC ---
+    else:
+        user_state = context.user_data.get("state")
+
+        # STATE: waiting_for_withdraw_details
+        if user_state == "waiting_for_withdraw_details":
+            method = context.user_data.get("setup_withdraw_method")
+            details = update.message.text.strip()
+            
+            # Save to Database Permanently
+            USERS_COLLECTION.update_one(
+                {"user_id": user.id},
+                {"$set": {"payment_method": method, "payment_details": details}}
+            )
+            
+            context.user_data["state"] = None
+            
+            # Confirmation Message
+            msg = (
+                f"✅ <b>Details Saved!</b>\n\n"
+                f"Method: {method.upper()}\n"
+                f"Details: {details}\n\n"
+                f"Now you can proceed to withdraw."
+            )
+            keyboard = [[InlineKeyboardButton("💸 Withdraw Now", callback_data="process_withdraw_final")]]
+            
+            await update.message.reply_html(msg, reply_markup=InlineKeyboardMarkup(keyboard))
+
+
+async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    if not query: 
+        return
         
-        await update.message.reply_text(
-            f"✅ Request sent!\nAmount: ₹{earnings:.2f}\n\nYou'll receive payment within 24h.",
-            parse_mode='HTML'
+    await query.answer()
+    
+    if query.from_user.id != ADMIN_ID:
+        if query.message:
+            await query.edit_message_text("❌ Access Denied.")
+        return
+        
+    parts = query.data.split("_")
+    action = parts[0] 
+    user_id_str = parts[2]
+    user_id = int(user_id_str)
+    
+    withdrawal_request = WITHDRAWALS_COLLECTION.find_one_and_update(
+        {"user_id": user_id, "status": "pending"},
+        {"$set": {"status": action, "approved_date": datetime.now()}},
+        return_document=True
+    )
+
+    if not withdrawal_request:
+        if query.message:
+            await query.edit_message_text(f"❌ Withdrawal request for user <code>{user_id}</code> not found or already processed.", parse_mode='HTML')
+        return
+
+    amount_inr = withdrawal_request["amount_inr"]
+    
+    if action == "approve":
+        amount_usd = amount_inr / DOLLAR_TO_INR
+        USERS_COLLECTION.update_one(
+            {"user_id": user_id},
+            {"$inc": {"earnings": -amount_usd}}
         )
         
-        context.user_data["state"] = None
-        context.user_data["withdrawal_amount"] = None
+        try:
+            user_lang = await get_user_lang(user_id)
+            await context.bot.send_message(
+                chat_id=user_id,
+                text=f"✅ Withdrawal Approved!\n\nYour withdrawal of ₹{amount_inr:.2f} has been approved. Payment will be processed within 24 hours.", 
+                parse_mode='HTML'
+            )
+        except Exception as e:
+            logger.error(f"Could not notify user {user_id} of approval: {e}")
+        
+        if query.message:
+            await query.edit_message_text(f"✅ Request for user <code>{user_id}</code> (**₹{amount_inr:.2f}**) **APPROVED**.\nFunds deducted.", parse_mode='HTML')
+        log_msg = f"💸 <b>Withdrawal Approved</b>\nAdmin: <code>{query.from_user.id}</code>\nUser: <code>{user_id}</code>\nAmount: ₹{amount_inr:.2f}"
+    
+    else: # action == "reject"
+        try:
+            user_lang = await get_user_lang(user_id)
+            await context.bot.send_message(
+                chat_id=user_id,
+                text=f"❌ Withdrawal Rejected!\n\nYour withdrawal of ₹{amount_inr:.2f} was rejected. Please contact admin for details.", 
+                parse_mode='HTML'
+            )
+        except Exception as e:
+            logger.error(f"Could not notify user {user_id} of rejection: {e}")
+        
+        if query.message:
+            await query.edit_message_text(f"❌ Request for user <code>{user_id}</code> (**₹{amount_inr:.2f}**) **REJECTED**.", parse_mode='HTML')
+        log_msg = f"🚫 <b>Withdrawal Rejected</b>\nAdmin: <code>{query.from_user.id}</code>\nUser: <code>{user_id}</code>\nAmount: ₹{amount_inr:.2f}"
+
+    await send_log_message(context, log_msg)
+    
+    # Reload the pending list if the callback came from that view
+    if query.message and "Pending Withdrawals" in query.message.text: 
+         await show_pending_withdrawals(update, context) 
+    elif query.message:
+         await back_to_admin_menu(update, context)
