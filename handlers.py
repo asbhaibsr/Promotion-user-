@@ -14,7 +14,7 @@ from config import (
     USERS_COLLECTION, REFERRALS_COLLECTION, SETTINGS_COLLECTION, WITHDRAWALS_COLLECTION,
     DOLLAR_TO_INR, MESSAGES, ADMIN_ID, YOUR_TELEGRAM_HANDLE, 
     SPIN_WHEEL_CONFIG, SPIN_PRIZES, SPIN_WEIGHTS, TIERS, DAILY_MISSIONS,
-    CHANNEL_USERNAME, CHANNEL_ID, CHANNEL_BONUS,
+    CHANNEL_USERNAME, CHANNEL_ID, CHANNEL_BONUS, FORCE_JOIN_CHANNELS, MIN_WITHDRAWAL_INR,
     NEW_MOVIE_GROUP_LINK, MOVIE_GROUP_LINK, ALL_GROUPS_LINK, EXAMPLE_SCREENSHOT_URL,
     WITHDRAWAL_REQUIREMENTS, WITHDRAWAL_METHODS
 )
@@ -29,20 +29,21 @@ from db_utils import (
 logger = logging.getLogger(__name__)
 
 
-# --- FORCE JOIN HELPER FUNCTION ---
+# --- 1. FORCE SUBSCRIBE CHECK (MULTI-CHANNEL) ---
 async def check_channel_membership(bot, user_id):
-    """Helper function to strictly check channel membership."""
+    """चेक करेगा कि यूजर ने सारे चैनल्स जॉइन किए हैं या नहीं"""
     try:
-        member = await bot.get_chat_member(CHANNEL_ID, user_id)
-        if member.status in ["member", "administrator", "creator"]:
-            return True
+        for channel_id in FORCE_JOIN_CHANNELS:
+            member = await bot.get_chat_member(channel_id, user_id)
+            if member.status not in ["member", "administrator", "creator"]:
+                return False
+        return True
     except Exception as e:
         logger.error(f"Force Subscribe Check Failed: {e}")
         return False
-    return False
 
 
-# --- VERIFY CHANNEL JOIN CALLBACK ---
+# --- VERIFY CHANNEL JOIN CALLBACK (MULTI-CHANNEL) ---
 async def verify_channel_join(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     user = query.from_user
@@ -70,7 +71,28 @@ async def verify_channel_join(update: Update, context: ContextTypes.DEFAULT_TYPE
         except:
             await context.bot.send_message(user.id, message, reply_markup=reply_markup, parse_mode='HTML')
     else:
-        await query.answer("❌ You have NOT joined yet! Join first.", show_alert=True)
+        await query.answer("❌ You have NOT joined all channels! Join first.", show_alert=True)
+        
+        # Generate invite links for all channels
+        keyboard = []
+        for i, channel_id in enumerate(FORCE_JOIN_CHANNELS):
+            try:
+                chat = await context.bot.get_chat(channel_id)
+                link = chat.invite_link
+                if not link:
+                    link = await context.bot.export_chat_invite_link(channel_id)
+                keyboard.append([InlineKeyboardButton(f"🚀 Join Channel {i+1}", url=link)])
+            except Exception as e:
+                logger.error(f"Failed to get invite link for {channel_id}: {e}")
+                # Fallback to username if available
+                keyboard.append([InlineKeyboardButton(f"🚀 Join Channel {i+1}", url=f"https://t.me/c/{str(channel_id)[4:]}")])
+        
+        keyboard.append([InlineKeyboardButton("🔄 Try Again / Verify", callback_data="verify_channel_join")])
+        
+        await query.edit_message_text(
+            "⚠️ **Access Denied!**\n\nआपको आगे बढ़ने के लिए नीचे दिए गए सभी चैनल्स को जॉइन करना होगा।",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
 
 
 # --- REMOVED: referral_payment_job (No longer needed) ---
@@ -105,37 +127,38 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         logger.error(f"Failed to handle error: {e}")
 
 
-# --- UPDATED START COMMAND WITH DYNAMIC LINK GENERATION ---
+# --- UPDATED START COMMAND WITH MULTI-CHANNEL FORCE JOIN ---
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     full_name = user.first_name + (f" {user.last_name}" if user.last_name else "")
     username_display = f"<a href='tg://user?id={user.id}'>{full_name}</a>"
     
-    # --- FORCE JOIN CHECK (STRICT) ---
+    # --- FORCE JOIN CHECK (MULTI-CHANNEL) ---
     is_member = await check_channel_membership(context.bot, user.id)
     
     if not is_member:
-        # Dynamically generate invite link
-        try:
-            chat = await context.bot.get_chat(CHANNEL_ID)
-            invite_link = chat.invite_link
-            
-            if not invite_link:
-                invite_link = await context.bot.export_chat_invite_link(CHANNEL_ID)
-        except Exception as e:
-            logger.error(f"Link Generation Failed: {e}")
-            invite_link = f"https://t.me/{CHANNEL_USERNAME.replace('@', '')}"
-            
+        # Generate invite links for all channels
+        keyboard = []
+        for i, channel_id in enumerate(FORCE_JOIN_CHANNELS):
+            try:
+                chat = await context.bot.get_chat(channel_id)
+                link = chat.invite_link
+                if not link:
+                    link = await context.bot.export_chat_invite_link(channel_id)
+                keyboard.append([InlineKeyboardButton(f"🚀 Join Channel {i+1}", url=link)])
+            except Exception as e:
+                logger.error(f"Link Generation Failed for {channel_id}: {e}")
+                # Fallback - try to get username or use direct link
+                keyboard.append([InlineKeyboardButton(f"🚀 Join Channel {i+1}", url=f"https://t.me/c/{str(channel_id)[4:]}")])
+        
+        keyboard.append([InlineKeyboardButton("✅ Verify Join", callback_data="verify_channel_join")])
+        
         msg = (
             f"👋 <b>Hello {user.first_name}!</b>\n\n"
             f"⛔️ <b>Access Denied!</b>\n"
-            f"You must join our official channel to use this bot.\n\n"
+            f"You must join our official channels to use this bot.\n\n"
             f"👇 <b>Click below to Join & Verify:</b>"
         )
-        keyboard = [
-            [InlineKeyboardButton("🚀 Join Channel", url=invite_link)],
-            [InlineKeyboardButton("✅ Verify Join", callback_data="verify_channel_join")]
-        ]
         if update.message:
             await update.message.reply_html(msg, reply_markup=InlineKeyboardMarkup(keyboard))
         return 
@@ -795,7 +818,7 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
 
-# --- NEW WITHDRAWAL SYSTEM ---
+# --- NEW ADVANCED WITHDRAWAL SYSTEM WITH TOP/BOTTOM BUTTONS ---
 
 async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -813,65 +836,42 @@ async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await query.answer("Checking requirements...")
 
     earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
+    method = user_data.get("payment_method")
+    details = user_data.get("payment_details")
     
-    # Minimum balance check
-    if earnings_inr < 80:
-        await query.edit_message_text(
-            MESSAGES[lang]["withdrawal_insufficient"],
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
-        )
-        return
-
-    # TIERED REFERRAL CHECK
-    referrals_count = REFERRALS_COLLECTION.count_documents({"referrer_id": user.id})
-    required_referrals = 0
+    # पेंडिंग रिक्वेस्ट चेक करें
+    pending = WITHDRAWALS_COLLECTION.find_one({"user_id": user.id, "status": "pending"})
     
-    for requirement in WITHDRAWAL_REQUIREMENTS:
-        if earnings_inr >= requirement["min_balance"]:
-            required_referrals = requirement["required_refs"]
-            break 
+    text = f"💰 **Withdrawal Manager**\n\n"
+    text += f"💵 **Balance:** ₹{earnings_inr:.2f}\n"
     
-    if referrals_count < required_referrals:
-        msg = (
-            f"❌ <b>Insufficient Referrals!</b>\n\n"
-            f"Your balance is <b>₹{earnings_inr:.2f}</b>, you need <b>{required_referrals} referrals</b> to withdraw.\n\n"
-            f"👤 Your Current Referrals: {referrals_count}/{required_referrals}"
-        )
-        await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]), parse_mode='HTML')
-        return
-
-    # Pending Request Check
-    existing_request = WITHDRAWALS_COLLECTION.find_one({"user_id": user.id, "status": "pending"})
-    if existing_request:
-        await query.edit_message_text(
-            "❌ <b>Request Already Pending!</b>\n\nYour previous withdrawal request is still being processed.",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]),
-            parse_mode='HTML'
-        )
-        return
+    keyboard = []
     
-    # Check if user has saved payment details
-    saved_method = user_data.get("payment_method")
-    saved_details = user_data.get("payment_details")
-
-    if saved_method and saved_details:
-        # Agar details save hain, to Confirm Screen dikhao
-        msg = (
-            f"💸 <b>Confirm Withdrawal</b>\n\n"
-            f"Amount: <b>₹{earnings_inr:.2f}</b>\n"
-            f"Method: <b>{saved_method.upper()}</b>\n"
-            f"Details: <b>{saved_details}</b>\n\n"
-            f"Proceed with these details?"
-        )
-        keyboard = [
-            [InlineKeyboardButton("✅ Yes, Withdraw", callback_data="process_withdraw_final")],
-            [InlineKeyboardButton("✏️ Change Details", callback_data="select_withdraw_method")],
-            [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
-        ]
-        await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='HTML')
+    # TOP BUTTON: Withdraw (बड़ा बटन)
+    if pending:
+        text += f"⏳ **Status:** Request Pending (₹{pending['amount_inr']:.2f})\n"
+        keyboard.append([InlineKeyboardButton("⏳ Processing...", callback_data="dummy")])
+    elif earnings_inr < MIN_WITHDRAWAL_INR:
+        text += f"❌ **Minimum ₹{MIN_WITHDRAWAL_INR} required!**\n"
+        keyboard.append([InlineKeyboardButton(f"💸 Need ₹{MIN_WITHDRAWAL_INR} to Withdraw", callback_data="dummy")])
+    elif method and details:
+        keyboard.append([InlineKeyboardButton("💸 WITHDRAW MONEY 💸", callback_data="process_withdraw_final")])
     else:
-        # Details nahi hain, Selection Menu dikhao
-        await show_withdrawal_method_menu(update, context)
+        keyboard.append([InlineKeyboardButton("⚠️ Setup Payment Details", callback_data="select_withdraw_method")])
+
+    # MIDDLE: Show Saved Details
+    if method:
+        text += f"💳 **Method:** {method.upper()}\n📝 **Details:** {details}\n"
+        btn_text = "✏️ Edit Details"
+    else:
+        text += "❌ **Payment Details Not Set!**\n"
+        btn_text = "➕ Add Details"
+
+    # BOTTOM BUTTONS
+    keyboard.append([InlineKeyboardButton(btn_text, callback_data="select_withdraw_method")])
+    keyboard.append([InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")])
+    
+    await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='HTML')
 
 
 async def show_withdrawal_method_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -880,7 +880,7 @@ async def show_withdrawal_method_menu(update: Update, context: ContextTypes.DEFA
     keyboard = [
         [InlineKeyboardButton("🇮🇳 UPI (GPay/PhonePe)", callback_data="set_method_upi")],
         [InlineKeyboardButton("🏦 Bank Transfer", callback_data="set_method_bank")],
-        [InlineKeyboardButton("⬅️ Cancel", callback_data="show_earning_panel")]
+        [InlineKeyboardButton("⬅️ Cancel", callback_data="request_withdrawal")]
     ]
     try:
         await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='HTML')
@@ -904,7 +904,7 @@ async def handle_method_selection(update: Update, context: ContextTypes.DEFAULT_
     
     msg += "\n\n<i>Send your details in the next message.</i>"
     
-    await query.edit_message_text(msg, parse_mode='HTML', reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Cancel", callback_data="show_earning_panel")]]))
+    await query.edit_message_text(msg, parse_mode='HTML', reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Cancel", callback_data="request_withdrawal")]]))
 
 
 async def process_withdraw_final(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -915,6 +915,29 @@ async def process_withdraw_final(update: Update, context: ContextTypes.DEFAULT_T
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
     earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
     
+    # Minimum balance check
+    if earnings_inr < MIN_WITHDRAWAL_INR:
+        await query.answer(f"❌ Minimum ₹{MIN_WITHDRAWAL_INR} required!", show_alert=True)
+        return
+    
+    # TIERED REFERRAL CHECK
+    referrals_count = REFERRALS_COLLECTION.count_documents({"referrer_id": user.id})
+    required_referrals = 0
+    
+    for requirement in WITHDRAWAL_REQUIREMENTS:
+        if earnings_inr >= requirement["min_balance"]:
+            required_referrals = requirement["required_refs"]
+            break 
+    
+    if referrals_count < required_referrals:
+        msg = (
+            f"❌ <b>Insufficient Referrals!</b>\n\n"
+            f"Your balance is <b>₹{earnings_inr:.2f}</b>, you need <b>{required_referrals} referrals</b> to withdraw.\n\n"
+            f"👤 Your Current Referrals: {referrals_count}/{required_referrals}"
+        )
+        await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]), parse_mode='HTML')
+        return
+
     # Pending check
     existing_request = WITHDRAWALS_COLLECTION.find_one({"user_id": user.id, "status": "pending"})
     if existing_request:
@@ -1198,24 +1221,26 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     is_member = False
     try:
-        member = await context.bot.get_chat_member(CHANNEL_ID, user.id)
+        # Check all channels for bonus eligibility (using first channel for bonus)
+        channel_id = FORCE_JOIN_CHANNELS[0] if FORCE_JOIN_CHANNELS else CHANNEL_ID
+        member = await context.bot.get_chat_member(channel_id, user.id)
         is_member = member.status in ["member", "administrator", "creator"]
     except Exception as e:
         logger.error(f"Error checking channel membership for {user.id}: {e}")
 
         await send_log_message(
             context, 
-            f"🚨 **Channel Check Error!**\n\nFailed to check membership for User <code>{user.id}</code> in channel <code>{CHANNEL_ID}</code>.\nError: <code>{e}</code>\n\n<b>FIX:</b> Ensure bot is admin in the channel."
+            f"🚨 **Channel Check Error!**\n\nFailed to check membership for User <code>{user.id}</code> in channel <code>{channel_id}</code>.\nError: <code>{e}</code>\n\n<b>FIX:</b> Ensure bot is admin in the channel."
         )
 
         await query.answer(MESSAGES[lang]["channel_bonus_error"].format(channel=CHANNEL_USERNAME), show_alert=True)
 
         # Generate dynamic link for retry
         try:
-            chat = await context.bot.get_chat(CHANNEL_ID)
+            chat = await context.bot.get_chat(channel_id)
             invite_link = chat.invite_link
             if not invite_link:
-                invite_link = await context.bot.export_chat_invite_link(CHANNEL_ID)
+                invite_link = await context.bot.export_chat_invite_link(channel_id)
         except:
             invite_link = f"https://t.me/{CHANNEL_USERNAME.replace('@', '')}"
 
@@ -1256,10 +1281,10 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
         
     # Generate dynamic link for failure case
     try:
-        chat = await context.bot.get_chat(CHANNEL_ID)
+        chat = await context.bot.get_chat(channel_id)
         invite_link = chat.invite_link
         if not invite_link:
-            invite_link = await context.bot.export_chat_invite_link(CHANNEL_ID)
+            invite_link = await context.bot.export_chat_invite_link(channel_id)
     except:
         invite_link = f"https://t.me/{CHANNEL_USERNAME.replace('@', '')}"
         
