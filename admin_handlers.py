@@ -6,6 +6,7 @@ from telegram.error import TelegramError, Forbidden, BadRequest, RetryAfter as F
 from telegram.ext import ContextTypes
 from datetime import datetime
 import asyncio
+from io import BytesIO
 
 from config import (
     USERS_COLLECTION, REFERRALS_COLLECTION, SETTINGS_COLLECTION, WITHDRAWALS_COLLECTION,
@@ -42,7 +43,8 @@ async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         [InlineKeyboardButton("⚙️ Set Referral Rate", callback_data="admin_set_ref_rate"),
          InlineKeyboardButton("📊 Bot Stats", callback_data="admin_stats")],
         [InlineKeyboardButton("📊 User Stats", callback_data="admin_user_stats"),
-         InlineKeyboardButton("🗑️ Clear Junk Users", callback_data="admin_clear_junk")]
+         InlineKeyboardButton("🗑️ Clear Junk Users", callback_data="admin_clear_junk")],
+        [InlineKeyboardButton("📋 User Report (95 Referrals)", callback_data="admin_user_report")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -94,6 +96,14 @@ async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_T
         context.user_data["admin_state"] = "waiting_for_user_id_stats"
         await query.edit_message_text(
             "✍️ Please reply to this message with the User ID you want to check:",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]])
+        )
+    
+    # --- NEW: User Report Generation (95 Referrals Check) ---
+    elif action == "user" and sub_action == "report":
+        context.user_data["admin_state"] = "waiting_for_user_id_report"
+        await query.edit_message_text(
+            "✍️ Please reply to this message with the User ID you want to generate report for:",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]])
         )
         
@@ -262,7 +272,49 @@ async def handle_private_text(update: Update, context: ContextTypes.DEFAULT_TYPE
                 await update.message.reply_text("❌ Invalid input. Please enter a valid User ID (numbers only).")
             except Exception as e:
                 await update.message.reply_text(f"An error occurred: {e}")
-            
+                
+        # --- NEW: waiting_for_user_id_report ---
+        elif admin_state == "waiting_for_user_id_report":
+            try:
+                target_id = int(text)
+                
+                await update.message.reply_text(f"📊 Generating report for user {target_id}...")
+                
+                # Get all referrals for this user
+                referrals = REFERRALS_COLLECTION.find({"referrer_id": target_id})
+                
+                report = f"📊 REPORT FOR USER: {target_id}\n"
+                report += f"{'Referred ID':<15} | {'Active?':<10}\n"
+                report += "-"*30 + "\n"
+                
+                real, fake = 0, 0
+                for r in referrals:
+                    # अगर उसने कभी सर्च किया है (last_paid_date मौजूद है)
+                    status = "YES" if r.get("last_paid_date") else "NO"
+                    if status == "YES": 
+                        real += 1 
+                    else: 
+                        fake += 1
+                    report += f"{r['referred_user_id']:<15} | {status:<10}\n"
+                    
+                report += f"\n✅ Real (Paid): {real}\n❌ Fake (No Search): {fake}"
+                
+                # फाइल बनाकर भेजें
+                bio = BytesIO(report.encode())
+                bio.name = f"Report_{target_id}.txt"
+                await context.bot.send_document(
+                    chat_id=user.id, 
+                    document=bio, 
+                    caption=f"User {target_id} Analysis"
+                )
+                
+                context.user_data["admin_state"] = None
+                
+            except ValueError:
+                await update.message.reply_text("❌ Invalid input. Please enter a valid User ID (numbers only).")
+            except Exception as e:
+                await update.message.reply_text(f"An error occurred: {e}")
+
         # STATE: waiting_for_add_money
         elif admin_state == "waiting_for_add_money":
             user_id = context.user_data.get("stats_user_id")
