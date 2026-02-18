@@ -1,4 +1,4 @@
-#  config..py
+#config.py
 
 import os
 from pymongo import MongoClient
@@ -21,7 +21,6 @@ except (TypeError, ValueError, AttributeError):
     ADMIN_ID = None
     logger.warning("ADMIN_ID is not set or invalid. Some features may not work.")
 
-# अपना टेलीग्राम हैंडल (Username) यहां अपडेट करें
 YOUR_TELEGRAM_HANDLE = os.getenv("YOUR_TELEGRAM_HANDLE", "telegram") 
 LOG_CHANNEL_ID = os.getenv("LOG_CHANNEL_ID")
 
@@ -54,6 +53,12 @@ except Exception as e:
 
 # --- Constants and Configuration ---
 DOLLAR_TO_INR = 60.0
+
+# --- Withdrawal Methods Config (NEW) ---
+WITHDRAWAL_METHODS = {
+    "upi": "UPI (GPay/PhonePe)",
+    "bank": "Bank Account"
+}
 
 # --- डेली बोनस सेटिंग्स ---
 DAILY_BONUS_BASE = 0.10
@@ -119,7 +124,7 @@ TIERS = {
     4: {"min_earnings": 1000, "rate": 0.50, "name": "Master", "benefits_en": "Maximum referral rate (₹0.50)", "benefits_hi": "अधिकतम रेफरल दर (₹0.50)"}
 }
 
-# --- NEW: WITHDRAWAL & LEADERBOARD SETTINGS ---
+# --- WITHDRAWAL & LEADERBOARD SETTINGS ---
 WITHDRAWAL_REQUIREMENTS = [
     {"min_balance": 1000.0, "required_refs": 150},
     {"min_balance": 500.0,  "required_refs": 100},
