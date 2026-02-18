@@ -1,5 +1,4 @@
 # Handlers.py
-
 import logging
 import random
 import time
@@ -16,7 +15,8 @@ from config import (
     SPIN_WHEEL_CONFIG, SPIN_PRIZES, SPIN_WEIGHTS, TIERS, DAILY_MISSIONS,
     CHANNEL_USERNAME, CHANNEL_ID, CHANNEL_BONUS,
     NEW_MOVIE_GROUP_LINK, MOVIE_GROUP_LINK, ALL_GROUPS_LINK, EXAMPLE_SCREENSHOT_URL,
-    JOIN_CHANNEL_LINK, WITHDRAWAL_REQUIREMENTS  # <-- YEH ADD KIYA
+    JOIN_CHANNEL_LINK, WITHDRAWAL_REQUIREMENTS,
+    WITHDRAWAL_METHODS  # नया
 )
 from db_utils import (
     send_log_message, get_user_lang, set_user_lang, get_referral_bonus_inr, 
@@ -29,7 +29,7 @@ from db_utils import (
 logger = logging.getLogger(__name__)
 
 
-# --- FORCE JOIN HELPER FUNCTION (NEW) ---
+# --- FORCE JOIN HELPER FUNCTION ---
 async def check_channel_membership(bot, user_id):
     """Helper function to strictly check channel membership."""
     try:
@@ -42,7 +42,7 @@ async def check_channel_membership(bot, user_id):
     return False
 
 
-# --- VERIFY CHANNEL JOIN CALLBACK (NEW) ---
+# --- VERIFY CHANNEL JOIN CALLBACK ---
 async def verify_channel_join(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     user = query.from_user
@@ -73,64 +73,7 @@ async def verify_channel_join(update: Update, context: ContextTypes.DEFAULT_TYPE
         await query.answer("❌ You have NOT joined yet! Join first.", show_alert=True)
 
 
-async def referral_payment_job(context: ContextTypes.DEFAULT_TYPE) -> None:
-    job_data = context.job.data
-    referrer_id = job_data.get("referrer_id")
-    referred_user_id = job_data.get("referred_user_id") 
-    
-    if not referrer_id or not referred_user_id:
-        logger.error("Job data missing referrer_id or referred_user_id.")
-        return
-
-    is_first_payment = False
-    try:
-        referral_data = REFERRALS_COLLECTION.find_one({"referred_user_id": referred_user_id, "referrer_id": referrer_id})
-        if referral_data and referral_data.get("last_paid_date") is None:
-            is_first_payment = True
-    except Exception as e:
-        logger.error(f"Error checking referral data in job: {e}")
-        
-    success, daily_amount = await pay_referrer_and_update_mission(context, referred_user_id, referrer_id)
-    
-    if success:
-        logger.info(f"Job: Successfully paid DAILY search bonus to {referrer_id} from user {referred_user_id} (₹{daily_amount:.2f}).")
-        
-        if is_first_payment:
-            try:
-                bonus_inr = await get_tier_referral_rate(referrer_id)
-                bonus_usd = bonus_inr / DOLLAR_TO_INR
-                
-                USERS_COLLECTION.update_one(
-                    {"user_id": referrer_id},
-                    {"$inc": {"spins_left": 1, "earnings": bonus_usd}}
-                )
-                
-                logger.info(f"Job: Awarded FIRST referral bonus to {referrer_id}: ₹{bonus_inr:.2f} + 1 Spin.")
-                
-            except Exception as e:
-                logger.error(f"Job: Failed to award first referral bonus/spin to {referrer_id}: {e}")
-    else:
-        logger.warning(f"Job: Daily referral payment for {referred_user_id} to {referrer_id} failed or already processed.")
-
-
-async def clear_payment_state_job(context: ContextTypes.DEFAULT_TYPE) -> None:
-    job_data = context.job.data
-    user_id = job_data["user_id"]
-    
-    user_context = context.application.user_data.get(user_id)
-    
-    if user_context and user_context.get("state") == "waiting_for_payment_details":
-        user_context["state"] = None
-        lang = await get_user_lang(user_id)
-        try:
-            await context.bot.send_message(
-                chat_id=user_id, 
-                text=MESSAGES[lang].get("withdrawal_session_expired", "Session expired. Try again.")
-            )
-        except Exception as e:
-            logger.warning(f"Could not send session expired message to {user_id}: {e}")
-
-
+# --- ERROR HANDLER ---
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.error("Exception while handling an update:", exc_info=context.error)
     
@@ -168,16 +111,27 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         logger.error(f"Failed to handle error: {e}")
 
 
-# --- UPDATED START COMMAND WITH STRICT FORCE JOIN ---
+# --- UPDATED START COMMAND ---
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     full_name = user.first_name + (f" {user.last_name}" if user.last_name else "")
     username_display = f"<a href='tg://user?id={user.id}'>{full_name}</a>"
     
-    # --- FORCE JOIN CHECK (STRICT) ---
+    # --- FORCE JOIN CHECK ---
     is_member = await check_channel_membership(context.bot, user.id)
     
     if not is_member:
+        # Dynamic Link Generate
+        try:
+            chat = await context.bot.get_chat(CHANNEL_ID)
+            invite_link = chat.invite_link
+            
+            if not invite_link:
+                invite_link = await context.bot.export_chat_invite_link(CHANNEL_ID)
+        except Exception as e:
+            logger.error(f"Link Generation Failed: {e}")
+            invite_link = JOIN_CHANNEL_LINK  # Fallback
+        
         msg = (
             f"👋 <b>Hello {user.first_name}!</b>\n\n"
             f"⛔️ <b>Access Denied!</b>\n"
@@ -185,7 +139,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             f"👇 <b>Click below to Join & Verify:</b>"
         )
         keyboard = [
-            [InlineKeyboardButton("🚀 Join Channel", url=JOIN_CHANNEL_LINK)],
+            [InlineKeyboardButton("🚀 Join Channel", url=invite_link)],
             [InlineKeyboardButton("✅ Verify Join", callback_data="verify_channel_join")]
         ]
         if update.message:
@@ -216,7 +170,9 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             "last_search_date": None,
             "channel_bonus_received": False, 
             "spins_left": SPIN_WHEEL_CONFIG["initial_free_spins"],
-            "monthly_referrals": 0
+            "monthly_referrals": 0,
+            "payment_method": None,        # नया
+            "payment_details": None         # नया
         }
     }
     
@@ -308,6 +264,7 @@ async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await update.message.reply_html(MESSAGES[lang]["earning_panel_message"], reply_markup=InlineKeyboardMarkup(keyboard))
 
 
+# --- UPDATED GROUP MESSAGES HANDLER (NO JOB QUEUE) ---
 async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not update.message or not update.message.text:
         return
@@ -326,39 +283,29 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
     if not user_data:
         return 
 
+    # 1. Update Daily Searches
     await update_daily_searches_and_mission(user.id)
     
+    # 2. Check Referral Logic (DIRECT EXECUTION - NO JOB QUEUE)
     referral_data = REFERRALS_COLLECTION.find_one({"referred_user_id": user.id})
     
     if referral_data:
         referrer_id = referral_data["referrer_id"]
         
-        if referrer_id == user.id:
-            logger.warning(f"Self-referral detected and ignored for user {user.id}")
-            return
+        if referrer_id != user.id:
+            # Check if already paid today
+            last_paid_date = referral_data.get("last_paid_date")
+            today = datetime.now().date()
             
-        last_paid_date = referral_data.get("last_paid_date")
-        today = datetime.now().date()
-        
-        if last_paid_date and isinstance(last_paid_date, datetime) and last_paid_date.date() == today:
-            logger.info(f"Referral payment for user {user.id} to referrer {referrer_id} already processed today. Skipping job scheduling.")
-            return
-
-        job_name = f"pay_{user.id}" 
-        existing_jobs = context.job_queue.get_jobs_by_name(job_name)
-        
-        if not existing_jobs:
-            context.job_queue.run_once(
-                referral_payment_job, 
-                300, 
-                chat_id=user.id, 
-                user_id=user.id, 
-                data={"referrer_id": referrer_id, "referred_user_id": user.id}, 
-                name=job_name
-            )
-            logger.info(f"Payment task scheduled for user {user.id} (referrer {referrer_id}). Job Name: {job_name}")
-        else:
-             logger.info(f"Payment task for {user.id} already pending. Ignoring job creation.")
+            already_paid = False
+            if last_paid_date and isinstance(last_paid_date, datetime) and last_paid_date.date() == today:
+                already_paid = True
+            
+            if not already_paid:
+                # Direct Pay Function Call
+                success, daily_amount = await pay_referrer_and_update_mission(context, user.id, referrer_id)
+                if success:
+                    logger.info(f"Referral Paid INSTANTLY: {referrer_id} from {user.id} (Amount: {daily_amount})")
     
 
 async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -854,130 +801,7 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
 
-# --- UPDATED WITHDRAWAL REQUEST WITH TIERED REQUIREMENTS ---
-async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    if not query or not query.message: 
-        return
-        
-    user = query.from_user
-    lang = await get_user_lang(user.id)
-    
-    user_data = USERS_COLLECTION.find_one({"user_id": user.id})
-    if not user_data:
-        await query.answer("User data not found.", show_alert=True)
-        return
-        
-    await query.answer("Checking requirements...")
-
-    earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
-    
-    # Minimum balance check
-    if earnings_inr < 80:
-        await query.edit_message_text(
-            MESSAGES[lang]["withdrawal_insufficient"],
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
-        )
-        return
-
-    # --- NEW: TIERED REFERRAL CHECK ---
-    referrals_count = REFERRALS_COLLECTION.count_documents({"referrer_id": user.id})
-    required_referrals = 0
-    
-    # Find required referrals based on balance
-    for requirement in WITHDRAWAL_REQUIREMENTS:
-        if earnings_inr >= requirement["min_balance"]:
-            required_referrals = requirement["required_refs"]
-            break 
-    
-    # Minimum requirement is 20 referrals (as per config)
-    if referrals_count < required_referrals:
-        msg = (
-            f"❌ <b>Insufficient Referrals!</b>\n\n"
-            f"Your balance is <b>₹{earnings_inr:.2f}</b>, you need <b>{required_referrals} referrals</b> to withdraw.\n\n"
-            f"👤 Your Current Referrals: {referrals_count}/{required_referrals}"
-        )
-        await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]), parse_mode='HTML')
-        return
-    # --- END NEW CHECK ---
-
-    # Pending Request Check
-    existing_request = WITHDRAWALS_COLLECTION.find_one({"user_id": user.id, "status": "pending"})
-    if existing_request:
-        try:
-            await query.edit_message_text(
-                "❌ <b>Request Already Pending!</b>\n\nYour previous withdrawal request is still being processed.",
-                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]),
-                parse_mode='HTML'
-            )
-        except TelegramError as e:
-            if "Message is not modified" not in str(e):
-                logger.error(f"Error editing message in request_withdrawal (already pending): {e}")
-            pass
-        return
-    
-    # All checks passed - Ask for payment details
-    context.user_data["state"] = "waiting_for_payment_details"
-    context.user_data["withdrawal_amount"] = earnings_inr
-    
-    job_name = f"clear_payment_state_{user.id}"
-    
-    existing_jobs = context.job_queue.get_jobs_by_name(job_name)
-    for job in existing_jobs:
-        job.schedule_removal()
-
-    context.job_queue.run_once(
-        clear_payment_state_job, 
-        30,
-        chat_id=user.id, 
-        data={"user_id": user.id}, 
-        name=job_name
-    )
-
-    await query.edit_message_text(
-        MESSAGES[lang]["withdrawal_prompt_details"],
-        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]),
-        parse_mode='HTML'
-    )
-# --- END WITHDRAWAL UPDATE ---
-
-
-async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    if not query or not query.message: 
-        return
-        
-    await query.answer()
-    lang = await get_user_lang(query.from_user.id)
-    
-    keyboard = [
-        [InlineKeyboardButton("English 🇬🇧", callback_data="lang_en")],
-        [InlineKeyboardButton("हिन्दी 🇮🇳", callback_data="lang_hi")],
-        [InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    try:
-        message_text = MESSAGES[lang]["language_prompt"]
-    except KeyError:
-        logger.error(f"KeyError: 'language_prompt' missing for language '{lang}'. Using fallback.")
-        message_text = "Please select your language:"
-
-    await query.edit_message_text(message_text, reply_markup=reply_markup)
-
-
-async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    if not query:
-        return
-        
-    await query.answer()
-    new_lang = query.data.split("_")[1]
-    
-    await set_user_lang(query.from_user.id, new_lang)
-    
-    await back_to_main_menu(update, context) 
-
+# --- नया WITHDRAWAL SYSTEM ---
 
 async def show_withdraw_details_new(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -1008,6 +832,135 @@ async def show_withdraw_details_new(update: Update, context: ContextTypes.DEFAUL
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+
+async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    
+    user = query.from_user
+    lang = await get_user_lang(user.id)
+    
+    user_data = USERS_COLLECTION.find_one({"user_id": user.id})
+    
+    # Balance Check
+    earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
+    if earnings_inr < 80:
+        await query.edit_message_text(
+            MESSAGES[lang]["withdrawal_insufficient"],
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
+        )
+        return
+
+    # Check Saved Details
+    saved_method = user_data.get("payment_method")
+    saved_details = user_data.get("payment_details")
+
+    if saved_method and saved_details:
+        # Agar details save hain, to Confirm Screen dikhao
+        msg = (
+            f"💸 <b>Confirm Withdrawal</b>\n\n"
+            f"Amount: <b>₹{earnings_inr:.2f}</b>\n"
+            f"Method: <b>{WITHDRAWAL_METHODS.get(saved_method, saved_method.upper())}</b>\n"
+            f"Details: <b>{saved_details}</b>\n\n"
+            f"Proceed with these details?"
+        )
+        keyboard = [
+            [InlineKeyboardButton("✅ Yes, Withdraw", callback_data="process_withdraw_final")],
+            [InlineKeyboardButton("✏️ Change Details", callback_data="select_withdraw_method")],
+            [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
+        ]
+        await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='HTML')
+    else:
+        # Details nahi hain, Selection Menu dikhao
+        await show_withdrawal_method_menu(update, context)
+
+
+async def show_withdrawal_method_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    msg = "🏦 <b>Select Withdrawal Method:</b>\n\nChoose where you want to receive your money."
+    keyboard = [
+        [InlineKeyboardButton("🇮🇳 UPI (GPay/PhonePe)", callback_data="set_method_upi")],
+        [InlineKeyboardButton("🏦 Bank Transfer", callback_data="set_method_bank")],
+        [InlineKeyboardButton("⬅️ Cancel", callback_data="show_earning_panel")]
+    ]
+    try:
+        await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='HTML')
+    except:
+        await context.bot.send_message(query.from_user.id, msg, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='HTML')
+
+
+async def handle_method_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    method = query.data.split("_")[2]  # upi or bank
+    context.user_data["setup_withdraw_method"] = method
+    context.user_data["state"] = "waiting_for_withdraw_details"
+    
+    msg = ""
+    if method == "upi":
+        msg = "✍️ <b>Enter your UPI ID:</b>\n\nExample: `username@oksbi`"
+    else:
+        msg = "✍️ <b>Enter Bank Details:</b>\n\nFormat: `AccountNo, IFSC, HolderName`"
+    
+    msg += "\n\n<i>Send your details in the next message.</i>"
+    
+    await query.edit_message_text(msg, parse_mode='HTML', reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Cancel", callback_data="show_earning_panel")]]))
+
+
+async def process_withdraw_final(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer("Processing...", show_alert=False)
+    
+    user = query.from_user
+    user_data = USERS_COLLECTION.find_one({"user_id": user.id})
+    earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
+    
+    # Pending check
+    existing_request = WITHDRAWALS_COLLECTION.find_one({"user_id": user.id, "status": "pending"})
+    if existing_request:
+        await query.edit_message_text("⚠️ You already have a pending request!", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]))
+        return
+
+    # Create Request
+    method_display = WITHDRAWAL_METHODS.get(user_data['payment_method'], user_data['payment_method'].upper())
+    payment_details = f"{method_display}: {user_data['payment_details']}"
+    
+    withdrawal_data = {
+        "user_id": user.id,
+        "username": user.username,
+        "full_name": user.first_name,
+        "amount_inr": earnings_inr,
+        "status": "pending",
+        "request_date": datetime.now(),
+        "approved_date": None,
+        "payment_details": payment_details
+    }
+    
+    WITHDRAWALS_COLLECTION.insert_one(withdrawal_data)
+    
+    # Notify Admin
+    if ADMIN_ID:
+        admin_msg = (
+            f"🔄 <b>New Withdrawal Request</b>\n"
+            f"User: {user.first_name} (ID: {user.id})\n"
+            f"Amount: <b>₹{earnings_inr:.2f}</b>\n"
+            f"Details: {payment_details}"
+        )
+        try:
+            await context.bot.send_message(ADMIN_ID, admin_msg, parse_mode='HTML', 
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("✅ Approve", callback_data=f"approve_withdraw_{user.id}"),
+                     InlineKeyboardButton("❌ Reject", callback_data=f"reject_withdraw_{user.id}")],
+                    [InlineKeyboardButton(f"✉️ Reply", callback_data=f"admin_reply_user_{user.id}")]
+                ]))
+        except: pass
+
+    await query.edit_message_text(
+        f"✅ <b>Request Sent!</b>\n\nAmount: ₹{earnings_inr:.2f}\nDetails: {payment_details}\n\nYou will receive it within 24 hours.",
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
+    )
 
 
 async def show_user_pending_withdrawals(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1190,7 +1143,6 @@ async def show_refer_example(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
 
-# --- UPDATED CLAIM CHANNEL BONUS ---
 async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message: 
@@ -1223,7 +1175,16 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
 
         await query.answer(MESSAGES[lang]["channel_bonus_error"].format(channel=CHANNEL_USERNAME), show_alert=True)
 
-        join_button = InlineKeyboardButton("🔗 Join Channel", url=JOIN_CHANNEL_LINK)
+        try:
+            chat = await context.bot.get_chat(CHANNEL_ID)
+            invite_link = chat.invite_link
+            
+            if not invite_link:
+                invite_link = await context.bot.export_chat_invite_link(CHANNEL_ID)
+        except Exception:
+            invite_link = JOIN_CHANNEL_LINK
+
+        join_button = InlineKeyboardButton("🔗 Join Channel", url=invite_link)
         retry_button = InlineKeyboardButton("🔄 Try Again", callback_data="claim_channel_bonus")
         back_button = InlineKeyboardButton("⬅️ Back to Earning Panel", callback_data="show_earning_panel")
         keyboard = [[join_button, retry_button], [back_button]]
@@ -1258,7 +1219,16 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
             await send_log_message(context, log_msg)
             return
         
-    join_button = InlineKeyboardButton("🔗 Join Channel", url=JOIN_CHANNEL_LINK)
+    try:
+        chat = await context.bot.get_chat(CHANNEL_ID)
+        invite_link = chat.invite_link
+        
+        if not invite_link:
+            invite_link = await context.bot.export_chat_invite_link(CHANNEL_ID)
+    except Exception:
+        invite_link = JOIN_CHANNEL_LINK
+    
+    join_button = InlineKeyboardButton("🔗 Join Channel", url=invite_link)
     retry_button = InlineKeyboardButton("🔄 Try Again", callback_data="claim_channel_bonus")
     back_button = InlineKeyboardButton("⬅️ Back to Earning Panel", callback_data="show_earning_panel")
     
@@ -1278,10 +1248,8 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
         if "Message is not modified" not in str(e):
             logger.error(f"Error editing message in claim_channel_bonus (failure): {e}")
         pass
-# --- END CHANNEL BONUS UPDATE ---
 
 
-# --- UPDATED LEADERBOARD FUNCTION ---
 async def show_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message:
@@ -1333,7 +1301,6 @@ async def show_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-# --- END LEADERBOARD UPDATE ---
 
 
 async def show_leaderboard_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
