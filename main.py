@@ -1,4 +1,4 @@
-## 🛠️ main.py (Corrected Code)
+# main.py
 
 import logging
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler
@@ -9,7 +9,6 @@ from telegram import Update, BotCommand
 from config import (
     BOT_TOKEN, WEB_SERVER_URL, PORT, ADMIN_ID
 )
-# --- UPDATED IMPORTS FOR USER HANDLERS ---
 from handlers import (
     start_command, earn_command, 
     show_earning_panel, show_movie_groups_menu, back_to_main_menu,
@@ -24,17 +23,15 @@ from handlers import (
     set_bot_commands_logic, 
     error_handler,
     show_leaderboard_info,
-    # --- YAHAN SE GAME IMPORTS HATA DIYE GAYE HAIN ---
+    verify_channel_join  # <-- YAHAN SE ADD KIYA (Import)
 )
 
-# --- NEW IMPORT FOR ADMIN HANDLERS (मुख्य बदलाव यहाँ है) ---
 from admin_handlers import (
     admin_panel, handle_admin_callbacks, 
-    handle_private_text, # <--- **handle_admin_input की जगह इसे इस्तेमाल किया गया है**
+    handle_private_text,
     handle_withdrawal_approval
 )
 
-# --- NAYA IMPORT GAME HANDLERS KE LIYE ---
 from games import (
     show_games_menu,
     handle_coin_flip,
@@ -49,13 +46,9 @@ from games import (
     handle_number_prediction_select_range,
     handle_number_prediction_play
 )
-# --- BADLAV KHATAM ---
 
-
-# --- TASK IMPORTS ---
 from tasks import send_random_alerts_task, process_monthly_leaderboard
 
-# --- Logging Setup ---
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
     level=logging.INFO
@@ -69,16 +62,14 @@ def main() -> None:
 
     application = Application.builder().token(BOT_TOKEN).concurrent_updates(True).build()
 
-    # Set bot commands on startup
     application.post_init = set_bot_commands_logic
 
-    # Global Error Handler Enabled
     application.add_error_handler(error_handler) 
 
     # --- Command Handlers ---
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("earn", earn_command)) 
-    application.add_handler(CommandHandler("admin", admin_panel, filters=filters.User(ADMIN_ID))) # Only admin can access
+    application.add_handler(CommandHandler("admin", admin_panel, filters=filters.User(ADMIN_ID)))
     
     # --- USER Callback Query Handlers ---
     application.add_handler(CallbackQueryHandler(show_earning_panel, pattern="^show_earning_panel$"))
@@ -101,8 +92,11 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(show_leaderboard, pattern="^show_leaderboard$"))
     application.add_handler(CallbackQueryHandler(show_user_pending_withdrawals, pattern="^show_user_pending_withdrawals$"))
     application.add_handler(CallbackQueryHandler(show_my_referrals, pattern="^show_my_referrals$"))
-    
     application.add_handler(CallbackQueryHandler(show_leaderboard_info, pattern="^show_leaderboard_info$"))
+    
+    # --- Verify Button Handler (Ise show_earning_panel ke upar jodein) ---
+    # Yahaan add kiya gaya hai (Request ke anusar)
+    application.add_handler(CallbackQueryHandler(verify_channel_join, pattern="^verify_channel_join$"))
     
     # --- GAME HANDLERS ---
     application.add_handler(CallbackQueryHandler(show_games_menu, pattern="^show_games_menu$"))
@@ -129,10 +123,7 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(handle_withdrawal_approval, pattern="^(approve|reject)_withdraw_\\d+$"))
     
     # --- Message Handlers ---
-    
-    # YEH LINE BADLI GAYI HAI (handle_admin_input की जगह handle_private_text)
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_private_text)) 
-    
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.GROUPS, handle_group_messages))
     
     # --- Job Queue (Background Tasks) ---
@@ -146,7 +137,6 @@ def main() -> None:
         logger.info("Monthly leaderboard task scheduled to run every 1 hour (to check date).")
     else:
         logger.warning("Job Queue is not initialized. Skipping scheduled tasks (common in Webhook mode).")
-
 
     # --- Running the Bot ---
     if WEB_SERVER_URL and BOT_TOKEN:
