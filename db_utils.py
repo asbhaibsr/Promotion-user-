@@ -1,5 +1,4 @@
 # db_utils.py 
-
 import logging
 from datetime import datetime, timedelta
 import random
@@ -62,8 +61,7 @@ async def get_user_tier(user_id: int) -> int:
     if not user:
         return 1
     
-    earnings_usd = user.get("earnings", 0.0)
-    earnings_inr = earnings_usd * DOLLAR_TO_INR
+    earnings_inr = user.get("earnings", 0.0)
     
     tier = 1
     for t, config in sorted(TIERS.items(), key=lambda item: item[1]["min_earnings"], reverse=True):
@@ -88,7 +86,7 @@ async def claim_and_update_daily_bonus(user_id: int):
     last_checkin = user.get("last_checkin_date")
     today = datetime.now().date()
     streak = user.get("daily_bonus_streak", 0)
-    earnings_usd = user.get("earnings", 0.0)
+    earnings = user.get("earnings", 0.0)  # अब यह सीधे INR में है (DOLLAR_TO_INR = 1)
 
     if last_checkin and isinstance(last_checkin, datetime) and last_checkin.date() == today:
         return None, None, None, True
@@ -98,21 +96,19 @@ async def claim_and_update_daily_bonus(user_id: int):
     else:
         streak = 1
 
-    # Daily bonus = base + (streak * multiplier)
-    bonus_usd = DAILY_BONUS_BASE + (streak * DAILY_BONUS_STREAK_MULTIPLIER)
-    bonus_inr = bonus_usd * DOLLAR_TO_INR
+    # Daily bonus सीधे INR में
+    bonus_inr = DAILY_BONUS_BASE + (streak * DAILY_BONUS_STREAK_MULTIPLIER)
 
     USERS_COLLECTION.update_one(
         {"user_id": user_id},
         {
-            "$inc": {"earnings": bonus_usd},
+            "$inc": {"earnings": bonus_inr},  # सीधे INR में
             "$set": {"last_checkin_date": datetime.now(), "daily_bonus_streak": streak}
         }
     )
 
     updated_user = USERS_COLLECTION.find_one({"user_id": user_id})
-    new_balance_usd = updated_user.get("earnings", 0.0)
-    new_balance_inr = new_balance_usd * DOLLAR_TO_INR
+    new_balance_inr = updated_user.get("earnings", 0.0)
 
     return bonus_inr, new_balance_inr, streak, False
 
@@ -142,7 +138,6 @@ async def pay_referrer_and_update_mission(context, referred_user_id: int, referr
     """Pay referrer for a search and update missions."""
     try:
         daily_amount_inr = await get_tier_referral_rate(referrer_id)
-        daily_amount_usd = daily_amount_inr / DOLLAR_TO_INR
         
         today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         
@@ -159,10 +154,10 @@ async def pay_referrer_and_update_mission(context, referred_user_id: int, referr
             logger.error(f"Referral document not found for referrer {referrer_id}, referred {referred_user_id}")
             return False, 0.0
         
-        # Update referrer's earnings
+        # Update referrer's earnings (सीधे INR में)
         result = USERS_COLLECTION.find_one_and_update(
             {"user_id": referrer_id},
-            {"$inc": {"earnings": daily_amount_usd}},
+            {"$inc": {"earnings": daily_amount_inr}},  # सीधे INR में
             return_document=True
         )
         
@@ -170,8 +165,7 @@ async def pay_referrer_and_update_mission(context, referred_user_id: int, referr
             logger.error(f"Failed to update earnings for referrer {referrer_id}")
             return False, 0.0
         
-        new_balance_usd = result.get("earnings", 0.0)
-        new_balance_inr = new_balance_usd * DOLLAR_TO_INR
+        new_balance_inr = result.get("earnings", 0.0)
         
         # Send notification to referrer
         referred_user = USERS_COLLECTION.find_one({"user_id": referred_user_id})
@@ -201,11 +195,10 @@ async def pay_referrer_and_update_mission(context, referred_user_id: int, referr
         missions_completed = referrer_data.get("missions_completed", {})
         
         if paid_searches_today_count >= DAILY_MISSIONS["search_3_movies"]["target"] and not missions_completed.get("search_3_movies"):
-            reward_usd = DAILY_MISSIONS["search_3_movies"]["reward"] / DOLLAR_TO_INR
             USERS_COLLECTION.update_one(
                 {"user_id": referrer_id},
                 {
-                    "$inc": {"earnings": reward_usd, "spins_left": 1},
+                    "$inc": {"earnings": DAILY_MISSIONS["search_3_movies"]["reward"], "spins_left": 1},
                     "$set": {"missions_completed.search_3_movies": True}
                 }
             )
@@ -244,7 +237,7 @@ async def get_user_stats(user_id: int):
     
     referrals = REFERRALS_COLLECTION.count_documents({"referrer_id": user_id, "referred_user_id": {"$ne": user_id}})
     
-    earnings_inr = user.get("earnings", 0.0) * DOLLAR_TO_INR
+    earnings_inr = user.get("earnings", 0.0)
     
     return {
         "user_id": user_id,
@@ -260,16 +253,14 @@ async def get_user_stats(user_id: int):
 
 async def admin_add_money(user_id: int, amount_inr: float):
     """Add money to user's balance."""
-    amount_usd = amount_inr / DOLLAR_TO_INR
     result = USERS_COLLECTION.find_one_and_update(
         {"user_id": user_id},
-        {"$inc": {"earnings": amount_usd}},
+        {"$inc": {"earnings": amount_inr}},  # सीधे INR में
         return_document=True
     )
     
     if result:
-        new_balance_usd = result.get("earnings", 0.0)
-        new_balance_inr = new_balance_usd * DOLLAR_TO_INR
+        new_balance_inr = result.get("earnings", 0.0)
         return new_balance_inr
     return None
 
@@ -311,4 +302,4 @@ async def clear_junk_users():
         "users": users_deleted,
         "referrals": referrals_deleted,
         "withdrawals": withdrawals_deleted
-    }
+        }
