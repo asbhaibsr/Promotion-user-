@@ -34,9 +34,8 @@ EXAMPLE_SCREENSHOT_URL = os.getenv("EXAMPLE_SCREENSHOT_URL", "https://image2url.
 
 # --- चैनल बोनस सेटिंग्स ---
 CHANNEL_USERNAME = "@asbhai_bsr"
-# पुराना CHANNEL_ID हटा दिया गया है
 # नया सिस्टम: मल्टी-चैनल सपोर्ट
-raw_channels = os.getenv("FORCE_JOIN_CHANNELS", "-1002283182645, -1002892671107")
+raw_channels = os.getenv("FORCE_JOIN_CHANNELS", "-1002283182645")
 FORCE_JOIN_CHANNELS = [int(x.strip()) for x in raw_channels.split(",") if x.strip()]
 
 CHANNEL_BONUS = 2.00
@@ -52,12 +51,27 @@ try:
     REFERRALS_COLLECTION = DB.get_collection('referrals')
     SETTINGS_COLLECTION = DB.get_collection('settings')
     WITHDRAWALS_COLLECTION = DB.get_collection('withdrawals')
+    
+    # --- NEW COLLECTION FOR JOIN REQUESTS ---
+    JOIN_REQUESTS_COLLECTION = DB.get_collection('join_requests')
+    
 except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {e}")
 
 # --- Constants and Configuration ---
 DOLLAR_TO_INR = 60.0
 MIN_WITHDRAWAL_INR = 80.0  # न्यूनतम निकासी राशि
+
+# --- FORCE SUB IMAGE ---
+FORCE_SUB_IMAGE_URL = "https://image2url.com/r2/default/images/1771466649629-98062bb8-531e-4a84-b1fc-8859ff0f889b.png"
+
+# --- PRIVATE CHANNEL SETTINGS ---
+# Yahan apne Private Channel ki ID daalein (Jahan request bhejni hai)
+PRIVATE_CHANNELS = [-1002892671107]  # <- IDHAAR APNI PRIVATE CHANNEL ID DAALO
+
+# REQUEST_MODE = True (Request link banegi aur Request aate hi verify hoga)
+# REQUEST_MODE = False (Normal Direct Join link banegi)
+REQUEST_MODE = True
 
 # --- डेली बोनस सेटिंग्स ---
 DAILY_BONUS_BASE = 0.10
