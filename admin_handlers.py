@@ -137,7 +137,7 @@ async def handle_admin_callbacks(update: Update, context: ContextTypes.DEFAULT_T
             return
         context.user_data["admin_state"] = "waiting_for_add_money"
         await query.edit_message_text(
-            f"💰 Please reply with the amount (in INR, e.g., 10.50) you want to add to user {user_id}:",
+            f"💰 Please reply with the amount (in INR, e.g., 10.50 or 100+ or 50-) you want to add/deduct from user {user_id}:",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="admin_pending")]]))
         
     # Clear Data
@@ -315,26 +315,55 @@ async def handle_private_text(update: Update, context: ContextTypes.DEFAULT_TYPE
             except Exception as e:
                 await update.message.reply_text(f"An error occurred: {e}")
 
-        # STATE: waiting_for_add_money
+        # STATE: waiting_for_add_money (UPDATED with 100+ and 100- support)
         elif admin_state == "waiting_for_add_money":
             user_id = context.user_data.get("stats_user_id")
             if not user_id:
-                await update.message.reply_text("Error: Session expired. Please start over from /admin.")
+                await update.message.reply_text("Error: Session expired. Start over.")
                 context.user_data["admin_state"] = None
                 return
-                
+            
+            text_input = text.strip() # यूजर का मैसेज (e.g., "100+" या "50-" या "20")
+            
             try:
-                amount_inr = float(text)
-                new_balance = await admin_add_money(user_id, amount_inr)
+                amount_to_process = 0.0
+                operation = "add" # Default
+
+                # चेक करें कि क्या यूजर ने + या - लगाया है
+                if text_input.endswith("+"):
+                    amount_to_process = float(text_input[:-1]) # "100+" -> 100.0
+                    operation = "add"
+                elif text_input.endswith("-"):
+                    amount_to_process = float(text_input[:-1]) # "50-" -> 50.0
+                    operation = "subtract"
+                else:
+                    # अगर कोई साइन नहीं है, तो उसे सीधा add मानेंगे
+                    amount_to_process = float(text_input)
+                    operation = "add"
+
+                current_stats = await get_user_stats(user_id)
+                current_balance_inr = current_stats['earnings_inr']
+
+                if operation == "add":
+                    # पैसे जोड़ें
+                    new_balance = await admin_add_money(user_id, amount_to_process)
+                    msg = f"✅ Added ₹{amount_to_process:.2f}.\nOld Balance: ₹{current_balance_inr:.2f}\n🆕 New Balance: ₹{new_balance:.2f}"
+                    log_text = f"ADMIN ADD: ₹{amount_to_process} to User {user_id}"
                 
-                await update.message.reply_text(
-                    f"✅ Successfully added ₹{amount_inr:.2f} to user {user_id}. New balance: ₹{new_balance:.2f}"
-                )
-                await send_log_message(context, f"ADMIN: <code>{user.id}</code> added ₹{amount_inr:.2f} to user <code>{user_id}</code>.")
+                elif operation == "subtract":
+                    # पैसे काटें (Minus में add negative number)
+                    # admin_add_money फंक्शन में हम negative value भेजेंगे
+                    new_balance = await admin_add_money(user_id, -amount_to_process)
+                    msg = f"🔻 Deducted ₹{amount_to_process:.2f}.\nOld Balance: ₹{current_balance_inr:.2f}\n🆕 New Balance: ₹{new_balance:.2f}"
+                    log_text = f"ADMIN DEDUCT: ₹{amount_to_process} from User {user_id}"
+
+                await update.message.reply_text(msg)
+                await send_log_message(context, log_text)
                 
             except ValueError:
-                await update.message.reply_text("❌ Invalid input. Please enter a number (e.g., 10.50).")
+                await update.message.reply_text("❌ Invalid format.\nUse `100+` to add\nUse `50-` to deduct.")
             
+            # स्टेट क्लियर करें
             context.user_data["admin_state"] = None
             context.user_data["stats_user_id"] = None
 
