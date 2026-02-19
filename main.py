@@ -1,7 +1,7 @@
 # main.py
 
 import logging
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ChatJoinRequestHandler
 from datetime import timedelta
 from telegram import Update, BotCommand
 
@@ -18,7 +18,7 @@ from handlers import (
     claim_channel_bonus, handle_group_messages, show_leaderboard, 
     show_user_pending_withdrawals, show_my_referrals, show_leaderboard_info,
     verify_channel_join, show_withdrawal_method_menu, handle_method_selection,
-    process_withdraw_final
+    process_withdraw_final, on_join_request  # <-- NEW IMPORT
 )
 
 from admin_handlers import (
@@ -118,6 +118,9 @@ def main() -> None:
     # --- ADMIN Callback Query Handlers ---
     application.add_handler(CallbackQueryHandler(handle_admin_callbacks, pattern="^admin_")) 
     application.add_handler(CallbackQueryHandler(handle_withdrawal_approval, pattern="^(approve|reject)_withdraw_\\d+$"))
+    
+    # --- NEW: CHAT JOIN REQUEST HANDLER ---
+    application.add_handler(ChatJoinRequestHandler(on_join_request))
     
     # --- Message Handlers ---
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_private_text)) 
