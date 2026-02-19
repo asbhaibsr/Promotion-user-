@@ -59,37 +59,32 @@ except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {e}")
 
 # --- Constants and Configuration ---
-# डॉलर का रेट आज के हिसाब से अपडेट करें (85-86 चल रहा है)
+# अब USD = INR, कोई multiplication नहीं होगा
 DOLLAR_TO_INR = 1.0 
 
-# निकासी थोड़ी बढ़ाएं ताकि यूजर ज्यादा काम करे
+# निकासी की न्यूनतम राशि
 MIN_WITHDRAWAL_INR = 50.0 
 
 # --- FORCE SUB IMAGE ---
 FORCE_SUB_IMAGE_URL = "https://image2url.com/r2/default/images/1771466649629-98062bb8-531e-4a84-b1fc-8859ff0f889b.png"
 
 # --- PRIVATE CHANNEL SETTINGS ---
-# Yahan apne Private Channel ki ID daalein (Jahan request bhejni hai)
-PRIVATE_CHANNELS = [-1002892671107]  # <- IDHAAR APNI PRIVATE CHANNEL ID DAALO
-
-# REQUEST_MODE = True (Request link banegi aur Request aate hi verify hoga)
-# REQUEST_MODE = False (Normal Direct Join link banegi)
+PRIVATE_CHANNELS = [-1002892671107]  # <- अपनी प्राइवेट चैनल ID डालें
 REQUEST_MODE = True
 
-# --- डेली बोनस सेटिंग्स ---
-DAILY_BONUS_BASE = 0.05
-DAILY_BONUS_MULTIPLIER = 0.02 
+# --- डेली बोनस सेटिंग्स (अब सीधे INR में) ---
+DAILY_BONUS_BASE = 0.05  # ₹0.05 (5 पैसे)
+DAILY_BONUS_MULTIPLIER = 0.02  # ₹0.02 (2 पैसे)
 DAILY_BONUS_STREAK_MULTIPLIER = DAILY_BONUS_MULTIPLIER 
 
-# --- स्पिन व्हील सेटिंग्स ---
-# 0.00 आने के चांस बढ़ा दिए हैं
+# --- स्पिन व्हील सेटिंग्स (अब सीधे INR में) ---
 PRIZES_WEIGHTS = {
-    0.00: 50,  # 50% चांस है कि कुछ नहीं मिलेगा
-    0.05: 20,
-    0.10: 15,
-    0.20: 10,
-    0.50: 4,
-    1.00: 1    # 1 रुपया बहुत मुश्किल से निकलेगा
+    0.00: 50,  # 50% चांस - कुछ नहीं
+    0.05: 20,  # 20% चांस - 5 पैसे
+    0.10: 15,  # 15% चांस - 10 पैसे
+    0.20: 10,  # 10% चांस - 20 पैसे
+    0.50: 4,   # 4% चांस - 50 पैसे
+    1.00: 1    # 1% चांस - ₹1
 }
 SPIN_PRIZES = list(PRIZES_WEIGHTS.keys())
 SPIN_WEIGHTS = list(PRIZES_WEIGHTS.values())
@@ -104,38 +99,36 @@ HEAD_STICKER_ID = "CAACAgUAAxkBAAEE6e5pC5SKmgOT8kAEa4FZOlQZq6zIEAACVh4AArnGWFQru
 TAILS_STICKER_ID = "CAACAgUAAxkBAAEE6eppC5SBTnht6QYudJda5H4h--33rAACJxcAAixZWVSD-vwVuNoh9h4E"
 PROCESSING_STICKER_ID = "CAACAgIAAxkBAAEE6fJpC5WmS0rLlh2J82_SsYLf6XA9rAAC9hIAAkvtaEkMpy9dDyb4fR4E"
 
-# --- GAME CONFIGS ---
+# --- GAME CONFIGS (अब सीधे INR में) ---
 COIN_FLIP_CONFIG = {
     "win_multiplier": 1.8,
-    "min_bet": 0.05,
-    "max_bet": 2.00,
-    "bet_increment": 0.05 
+    "min_bet": 0.05,   # 5 पैसे
+    "max_bet": 2.00,   # ₹2
+    "bet_increment": 0.05  # 5 पैसे
 }
 
 SLOT_MACHINE_CONFIG = {
-    "min_bet": 0.05,
-    "max_bet": 2.00,
-    "bet_increment": 0.05
+    "min_bet": 0.05,   # 5 पैसे
+    "max_bet": 2.00,   # ₹2
+    "bet_increment": 0.05  # 5 पैसे
 }
 
 SLOT_SYMBOLS = ["🍒", "🍋", "⭐", "7️⃣", "🔔"]
 SLOT_PAYOUTS = {
-    "🍒🍒🍒": 0.20,
-    "⭐⭐⭐": 0.40, 
-    "7️⃣7️⃣7️⃣": 2.00
+    "🍒🍒🍒": 0.20,  # 20 पैसे
+    "⭐⭐⭐": 0.40,   # 40 पैसे
+    "7️⃣7️⃣7️⃣": 2.00  # ₹2
 }
 
 NUMBER_PREDICTION = {
-    "entry_fee": [0.05, 0.10, 0.20, 0.50, 1.00],
+    "entry_fee": [0.05, 0.10, 0.20, 0.50, 1.00],  # 5 पैसे से ₹1 तक
     "duration": 6,
     "platform_commission": 0.20,
     "number_range": [1, 100]
 }
 NUMBER_PREDICTION["win_multiplier"] = 80.0
 
-# --- टियर सिस्टम सेटिंग्स (कम की गई दरें) ---
-# आपका प्रॉफिट गणित: 1 व्यू = ₹0.34. 
-# हम यूजर को मैक्सिमम ₹0.20 देंगे, बाकी ₹0.14 आपका प्रॉफिट।
+# --- टियर सिस्टम सेटिंग्स (अब सीधे INR में) ---
 TIERS = {
     1: {"min_earnings": 0, "rate": 0.10, "name": "Beginner", "benefits_en": "Rate: ₹0.10/search", "benefits_hi": "दर: ₹0.10/खोज"},
     2: {"min_earnings": 100, "rate": 0.12, "name": "Pro", "benefits_en": "Rate: ₹0.12/search", "benefits_hi": "दर: ₹0.12/खोज"},
@@ -171,14 +164,14 @@ LEADERBOARD_CONFIG = {
     10:{"reward": 5.0,   "min_refs": 30},
 }
 
-# --- डेली मिशन सेटिंग्स (कम की गई रिवॉर्ड) ---
+# --- डेली मिशन सेटिंग्स (अब सीधे INR में) ---
 DAILY_MISSIONS = {
     "search_3_movies": {"reward": 0.15, "target": 3, "name": "Search 3 Movies", "name_hi": "3 फिल्में खोजें"}, 
     "refer_2_friends": {"reward": 0.50, "target": 2, "name": "Refer 2 Friends", "name_hi": "2 दोस्तों को रेफ़र करें"},
     "claim_daily_bonus": {"reward": 0.05, "target": 1, "name": "Claim Daily Bonus", "name_hi": "दैनिक बोनस क्लेम करें"}
 }
 
-# --- Messages and Text ---
+# --- Messages and Text (अपडेटेड) ---
 MESSAGES = {
     "en": {
         "start_greeting": "Hey 👋! Welcome to the Movies Group Bot. Get your favorite movies by following these simple steps:",
