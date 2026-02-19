@@ -35,7 +35,7 @@ EXAMPLE_SCREENSHOT_URL = os.getenv("EXAMPLE_SCREENSHOT_URL", "https://image2url.
 # --- चैनल बोनस सेटिंग्स ---
 CHANNEL_USERNAME = "@asbhai_bsr"
 # नया सिस्टम: मल्टी-चैनल सपोर्ट
-raw_channels = os.getenv("FORCE_JOIN_CHANNELS", "-1002283182645, -1002892671107")
+raw_channels = os.getenv("FORCE_JOIN_CHANNELS", "-1002283182645")
 FORCE_JOIN_CHANNELS = [int(x.strip()) for x in raw_channels.split(",") if x.strip()]
 
 CHANNEL_BONUS = 2.00
@@ -70,7 +70,7 @@ FORCE_SUB_IMAGE_URL = "https://image2url.com/r2/default/images/1771466649629-980
 
 # --- PRIVATE CHANNEL SETTINGS ---
 # Yahan apne Private Channel ki ID daalein (Jahan request bhejni hai)
-PRIVATE_CHANNELS = [-1002283182645]  # <- IDHAAR APNI PRIVATE CHANNEL ID DAALO
+PRIVATE_CHANNELS = [-1002892671107]  # <- IDHAAR APNI PRIVATE CHANNEL ID DAALO
 
 # REQUEST_MODE = True (Request link banegi aur Request aate hi verify hoga)
 # REQUEST_MODE = False (Normal Direct Join link banegi)
