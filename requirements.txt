@@ -2,3 +2,4 @@ python-telegram-bot[webhooks,job-queue]
 pymongo
 python-dotenv
 flask
+Pillow
