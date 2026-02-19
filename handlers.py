@@ -4,7 +4,7 @@ import logging
 import random
 import time
 import urllib.parse
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand, ChatJoinRequest
 from telegram.error import TelegramError, TimedOut, Forbidden, BadRequest, RetryAfter as FloodWait 
 from telegram.ext import ContextTypes
 from datetime import datetime, timedelta
@@ -16,7 +16,8 @@ from config import (
     SPIN_WHEEL_CONFIG, SPIN_PRIZES, SPIN_WEIGHTS, TIERS, DAILY_MISSIONS,
     CHANNEL_USERNAME, CHANNEL_BONUS, FORCE_JOIN_CHANNELS, MIN_WITHDRAWAL_INR,
     NEW_MOVIE_GROUP_LINK, MOVIE_GROUP_LINK, ALL_GROUPS_LINK, EXAMPLE_SCREENSHOT_URL,
-    WITHDRAWAL_REQUIREMENTS, WITHDRAWAL_METHODS
+    WITHDRAWAL_REQUIREMENTS, WITHDRAWAL_METHODS, PRIVATE_CHANNELS, REQUEST_MODE,
+    JOIN_REQUESTS_COLLECTION, FORCE_SUB_IMAGE_URL
 )
 from db_utils import (
     send_log_message, get_user_lang, set_user_lang, get_referral_bonus_inr, 
@@ -25,19 +26,55 @@ from db_utils import (
     get_bot_stats, pay_referrer_and_update_mission,
     get_user_stats, admin_add_money, admin_clear_earnings, admin_delete_user, clear_junk_users
 )
+from image_utils import generate_leaderboard_image
 
 logger = logging.getLogger(__name__)
 
 
-# --- 1. FORCE SUBSCRIBE CHECK (MULTI-CHANNEL) ---
+# --- 1. NEW HANDLER: CAPTURE JOIN REQUEST ---
+async def on_join_request(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Jab user 'Request to Join' click karega, ye trigger hoga."""
+    request = update.chat_join_request
+    user_id = request.from_user.id
+    chat_id = request.chat.id
+    
+    logger.info(f"Join Request Received: User {user_id} -> Channel {chat_id}")
+    
+    # DB mein save kar lo ki isne request bhej di hai
+    JOIN_REQUESTS_COLLECTION.update_one(
+        {"user_id": user_id, "chat_id": chat_id},
+        {"$set": {"requested_at": datetime.now(), "status": "pending"}},
+        upsert=True
+    )
+    # Admin (Tum) baad mein approve karte rehna, user DB mein aa gaya.
+
+
+# --- 2. UPDATED CHECK FUNCTION (Request + Join dono check karega) ---
 async def check_channel_membership(bot, user_id):
-    """चेक करेगा कि यूजर ने सारे चैनल्स जॉइन किए हैं या नहीं"""
+    """Checks if user is member OR has sent a join request."""
     try:
         for channel_id in FORCE_JOIN_CHANNELS:
-            member = await bot.get_chat_member(channel_id, user_id)
-            if member.status not in ["member", "administrator", "creator"]:
-                return False
-        return True
+            # Step A: Check agar banda already member hai (Public channel ya Approved)
+            try:
+                member = await bot.get_chat_member(channel_id, user_id)
+                if member.status in ["member", "administrator", "creator"]:
+                    continue # Ye channel pass ho gaya, agla check karo
+            except Exception:
+                pass # Agar check fail ho, to niche Request check karega
+
+            # Step B: Agar member nahi hai, to check karo kya Request bheji hai?
+            # (Sirf tab jab channel Private list mein ho aur Request Mode ON ho)
+            if channel_id in PRIVATE_CHANNELS and REQUEST_MODE:
+                request_found = JOIN_REQUESTS_COLLECTION.find_one(
+                    {"user_id": user_id, "chat_id": channel_id}
+                )
+                if request_found:
+                    continue # Request bheji hui hai, Verify pass!
+            
+            # Agar na member hai, na request bheji hai -> FAIL
+            return False
+            
+        return True # Sab channels pass
     except Exception as e:
         logger.error(f"Force Subscribe Check Failed: {e}")
         return False
@@ -77,14 +114,26 @@ async def verify_channel_join(update: Update, context: ContextTypes.DEFAULT_TYPE
         keyboard = []
         for i, channel_id in enumerate(FORCE_JOIN_CHANNELS):
             try:
-                chat = await context.bot.get_chat(channel_id)
-                link = chat.invite_link
-                if not link:
-                    link = await context.bot.export_chat_invite_link(channel_id)
-                keyboard.append([InlineKeyboardButton(f"🚀 Join Channel {i+1}", url=link)])
+                # Agar Private Channel hai aur Request Mode ON hai
+                if channel_id in PRIVATE_CHANNELS and REQUEST_MODE:
+                    # Create Request Link
+                    link_obj = await context.bot.create_chat_invite_link(
+                        chat_id=channel_id,
+                        name=f"Bot_Req_{user.id}",
+                        creates_join_request=True 
+                    )
+                    link = link_obj.invite_link
+                    btn_text = f"🔐 Request Join Channel {i+1}"
+                else:
+                    chat = await context.bot.get_chat(channel_id)
+                    link = chat.invite_link
+                    if not link:
+                        link = await context.bot.export_chat_invite_link(channel_id)
+                    btn_text = f"🚀 Join Channel {i+1}"
+                    
+                keyboard.append([InlineKeyboardButton(btn_text, url=link)])
             except Exception as e:
                 logger.error(f"Failed to get invite link for {channel_id}: {e}")
-                # Fallback to username if available
                 keyboard.append([InlineKeyboardButton(f"🚀 Join Channel {i+1}", url=f"https://t.me/c/{str(channel_id)[4:]}")])
         
         keyboard.append([InlineKeyboardButton("🔄 Try Again / Verify", callback_data="verify_channel_join")])
@@ -93,10 +142,6 @@ async def verify_channel_join(update: Update, context: ContextTypes.DEFAULT_TYPE
             "⚠️ **Access Denied!**\n\nआपको आगे बढ़ने के लिए नीचे दिए गए सभी चैनल्स को जॉइन करना होगा।",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
-
-
-# --- REMOVED: referral_payment_job (No longer needed) ---
-# --- REMOVED: clear_payment_state_job (No longer needed) ---
 
 
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -141,14 +186,27 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         keyboard = []
         for i, channel_id in enumerate(FORCE_JOIN_CHANNELS):
             try:
-                chat = await context.bot.get_chat(channel_id)
-                link = chat.invite_link
-                if not link:
-                    link = await context.bot.export_chat_invite_link(channel_id)
-                keyboard.append([InlineKeyboardButton(f"🚀 Join Channel {i+1}", url=link)])
+                # Agar Private Channel hai aur Request Mode ON hai
+                if channel_id in PRIVATE_CHANNELS and REQUEST_MODE:
+                    # Create Request Link (creates_join_request=True)
+                    link_obj = await context.bot.create_chat_invite_link(
+                        chat_id=channel_id,
+                        name=f"Bot_Ref_{user.id}",
+                        creates_join_request=True 
+                    )
+                    link = link_obj.invite_link
+                    btn_text = f"🔐 Request Join Channel {i+1}"
+                else:
+                    # Public Channel Logic
+                    chat = await context.bot.get_chat(channel_id)
+                    link = chat.invite_link
+                    if not link:
+                        link = await context.bot.export_chat_invite_link(channel_id)
+                    btn_text = f"🚀 Join Channel {i+1}"
+                
+                keyboard.append([InlineKeyboardButton(btn_text, url=link)])
             except Exception as e:
                 logger.error(f"Link Generation Failed for {channel_id}: {e}")
-                # Fallback - try to get username or use direct link
                 keyboard.append([InlineKeyboardButton(f"🚀 Join Channel {i+1}", url=f"https://t.me/c/{str(channel_id)[4:]}")])
         
         keyboard.append([InlineKeyboardButton("✅ Verify Join", callback_data="verify_channel_join")])
@@ -156,11 +214,16 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         msg = (
             f"👋 <b>Hello {user.first_name}!</b>\n\n"
             f"⛔️ <b>Access Denied!</b>\n"
-            f"You must join our official channels to use this bot.\n\n"
-            f"👇 <b>Click below to Join & Verify:</b>"
+            f"You must join our official channels to use this bot.\n"
+            f"<i>(Private channel ke liye Request bhejein, bot turant verify kar lega)</i>"
         )
         if update.message:
-            await update.message.reply_html(msg, reply_markup=InlineKeyboardMarkup(keyboard))
+            await update.message.reply_photo(
+                photo=FORCE_SUB_IMAGE_URL,
+                caption=msg,
+                reply_markup=InlineKeyboardMarkup(keyboard),
+                parse_mode='HTML'
+            )
         return 
     # --- END FORCE JOIN CHECK ---
     
@@ -188,8 +251,8 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             "channel_bonus_received": False, 
             "spins_left": SPIN_WHEEL_CONFIG["initial_free_spins"],
             "monthly_referrals": 0,
-            "payment_method": None,  # New field
-            "payment_details": None  # New field
+            "payment_method": None,
+            "payment_details": None
         }
     }
     
@@ -1310,57 +1373,58 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
         pass
 
 
+# --- UPDATED SHOW LEADERBOARD (Wait Message + Image) ---
 async def show_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message:
         return
         
     await query.answer()
+    
     user_id = query.from_user.id
-    lang = await get_user_lang(user_id)
     
-    user_data_for_rank = USERS_COLLECTION.find_one({"user_id": user_id}, {"monthly_referrals": 1})
-    user_refs = user_data_for_rank.get("monthly_referrals", 0) if user_data_for_rank else 0
+    # 1. Please Wait Message (User ki tassalli ke liye)
+    wait_msg = await query.message.reply_text("⏳ <b>Generating Leaderboard...</b>\n<i>Please wait while we load top users...</i>", parse_mode='HTML')
     
-    user_rank = USERS_COLLECTION.count_documents({"monthly_referrals": {"$gt": user_refs}}) + 1
-    
-    top_users_cursor = USERS_COLLECTION.find().sort("monthly_referrals", -1).limit(10)
-    
-    message = "🏆 <b>Earning Leaderboard (Top 10)</b>\n\n"
-    
-    message += f"✨ <b>Your Rank: #{user_rank}</b>\n   (Your monthly referrals: {user_refs})\n\n"
-    
-    found_users = False
-    for i, user_data in enumerate(top_users_cursor):
-        found_users = True
-        current_user_id = user_data["user_id"]
-        earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
-        username = user_data.get("username")
-        full_name = user_data.get("full_name", f"User {current_user_id}")
-        monthly_refs = user_data.get("monthly_referrals", 0)
+    try:
+        # 2. Data Fetch
+        top_users = list(USERS_COLLECTION.find().sort("monthly_referrals", -1).limit(10))
         
-        display_name = f"@{username}" if username else full_name
-        user_link = f"tg://user?id={current_user_id}"
-        
-        message += f"<b>{i+1}.</b> <a href='{user_link}'><b>{display_name}</b></a>"
-        
-        if current_user_id == user_id:
-            message += " (You) "
-            
-        message += "\n"
-        message += f"   - 👥 Referrals this month: <b>{monthly_refs}</b>\n"
-        message += f"   - 💵 Total Balance: ₹{earnings_inr:.2f}\n"
+        leaderboard_data = []
+        for usr in top_users:
+            leaderboard_data.append({
+                "name": usr.get("full_name", "Unknown"),
+                "refs": usr.get("monthly_referrals", 0)
+            })
 
-    if not found_users:
-        message += "❌ No referrals recorded this month yet."
+        if not leaderboard_data:
+            await wait_msg.edit_text("❌ No data yet.")
+            return
 
-    keyboard = [
-        [InlineKeyboardButton("💡 Leaderboard Benefits", callback_data="show_leaderboard_info")],
-        [InlineKeyboardButton("⬅️ Back to Earning Panel", callback_data="show_earning_panel")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+        # 3. Image Generation (Blocking code ko alag thread mein run karein)
+        loop = asyncio.get_running_loop()
+        # image_utils wali function call
+        photo_bio = await loop.run_in_executor(None, generate_leaderboard_image, leaderboard_data)
+        
+        # 4. Send Photo
+        keyboard = [[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]
+        
+        await context.bot.send_photo(
+            chat_id=query.message.chat_id,
+            photo=photo_bio,
+            caption="🏆 <b>Top 10 Leaderboard</b>",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+        
+        # 5. Cleanup
+        await wait_msg.delete() # Wait message delete
+        try:
+            await query.message.delete() # Old menu delete
+        except: pass
+
+    except Exception as e:
+        logger.error(f"LB Error: {e}")
+        await wait_msg.edit_text("❌ Error loading leaderboard.")
 
 
 async def show_leaderboard_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
