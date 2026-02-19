@@ -60,7 +60,7 @@ except Exception as e:
 
 # --- Constants and Configuration ---
 # डॉलर का रेट आज के हिसाब से अपडेट करें (85-86 चल रहा है)
-DOLLAR_TO_INR = 85.0 
+DOLLAR_TO_INR = 1.0 
 
 # निकासी थोड़ी बढ़ाएं ताकि यूजर ज्यादा काम करे
 MIN_WITHDRAWAL_INR = 50.0 
