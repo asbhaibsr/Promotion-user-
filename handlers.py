@@ -51,30 +51,32 @@ async def on_join_request(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # --- 2. UPDATED CHECK FUNCTION (Request + Join dono check karega) ---
 async def check_channel_membership(bot, user_id):
-    """Checks if user is member OR has sent a join request."""
+    """Checks if user is member OR has sent a join request (Fix for Private Channels)."""
     try:
         for channel_id in FORCE_JOIN_CHANNELS:
-            # Step A: Check agar banda already member hai (Public channel ya Approved)
+            is_verified = False
+            
+            # 1. पहले चेक करें कि क्या वो पहले से मेंबर है
             try:
                 member = await bot.get_chat_member(channel_id, user_id)
                 if member.status in ["member", "administrator", "creator"]:
-                    continue # Ye channel pass ho gaya, agla check karo
+                    is_verified = True
             except Exception:
-                pass # Agar check fail ho, to niche Request check karega
+                pass # अगर एरर आया (मतलब मेंबर नहीं है), तो हम रिक्वेस्ट चेक करेंगे
 
-            # Step B: Agar member nahi hai, to check karo kya Request bheji hai?
-            # (Sirf tab jab channel Private list mein ho aur Request Mode ON ho)
-            if channel_id in PRIVATE_CHANNELS and REQUEST_MODE:
-                request_found = JOIN_REQUESTS_COLLECTION.find_one(
-                    {"user_id": user_id, "chat_id": channel_id}
-                )
+            # 2. अगर मेंबर नहीं है, तो चेक करें कि क्या उसने रिक्वेस्ट भेजी है?
+            # यह Database (JOIN_REQUESTS_COLLECTION) चेक करेगा जो on_join_request में save होता है
+            if not is_verified and REQUEST_MODE and channel_id in PRIVATE_CHANNELS:
+                # DB check
+                request_found = JOIN_REQUESTS_COLLECTION.find_one({"user_id": user_id, "chat_id": channel_id})
                 if request_found:
-                    continue # Request bheji hui hai, Verify pass!
+                    is_verified = True
+
+            # अगर दोनों चेक फेल हो गए, तो False return करें
+            if not is_verified:
+                return False
             
-            # Agar na member hai, na request bheji hai -> FAIL
-            return False
-            
-        return True # Sab channels pass
+        return True # सब पास हो गए
     except Exception as e:
         logger.error(f"Force Subscribe Check Failed: {e}")
         return False
