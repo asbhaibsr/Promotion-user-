@@ -35,7 +35,7 @@ EXAMPLE_SCREENSHOT_URL = os.getenv("EXAMPLE_SCREENSHOT_URL", "https://image2url.
 # --- चैनल बोनस सेटिंग्स ---
 CHANNEL_USERNAME = "@asbhai_bsr"
 # नया सिस्टम: मल्टी-चैनल सपोर्ट
-raw_channels = os.getenv("FORCE_JOIN_CHANNELS", "-1002283182645")
+raw_channels = os.getenv("FORCE_JOIN_CHANNELS", "-1002283182645, -1002892671107")
 FORCE_JOIN_CHANNELS = [int(x.strip()) for x in raw_channels.split(",") if x.strip()]
 
 CHANNEL_BONUS = 2.00
@@ -59,33 +59,37 @@ except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {e}")
 
 # --- Constants and Configuration ---
-DOLLAR_TO_INR = 60.0
-MIN_WITHDRAWAL_INR = 80.0  # न्यूनतम निकासी राशि
+# डॉलर का रेट आज के हिसाब से अपडेट करें (85-86 चल रहा है)
+DOLLAR_TO_INR = 85.0 
+
+# निकासी थोड़ी बढ़ाएं ताकि यूजर ज्यादा काम करे
+MIN_WITHDRAWAL_INR = 50.0 
 
 # --- FORCE SUB IMAGE ---
 FORCE_SUB_IMAGE_URL = "https://image2url.com/r2/default/images/1771466649629-98062bb8-531e-4a84-b1fc-8859ff0f889b.png"
 
 # --- PRIVATE CHANNEL SETTINGS ---
 # Yahan apne Private Channel ki ID daalein (Jahan request bhejni hai)
-PRIVATE_CHANNELS = [-1002892671107]  # <- IDHAAR APNI PRIVATE CHANNEL ID DAALO
+PRIVATE_CHANNELS = [-1002283182645]  # <- IDHAAR APNI PRIVATE CHANNEL ID DAALO
 
 # REQUEST_MODE = True (Request link banegi aur Request aate hi verify hoga)
 # REQUEST_MODE = False (Normal Direct Join link banegi)
 REQUEST_MODE = True
 
 # --- डेली बोनस सेटिंग्स ---
-DAILY_BONUS_BASE = 0.10
-DAILY_BONUS_MULTIPLIER = 0.10 
+DAILY_BONUS_BASE = 0.05
+DAILY_BONUS_MULTIPLIER = 0.02 
 DAILY_BONUS_STREAK_MULTIPLIER = DAILY_BONUS_MULTIPLIER 
 
 # --- स्पिन व्हील सेटिंग्स ---
+# 0.00 आने के चांस बढ़ा दिए हैं
 PRIZES_WEIGHTS = {
-    0.00: 5,
-    1.00: 9,
-    3.00: 6,
-    5.00: 3,
-    10.00: 2,
-    15.00: 1 
+    0.00: 50,  # 50% चांस है कि कुछ नहीं मिलेगा
+    0.05: 20,
+    0.10: 15,
+    0.20: 10,
+    0.50: 4,
+    1.00: 1    # 1 रुपया बहुत मुश्किल से निकलेगा
 }
 SPIN_PRIZES = list(PRIZES_WEIGHTS.keys())
 SPIN_WEIGHTS = list(PRIZES_WEIGHTS.values())
@@ -103,38 +107,41 @@ PROCESSING_STICKER_ID = "CAACAgIAAxkBAAEE6fJpC5WmS0rLlh2J82_SsYLf6XA9rAAC9hIAAkv
 # --- GAME CONFIGS ---
 COIN_FLIP_CONFIG = {
     "win_multiplier": 1.8,
-    "min_bet": 0.10,
-    "max_bet": 5.00,
-    "bet_increment": 0.10 
+    "min_bet": 0.05,
+    "max_bet": 2.00,
+    "bet_increment": 0.05 
 }
 
 SLOT_MACHINE_CONFIG = {
-    "min_bet": 0.10,
-    "max_bet": 5.00,
-    "bet_increment": 0.10
+    "min_bet": 0.05,
+    "max_bet": 2.00,
+    "bet_increment": 0.05
 }
 
 SLOT_SYMBOLS = ["🍒", "🍋", "⭐", "7️⃣", "🔔"]
 SLOT_PAYOUTS = {
-    "🍒🍒🍒": 0.50,
-    "⭐⭐⭐": 1.00, 
-    "7️⃣7️⃣7️⃣": 5.00
+    "🍒🍒🍒": 0.20,
+    "⭐⭐⭐": 0.40, 
+    "7️⃣7️⃣7️⃣": 2.00
 }
 
 NUMBER_PREDICTION = {
-    "entry_fee": [0.10, 0.50, 1.00, 2.00, 5.00],
+    "entry_fee": [0.05, 0.10, 0.20, 0.50, 1.00],
     "duration": 6,
     "platform_commission": 0.20,
     "number_range": [1, 100]
 }
 NUMBER_PREDICTION["win_multiplier"] = 80.0
 
-# --- टियर सिस्टम सेटिंग्स ---
+# --- टियर सिस्टम सेटिंग्स (कम की गई दरें) ---
+# आपका प्रॉफिट गणित: 1 व्यू = ₹0.34. 
+# हम यूजर को मैक्सिमम ₹0.20 देंगे, बाकी ₹0.14 आपका प्रॉफिट।
 TIERS = {
-    1: {"min_earnings": 0, "rate": 0.20, "name": "Beginner", "benefits_en": "Basic referral rate (₹0.20)", "benefits_hi": "सामान्य रेफरल दर (₹0.20)"},
-    2: {"min_earnings": 200, "rate": 0.35, "name": "Pro", "benefits_en": "Higher referral rate (₹0.35)", "benefits_hi": "उच्च रेफरल दर (₹0.35)"},
-    3: {"min_earnings": 500, "rate": 0.45, "name": "Expert", "benefits_en": "Very high referral rate (₹0.45)", "benefits_hi": "बहुत उच्च रेफरल दर (₹0.45)"},
-    4: {"min_earnings": 1000, "rate": 0.50, "name": "Master", "benefits_en": "Maximum referral rate (₹0.50)", "benefits_hi": "अधिकतम रेफरल दर (₹0.50)"}
+    1: {"min_earnings": 0, "rate": 0.10, "name": "Beginner", "benefits_en": "Rate: ₹0.10/search", "benefits_hi": "दर: ₹0.10/खोज"},
+    2: {"min_earnings": 100, "rate": 0.12, "name": "Pro", "benefits_en": "Rate: ₹0.12/search", "benefits_hi": "दर: ₹0.12/खोज"},
+    3: {"min_earnings": 300, "rate": 0.15, "name": "Expert", "benefits_en": "Rate: ₹0.15/search", "benefits_hi": "दर: ₹0.15/खोज"},
+    4: {"min_earnings": 800, "rate": 0.18, "name": "Master", "benefits_en": "Rate: ₹0.18/search", "benefits_hi": "दर: ₹0.18/खोज"},
+    5: {"min_earnings": 2000, "rate": 0.20, "name": "Legend", "benefits_en": "Rate: ₹0.20/search", "benefits_hi": "दर: ₹0.20/खोज"}
 }
 
 # --- WITHDRAWAL & LEADERBOARD SETTINGS ---
@@ -142,7 +149,8 @@ WITHDRAWAL_REQUIREMENTS = [
     {"min_balance": 1000.0, "required_refs": 150},
     {"min_balance": 500.0,  "required_refs": 100},
     {"min_balance": 200.0,  "required_refs": 50},
-    {"min_balance": 80.0,   "required_refs": 20}
+    {"min_balance": 80.0,   "required_refs": 20},
+    {"min_balance": 50.0,   "required_refs": 10}
 ]
 
 WITHDRAWAL_METHODS = {
@@ -151,23 +159,23 @@ WITHDRAWAL_METHODS = {
 }
 
 LEADERBOARD_CONFIG = {
-    1: {"reward": 300.0, "min_refs": 50},
-    2: {"reward": 200.0, "min_refs": 30},
-    3: {"reward": 100.0, "min_refs": 30},
-    4: {"reward": 50.0,  "min_refs": 30},
-    5: {"reward": 50.0,  "min_refs": 30},
-    6: {"reward": 10.0,  "min_refs": 30},
-    7: {"reward": 10.0,  "min_refs": 30},
-    8: {"reward": 10.0,  "min_refs": 30},
-    9: {"reward": 10.0,  "min_refs": 30},
-    10:{"reward": 10.0,  "min_refs": 30},
+    1: {"reward": 150.0, "min_refs": 50},
+    2: {"reward": 100.0, "min_refs": 30},
+    3: {"reward": 50.0,  "min_refs": 30},
+    4: {"reward": 25.0,  "min_refs": 30},
+    5: {"reward": 25.0,  "min_refs": 30},
+    6: {"reward": 5.0,   "min_refs": 30},
+    7: {"reward": 5.0,   "min_refs": 30},
+    8: {"reward": 5.0,   "min_refs": 30},
+    9: {"reward": 5.0,   "min_refs": 30},
+    10:{"reward": 5.0,   "min_refs": 30},
 }
 
-# --- डेली मिशन सेटिंग्स ---
+# --- डेली मिशन सेटिंग्स (कम की गई रिवॉर्ड) ---
 DAILY_MISSIONS = {
-    "search_3_movies": {"reward": 0.60, "target": 3, "name": "Search 3 Movies (Ref. Paid Search)", "name_hi": "3 फिल्में खोजें (रेफ़रल का भुगतान)"}, 
-    "refer_2_friends": {"reward": 1.40, "target": 2, "name": "Refer 2 Friends", "name_hi": "2 दोस्तों को रेफ़र करें"},
-    "claim_daily_bonus": {"reward": 0.20, "target": 1, "name": "Claim Daily Bonus", "name_hi": "दैनिक बोनस क्लेम करें"}
+    "search_3_movies": {"reward": 0.15, "target": 3, "name": "Search 3 Movies", "name_hi": "3 फिल्में खोजें"}, 
+    "refer_2_friends": {"reward": 0.50, "target": 2, "name": "Refer 2 Friends", "name_hi": "2 दोस्तों को रेफ़र करें"},
+    "claim_daily_bonus": {"reward": 0.05, "target": 1, "name": "Claim Daily Bonus", "name_hi": "दैनिक बोनस क्लेम करें"}
 }
 
 # --- Messages and Text ---
@@ -194,7 +202,7 @@ MESSAGES = {
         "spin_wheel_win": "🎉 Congratulations!\n\nYou won: ₹{amount:.2f}!\n\nNew balance: ₹{new_balance:.2f}\n\nRemaining Spins: {spins_left}",
         "spin_wheel_lose": "😢 Better luck next time!\n\nYou didn't win anything this time.\n\nRemaining balance: ₹{new_balance:.2f}\n\nRemaining Spins: {spins_left}",
         "missions_title": "🎯 Daily Missions\n\nComplete missions to earn extra rewards! Check your progress below:",
-        "withdrawal_insufficient": "❌ Insufficient Balance!\n\nMinimum withdrawal amount is ₹80.00",
+        "withdrawal_insufficient": "❌ Insufficient Balance!\n\nMinimum withdrawal amount is ₹50.00",
         "withdrawal_prompt_details": "✅ **Ready to Withdraw!**\n\nPlease send your payment details in a single message (e.g., UPI ID, Bank A/C + IFSC, or upload a QR Code screenshot).\n\n⚠️ **This request will expire in 30 seconds.**",
         "withdrawal_session_expired": "⏳ **Withdrawal Session Expired!**\n\nYour 30-second window to send payment details has closed. Please start the withdrawal request again from the Earning Panel.",
         "withdrawal_details_received": "✅ **Details Received!**\n\nYour withdrawal request for ₹{amount:.2f} with your payment details has been sent to the admin for approval.",
@@ -208,9 +216,9 @@ MESSAGES = {
         "channel_already_claimed": "⏳ Bonus Already Claimed!\nYou have already claimed the channel join bonus.",
         "channel_bonus_failure": "❌ Channel Not Joined!\nYou must join our channel {channel} to claim the bonus.",
         "channel_bonus_error": "❌ Verification Failed!\n\nWe could not verify your membership. Please ensure you have joined the channel ({channel}) and try again in a moment.\n\nIf this problem continues, the admin has been notified.",
-        "tier_benefits_message": "👑 Tier System Benefits 👑\n\nYour earning rate increases as you earn more. Reach higher tiers for more money per referral!\n\nTier 1: Beginner (Min Earning: ₹0.00, Rate: ₹0.20)\nTier 2: Pro (Min Earning: ₹200.00, Rate: ₹0.35)\nTier 3: Expert (Min Earning: ₹500.00, Rate: ₹0.45)\nTier 4: Master (Min Earning: ₹1000.00, Rate: ₹0.50)",
+        "tier_benefits_message": "👑 Tier System Benefits 👑\n\nYour earning rate increases as you earn more. Reach higher tiers for more money per referral!\n\nTier 1: Beginner (Min Earning: ₹0.00, Rate: ₹0.10)\nTier 2: Pro (Min Earning: ₹100.00, Rate: ₹0.12)\nTier 3: Expert (Min Earning: ₹300.00, Rate: ₹0.15)\nTier 4: Master (Min Earning: ₹800.00, Rate: ₹0.18)\nTier 5: Legend (Min Earning: ₹2000.00, Rate: ₹0.20)",
         "leaderboard_title": "🏆 Monthly Leaderboard 🏆\n\nTop 10 referrers of the month!",
-        "leaderboard_info_text": "This leaderboard shows the Top 10 users with the most 'Monthly Referrals'.\n\n🏆 <b>What's the Benefit?</b>\nThe Top 10 users at the end of the month win a cash prize!\n\n💰 <b>Prize Money (Paid on 1st of Month):</b>\n🥇 Rank 1: <b>₹300.00</b> (Min 50 Refs)\n🥈 Rank 2: <b>₹200.00</b> (Min 30 Refs)\n🥉 Rank 3: <b>₹100.00</b> (Min 30 Refs)\n🏅 Rank 4-5: <b>₹50.00</b> (Min 30 Refs)\n🏅 Rank 6-10: <b>₹10.00</b> (Min 30 Refs)\n\n🎯 <b>How to Win?</b>\nYour rank is based <i>only</i> on the number of new users you refer each month. More referrals = Higher rank!",
+        "leaderboard_info_text": "This leaderboard shows the Top 10 users with the most 'Monthly Referrals'.\n\n🏆 <b>What's the Benefit?</b>\nThe Top 10 users at the end of the month win a cash prize!\n\n💰 <b>Prize Money (Paid on 1st of Month):</b>\n🥇 Rank 1: <b>₹150.00</b> (Min 50 Refs)\n🥈 Rank 2: <b>₹100.00</b> (Min 30 Refs)\n🥉 Rank 3: <b>₹50.00</b> (Min 30 Refs)\n🏅 Rank 4-5: <b>₹25.00</b> (Min 30 Refs)\n🏅 Rank 6-10: <b>₹5.00</b> (Min 30 Refs)\n\n🎯 <b>How to Win?</b>\nYour rank is based <i>only</i> on the number of new users you refer each month. More referrals = Higher rank!",
     },
     "hi": {
         "start_greeting": "नमस्ते 👋! मूवी ग्रुप बॉट में आपका स्वागत है। इन आसान स्टेप्स को फॉलो करके अपनी पसंदीदा मूवी पाएँ:",
@@ -234,7 +242,7 @@ MESSAGES = {
         "spin_wheel_win": "🎉 बधाई हो!\n\nआपने जीता: ₹{amount:.2f}!\n\nनया बैलेंस: ₹{new_balance:.2f}\n\nबची हुई स्पिनें: {spins_left}",
         "spin_wheel_lose": "😢 अगली बार बेहतर किस्मत!\n\nइस बार आप कुछ नहीं जीत पाए।\n\nशेष बैलेंस: ₹{new_balance:.2f}\n\nबची हुई स्पिनें: {spins_left}",
         "missions_title": "🎯 दैनिक मिशन\n\nअतिरिक्त इनाम पाने के लिए मिशन पूरे करें! अपनी प्रगति नीचे देखें:",
-        "withdrawal_insufficient": "❌ पर्याप्त बैलेंस नहीं!\n\nन्यूनतम निकासी राशि ₹80.00 है",
+        "withdrawal_insufficient": "❌ पर्याप्त बैलेंस नहीं!\n\nन्यूनतम निकासी राशि ₹50.00 है",
         "withdrawal_prompt_details": "✅ **निकासी के लिए तैयार!**\n\nकृपया अपना भुगतान विवरण एक ही संदेश में भेजें (जैसे, UPI ID, बैंक A/C + IFSC, या QR कोड स्क्रीनशॉट अपलोड करें)।\n\n⚠️ **यह अनुरोध 30 सेकंड में समाप्त हो जाएगा।**",
         "withdrawal_session_expired": "⏳ **निकासी सत्र समाप्त!**\n\nभुगतान विवरण भेजने के लिए आपकी 30-सेकंड की विंडो बंद हो गई है। कृपया Earning Panel से फिर से निकासी का अनुरोध शुरू करें।",
         "withdrawal_details_received": "✅ **विवरण प्राप्त हुआ!**\n\nआपके भुगतान विवरण के साथ ₹{amount:.2f} के लिए आपका निकासी अनुरोध एडमिन को अनुमोदन के लिए भेज दिया गया है।",
@@ -248,8 +256,8 @@ MESSAGES = {
         "channel_already_claimed": "⏳ बोनस पहले ही क्लेम किया जा चुका है!\nआप पहले ही चैनल जॉइन बोनस क्लेम कर चुके हैं।",
         "channel_bonus_failure": "❌ चैनल जॉइन नहीं किया!\nबोनस क्लेम करने के लिए आपको हमारा चैनल {channel} जॉइन करना होगा।",
         "channel_bonus_error": "❌ सत्यापन विफल!\n\nहम आपकी सदस्यता को सत्यापित नहीं कर सके। कृपया सुनिश्चित करें कि आप चैनल ({channel}) से जुड़ गए हैं और कुछ देर बाद पुनः प्रयास करें।\n\nयदि यह समस्या बनी रहती है, तो एडमिन को सूचित कर दिया गया है।",
-        "tier_benefits_message": "👑 टियर सिस्टम के लाभ 👑\n\nजैसे-जैसे आप अधिक कमाते हैं, आपकी कमाई दर बढ़ती जाती है। प्रति रेफरल अधिक पैसे के लिए उच्च टियर पर पहुँचें!\n\nटियर 1: शुरुआती (न्यूनतम कमाई: ₹0.00, दर: ₹0.20)\nटियर 2: प्रो (न्यूनतम कमाई: ₹200.00, दर: ₹0.35)\nटियर 3: एक्सपर्ट (न्यूनतम कमाई: ₹500.00, दर: ₹0.45)\nटियर 4: मास्टर (न्यूनतम कमाई: ₹1000.00, दर: ₹0.50)",
+        "tier_benefits_message": "👑 टियर सिस्टम के लाभ 👑\n\nजैसे-जैसे आप अधिक कमाते हैं, आपकी कमाई दर बढ़ती जाती है। प्रति रेफरल अधिक पैसे के लिए उच्च टियर पर पहुँचें!\n\nटियर 1: शुरुआती (न्यूनतम कमाई: ₹0.00, दर: ₹0.10)\nटियर 2: प्रो (न्यूनतम कमाई: ₹100.00, दर: ₹0.12)\nटियर 3: एक्सपर्ट (न्यूनतम कमाई: ₹300.00, दर: ₹0.15)\nटियर 4: मास्टर (न्यूनतम कमाई: ₹800.00, दर: ₹0.18)\nटियर 5: लीजेंड (न्यूनतम कमाई: ₹2000.00, दर: ₹0.20)",
         "leaderboard_title": "🏆 मासिक लीडरबोर्ड 🏆\n\nइस महीने के टॉप 10 रेफरर!",
-        "leaderboard_info_text": "यह लीडरबोर्ड 'मासिक रेफ़रल' के आधार पर टॉप 10 यूज़र्स को दिखाता है।\n\n🏆 <b>क्या फायदा है?</b>\nमहीने के अंत में टॉप 10 यूज़र्स को नकद इनाम मिलता है!\n\n💰 <b>इनाम राशि (महीने की 1 तारीख को):</b>\n🥇 रैंक 1: <b>₹300.00</b> (न्यूनतम 50 रेफ़रल)\n🥈 रैंक 2: <b>₹200.00</b> (न्यूनतम 30 रेफ़रल)\n🥉 रैंक 3: <b>₹100.00</b> (न्यूनतम 30 रेफ़रल)\n🏅 रैंक 4-5: <b>₹50.00</b> (न्यूनतम 30 रेफ़रल)\n🏅 रैंक 6-10: <b>₹10.00</b> (न्यूनतम 30 रेफ़रल)\n\n🎯 <b>कैसे जीतें?</b>\nआपकी रैंक <i>केवल</i> इस बात पर आधारित है कि आप हर महीने कितने नए यूज़र्स को रेफ़र करते हैं। ज़्यादा रेफ़रल = ऊँची रैंक!",
+        "leaderboard_info_text": "यह लीडरबोर्ड 'मासिक रेफ़रल' के आधार पर टॉप 10 यूज़र्स को दिखाता है।\n\n🏆 <b>क्या फायदा है?</b>\nमहीने के अंत में टॉप 10 यूज़र्स को नकद इनाम मिलता है!\n\n💰 <b>इनाम राशि (महीने की 1 तारीख को):</b>\n🥇 रैंक 1: <b>₹150.00</b> (न्यूनतम 50 रेफ़रल)\n🥈 रैंक 2: <b>₹100.00</b> (न्यूनतम 30 रेफ़रल)\n🥉 रैंक 3: <b>₹50.00</b> (न्यूनतम 30 रेफ़रल)\n🏅 रैंक 4-5: <b>₹25.00</b> (न्यूनतम 30 रेफ़रल)\n🏅 रैंक 6-10: <b>₹5.00</b> (न्यूनतम 30 रेफ़रल)\n\n🎯 <b>कैसे जीतें?</b>\nआपकी रैंक <i>केवल</i> इस बात पर आधारित है कि आप हर महीने कितने नए यूज़र्स को रेफ़र करते हैं। ज़्यादा रेफ़रल = ऊँची रैंक!",
     }
 }
