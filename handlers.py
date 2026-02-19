@@ -1,4 +1,4 @@
-# handlers.py
+# Handlers.py
 
 import logging
 import random
@@ -272,11 +272,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         
         if not user_data.get("welcome_bonus_received", False):
             welcome_bonus_inr = await get_welcome_bonus()
-            welcome_bonus_usd = welcome_bonus_inr / DOLLAR_TO_INR
             
             USERS_COLLECTION.update_one(
                 {"user_id": user.id},
-                {"$inc": {"earnings": welcome_bonus_usd}, "$set": {"welcome_bonus_received": True}}
+                {"$inc": {"earnings": welcome_bonus_inr}, "$set": {"welcome_bonus_received": True}}
             )
             try:
                 await update.message.reply_html(MESSAGES[lang]["welcome_bonus_received"].format(amount=welcome_bonus_inr))
@@ -412,7 +411,7 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
                   await context.bot.send_message(user.id, "User data not found.")
         return
     
-    earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
+    earnings_inr = user_data.get("earnings", 0.0)
     
     referrals_count = REFERRALS_COLLECTION.count_documents({"referrer_id": user.id, "referred_user_id": {"$ne": user.id}})
     user_tier = await get_user_tier(user.id)
@@ -707,12 +706,10 @@ async def perform_spin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await asyncio.sleep(3)
 
     prize_inr = random.choices(SPIN_PRIZES, weights=SPIN_WEIGHTS, k=1)[0]
-    prize_usd = prize_inr / DOLLAR_TO_INR
     
-    USERS_COLLECTION.update_one({"user_id": user.id}, {"$inc": {"earnings": prize_usd}})
+    USERS_COLLECTION.update_one({"user_id": user.id}, {"$inc": {"earnings": prize_inr}})
     updated_data = USERS_COLLECTION.find_one({"user_id": user.id})
-    final_balance_usd = updated_data.get("earnings", 0.0) 
-    final_balance_inr = final_balance_usd * DOLLAR_TO_INR
+    final_balance_inr = updated_data.get("earnings", 0.0)
 
     log_msg = f"🎡 <b>Spin Wheel</b>\nUser: {username_display}\nCost: 1 Spin\n"
     
@@ -805,12 +802,11 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     name = mission["name"] if lang == "en" else mission["name_hi"]
     
     if paid_searches_today_count >= mission['target'] and not missions_completed.get(mission_key):
-        reward_usd = mission["reward"] / DOLLAR_TO_INR
         total_reward += mission["reward"]
         USERS_COLLECTION.update_one(
             {"user_id": user.id},
             {
-                "$inc": {"earnings": reward_usd, "spins_left": 1},
+                "$inc": {"earnings": mission["reward"], "spins_left": 1},
                 "$set": {f"missions_completed.{mission_key}": True}
             }
         )
@@ -828,12 +824,11 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     name = mission["name"] if lang == "en" else mission["name_hi"]
     
     if referrals_today_count >= mission['target'] and not missions_completed.get(mission_key):
-        reward_usd = mission["reward"] / DOLLAR_TO_INR
         total_reward += mission["reward"]
         USERS_COLLECTION.update_one(
             {"user_id": user.id},
             {
-                "$inc": {"earnings": reward_usd, "spins_left": 1},
+                "$inc": {"earnings": mission["reward"], "spins_left": 1},
                 "$set": {f"missions_completed.{mission_key}": True}
             }
         )
@@ -851,12 +846,11 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     
     if is_bonus_claimed_today:
         if not missions_completed.get(mission_key):
-            reward_usd = mission["reward"] / DOLLAR_TO_INR
             total_reward += mission["reward"]
             USERS_COLLECTION.update_one(
                 {"user_id": user.id},
                 {
-                    "$inc": {"earnings": reward_usd, "spins_left": 1},
+                    "$inc": {"earnings": mission["reward"], "spins_left": 1},
                     "$set": {f"missions_completed.{mission_key}": True}
                 }
             )
@@ -871,7 +865,7 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     if total_reward > 0:
         updated_data = USERS_COLLECTION.find_one({"user_id": user.id})
-        updated_earnings_inr = updated_data.get("earnings", 0.0) * DOLLAR_TO_INR
+        updated_earnings_inr = updated_data.get("earnings", 0.0)
         message += "\n"
         message += f"🎉 <b>Mission Rewards Claimed!</b>\n"
         message += newly_completed_message
@@ -900,7 +894,7 @@ async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE)
         
     await query.answer("Checking requirements...")
 
-    earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
+    earnings_inr = user_data.get("earnings", 0.0)
     method = user_data.get("payment_method")
     details = user_data.get("payment_details")
     
@@ -978,7 +972,7 @@ async def process_withdraw_final(update: Update, context: ContextTypes.DEFAULT_T
     
     user = query.from_user
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
-    earnings_inr = user_data.get("earnings", 0.0) * DOLLAR_TO_INR
+    earnings_inr = user_data.get("earnings", 0.0)
     
     # Minimum balance check
     if earnings_inr < MIN_WITHDRAWAL_INR:
@@ -1041,14 +1035,19 @@ async def process_withdraw_final(update: Update, context: ContextTypes.DEFAULT_T
                 ]))
         except: pass
 
+    # Deduct amount immediately (important!)
+    USERS_COLLECTION.update_one(
+        {"user_id": user.id},
+        {"$set": {"earnings": 0.0}}
+    )
+
     await query.edit_message_text(
         f"✅ <b>Request Sent!</b>\n\nAmount: ₹{earnings_inr:.2f}\nDetails: {payment_details}\n\nYou will receive it within 24 hours.",
         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
     )
 
-# --- END NEW WITHDRAWAL SYSTEM ---
 
-
+# --- LANGUAGE MENU FUNCTIONS ---
 async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message: 
@@ -1140,59 +1139,92 @@ async def show_movie_groups_menu(update: Update, context: ContextTypes.DEFAULT_T
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
 
+# --- FIXED BACK TO MAIN MENU FUNCTION ---
 async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """मेन मेनू पर वापस जाने के लिए हैंडलर - बैक बटन की समस्या ठीक की गई"""
     query = update.callback_query
+    user = update.effective_user
     
-    if not query and not update.message:
-        logger.warning("back_to_main_menu called without update.message or update.callback_query.")
+    if not user:
+        logger.warning("back_to_main_menu called without effective_user")
         return
 
-    user = update.effective_user
     lang = await get_user_lang(user.id)
     
+    # पहले callback query को answer करें (अगर है तो)
     if query:
-        await query.answer()
+        try:
+            await query.answer()
+        except Exception as e:
+            logger.debug(f"Could not answer callback query: {e}")
 
+    # मेन मेनू बटन
     keyboard = [
         [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
         [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
         [InlineKeyboardButton(MESSAGES[lang]["language_choice"], callback_data="select_lang")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
+    
     message = (
         f"{MESSAGES[lang]['start_greeting']}\n\n"
         f"<b>1.</b> {MESSAGES[lang]['start_step1']}\n"
         f"<b>2.</b> {MESSAGES[lang]['start_step2']}\n"
         f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
     )
-    
-    if query: 
-        if query.message: 
-            if query.message.photo:
-                try:
-                    await query.message.delete()
-                except Exception as e:
-                    logger.warning(f"Failed to delete photo message in back_to_main_menu: {e}")
-                    pass
-                    
-                await context.bot.send_message(
-                    chat_id=query.message.chat_id,
-                    text=message, 
-                    reply_markup=reply_markup,
-                    parse_mode='HTML'
-                )
-            else:
-                try: 
-                    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-                except TelegramError as e:
-                    if "Message is not modified" not in str(e):
-                        logger.error(f"Error editing message in back_to_main_menu: {e}")
-                    pass
+
+    # अलग-अलग स्थितियों के लिए हैंडलिंग
+    try:
+        if query and query.message:
+            # केस 1: Callback query से आया है - message edit करने की कोशिश करें
+            try:
+                await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+                return
+            except TelegramError as e:
+                if "Message is not modified" in str(e):
+                    # Message already same hai - ignore करें
+                    return
+                elif "message can't be edited" in str(e) or "message not found" in str(e):
+                    # Edit नहीं कर सकते - नया message भेजें
+                    logger.debug(f"Cannot edit message, sending new one: {e}")
+                    await context.bot.send_message(
+                        chat_id=user.id,
+                        text=message,
+                        reply_markup=reply_markup,
+                        parse_mode='HTML'
+                    )
+                else:
+                    # अन्य error - नया message भेजें
+                    logger.warning(f"Error editing message, sending new: {e}")
+                    await context.bot.send_message(
+                        chat_id=user.id,
+                        text=message,
+                        reply_markup=reply_markup,
+                        parse_mode='HTML'
+                    )
+        elif update.message:
+            # केस 2: Direct message से आया है
+            await update.message.reply_html(message, reply_markup=reply_markup)
         else:
-             await context.bot.send_message(chat_id=user.id, text=message, reply_markup=reply_markup, parse_mode='HTML')
-             
-    elif update.message: 
-        await update.message.reply_html(message, reply_markup=reply_markup)
+            # केस 3: सिर्फ user ID है
+            await context.bot.send_message(
+                chat_id=user.id,
+                text=message,
+                reply_markup=reply_markup,
+                parse_mode='HTML'
+            )
+    except Exception as e:
+        logger.error(f"Unexpected error in back_to_main_menu: {e}")
+        # फॉलबैक: सीधे message भेजें
+        try:
+            await context.bot.send_message(
+                chat_id=user.id,
+                text=message,
+                reply_markup=reply_markup,
+                parse_mode='HTML'
+            )
+        except:
+            pass
 
 
 async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1326,16 +1358,14 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
         return
         
     if is_member:
-        bonus_usd = CHANNEL_BONUS / DOLLAR_TO_INR
-        
         result = USERS_COLLECTION.find_one_and_update(
             {"user_id": user.id, "channel_bonus_received": False},
-            {"$inc": {"earnings": bonus_usd}, "$set": {"channel_bonus_received": True}},
+            {"$inc": {"earnings": CHANNEL_BONUS}, "$set": {"channel_bonus_received": True}},
             return_document=True
         )
         
         if result:
-            new_balance_inr = result.get("earnings", 0.0) * DOLLAR_TO_INR
+            new_balance_inr = result.get("earnings", 0.0)
             await query.edit_message_text(
                 MESSAGES[lang]["channel_bonus_claimed"].format(amount=CHANNEL_BONUS, new_balance=new_balance_inr, channel=CHANNEL_USERNAME), 
                 reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
