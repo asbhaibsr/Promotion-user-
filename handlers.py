@@ -4,6 +4,7 @@ import logging
 import random
 import time
 import urllib.parse
+import hashlib
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand, ChatJoinRequest
 from telegram.error import TelegramError, TimedOut, Forbidden, BadRequest, RetryAfter as FloodWait 
 from telegram.ext import ContextTypes
@@ -11,13 +12,13 @@ from datetime import datetime, timedelta
 import asyncio
 
 from config import (
-    USERS_COLLECTION, REFERRALS_COLLECTION, SETTINGS_COLLECTION, WITHDRAWALS_COLLECTION,
+    USERS_COLLECTION, REFERRALS_COLLECTION, SETTINGS_COLLECTION, WITHDRAWALS_COLLECTION, BONUS_COLLECTION,
     DOLLAR_TO_INR, MESSAGES, ADMIN_ID, YOUR_TELEGRAM_HANDLE, 
     SPIN_WHEEL_CONFIG, SPIN_PRIZES, SPIN_WEIGHTS, TIERS, DAILY_MISSIONS,
     CHANNEL_USERNAME, CHANNEL_BONUS, FORCE_JOIN_CHANNELS, MIN_WITHDRAWAL_INR,
     NEW_MOVIE_GROUP_LINK, MOVIE_GROUP_LINK, ALL_GROUPS_LINK, EXAMPLE_SCREENSHOT_URL,
     WITHDRAWAL_REQUIREMENTS, WITHDRAWAL_METHODS, PRIVATE_CHANNELS, REQUEST_MODE,
-    JOIN_REQUESTS_COLLECTION, FORCE_SUB_IMAGE_URL
+    JOIN_REQUESTS_COLLECTION, FORCE_SUB_IMAGE_URL, DB
 )
 from db_utils import (
     send_log_message, get_user_lang, set_user_lang, get_referral_bonus_inr, 
@@ -26,77 +27,99 @@ from db_utils import (
     get_bot_stats, pay_referrer_and_update_mission,
     get_user_stats, admin_add_money, admin_clear_earnings, admin_delete_user, clear_junk_users
 )
-from image_utils import generate_leaderboard_image
 
 logger = logging.getLogger(__name__)
 
+# ================== FORCE JOIN FUNCTIONS (ADVANCED) ==================
 
-# --- 1. NEW HANDLER: CAPTURE JOIN REQUEST ---
-async def on_join_request(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Jab user 'Request to Join' click karega, ye trigger hoga."""
-    request = update.chat_join_request
-    user_id = request.from_user.id
-    chat_id = request.chat.id
-    
-    logger.info(f"Join Request Received: User {user_id} -> Channel {chat_id}")
-    
-    # DB mein save kar lo ki isne request bhej di hai
-    JOIN_REQUESTS_COLLECTION.update_one(
-        {"user_id": user_id, "chat_id": chat_id},
-        {"$set": {"requested_at": datetime.now(), "status": "pending"}},
-        upsert=True
-    )
-    # Admin (Tum) baad mein approve karte rehna, user DB mein aa gaya.
-
-
-# --- 2. FAST CHANNEL MEMBERSHIP CHECK (Cache ke saath) ---
-async def check_channel_membership(bot, user_id):
-    """Checks if user is member OR has sent a join request (Fast version with caching)."""
+async def check_single_channel(bot, user_id, channel_id):
+    """एक चैनल की मेंबरशिप चेक करता है"""
     try:
-        # Check cache first (avoid multiple API calls)
-        cache_key = f"member_check_{user_id}"
-        if hasattr(bot, 'cache') and cache_key in bot.cache:
-            return bot.cache[cache_key]
-            
+        member = await bot.get_chat_member(channel_id, user_id)
+        if member.status in ["member", "administrator", "creator"]:
+            return True
+    except Exception:
+        if REQUEST_MODE and channel_id in PRIVATE_CHANNELS:
+            request = JOIN_REQUESTS_COLLECTION.find_one({
+                "user_id": user_id, 
+                "chat_id": channel_id
+            })
+            if request:
+                return True
+    return False
+
+async def check_channel_membership(bot, user_id):
+    """सभी चैनल्स की मेंबरशिप एक साथ चेक करता है (PARALLEL)"""
+    try:
+        tasks = []
         for channel_id in FORCE_JOIN_CHANNELS:
-            is_verified = False
-            
-            # 1. पहले चेक करें कि क्या वो पहले से मेंबर है
-            try:
-                member = await bot.get_chat_member(channel_id, user_id)
-                if member.status in ["member", "administrator", "creator"]:
-                    is_verified = True
-            except Exception:
-                pass
-
-            # 2. अगर मेंबर नहीं है, तो चेक करें कि क्या उसने रिक्वेस्ट भेजी है?
-            if not is_verified and REQUEST_MODE and channel_id in PRIVATE_CHANNELS:
-                # DB check (fast)
-                request_found = JOIN_REQUESTS_COLLECTION.find_one({"user_id": user_id, "chat_id": channel_id})
-                if request_found:
-                    is_verified = True
-
-            # अगर दोनों चेक फेल हो गए, तो False return करें
-            if not is_verified:
-                # Cache result for 30 seconds
-                if not hasattr(bot, 'cache'):
-                    bot.cache = {}
-                bot.cache[cache_key] = False
+            tasks.append(check_single_channel(bot, user_id, channel_id))
+        
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        for result in results:
+            if isinstance(result, Exception):
+                logger.error(f"Channel check error: {result}")
                 return False
-            
-        # सब पास हो गए
-        if not hasattr(bot, 'cache'):
-            bot.cache = {}
-        bot.cache[cache_key] = True
+            if not result:
+                return False
         return True
         
     except Exception as e:
         logger.error(f"Force Subscribe Check Failed: {e}")
         return False
 
+async def generate_channel_link(context, channel_id, user_id, index):
+    """चैनल के लिए लिंक जनरेट करता है (पब्लिक/प्राइवेट)"""
+    try:
+        if channel_id in PRIVATE_CHANNELS and REQUEST_MODE:
+            link_obj = await context.bot.create_chat_invite_link(
+                chat_id=channel_id,
+                name=f"Bot_Req_{user_id}",
+                creates_join_request=True 
+            )
+            return {
+                "button": InlineKeyboardButton(
+                    f"🔐 Request Join Channel {index+1}", 
+                    url=link_obj.invite_link
+                )
+            }
+        else:
+            chat = await context.bot.get_chat(channel_id)
+            link = chat.invite_link
+            if not link:
+                link = await context.bot.export_chat_invite_link(channel_id)
+            return {
+                "button": InlineKeyboardButton(
+                    f"🚀 Join Channel {index+1}", 
+                    url=link
+                )
+            }
+    except Exception as e:
+        logger.error(f"Link Generation Failed for {channel_id}: {e}")
+        return {
+            "button": InlineKeyboardButton(
+                f"🚀 Join Channel {index+1}", 
+                url=f"https://t.me/c/{str(channel_id)[4:]}"
+            )
+        }
 
-# --- VERIFY CHANNEL JOIN CALLBACK (MULTI-CHANNEL) ---
+async def on_join_request(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """जब यूजर रिक्वेस्ट भेजता है"""
+    request = update.chat_join_request
+    user_id = request.from_user.id
+    chat_id = request.chat.id
+    
+    logger.info(f"Join Request Received: User {user_id} -> Channel {chat_id}")
+    
+    JOIN_REQUESTS_COLLECTION.update_one(
+        {"user_id": user_id, "chat_id": chat_id},
+        {"$set": {"requested_at": datetime.now(), "status": "pending"}},
+        upsert=True
+    )
+
 async def verify_channel_join(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """वेरिफाई बटन पर क्लिक करने पर"""
     query = update.callback_query
     user = query.from_user
     
@@ -125,117 +148,47 @@ async def verify_channel_join(update: Update, context: ContextTypes.DEFAULT_TYPE
     else:
         await query.answer("❌ You have NOT joined all channels! Join first.", show_alert=True)
         
-        # Generate invite links for all channels (FAST)
         keyboard = []
+        link_tasks = []
+        
         for i, channel_id in enumerate(FORCE_JOIN_CHANNELS):
-            try:
-                # Agar Private Channel hai aur Request Mode ON hai
-                if channel_id in PRIVATE_CHANNELS and REQUEST_MODE:
-                    # Create Request Link
-                    link_obj = await context.bot.create_chat_invite_link(
-                        chat_id=channel_id,
-                        name=f"Bot_Req_{user.id}",
-                        creates_join_request=True 
-                    )
-                    link = link_obj.invite_link
-                    btn_text = f"🔐 Request Join Channel {i+1}"
-                else:
-                    # Public Channel - get invite link
-                    try:
-                        # Try to get existing invite link first
-                        chat = await context.bot.get_chat(channel_id)
-                        link = chat.invite_link
-                        if not link:
-                            link = await context.bot.export_chat_invite_link(channel_id)
-                        btn_text = f"🚀 Join Channel {i+1}"
-                    except Exception as e:
-                        logger.error(f"Failed to get public link for {channel_id}: {e}")
-                        # Fallback to t.me link
-                        link = f"https://t.me/c/{str(channel_id)[4:]}"
-                        btn_text = f"🚀 Join Channel {i+1}"
-                    
-                keyboard.append([InlineKeyboardButton(btn_text, url=link)])
-            except Exception as e:
-                logger.error(f"Link Generation Failed for {channel_id}: {e}")
-                keyboard.append([InlineKeyboardButton(f"🚀 Join Channel {i+1}", url=f"https://t.me/c/{str(channel_id)[4:]}")])
+            link_tasks.append(generate_channel_link(context, channel_id, user.id, i))
+        
+        link_results = await asyncio.gather(*link_tasks, return_exceptions=True)
+        
+        for result in link_results:
+            if isinstance(result, dict) and "button" in result:
+                keyboard.append([result["button"]])
         
         keyboard.append([InlineKeyboardButton("🔄 Try Again / Verify", callback_data="verify_channel_join")])
         
         await query.edit_message_text(
-            "⚠️ **Access Denied!**\n\nआपको आगे बढ़ने के लिए नीचे दिए गए सभी चैनल्स को जॉइन करना होगा।",
+            "⚠️ Access Denied!\n\nआपको आगे बढ़ने के लिए नीचे दिए गए सभी चैनल्स को जॉइन करना होगा।",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
 
+# ================== START COMMAND ==================
 
-async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    logger.error("Exception while handling an update:", exc_info=context.error)
-    
-    error_detail = str(context.error)
-    if "Message is not modified" in error_detail:
-        logger.warning("Ignoring 'Message is not modified' error.")
-        return
-
-    try:
-        error_msg = f"❌ An error occurred! Details: {context.error}"
-        if update and update.effective_chat:
-            if update.effective_chat.type == 'private' or (update.effective_chat.type != 'private' and update.message and update.message.text and update.message.text.startswith('/')):
-                await context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text="❌ **Oops!** Something went wrong. The error has been logged.",
-                    parse_mode='Markdown'
-                )
-        
-        if ADMIN_ID:
-            await context.bot.send_message(
-                chat_id=ADMIN_ID,
-                text=f"🚨 **Bot Error**:\n\n`{error_msg}`\n\n**Update:** `{update}`",
-                parse_mode='Markdown'
-            )
-    except Exception as e:
-        logger.error(f"Failed to handle error: {e}")
-
-
-# --- FAST START COMMAND WITH MULTI-CHANNEL FORCE JOIN ---
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     full_name = user.first_name + (f" {user.last_name}" if user.last_name else "")
     username_display = f"<a href='tg://user?id={user.id}'>{full_name}</a>"
     
-    # --- FAST FORCE JOIN CHECK (with caching) ---
+    # --- FORCE JOIN CHECK (MULTI-CHANNEL) ---
     is_member = await check_channel_membership(context.bot, user.id)
     
     if not is_member:
-        # Generate invite links for all channels (FAST)
         keyboard = []
+        link_tasks = []
+        
         for i, channel_id in enumerate(FORCE_JOIN_CHANNELS):
-            try:
-                # Agar Private Channel hai aur Request Mode ON hai
-                if channel_id in PRIVATE_CHANNELS and REQUEST_MODE:
-                    # Create Request Link (creates_join_request=True)
-                    link_obj = await context.bot.create_chat_invite_link(
-                        chat_id=channel_id,
-                        name=f"Bot_Ref_{user.id}",
-                        creates_join_request=True 
-                    )
-                    link = link_obj.invite_link
-                    btn_text = f"🔐 Request Join Channel {i+1}"
-                else:
-                    # Public Channel Logic
-                    try:
-                        chat = await context.bot.get_chat(channel_id)
-                        link = chat.invite_link
-                        if not link:
-                            link = await context.bot.export_chat_invite_link(channel_id)
-                        btn_text = f"🚀 Join Channel {i+1}"
-                    except Exception as e:
-                        logger.error(f"Failed to get public link for {channel_id}: {e}")
-                        link = f"https://t.me/c/{str(channel_id)[4:]}"
-                        btn_text = f"🚀 Join Channel {i+1}"
-                
-                keyboard.append([InlineKeyboardButton(btn_text, url=link)])
-            except Exception as e:
-                logger.error(f"Link Generation Failed for {channel_id}: {e}")
-                keyboard.append([InlineKeyboardButton(f"🚀 Join Channel {i+1}", url=f"https://t.me/c/{str(channel_id)[4:]}")])
+            link_tasks.append(generate_channel_link(context, channel_id, user.id, i))
+        
+        link_results = await asyncio.gather(*link_tasks, return_exceptions=True)
+        
+        for result in link_results:
+            if isinstance(result, dict) and "button" in result:
+                keyboard.append([result["button"]])
         
         keyboard.append([InlineKeyboardButton("✅ Verify Join", callback_data="verify_channel_join")])
         
@@ -243,7 +196,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             f"👋 <b>Hello {user.first_name}!</b>\n\n"
             f"⛔️ <b>Access Denied!</b>\n"
             f"You must join our official channels to use this bot.\n"
-            f"<i>(Private channel ke liye Request bhejein, bot turant verify kar lega)</i>"
+            f"<i>(Private channels: Click 'Request Join', then verify)</i>"
         )
         if update.message:
             await update.message.reply_photo(
@@ -253,49 +206,50 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 parse_mode='HTML'
             )
         return 
-    # --- END FORCE JOIN CHECK ---
     
-    # --- FAST USER REGISTRATION ---
+    # --- REFERRAL LOGIC ---
     referral_id_str = context.args[0].replace("ref_", "") if context.args and context.args[0].startswith("ref_") else None
     referral_id = int(referral_id_str) if referral_id_str and referral_id_str.isdigit() else None
 
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
     is_new_user = not user_data
 
-    if is_new_user:
-        # Fast insert
-        update_data = {
-            "$setOnInsert": {
-                "user_id": user.id,
-                "username": user.username,
-                "full_name": full_name,
-                "lang": "en",
-                "is_approved": True,
-                "earnings": 0.0,
-                "last_checkin_date": None,
-                "daily_bonus_streak": 0,
-                "missions_completed": {},
-                "welcome_bonus_received": False,
-                "joined_date": datetime.now(),
-                "daily_searches": 0, 
-                "last_search_date": None,
-                "channel_bonus_received": False, 
-                "spins_left": SPIN_WHEEL_CONFIG["initial_free_spins"],
-                "monthly_referrals": 0,
-                "payment_method": None,
-                "payment_details": None
-            }
+    update_data = {
+        "$setOnInsert": {
+            "user_id": user.id,
+            "username": user.username,
+            "full_name": full_name,
+            "lang": "en",
+            "is_approved": True,
+            "earnings": 0.0,
+            "last_checkin_date": None,
+            "daily_bonus_streak": 0,
+            "missions_completed": {},
+            "welcome_bonus_received": False,
+            "joined_date": datetime.now(),
+            "daily_searches": 0, 
+            "last_search_date": None,
+            "channel_bonus_received": False, 
+            "spins_left": SPIN_WHEEL_CONFIG["initial_free_spins"],
+            "monthly_referrals": 0,
+            "total_active_referrals": 0,
+            "payment_method": None,
+            "payment_details": None
         }
-        
-        USERS_COLLECTION.update_one(
-            {"user_id": user.id},
-            update_data,
-            upsert=True
-        )
+    }
+    
+    USERS_COLLECTION.update_one(
+        {"user_id": user.id},
+        update_data,
+        upsert=True
+    )
 
-        user_data = USERS_COLLECTION.find_one({"user_id": user.id})
+    user_data = USERS_COLLECTION.find_one({"user_id": user.id})
+    lang = user_data.get("lang", "en")
+    
+    if is_new_user:
+        log_msg = f"👤 <b>New User</b>\nID: <code>{user.id}</code>\nName: {full_name}\nUsername: {username_display}"
         
-        # Welcome bonus
         if not user_data.get("welcome_bonus_received", False):
             welcome_bonus_inr = await get_welcome_bonus()
             
@@ -303,14 +257,14 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 {"user_id": user.id},
                 {"$inc": {"earnings": welcome_bonus_inr}, "$set": {"welcome_bonus_received": True}}
             )
-            
             try:
-                lang = "en"  # Default
-                await update.message.reply_html(f"🎁 Welcome Bonus: ₹{welcome_bonus_inr:.2f}")
+                await update.message.reply_html(MESSAGES[lang]["welcome_bonus_received"].format(amount=welcome_bonus_inr))
             except Exception:
                  pass
+            log_msg += f"\n🎁 Welcome Bonus: ₹{welcome_bonus_inr:.2f}"
+            log_msg += f"\n🎰 Initial Spins: {SPIN_WHEEL_CONFIG['initial_free_spins']}"
 
-        # Handle referral
+        # --- REFERRAL HANDLING (PENDING UNTIL FIRST SEARCH) ---
         if referral_id and referral_id != user.id:
             existing_referral = REFERRALS_COLLECTION.find_one({"referred_user_id": user.id})
             
@@ -321,26 +275,31 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                     "referred_username": user.username,
                     "join_date": datetime.now(),
                     "last_paid_date": None, 
-                    "paid_search_count_today": 0 
+                    "paid_search_count_today": 0,
+                    "is_active": False,
+                    "first_search_date": None
                 })
                 
-                USERS_COLLECTION.update_one(
-                    {"user_id": referral_id},
-                    {"$inc": {"monthly_referrals": 1}}
-                )
-                
-                # Notify referrer
+                log_msg += f"\n🔗 Referred by: <code>{referral_id}</code> (Pending First Search)"
+
                 try:
+                    referrer_lang = await get_user_lang(referral_id)
                     await context.bot.send_message(
                         chat_id=referral_id,
-                        text=f"🎉 New Referral!\n\n{full_name} joined using your link!\n\n💰 They need to search a movie in the group for you to earn daily!"
+                        text=MESSAGES[referrer_lang]["new_referral_notification"].format(
+                            full_name=full_name, 
+                            username=username_display
+                        ),
+                        parse_mode='HTML'
                     )
-                except Exception as e:
+                except (TelegramError, TimedOut) as e:
                     logger.error(f"Could not notify referrer {referral_id}: {e}")
+            else:
+                log_msg += f"\n❌ Referral ignored (already referred by {existing_referral['referrer_id']})"
 
-    # --- FAST MAIN MENU (without waiting) ---
-    lang = await get_user_lang(user.id)
-    
+        await send_log_message(context, log_msg)
+
+    # --- MAIN MENU ---
     keyboard = [
         [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
         [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
@@ -358,16 +317,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     if update.message:
         await update.message.reply_html(message, reply_markup=reply_markup)
 
+# ================== GROUP MESSAGE HANDLER (REFERRAL ACTIVATION) ==================
 
-async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if update.message:
-        lang = await get_user_lang(update.effective_user.id)
-        keyboard = [[InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")]]
-        await update.message.reply_html(MESSAGES[lang]["earning_panel_message"], reply_markup=InlineKeyboardMarkup(keyboard))
-
-
-# --- FAST GROUP MESSAGE HANDLER (No delays) ---
 async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """ग्रुप मैसेज हैंडलर - रेफरल एक्टिवेशन और पेमेंट"""
     if not update.message or not update.message.text:
         return
         
@@ -385,17 +338,54 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
     if not user_data:
         return 
 
-    # 1. Update Daily Searches (fast)
+    # 1. Update Daily Searches
     await update_daily_searches_and_mission(user.id)
     
-    # 2. Check Referral Logic (fast - no job queue)
+    # 2. Check Referral Logic
     referral_data = REFERRALS_COLLECTION.find_one({"referred_user_id": user.id})
     
     if referral_data:
         referrer_id = referral_data["referrer_id"]
         
         if referrer_id != user.id:
-            # Check if already paid today
+            # FIRST SEARCH CHECK - Activate referral
+            if not referral_data.get("is_active", False):
+                # Activate this referral
+                REFERRALS_COLLECTION.update_one(
+                    {"_id": referral_data["_id"]},
+                    {"$set": {
+                        "first_search_date": datetime.now(), 
+                        "is_active": True
+                    }}
+                )
+                
+                # Update referrer's active referrals count
+                USERS_COLLECTION.update_one(
+                    {"user_id": referrer_id},
+                    {"$inc": {"total_active_referrals": 1, "monthly_referrals": 1}}
+                )
+                
+                # Give referrer 1 spin
+                USERS_COLLECTION.update_one(
+                    {"user_id": referrer_id},
+                    {"$inc": {"spins_left": 1}}
+                )
+                
+                # Notify referrer
+                try:
+                    referrer_lang = await get_user_lang(referrer_id)
+                    referred_name = user_data.get("full_name", f"User {user.id}")
+                    await context.bot.send_message(
+                        chat_id=referrer_id,
+                        text=MESSAGES[referrer_lang]["referral_activated"].format(
+                            full_name=referred_name
+                        ),
+                        parse_mode='HTML'
+                    )
+                except Exception as e:
+                    logger.error(f"Could not notify referrer {referrer_id}: {e}")
+            
+            # DAILY PAYMENT CHECK
             last_paid_date = referral_data.get("last_paid_date")
             today = datetime.now().date()
             
@@ -403,12 +393,19 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
             if last_paid_date and isinstance(last_paid_date, datetime) and last_paid_date.date() == today:
                 already_paid = True
             
-            if not already_paid:
-                # Direct Pay Function Call (fast)
+            if not already_paid and referral_data.get("is_active", False):
+                # Direct Pay Function Call
                 success, daily_amount = await pay_referrer_and_update_mission(context, user.id, referrer_id)
                 if success:
                     logger.info(f"Referral Paid INSTANTLY: {referrer_id} from {user.id} (Amount: {daily_amount})")
 
+# ================== EARNING PANEL FUNCTIONS ==================
+
+async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.message:
+        lang = await get_user_lang(update.effective_user.id)
+        keyboard = [[InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")]]
+        await update.message.reply_html(MESSAGES[lang]["earning_panel_message"], reply_markup=InlineKeyboardMarkup(keyboard))
 
 async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -425,16 +422,13 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     if not user_data:
         await query.answer("User data not found.", show_alert=True)
-        if query.message: 
-             try:
-                 await query.edit_message_text("User data not found.")
-             except Exception:
-                  await context.bot.send_message(user.id, "User data not found.")
         return
     
     earnings_inr = user_data.get("earnings", 0.0)
     
-    referrals_count = REFERRALS_COLLECTION.count_documents({"referrer_id": user.id, "referred_user_id": {"$ne": user.id}})
+    referrals_count = REFERRALS_COLLECTION.count_documents({"referrer_id": user.id, "is_active": True})
+    pending_referrals = REFERRALS_COLLECTION.count_documents({"referrer_id": user.id, "is_active": False})
+    
     user_tier = await get_user_tier(user.id)
     tier_info = TIERS.get(user_tier, TIERS[1]) 
     spins_left = user_data.get("spins_left", 0)
@@ -443,7 +437,8 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
         f"<b>💰 Earning Panel</b>\n\n"
         f"🏅 <b>Current Tier:</b> {tier_info['name']} (Level {user_tier})\n"
         f"💵 <b>Balance:</b> ₹{earnings_inr:.2f}\n"
-        f"👥 <b>Total Referrals:</b> {referrals_count}\n"
+        f"👥 <b>Active Referrals:</b> {referrals_count}\n"
+        f"⏳ <b>Pending Referrals:</b> {pending_referrals}\n"
         f"🎯 <b>Referral Rate:</b> ₹{tier_info['rate']:.2f}/referral\n\n"
         f"<i>Earn more to unlock higher tiers with better rates!</i>"
     )
@@ -475,8 +470,6 @@ async def show_earning_panel(update: Update, context: ContextTypes.DEFAULT_TYPE)
         except TelegramError as e:
             if "Message is not modified" not in str(e):
                 logger.error(f"Error editing message in show_earning_panel: {e}")
-            pass
-
 
 async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -490,6 +483,9 @@ async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     referral_records = list(REFERRALS_COLLECTION.find({"referrer_id": user.id, "referred_user_id": {"$ne": user.id}}).sort("join_date", -1))
     
     total_referrals = len(referral_records)
+    active_referrals = sum(1 for r in referral_records if r.get("is_active", False))
+    pending_referrals = total_referrals - active_referrals
+    
     today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     
     paid_searches_today_count = 0
@@ -498,38 +494,30 @@ async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         if last_paid and isinstance(last_paid, datetime) and last_paid.date() == today_start.date():
              paid_searches_today_count += 1
         
-    
     message = f"👥 <b>My Referrals</b>\n\n"
     message += f"🔗 Total Referrals: <b>{total_referrals}</b>\n"
-    message += f"✅ Active Today (Searched): <b>{paid_searches_today_count}</b>\n"
-    message += f"ℹ️ You get paid daily when your referrals search movies!\n\n"
+    message += f"✅ Active Referrals: <b>{active_referrals}</b>\n"
+    message += f"⏳ Pending (Need Search): <b>{pending_referrals}</b>\n"
+    message += f"💰 Paid Today: <b>{paid_searches_today_count}</b>\n\n"
     
     if total_referrals == 0:
         message += "\n❌ You have not referred anyone yet. Share your link now!"
     else:
-        message += f"<i>Showing last 10 referrals.</i>\n\n"
+        message += f"ℹ️ <i>Showing last 10 referrals.</i>\n\n"
         
-        referred_ids = [ref['referred_user_id'] for ref in referral_records[:10]]
-        referred_users_data = USERS_COLLECTION.find({"user_id": {"$in": referred_ids}})
-        
-        user_names_map = {
-            user_doc["user_id"]: user_doc.get("full_name", f"User {user_doc['user_id']}")
-            for user_doc in referred_users_data
-        }
-
         for i, ref_record in enumerate(referral_records[:10]):
             referred_id = ref_record['referred_user_id']
             join_date = ref_record['join_date'].strftime("%d %b %Y")
-            last_paid = ref_record.get('last_paid_date')
             
-            status_emoji = "❌ (No search yet)"
-            if last_paid and last_paid.date() == today_start.date():
-                 status_emoji = "✅ (Searched today)"
-
-            full_name = user_names_map.get(referred_id, f"User {referred_id}")
-            display_name_link = f"<a href='tg://user?id={referred_id}'>{full_name}</a>"
+            if ref_record.get("is_active", False):
+                status_emoji = "✅ Active"
+                last_paid = ref_record.get('last_paid_date')
+                if last_paid and last_paid.date() == today_start.date():
+                    status_emoji = "✅ Paid Today"
+            else:
+                status_emoji = "⏳ Pending (Need Search)"
             
-            message += f"🔸 <b>{i+1}. {display_name_link}</b>\n"
+            message += f"🔸 <b>{i+1}.</b> User {referred_id}\n"
             message += f"   - Joined: {join_date}\n"
             message += f"   - Status: {status_emoji}\n"
 
@@ -540,7 +528,6 @@ async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-
 
 async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -560,15 +547,16 @@ async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     message = (
         f"<b>🤑 ₹{max_tier_rate:.2f} Per Referral! Get Rich Fast!</b>\n\n"
         f"{MESSAGES[lang]['ref_link_message'].format(referral_link=referral_link, tier_rate=max_tier_rate)}\n\n"
-        f"<b>💡 Secret Tip:</b> Your friends must <b>search one movie</b> in the group to unlock your daily earning! Share this now!"
+        f"<b>💡 IMPORTANT:</b> Your friends must <b>search one movie</b> in the group to ACTIVATE the referral!\n"
+        f"Only after that you'll earn daily from them."
     )
 
     share_message_text = (
         f"🎉 <b>सबसे बेहतरीन मूवी बॉट को अभी जॉइन करें और रोज़ कमाएँ!</b>\n\n"
         f"🎬 हर नई हॉलीवुड/बॉलीवुड मूवी पाएँ!\n"
         f"💰 <b>₹{await get_welcome_bonus():.2f} वेलकम बोनस</b> तुरंत पाएँ!\n"
-        f"💸 <b>हर रेफ़र पर ₹{max_tier_rate:.2f} तक</b> कमाएँ! (जब आपका दोस्त मूवी सर्च करेगा)\n\n"
-        f"🚀 <b>मेरी स्पेशल लिंक से जॉइन करें और अपनी कमाई शुरू करें:</b> {referral_link}"
+        f"💸 <b>हर रेफ़र पर ₹{max_tier_rate:.2f} तक</b> कमाएँ!\n\n"
+        f"🚀 <b>मेरी स्पेशल लिंक से जॉइन करें:</b> {referral_link}"
     )
     
     encoded_text = urllib.parse.quote_plus(share_message_text)
@@ -582,6 +570,123 @@ async def show_refer_link(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if query.message:
         await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
+# ================== BONUS FUNCTIONS (FIRST COME FIRST SERVED) ==================
+
+async def claim_special_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """स्पेशल बोनस क्लेम करने के लिए - पहले आओ पहले पाओ"""
+    query = update.callback_query
+    await query.answer()
+    
+    user = query.from_user
+    bonus_code = query.data.split("_")[2]  # claim_bonus_ABC123
+    
+    # बोनस ढूंढो
+    bonus = BONUS_COLLECTION.find_one({"code": bonus_code, "status": "active"})
+    
+    if not bonus:
+        await query.edit_message_text(
+            "❌ <b>Invalid or expired bonus code!</b>\n\n"
+            "This bonus may have already been claimed or expired.",
+            parse_mode='HTML'
+        )
+        return
+        
+    # एक्सपायरी चेक करो
+    if bonus["expires_at"] < datetime.now():
+        BONUS_COLLECTION.update_one({"code": bonus_code}, {"$set": {"status": "expired"}})
+        await query.edit_message_text(MESSAGES[user.lang.get("bonus_expired", "❌ This bonus has expired!")], parse_mode='HTML')
+        return
+    
+    # पहले से क्लेम हुआ है क्या?
+    if bonus.get("claimed_by"):
+        claimed_user = USERS_COLLECTION.find_one({"user_id": bonus["claimed_by"]})
+        claimed_name = claimed_user.get("full_name", "Unknown") if claimed_user else "Unknown"
+        claimed_time = bonus["claimed_at"].strftime("%Y-%m-%d %H:%M:%S")
+        
+        lang = await get_user_lang(user.id)
+        msg = MESSAGES[lang].get("bonus_already_claimed", "❌ Bonus Already Claimed!").format(
+            amount=bonus['amount'],
+            claimed_by=claimed_name,
+            claimed_time=claimed_time
+        )
+        
+        await query.edit_message_text(msg, parse_mode='HTML')
+        return
+    
+    # बोनस क्लेम करो!
+    USERS_COLLECTION.update_one(
+        {"user_id": user.id},
+        {"$inc": {"earnings": bonus['amount']}}
+    )
+    
+    # बोनस को क्लेम्ड मार्क करो
+    BONUS_COLLECTION.update_one(
+        {"code": bonus_code},
+        {"$set": {
+            "status": "claimed",
+            "claimed_by": user.id,
+            "claimed_at": datetime.now()
+        }}
+    )
+    
+    # नया बैलेंस लाओ
+    updated_user = USERS_COLLECTION.find_one({"user_id": user.id})
+    new_balance = updated_user.get("earnings", 0.0)
+    
+    lang = await get_user_lang(user.id)
+    success_msg = MESSAGES[lang].get("bonus_claimed_success", "🎉 Bonus Claimed!").format(
+        amount=bonus['amount'],
+        new_balance=new_balance
+    )
+    
+    await query.edit_message_text(success_msg, parse_mode='HTML')
+    
+    # एडमिन को सूचना
+    await send_log_message(
+        context,
+        f"🎁 <b>Bonus Claimed!</b>\n\n"
+        f"User: {user.first_name} (ID: {user.id})\n"
+        f"Bonus Code: {bonus_code}\n"
+        f"Amount: ₹{bonus['amount']:.2f}"
+    )
+
+# ================== LANGUAGE FUNCTIONS ==================
+
+async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    if not query or not query.message: 
+        return
+        
+    await query.answer()
+    lang = await get_user_lang(query.from_user.id)
+    
+    keyboard = [
+        [InlineKeyboardButton("English 🇬🇧", callback_data="lang_en")],
+        [InlineKeyboardButton("हिन्दी 🇮🇳", callback_data="lang_hi")],
+        [InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    try:
+        message_text = MESSAGES[lang]["language_prompt"]
+    except KeyError:
+        message_text = "Please select your language:"
+
+    await query.edit_message_text(message_text, reply_markup=reply_markup)
+
+async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    if not query:
+        return
+        
+    await query.answer()
+    new_lang = query.data.split("_")[1]
+    
+    await set_user_lang(query.from_user.id, new_lang)
+    
+    await back_to_main_menu(update, context)
+
+# ================== DAILY BONUS ==================
 
 async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -590,7 +695,6 @@ async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         
     user = query.from_user
     lang = await get_user_lang(user.id)
-    username_display = f"@{user.username}" if user.username else f"<code>{user.id}</code>"
     
     bonus_amount, new_balance_inr, streak, already_claimed = await claim_and_update_daily_bonus(user.id)
     
@@ -604,7 +708,6 @@ async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         except TelegramError as e:
             if "Message is not modified" not in str(e):
                 logger.error(f"Error editing message in claim_daily_bonus (already_claimed): {e}")
-            pass
         return
     
     if bonus_amount is None:
@@ -632,9 +735,11 @@ async def claim_daily_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         reply_markup=reply_markup
     )
     
+    username_display = f"@{user.username}" if user.username else f"<code>{user.id}</code>"
     log_msg = f"🎁 <b>Daily Bonus</b>\nUser: {username_display}\nAmount: ₹{bonus_amount:.2f}\nStreak: {streak} days\nNew Balance: ₹{new_balance_inr:.2f}"
     await send_log_message(context, log_msg)
 
+# ================== SPIN WHEEL ==================
 
 async def show_spin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -666,7 +771,6 @@ async def show_spin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
-
 async def perform_spin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message: 
@@ -674,7 +778,6 @@ async def perform_spin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         
     user = query.from_user
     lang = await get_user_lang(user.id)
-    username_display = f"@{user.username}" if user.username else f"<code>{user.id}</code>"
 
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
     if not user_data:
@@ -706,6 +809,7 @@ async def perform_spin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         
     spins_left_after_deduct = result.get("spins_left", 0)
 
+    # Animation
     button_prizes = list(SPIN_PRIZES)
     random.shuffle(button_prizes)
     temp_prizes = [p for p in SPIN_PRIZES if p > 0.0]
@@ -728,6 +832,7 @@ async def perform_spin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     updated_data = USERS_COLLECTION.find_one({"user_id": user.id})
     final_balance_inr = updated_data.get("earnings", 0.0)
 
+    username_display = f"@{user.username}" if user.username else f"<code>{user.id}</code>"
     log_msg = f"🎡 <b>Spin Wheel</b>\nUser: {username_display}\nCost: 1 Spin\n"
     
     if prize_inr > 0:
@@ -751,12 +856,12 @@ async def perform_spin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         reply_markup=reply_markup, parse_mode='HTML'
     )
 
-
 async def spin_fake_btn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if query: 
         await query.answer("🎡 Spinning... Please wait!", show_alert=False)
 
+# ================== MISSIONS ==================
 
 async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -793,7 +898,7 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         )
         
     paid_searches_today_count = 0
-    referral_records = list(REFERRALS_COLLECTION.find({"referrer_id": user.id, "referred_user_id": {"$ne": user.id}}))
+    referral_records = list(REFERRALS_COLLECTION.find({"referrer_id": user.id, "is_active": True}))
     
     for ref_record in referral_records:
         last_paid = ref_record.get("last_paid_date")
@@ -802,18 +907,17 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         
     referrals_today_count = REFERRALS_COLLECTION.count_documents({
         "referrer_id": user.id,
-        "referred_user_id": {"$ne": user.id}, 
         "join_date": {"$gte": today_start}
     })
     
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
     missions_completed = user_data.get("missions_completed", {})
-    daily_searches = user_data.get("daily_searches", 0) 
     
     message = f"{MESSAGES[lang]['missions_title']}\n\n"
     newly_completed_message = ""
     total_reward = 0.0
 
+    # Mission 1: Search 3 Movies
     mission_key = "search_3_movies"
     mission = DAILY_MISSIONS[mission_key]
     name = mission["name"] if lang == "en" else mission["name_hi"]
@@ -836,6 +940,7 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         message += f"⏳ {name} ({min(paid_searches_today_count, mission['target'])}/{mission['target']}) [In Progress]\n"
         message += f"   - <i>Tip: Your referred user must search a movie for this count to increase!</i>\n"
         
+    # Mission 2: Refer 2 Friends
     mission_key = "refer_2_friends"
     mission = DAILY_MISSIONS[mission_key]
     name = mission["name"] if lang == "en" else mission["name_hi"]
@@ -857,6 +962,7 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     else:
         message += f"⏳ {name} ({min(referrals_today_count, mission['target'])}/{mission['target']}) [In Progress]\n"
 
+    # Mission 3: Claim Daily Bonus
     mission_key = "claim_daily_bonus"
     mission = DAILY_MISSIONS[mission_key]
     name = mission["name"] if lang == "en" else mission["name_hi"]
@@ -879,7 +985,6 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     else:
         message += f"⏳ {name} [In Progress]\n"
 
-
     if total_reward > 0:
         updated_data = USERS_COLLECTION.find_one({"user_id": user.id})
         updated_earnings_inr = updated_data.get("earnings", 0.0)
@@ -893,8 +998,7 @@ async def show_missions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
-
-# --- NEW ADVANCED WITHDRAWAL SYSTEM WITH TOP/BOTTOM BUTTONS ---
+# ================== WITHDRAWAL FUNCTIONS ==================
 
 async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -915,40 +1019,35 @@ async def request_withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE)
     method = user_data.get("payment_method")
     details = user_data.get("payment_details")
     
-    # पेंडिंग रिक्वेस्ट चेक करें
     pending = WITHDRAWALS_COLLECTION.find_one({"user_id": user.id, "status": "pending"})
     
-    text = f"💰 **Withdrawal Manager**\n\n"
-    text += f"💵 **Balance:** ₹{earnings_inr:.2f}\n"
+    text = f"💰 Withdrawal Manager\n\n"
+    text += f"💵 Balance: ₹{earnings_inr:.2f}\n"
     
     keyboard = []
     
-    # TOP BUTTON: Withdraw (बड़ा बटन)
     if pending:
-        text += f"⏳ **Status:** Request Pending (₹{pending['amount_inr']:.2f})\n"
+        text += f"⏳ Status: Request Pending (₹{pending['amount_inr']:.2f})\n"
         keyboard.append([InlineKeyboardButton("⏳ Processing...", callback_data="dummy")])
     elif earnings_inr < MIN_WITHDRAWAL_INR:
-        text += f"❌ **Minimum ₹{MIN_WITHDRAWAL_INR} required!**\n"
+        text += f"❌ Minimum ₹{MIN_WITHDRAWAL_INR} required!\n"
         keyboard.append([InlineKeyboardButton(f"💸 Need ₹{MIN_WITHDRAWAL_INR} to Withdraw", callback_data="dummy")])
     elif method and details:
         keyboard.append([InlineKeyboardButton("💸 WITHDRAW MONEY 💸", callback_data="process_withdraw_final")])
     else:
         keyboard.append([InlineKeyboardButton("⚠️ Setup Payment Details", callback_data="select_withdraw_method")])
 
-    # MIDDLE: Show Saved Details
     if method:
-        text += f"💳 **Method:** {method.upper()}\n📝 **Details:** {details}\n"
+        text += f"💳 Method: {method.upper()}\n📝 Details: {details}\n"
         btn_text = "✏️ Edit Details"
     else:
-        text += "❌ **Payment Details Not Set!**\n"
+        text += "❌ Payment Details Not Set!\n"
         btn_text = "➕ Add Details"
 
-    # BOTTOM BUTTONS
     keyboard.append([InlineKeyboardButton(btn_text, callback_data="select_withdraw_method")])
     keyboard.append([InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")])
     
     await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='HTML')
-
 
 async def show_withdrawal_method_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -963,25 +1062,23 @@ async def show_withdrawal_method_menu(update: Update, context: ContextTypes.DEFA
     except:
         await context.bot.send_message(query.from_user.id, msg, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='HTML')
 
-
 async def handle_method_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     
-    method = query.data.split("_")[2] # upi or bank
+    method = query.data.split("_")[2]
     context.user_data["setup_withdraw_method"] = method
     context.user_data["state"] = "waiting_for_withdraw_details"
     
     msg = ""
     if method == "upi":
-        msg = "✍️ <b>Enter your UPI ID:</b>\n\nExample: `username@oksbi`"
+        msg = "✍️ <b>Enter your UPI ID:</b>\n\nExample: username@oksbi"
     else:
-        msg = "✍️ <b>Enter Bank Details:</b>\n\nFormat: `AccountNo, IFSC, HolderName`"
+        msg = "✍️ <b>Enter Bank Details:</b>\n\nFormat: AccountNo, IFSC, HolderName"
     
     msg += "\n\n<i>Send your details in the next message.</i>"
     
     await query.edit_message_text(msg, parse_mode='HTML', reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Cancel", callback_data="request_withdrawal")]]))
-
 
 async def process_withdraw_final(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -991,13 +1088,12 @@ async def process_withdraw_final(update: Update, context: ContextTypes.DEFAULT_T
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
     earnings_inr = user_data.get("earnings", 0.0)
     
-    # Minimum balance check
     if earnings_inr < MIN_WITHDRAWAL_INR:
         await query.answer(f"❌ Minimum ₹{MIN_WITHDRAWAL_INR} required!", show_alert=True)
         return
     
     # TIERED REFERRAL CHECK
-    referrals_count = REFERRALS_COLLECTION.count_documents({"referrer_id": user.id})
+    active_referrals = REFERRALS_COLLECTION.count_documents({"referrer_id": user.id, "is_active": True})
     required_referrals = 0
     
     for requirement in WITHDRAWAL_REQUIREMENTS:
@@ -1005,22 +1101,21 @@ async def process_withdraw_final(update: Update, context: ContextTypes.DEFAULT_T
             required_referrals = requirement["required_refs"]
             break 
     
-    if referrals_count < required_referrals:
+    if active_referrals < required_referrals:
         msg = (
-            f"❌ <b>Insufficient Referrals!</b>\n\n"
-            f"Your balance is <b>₹{earnings_inr:.2f}</b>, you need <b>{required_referrals} referrals</b> to withdraw.\n\n"
-            f"👤 Your Current Referrals: {referrals_count}/{required_referrals}"
+            f"❌ <b>Insufficient Active Referrals!</b>\n\n"
+            f"Your balance is <b>₹{earnings_inr:.2f}</b>, you need <b>{required_referrals} ACTIVE referrals</b> to withdraw.\n\n"
+            f"👤 Your Active Referrals: {active_referrals}/{required_referrals}\n\n"
+            f"<i>Note: Referrals become ACTIVE only after they search a movie in the group.</i>"
         )
         await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]), parse_mode='HTML')
         return
 
-    # Pending check
     existing_request = WITHDRAWALS_COLLECTION.find_one({"user_id": user.id, "status": "pending"})
     if existing_request:
         await query.edit_message_text("⚠️ You already have a pending request!", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]))
         return
 
-    # Create Request
     payment_details = f"{user_data['payment_method'].upper()}: {user_data['payment_details']}"
     
     withdrawal_data = {
@@ -1036,12 +1131,12 @@ async def process_withdraw_final(update: Update, context: ContextTypes.DEFAULT_T
     
     WITHDRAWALS_COLLECTION.insert_one(withdrawal_data)
     
-    # Notify Admin
     if ADMIN_ID:
         admin_msg = (
             f"🔄 <b>New Withdrawal Request</b>\n"
             f"User: {user.first_name} (ID: {user.id})\n"
             f"Amount: <b>₹{earnings_inr:.2f}</b>\n"
+            f"Active Referrals: {active_referrals}\n"
             f"Details: {payment_details}"
         )
         try:
@@ -1052,7 +1147,6 @@ async def process_withdraw_final(update: Update, context: ContextTypes.DEFAULT_T
                 ]))
         except: pass
 
-    # Deduct amount immediately (important!)
     USERS_COLLECTION.update_one(
         {"user_id": user.id},
         {"$set": {"earnings": 0.0}}
@@ -1063,119 +1157,24 @@ async def process_withdraw_final(update: Update, context: ContextTypes.DEFAULT_T
         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
     )
 
+# ================== OTHER FUNCTIONS ==================
 
-# --- LANGUAGE MENU FUNCTIONS ---
-async def language_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    if not query or not query.message: 
-        return
-        
-    await query.answer()
-    lang = await get_user_lang(query.from_user.id)
-    
-    keyboard = [
-        [InlineKeyboardButton("English 🇬🇧", callback_data="lang_en")],
-        [InlineKeyboardButton("हिन्दी 🇮🇳", callback_data="lang_hi")],
-        [InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    try:
-        message_text = MESSAGES[lang]["language_prompt"]
-    except KeyError:
-        logger.error(f"KeyError: 'language_prompt' missing for language '{lang}'. Using fallback.")
-        message_text = "Please select your language:"
-
-    await query.edit_message_text(message_text, reply_markup=reply_markup)
-
-
-async def handle_lang_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    if not query:
-        return
-        
-    await query.answer()
-    new_lang = query.data.split("_")[1]
-    
-    await set_user_lang(query.from_user.id, new_lang)
-    
-    await back_to_main_menu(update, context) 
-
-
-async def show_user_pending_withdrawals(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    if not query or not query.message:
-        return
-        
-    user = query.from_user
-    lang = await get_user_lang(user.id)
-    await query.answer()
-
-    pending_requests = WITHDRAWALS_COLLECTION.find({"user_id": user.id, "status": "pending"}).sort("request_date", -1)
-    pending_count = WITHDRAWALS_COLLECTION.count_documents({"user_id": user.id, "status": "pending"})
-
-    message = f"<b>💸 Your Pending Withdrawal Requests ({pending_count})</b>\n\n"
-    
-    if pending_count == 0:
-        message += "✅ You have no pending withdrawal requests."
-    else:
-        for i, request in enumerate(pending_requests):
-            date_str = request["request_date"].strftime("%d %b %Y %H:%M")
-            message += f"**{i+1}.** Amount: ₹{request['amount_inr']:.2f}\n"
-            message += f"   - Requested On: {date_str}\n"
-            message += f"   - Status: ⏳ Pending\n\n"
-            
-    keyboard = [[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-
-
-async def show_movie_groups_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    if not query or not query.message: 
-        return
-        
-    await query.answer()
-
-    lang = await get_user_lang(query.from_user.id)
-
-    keyboard = [
-        [InlineKeyboardButton("🆕 New Movie Group", url=NEW_MOVIE_GROUP_LINK)],
-        [InlineKeyboardButton("Join Movies Group", url=MOVIE_GROUP_LINK)],
-        [InlineKeyboardButton("Join All Movie Groups", url=ALL_GROUPS_LINK)],
-        [InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    message = (
-        f"<b>🎬 Movie Groups</b>\n\n"
-        f"{MESSAGES[lang]['start_step1']}"
-    )
-
-    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-
-
-# --- FIXED BACK TO MAIN MENU FUNCTION ---
 async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """मेन मेनू पर वापस जाने के लिए हैंडलर - बैक बटन की समस्या ठीक की गई"""
+    """मेन मेनू पर वापस जाने के लिए"""
     query = update.callback_query
     user = update.effective_user
     
     if not user:
-        logger.warning("back_to_main_menu called without effective_user")
         return
 
     lang = await get_user_lang(user.id)
     
-    # पहले callback query को answer करें (अगर है तो)
     if query:
         try:
             await query.answer()
         except Exception as e:
             logger.debug(f"Could not answer callback query: {e}")
 
-    # मेन मेनू बटन
     keyboard = [
         [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
         [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
@@ -1190,20 +1189,15 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         f"<b>3.</b> {MESSAGES[lang]['start_step3']}"
     )
 
-    # अलग-अलग स्थितियों के लिए हैंडलिंग
     try:
         if query and query.message:
-            # केस 1: Callback query से आया है - message edit करने की कोशिश करें
             try:
                 await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
                 return
             except TelegramError as e:
                 if "Message is not modified" in str(e):
-                    # Message already same hai - ignore करें
                     return
                 elif "message can't be edited" in str(e) or "message not found" in str(e):
-                    # Edit नहीं कर सकते - नया message भेजें
-                    logger.debug(f"Cannot edit message, sending new one: {e}")
                     await context.bot.send_message(
                         chat_id=user.id,
                         text=message,
@@ -1211,8 +1205,6 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                         parse_mode='HTML'
                     )
                 else:
-                    # अन्य error - नया message भेजें
-                    logger.warning(f"Error editing message, sending new: {e}")
                     await context.bot.send_message(
                         chat_id=user.id,
                         text=message,
@@ -1220,10 +1212,8 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                         parse_mode='HTML'
                     )
         elif update.message:
-            # केस 2: Direct message से आया है
             await update.message.reply_html(message, reply_markup=reply_markup)
         else:
-            # केस 3: सिर्फ user ID है
             await context.bot.send_message(
                 chat_id=user.id,
                 text=message,
@@ -1232,7 +1222,6 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             )
     except Exception as e:
         logger.error(f"Unexpected error in back_to_main_menu: {e}")
-        # फॉलबैक: सीधे message भेजें
         try:
             await context.bot.send_message(
                 chat_id=user.id,
@@ -1242,7 +1231,6 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             )
         except:
             pass
-
 
 async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -1260,7 +1248,6 @@ async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
-
 async def show_tier_benefits(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message: 
@@ -1274,7 +1261,6 @@ async def show_tier_benefits(update: Update, context: ContextTypes.DEFAULT_TYPE)
     keyboard = [[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
-
 
 async def show_refer_example(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -1314,7 +1300,6 @@ async def show_refer_example(update: Update, context: ContextTypes.DEFAULT_TYPE)
     else:
         await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
 
-
 async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message: 
@@ -1322,7 +1307,6 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
         
     user = query.from_user
     lang = await get_user_lang(user.id)
-    username_display = f"@{user.username}" if user.username else f"<code>{user.id}</code>"
     
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
     
@@ -1333,47 +1317,8 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
         
     await query.answer("Checking channel membership...")
     
-    is_member = False
-    try:
-        # Check all channels for bonus eligibility (using first channel for bonus)
-        channel_id = FORCE_JOIN_CHANNELS[0] if FORCE_JOIN_CHANNELS else 0
-        member = await context.bot.get_chat_member(channel_id, user.id)
-        is_member = member.status in ["member", "administrator", "creator"]
-    except Exception as e:
-        logger.error(f"Error checking channel membership for {user.id}: {e}")
-
-        await send_log_message(
-            context, 
-            f"🚨 **Channel Check Error!**\n\nFailed to check membership for User <code>{user.id}</code> in channel <code>{channel_id}</code>.\nError: <code>{e}</code>\n\n<b>FIX:</b> Ensure bot is admin in the channel."
-        )
-
-        await query.answer(MESSAGES[lang]["channel_bonus_error"].format(channel=CHANNEL_USERNAME), show_alert=True)
-
-        # Generate dynamic link for retry
-        try:
-            chat = await context.bot.get_chat(channel_id)
-            invite_link = chat.invite_link
-            if not invite_link:
-                invite_link = await context.bot.export_chat_invite_link(channel_id)
-        except:
-            invite_link = f"https://t.me/{CHANNEL_USERNAME.replace('@', '')}"
-
-        join_button = InlineKeyboardButton("🔗 Join Channel", url=invite_link)
-        retry_button = InlineKeyboardButton("🔄 Try Again", callback_data="claim_channel_bonus")
-        back_button = InlineKeyboardButton("⬅️ Back to Earning Panel", callback_data="show_earning_panel")
-        keyboard = [[join_button, retry_button], [back_button]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-
-        try:
-            await query.edit_message_text(
-                MESSAGES[lang]["channel_bonus_error"].format(channel=CHANNEL_USERNAME), 
-                reply_markup=reply_markup,
-                parse_mode='HTML'
-            )
-        except TelegramError: pass
-
-        return
-        
+    is_member = await check_channel_membership(context.bot, user.id)
+    
     if is_member:
         result = USERS_COLLECTION.find_one_and_update(
             {"user_id": user.id, "channel_bonus_received": False},
@@ -1387,16 +1332,17 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
                 MESSAGES[lang]["channel_bonus_claimed"].format(amount=CHANNEL_BONUS, new_balance=new_balance_inr, channel=CHANNEL_USERNAME), 
                 reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]])
             )
+            username_display = f"@{user.username}" if user.username else f"<code>{user.id}</code>"
             log_msg = f"🎁 <b>Channel Bonus Claimed</b>\nUser: {username_display}\nAmount: ₹{CHANNEL_BONUS:.2f}\nNew Balance: ₹{new_balance_inr:.2f}"
             await send_log_message(context, log_msg)
             return
-        
+    
     # Generate dynamic link for failure case
     try:
-        chat = await context.bot.get_chat(channel_id)
+        chat = await context.bot.get_chat(FORCE_JOIN_CHANNELS[0])
         invite_link = chat.invite_link
         if not invite_link:
-            invite_link = await context.bot.export_chat_invite_link(channel_id)
+            invite_link = await context.bot.export_chat_invite_link(FORCE_JOIN_CHANNELS[0])
     except:
         invite_link = f"https://t.me/{CHANNEL_USERNAME.replace('@', '')}"
         
@@ -1419,10 +1365,7 @@ async def claim_channel_bonus(update: Update, context: ContextTypes.DEFAULT_TYPE
     except TelegramError as e:
         if "Message is not modified" not in str(e):
             logger.error(f"Error editing message in claim_channel_bonus (failure): {e}")
-        pass
 
-
-# --- UPDATED SHOW LEADERBOARD (Wait Message + Image) ---
 async def show_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     if not query or not query.message:
@@ -1430,51 +1373,35 @@ async def show_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         
     await query.answer()
     
-    user_id = query.from_user.id
-    
-    # 1. Please Wait Message (User ki tassalli ke liye)
     wait_msg = await query.message.reply_text("⏳ <b>Generating Leaderboard...</b>\n<i>Please wait while we load top users...</i>", parse_mode='HTML')
     
     try:
-        # 2. Data Fetch
-        top_users = list(USERS_COLLECTION.find().sort("monthly_referrals", -1).limit(10))
+        top_users = list(USERS_COLLECTION.find({"total_active_referrals": {"$gt": 0}}).sort("total_active_referrals", -1).limit(10))
         
-        leaderboard_data = []
-        for usr in top_users:
-            leaderboard_data.append({
-                "name": usr.get("full_name", "Unknown"),
-                "refs": usr.get("monthly_referrals", 0)
-            })
+        message = "🏆 <b>TOP 10 REFERRERS</b> 🏆\n\n"
+        
+        if not top_users:
+            message += "No data yet."
+        else:
+            for i, user in enumerate(top_users, 1):
+                name = user.get("full_name", "Unknown")[:15]
+                refs = user.get("total_active_referrals", 0)
+                earnings = user.get("earnings", 0.0)
+                medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
+                message += f"{medal} <b>{name}</b>\n"
+                message += f"   👥 {refs} active refs | 💰 ₹{earnings:.2f}\n\n"
 
-        if not leaderboard_data:
-            await wait_msg.edit_text("❌ No data yet.")
-            return
-
-        # 3. Image Generation (Blocking code ko alag thread mein run karein)
-        loop = asyncio.get_running_loop()
-        # image_utils wali function call
-        photo_bio = await loop.run_in_executor(None, generate_leaderboard_image, leaderboard_data)
+        keyboard = [
+            [InlineKeyboardButton("📊 Leaderboard Info", callback_data="show_leaderboard_info")],
+            [InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]
+        ]
         
-        # 4. Send Photo
-        keyboard = [[InlineKeyboardButton("⬅️ Back", callback_data="show_earning_panel")]]
-        
-        await context.bot.send_photo(
-            chat_id=query.message.chat_id,
-            photo=photo_bio,
-            caption="🏆 <b>Top 10 Leaderboard</b>",
-            reply_markup=InlineKeyboardMarkup(keyboard)
-        )
-        
-        # 5. Cleanup
-        await wait_msg.delete() # Wait message delete
-        try:
-            await query.message.delete() # Old menu delete
-        except: pass
+        await wait_msg.delete()
+        await query.edit_message_text(message, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='HTML')
 
     except Exception as e:
         logger.error(f"LB Error: {e}")
         await wait_msg.edit_text("❌ Error loading leaderboard.")
-
 
 async def show_leaderboard_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -1489,4 +1416,28 @@ async def show_leaderboard_info(update: Update, context: ContextTypes.DEFAULT_TY
     keyboard = [[InlineKeyboardButton("⬅️ Back to Leaderboard", callback_data="show_leaderboard")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
+    await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
+
+async def show_movie_groups_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    if not query or not query.message: 
+        return
+        
+    await query.answer()
+
+    lang = await get_user_lang(query.from_user.id)
+
+    keyboard = [
+        [InlineKeyboardButton("🆕 New Movie Group", url=NEW_MOVIE_GROUP_LINK)],
+        [InlineKeyboardButton("Join Movies Group", url=MOVIE_GROUP_LINK)],
+        [InlineKeyboardButton("Join All Movie Groups", url=ALL_GROUPS_LINK)],
+        [InlineKeyboardButton("⬅️ Back", callback_data="back_to_main_menu")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    message = (
+        f"<b>🎬 Movie Groups</b>\n\n"
+        f"{MESSAGES[lang]['start_step1']}"
+    )
+
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='HTML')
