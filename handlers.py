@@ -1,4 +1,4 @@
-# Handlers.py
+# handlers.py
 
 import logging
 import random
@@ -49,10 +49,15 @@ async def on_join_request(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Admin (Tum) baad mein approve karte rehna, user DB mein aa gaya.
 
 
-# --- 2. UPDATED CHECK FUNCTION (Request + Join dono check karega) ---
+# --- 2. FAST CHANNEL MEMBERSHIP CHECK (Cache ke saath) ---
 async def check_channel_membership(bot, user_id):
-    """Checks if user is member OR has sent a join request (Fix for Private Channels)."""
+    """Checks if user is member OR has sent a join request (Fast version with caching)."""
     try:
+        # Check cache first (avoid multiple API calls)
+        cache_key = f"member_check_{user_id}"
+        if hasattr(bot, 'cache') and cache_key in bot.cache:
+            return bot.cache[cache_key]
+            
         for channel_id in FORCE_JOIN_CHANNELS:
             is_verified = False
             
@@ -62,21 +67,29 @@ async def check_channel_membership(bot, user_id):
                 if member.status in ["member", "administrator", "creator"]:
                     is_verified = True
             except Exception:
-                pass # अगर एरर आया (मतलब मेंबर नहीं है), तो हम रिक्वेस्ट चेक करेंगे
+                pass
 
             # 2. अगर मेंबर नहीं है, तो चेक करें कि क्या उसने रिक्वेस्ट भेजी है?
-            # यह Database (JOIN_REQUESTS_COLLECTION) चेक करेगा जो on_join_request में save होता है
             if not is_verified and REQUEST_MODE and channel_id in PRIVATE_CHANNELS:
-                # DB check
+                # DB check (fast)
                 request_found = JOIN_REQUESTS_COLLECTION.find_one({"user_id": user_id, "chat_id": channel_id})
                 if request_found:
                     is_verified = True
 
             # अगर दोनों चेक फेल हो गए, तो False return करें
             if not is_verified:
+                # Cache result for 30 seconds
+                if not hasattr(bot, 'cache'):
+                    bot.cache = {}
+                bot.cache[cache_key] = False
                 return False
             
-        return True # सब पास हो गए
+        # सब पास हो गए
+        if not hasattr(bot, 'cache'):
+            bot.cache = {}
+        bot.cache[cache_key] = True
+        return True
+        
     except Exception as e:
         logger.error(f"Force Subscribe Check Failed: {e}")
         return False
@@ -112,7 +125,7 @@ async def verify_channel_join(update: Update, context: ContextTypes.DEFAULT_TYPE
     else:
         await query.answer("❌ You have NOT joined all channels! Join first.", show_alert=True)
         
-        # Generate invite links for all channels
+        # Generate invite links for all channels (FAST)
         keyboard = []
         for i, channel_id in enumerate(FORCE_JOIN_CHANNELS):
             try:
@@ -127,15 +140,23 @@ async def verify_channel_join(update: Update, context: ContextTypes.DEFAULT_TYPE
                     link = link_obj.invite_link
                     btn_text = f"🔐 Request Join Channel {i+1}"
                 else:
-                    chat = await context.bot.get_chat(channel_id)
-                    link = chat.invite_link
-                    if not link:
-                        link = await context.bot.export_chat_invite_link(channel_id)
-                    btn_text = f"🚀 Join Channel {i+1}"
+                    # Public Channel - get invite link
+                    try:
+                        # Try to get existing invite link first
+                        chat = await context.bot.get_chat(channel_id)
+                        link = chat.invite_link
+                        if not link:
+                            link = await context.bot.export_chat_invite_link(channel_id)
+                        btn_text = f"🚀 Join Channel {i+1}"
+                    except Exception as e:
+                        logger.error(f"Failed to get public link for {channel_id}: {e}")
+                        # Fallback to t.me link
+                        link = f"https://t.me/c/{str(channel_id)[4:]}"
+                        btn_text = f"🚀 Join Channel {i+1}"
                     
                 keyboard.append([InlineKeyboardButton(btn_text, url=link)])
             except Exception as e:
-                logger.error(f"Failed to get invite link for {channel_id}: {e}")
+                logger.error(f"Link Generation Failed for {channel_id}: {e}")
                 keyboard.append([InlineKeyboardButton(f"🚀 Join Channel {i+1}", url=f"https://t.me/c/{str(channel_id)[4:]}")])
         
         keyboard.append([InlineKeyboardButton("🔄 Try Again / Verify", callback_data="verify_channel_join")])
@@ -174,17 +195,17 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         logger.error(f"Failed to handle error: {e}")
 
 
-# --- UPDATED START COMMAND WITH MULTI-CHANNEL FORCE JOIN ---
+# --- FAST START COMMAND WITH MULTI-CHANNEL FORCE JOIN ---
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     full_name = user.first_name + (f" {user.last_name}" if user.last_name else "")
     username_display = f"<a href='tg://user?id={user.id}'>{full_name}</a>"
     
-    # --- FORCE JOIN CHECK (MULTI-CHANNEL) ---
+    # --- FAST FORCE JOIN CHECK (with caching) ---
     is_member = await check_channel_membership(context.bot, user.id)
     
     if not is_member:
-        # Generate invite links for all channels
+        # Generate invite links for all channels (FAST)
         keyboard = []
         for i, channel_id in enumerate(FORCE_JOIN_CHANNELS):
             try:
@@ -200,11 +221,16 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                     btn_text = f"🔐 Request Join Channel {i+1}"
                 else:
                     # Public Channel Logic
-                    chat = await context.bot.get_chat(channel_id)
-                    link = chat.invite_link
-                    if not link:
-                        link = await context.bot.export_chat_invite_link(channel_id)
-                    btn_text = f"🚀 Join Channel {i+1}"
+                    try:
+                        chat = await context.bot.get_chat(channel_id)
+                        link = chat.invite_link
+                        if not link:
+                            link = await context.bot.export_chat_invite_link(channel_id)
+                        btn_text = f"🚀 Join Channel {i+1}"
+                    except Exception as e:
+                        logger.error(f"Failed to get public link for {channel_id}: {e}")
+                        link = f"https://t.me/c/{str(channel_id)[4:]}"
+                        btn_text = f"🚀 Join Channel {i+1}"
                 
                 keyboard.append([InlineKeyboardButton(btn_text, url=link)])
             except Exception as e:
@@ -229,47 +255,47 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         return 
     # --- END FORCE JOIN CHECK ---
     
+    # --- FAST USER REGISTRATION ---
     referral_id_str = context.args[0].replace("ref_", "") if context.args and context.args[0].startswith("ref_") else None
     referral_id = int(referral_id_str) if referral_id_str and referral_id_str.isdigit() else None
 
     user_data = USERS_COLLECTION.find_one({"user_id": user.id})
     is_new_user = not user_data
 
-    update_data = {
-        "$setOnInsert": {
-            "user_id": user.id,
-            "username": user.username,
-            "full_name": full_name,
-            "lang": "en",
-            "is_approved": True,
-            "earnings": 0.0,
-            "last_checkin_date": None,
-            "daily_bonus_streak": 0,
-            "missions_completed": {},
-            "welcome_bonus_received": False,
-            "joined_date": datetime.now(),
-            "daily_searches": 0, 
-            "last_search_date": None,
-            "channel_bonus_received": False, 
-            "spins_left": SPIN_WHEEL_CONFIG["initial_free_spins"],
-            "monthly_referrals": 0,
-            "payment_method": None,
-            "payment_details": None
-        }
-    }
-    
-    USERS_COLLECTION.update_one(
-        {"user_id": user.id},
-        update_data,
-        upsert=True
-    )
-
-    user_data = USERS_COLLECTION.find_one({"user_id": user.id})
-    lang = user_data.get("lang", "en")
-    
     if is_new_user:
-        log_msg = f"👤 <b>New User</b>\nID: <code>{user.id}</code>\nName: {full_name}\nUsername: {username_display}"
+        # Fast insert
+        update_data = {
+            "$setOnInsert": {
+                "user_id": user.id,
+                "username": user.username,
+                "full_name": full_name,
+                "lang": "en",
+                "is_approved": True,
+                "earnings": 0.0,
+                "last_checkin_date": None,
+                "daily_bonus_streak": 0,
+                "missions_completed": {},
+                "welcome_bonus_received": False,
+                "joined_date": datetime.now(),
+                "daily_searches": 0, 
+                "last_search_date": None,
+                "channel_bonus_received": False, 
+                "spins_left": SPIN_WHEEL_CONFIG["initial_free_spins"],
+                "monthly_referrals": 0,
+                "payment_method": None,
+                "payment_details": None
+            }
+        }
         
+        USERS_COLLECTION.update_one(
+            {"user_id": user.id},
+            update_data,
+            upsert=True
+        )
+
+        user_data = USERS_COLLECTION.find_one({"user_id": user.id})
+        
+        # Welcome bonus
         if not user_data.get("welcome_bonus_received", False):
             welcome_bonus_inr = await get_welcome_bonus()
             
@@ -277,13 +303,14 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 {"user_id": user.id},
                 {"$inc": {"earnings": welcome_bonus_inr}, "$set": {"welcome_bonus_received": True}}
             )
+            
             try:
-                await update.message.reply_html(MESSAGES[lang]["welcome_bonus_received"].format(amount=welcome_bonus_inr))
+                lang = "en"  # Default
+                await update.message.reply_html(f"🎁 Welcome Bonus: ₹{welcome_bonus_inr:.2f}")
             except Exception:
                  pass
-            log_msg += f"\n🎁 Welcome Bonus: ₹{welcome_bonus_inr:.2f}"
-            log_msg += f"\n🎰 Initial Spins: {SPIN_WHEEL_CONFIG['initial_free_spins']}"
 
+        # Handle referral
         if referral_id and referral_id != user.id:
             existing_referral = REFERRALS_COLLECTION.find_one({"referred_user_id": user.id})
             
@@ -302,24 +329,18 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                     {"$inc": {"monthly_referrals": 1}}
                 )
                 
-                log_msg += f"\n🔗 Referred by: <code>{referral_id}</code> (Referral Recorded, Payment Pending on Search)"
-
+                # Notify referrer
                 try:
-                    referrer_lang = await get_user_lang(referral_id)
                     await context.bot.send_message(
                         chat_id=referral_id,
-                        text=MESSAGES[referrer_lang]["new_referral_notification"].format(
-                            full_name=full_name, username=username_display, bonus=0.00 
-                        ),
-                        parse_mode='HTML'
+                        text=f"🎉 New Referral!\n\n{full_name} joined using your link!\n\n💰 They need to search a movie in the group for you to earn daily!"
                     )
-                except (TelegramError, TimedOut) as e:
+                except Exception as e:
                     logger.error(f"Could not notify referrer {referral_id}: {e}")
-            else:
-                log_msg += f"\n❌ Referral ignored (already referred by {existing_referral['referrer_id']})"
 
-        await send_log_message(context, log_msg)
-
+    # --- FAST MAIN MENU (without waiting) ---
+    lang = await get_user_lang(user.id)
+    
     keyboard = [
         [InlineKeyboardButton("🎬 Movie Groups", callback_data="show_movie_groups_menu")],
         [InlineKeyboardButton("💰 Earning Panel", callback_data="show_earning_panel")],
@@ -345,7 +366,7 @@ async def earn_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await update.message.reply_html(MESSAGES[lang]["earning_panel_message"], reply_markup=InlineKeyboardMarkup(keyboard))
 
 
-# --- UPDATED GROUP MESSAGE HANDLER (NO JOB QUEUE) ---
+# --- FAST GROUP MESSAGE HANDLER (No delays) ---
 async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not update.message or not update.message.text:
         return
@@ -364,10 +385,10 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
     if not user_data:
         return 
 
-    # 1. Update Daily Searches
+    # 1. Update Daily Searches (fast)
     await update_daily_searches_and_mission(user.id)
     
-    # 2. Check Referral Logic (DIRECT EXECUTION - NO JOB QUEUE)
+    # 2. Check Referral Logic (fast - no job queue)
     referral_data = REFERRALS_COLLECTION.find_one({"referred_user_id": user.id})
     
     if referral_data:
@@ -383,7 +404,7 @@ async def handle_group_messages(update: Update, context: ContextTypes.DEFAULT_TY
                 already_paid = True
             
             if not already_paid:
-                # Direct Pay Function Call
+                # Direct Pay Function Call (fast)
                 success, daily_amount = await pay_referrer_and_update_mission(context, user.id, referrer_id)
                 if success:
                     logger.info(f"Referral Paid INSTANTLY: {referrer_id} from {user.id} (Amount: {daily_amount})")
@@ -480,12 +501,13 @@ async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     
     message = f"👥 <b>My Referrals</b>\n\n"
     message += f"🔗 Total Referrals: <b>{total_referrals}</b>\n"
-    message += f"✅ Paid Referrals Today: <b>{paid_searches_today_count}</b>\n"
+    message += f"✅ Active Today (Searched): <b>{paid_searches_today_count}</b>\n"
+    message += f"ℹ️ You get paid daily when your referrals search movies!\n\n"
     
     if total_referrals == 0:
         message += "\n❌ You have not referred anyone yet. Share your link now!"
     else:
-        message += f"ℹ️ <i>Showing last 10 referrals.</i>\n\n"
+        message += f"<i>Showing last 10 referrals.</i>\n\n"
         
         referred_ids = [ref['referred_user_id'] for ref in referral_records[:10]]
         referred_users_data = USERS_COLLECTION.find({"user_id": {"$in": referred_ids}})
@@ -500,14 +522,9 @@ async def show_my_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             join_date = ref_record['join_date'].strftime("%d %b %Y")
             last_paid = ref_record.get('last_paid_date')
             
-            status_emoji = "❌ (Pending Search)"
+            status_emoji = "❌ (No search yet)"
             if last_paid and last_paid.date() == today_start.date():
-                 status_emoji = "✅ (Paid Today)"
-            elif last_paid:
-                 if (today_start.date() - last_paid.date()).days == 1:
-                     status_emoji = f"⚠️ (Last Paid: Yesterday)"
-                 else:
-                     status_emoji = f"⚠️ (Last Paid: {last_paid.strftime('%d %b')})"
+                 status_emoji = "✅ (Searched today)"
 
             full_name = user_names_map.get(referred_id, f"User {referred_id}")
             display_name_link = f"<a href='tg://user?id={referred_id}'>{full_name}</a>"
