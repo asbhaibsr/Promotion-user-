@@ -10,7 +10,7 @@ from io import BytesIO
 
 from config import (
     USERS_COLLECTION, REFERRALS_COLLECTION, SETTINGS_COLLECTION, WITHDRAWALS_COLLECTION,
-    DOLLAR_TO_INR, MESSAGES, ADMIN_ID
+    DOLLAR_TO_INR, MESSAGES, ADMIN_ID, BROADCAST_BATCH_SIZE, BROADCAST_DELAY
 )
 from db_utils import (
     send_log_message, get_user_lang, get_bot_stats, 
@@ -416,64 +416,67 @@ async def handle_private_text(update: Update, context: ContextTypes.DEFAULT_TYPE
             context.user_data["admin_state"] = None
             context.user_data["reply_target_user_id"] = None
 
-        # STATE: waiting_for_broadcast_message
+        # STATE: waiting_for_broadcast_message (FIXED - Now works for 4000+ users)
         elif admin_state == "waiting_for_broadcast_message":
+            broadcast_message = text
+            
             success_count = 0
             fail_count = 0
+            blocked_count = 0
             
             status_message = await update.message.reply_text("📢 Starting broadcast... This may take a moment. Updates will be shown here.")
             
-            user_ids_cursor = USERS_COLLECTION.find({"is_approved": True}, {"user_id": 1}) 
-            total_users = USERS_COLLECTION.count_documents({"is_approved": True})
+            # Get all approved users
+            user_cursor = USERS_COLLECTION.find({"is_approved": True}, {"user_id": 1})
+            all_users = list(user_cursor)
+            total_users = len(all_users)
             
-            for i, user_data in enumerate(user_ids_cursor):
-                user_id = user_data["user_id"]
+            # Process in batches to avoid flooding
+            for i in range(0, total_users, BROADCAST_BATCH_SIZE):
+                batch = all_users[i:i+BROADCAST_BATCH_SIZE]
                 
-                if i % 100 == 0 and i != 0:
-                     try:
-                        await context.bot.edit_message_text(
-                            chat_id=status_message.chat_id, 
-                            message_id=status_message.message_id,
-                            text=f"📢 Broadcasting in progress...\nSent to {i} of {total_users} users.\nSuccess: {success_count} / Failed: {fail_count}"
-                        )
-                     except Exception as e:
-                         logger.warning(f"Failed to edit broadcast status message: {e}")
-                
+                # Update status every batch
                 try:
-                    await context.bot.send_message(user_id, text, parse_mode='HTML', disable_web_page_preview=True)
-                    success_count += 1
-                    await asyncio.sleep(0.05) 
-                    
-                except FloodWait as e:
-                    wait_time = e.retry_after + 1 
-                    logger.warning(f"FloodWait encountered for user {user_id}. Waiting for {wait_time} seconds.")
                     await context.bot.edit_message_text(
-                         chat_id=status_message.chat_id, 
-                         message_id=status_message.message_id,
-                         text=f"⚠️ **PAUSED: FloodWait**\nWaiting for {wait_time} seconds...\nSent to {i} of {total_users} users.\nSuccess: {success_count} / Failed: {fail_count}"
+                        chat_id=status_message.chat_id, 
+                        message_id=status_message.message_id,
+                        text=f"📢 Broadcasting...\nProcessed: {i} of {total_users}\n✅ Success: {success_count} | ❌ Failed: {fail_count} | 🚫 Blocked: {blocked_count}"
                     )
-                    await asyncio.sleep(wait_time)
-                    try:
-                        await context.bot.send_message(user_id, text, parse_mode='HTML', disable_web_page_preview=True)
-                        success_count += 1
-                        await asyncio.sleep(0.05)
-                    except Exception:
-                         fail_count += 1
-                    
-                except (Forbidden, BadRequest) as e:
-                    fail_count += 1
-                    USERS_COLLECTION.update_one({"user_id": user_id}, {"$set": {"is_approved": False}}) 
-                    logger.warning(f"Failed to send to user {user_id} due to API Error: {e}. User marked unapproved.")
-                    
                 except Exception as e:
-                    fail_count += 1
-                    logger.error(f"Unknown error sending to user {user_id}: {e}")
-                    
+                    logger.warning(f"Failed to edit broadcast status message: {e}")
+                
+                # Send messages in parallel (asyncio.gather for speed)
+                tasks = []
+                for user_data in batch:
+                    user_id = user_data["user_id"]
+                    tasks.append(send_single_broadcast(context, user_id, broadcast_message))
+                
+                # Wait for all messages in this batch to complete
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                
+                # Count results
+                for result in results:
+                    if isinstance(result, Exception):
+                        fail_count += 1
+                    elif result is False:
+                        blocked_count += 1
+                        fail_count += 1
+                    elif result is True:
+                        success_count += 1
+                
+                # Small delay between batches to avoid rate limits
+                await asyncio.sleep(1)
+            
+            # Final status
             context.user_data["admin_state"] = None
             await context.bot.edit_message_text(
                 chat_id=status_message.chat_id, 
                 message_id=status_message.message_id,
-                text=f"✅ **Broadcast complete**.\nSuccessful: {success_count}\nFailed: {fail_count}\nTotal users processed: {total_users}"
+                text=f"✅ **Broadcast Complete**\n\n"
+                     f"Total Users: {total_users}\n"
+                     f"✅ Successful: {success_count}\n"
+                     f"❌ Failed: {fail_count}\n"
+                     f"🚫 Blocked Bot: {blocked_count}"
             )
 
         # STATE: waiting_for_ref_rate
@@ -522,6 +525,43 @@ async def handle_private_text(update: Update, context: ContextTypes.DEFAULT_TYPE
             keyboard = [[InlineKeyboardButton("💸 Withdraw Now", callback_data="process_withdraw_final")]]
             
             await update.message.reply_html(msg, reply_markup=InlineKeyboardMarkup(keyboard))
+
+
+# Helper function for broadcast (parallel sending)
+async def send_single_broadcast(context, user_id, message):
+    """Send a single broadcast message to a user"""
+    try:
+        await context.bot.send_message(
+            chat_id=user_id, 
+            text=message, 
+            parse_mode='HTML', 
+            disable_web_page_preview=True
+        )
+        await asyncio.sleep(BROADCAST_DELAY)  # Small delay to avoid rate limits
+        return True
+    except FloodWait as e:
+        # Handle rate limiting
+        wait_time = e.retry_after + 1
+        logger.warning(f"FloodWait for user {user_id}. Waiting {wait_time}s")
+        await asyncio.sleep(wait_time)
+        try:
+            await context.bot.send_message(
+                chat_id=user_id, 
+                text=message, 
+                parse_mode='HTML', 
+                disable_web_page_preview=True
+            )
+            return True
+        except Exception:
+            return False
+    except (Forbidden, BadRequest) as e:
+        # User blocked the bot or deleted account
+        USERS_COLLECTION.update_one({"user_id": user_id}, {"$set": {"is_approved": False}})
+        logger.warning(f"User {user_id} blocked bot or deleted account")
+        return False
+    except Exception as e:
+        logger.error(f"Unknown error sending to user {user_id}: {e}")
+        return False
 
 
 async def handle_withdrawal_approval(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
