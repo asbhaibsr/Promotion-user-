@@ -69,8 +69,13 @@ MIN_WITHDRAWAL_INR = 50.0
 FORCE_SUB_IMAGE_URL = "https://image2url.com/r2/default/images/1771466649629-98062bb8-531e-4a84-b1fc-8859ff0f889b.png"
 
 # --- PRIVATE CHANNEL SETTINGS ---
+# IMPORTANT: यहाँ अपनी प्राइवेट चैनल IDs डालें
 PRIVATE_CHANNELS = [-1002892671107]  # <- अपनी प्राइवेट चैनल ID डालें
-REQUEST_MODE = True
+REQUEST_MODE = True  # True = Request Mode ON, False = Direct Invite
+
+# --- BROADCAST SETTINGS ---
+BROADCAST_BATCH_SIZE = 50  # एक बार में कितने users को भेजना है
+BROADCAST_DELAY = 0.1  # प्रति user delay (seconds)
 
 # --- डेली बोनस सेटिंग्स (अब सीधे INR में) ---
 DAILY_BONUS_BASE = 0.05  # ₹0.05 (5 पैसे)
@@ -202,7 +207,7 @@ MESSAGES = {
         "withdrawal_approved_user": "✅ Withdrawal Approved!\n\nYour withdrawal of ₹{amount:.2f} has been approved. Payment will be processed within 24 hours.",
         "withdrawal_rejected_user": "❌ Withdrawal Rejected!\n\nYour withdrawal of ₹{amount:.2f} was rejected. Please contact admin for details.",
         "ref_link_message": "Your Referral Link:\n{referral_link}\n\nCurrent Referral Rate: ₹{tier_rate:.2f} per referral\n\nShare this link with friends and earn money when they join and search for movies!",
-        "new_referral_notification": "🎉 New Referral!\n\n{full_name} ({username}) has joined using your link!\n\n🎰 You earned <b>1 Free Spin</b>!\n\n💰 <b>IMPORTANT:</b> To earn money from this user, tell them to <b>search for a movie in the group</b> and complete the shortlink process. You will get paid!",
+        "new_referral_notification": "🎉 New Referral!\n\n{full_name} ({username}) has joined using your link!\n\n🎰 You earned <b>1 Free Spin</b>!\n\n💰 <b>IMPORTANT:</b> To earn money from this user, they must <b>search for a movie in the group</b> and complete the process. You will get paid daily when they search!",
         "daily_earning_update_new": "💰 Daily Referral Earning!\n\nYou earned ₹{amount:.2f} from your referral {full_name} for a paid search today. \nNew balance: ₹{new_balance:.2f}",
         "channel_bonus_claimed": "✅ Channel Join Bonus!\nYou have successfully claimed ₹{amount:.2f} for joining {channel}.\nNew balance: ₹{new_balance:.2f}",
         "channel_not_joined": "❌ Channel Not Joined!\nYou must join our channel {channel} to claim the bonus.",
@@ -242,7 +247,7 @@ MESSAGES = {
         "withdrawal_approved_user": "✅ निकासी स्वीकृत!\n\n₹{amount:.2f} की आपकी निकासी स्वीकृत कर दी गई है। भुगतान 24 घंटे के भीतर प्रोसेस किया जाएगा।",
         "withdrawal_rejected_user": "❌ निकासी अस्वीकृत!\n\n₹{amount:.2f} की आपकी निकासी अस्वीकृत कर दी गई है। विवरण के लिए एडमिन से संपर्क करें।",
         "ref_link_message": "आपकी रेफरल लिंक:\n{referral_link}\n\nवर्तमान रेफरल दर: ₹{tier_rate:.2f} प्रति रेफरल\n\nइस लिंक को दोस्तों के साथ साझा करें और जब वे शामिल होकर फिल्में खोजते हैं, तो पैसे कमाएं!",
-        "new_referral_notification": "🎉 नया रेफरल!\n\n{full_name} ({username}) आपकी लिंक का उपयोग करके शामिल हुए हैं!\n\n🎰 आपको <b>1 फ्री स्पिन</b> मिली है!\n\n💰 <b>ज़रूरी सूचना:</b> इस यूज़र से पैसे कमाने के लिए, उन्हें <b>ग्रुप में मूवी सर्च करने</b> और शॉर्टलिंक पूरा करने के लिए कहें। आपको पैसे मिलेंगे!",
+        "new_referral_notification": "🎉 नया रेफरल!\n\n{full_name} ({username}) आपकी लिंक का उपयोग करके शामिल हुए हैं!\n\n🎰 आपको <b>1 फ्री स्पिन</b> मिली है!\n\n💰 <b>ज़रूरी सूचना:</b> इस यूज़र से पैसे कमाने के लिए, उन्हें <b>ग्रुप में मूवी सर्च करनी होगी</b>। आपको हर दिन पैसे मिलेंगे जब वे सर्च करेंगे!",
         "daily_earning_update_new": "💰 रोजाना रेफरल कमाई!\n\nआज एक पेड सर्च के लिए आपने अपने रेफरल {full_name} से ₹{amount:.2f} कमाए। \nनया बैलेंस: ₹{new_balance:.2f}",
         "channel_bonus_claimed": "✅ चैनल जॉइन बोनस!\nआपने सफलतापूर्वक {channel} जॉइन करने के लिए ₹{amount:.2f} क्लेम कर लिए हैं।\nनया बैलेंस: ₹{new_balance:.2f}",
         "channel_not_joined": "❌ चैनल जॉइन नहीं किया!\nबोनस क्लेम करने के लिए आपको हमारा चैनल {channel} जॉइन करना होगा।",
