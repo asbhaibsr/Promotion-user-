@@ -52,14 +52,14 @@ try:
     SETTINGS_COLLECTION = DB.get_collection('settings')
     WITHDRAWALS_COLLECTION = DB.get_collection('withdrawals')
     
-    # --- NEW COLLECTION FOR JOIN REQUESTS ---
+    # --- NEW COLLECTIONS ---
     JOIN_REQUESTS_COLLECTION = DB.get_collection('join_requests')
+    BONUS_COLLECTION = DB.get_collection('bonus_offers')  # Bonus system ke liye
     
 except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {e}")
 
 # --- Constants and Configuration ---
-# अब USD = INR, कोई multiplication नहीं होगा
 DOLLAR_TO_INR = 1.0 
 
 # निकासी की न्यूनतम राशि
@@ -69,20 +69,15 @@ MIN_WITHDRAWAL_INR = 50.0
 FORCE_SUB_IMAGE_URL = "https://image2url.com/r2/default/images/1771466649629-98062bb8-531e-4a84-b1fc-8859ff0f889b.png"
 
 # --- PRIVATE CHANNEL SETTINGS ---
-# IMPORTANT: यहाँ अपनी प्राइवेट चैनल IDs डालें
 PRIVATE_CHANNELS = [-1002892671107]  # <- अपनी प्राइवेट चैनल ID डालें
-REQUEST_MODE = True  # True = Request Mode ON, False = Direct Invite
+REQUEST_MODE = True
 
-# --- BROADCAST SETTINGS ---
-BROADCAST_BATCH_SIZE = 50  # एक बार में कितने users को भेजना है
-BROADCAST_DELAY = 0.1  # प्रति user delay (seconds)
-
-# --- डेली बोनस सेटिंग्स (अब सीधे INR में) ---
+# --- डेली बोनस सेटिंग्स ---
 DAILY_BONUS_BASE = 0.05  # ₹0.05 (5 पैसे)
 DAILY_BONUS_MULTIPLIER = 0.02  # ₹0.02 (2 पैसे)
 DAILY_BONUS_STREAK_MULTIPLIER = DAILY_BONUS_MULTIPLIER 
 
-# --- स्पिन व्हील सेटिंग्स (अब सीधे INR में) ---
+# --- स्पिन व्हील सेटिंग्स ---
 PRIZES_WEIGHTS = {
     0.00: 50,  # 50% चांस - कुछ नहीं
     0.05: 20,  # 20% चांस - 5 पैसे
@@ -104,7 +99,7 @@ HEAD_STICKER_ID = "CAACAgUAAxkBAAEE6e5pC5SKmgOT8kAEa4FZOlQZq6zIEAACVh4AArnGWFQru
 TAILS_STICKER_ID = "CAACAgUAAxkBAAEE6eppC5SBTnht6QYudJda5H4h--33rAACJxcAAixZWVSD-vwVuNoh9h4E"
 PROCESSING_STICKER_ID = "CAACAgIAAxkBAAEE6fJpC5WmS0rLlh2J82_SsYLf6XA9rAAC9hIAAkvtaEkMpy9dDyb4fR4E"
 
-# --- GAME CONFIGS (अब सीधे INR में) ---
+# --- GAME CONFIGS ---
 COIN_FLIP_CONFIG = {
     "win_multiplier": 1.8,
     "min_bet": 0.05,   # 5 पैसे
@@ -133,7 +128,7 @@ NUMBER_PREDICTION = {
 }
 NUMBER_PREDICTION["win_multiplier"] = 80.0
 
-# --- टियर सिस्टम सेटिंग्स (अब सीधे INR में) ---
+# --- टियर सिस्टम सेटिंग्स ---
 TIERS = {
     1: {"min_earnings": 0, "rate": 0.10, "name": "Beginner", "benefits_en": "Rate: ₹0.10/search", "benefits_hi": "दर: ₹0.10/खोज"},
     2: {"min_earnings": 100, "rate": 0.12, "name": "Pro", "benefits_en": "Rate: ₹0.12/search", "benefits_hi": "दर: ₹0.12/खोज"},
@@ -169,14 +164,14 @@ LEADERBOARD_CONFIG = {
     10:{"reward": 5.0,   "min_refs": 30},
 }
 
-# --- डेली मिशन सेटिंग्स (अब सीधे INR में) ---
+# --- डेली मिशन सेटिंग्स ---
 DAILY_MISSIONS = {
     "search_3_movies": {"reward": 0.15, "target": 3, "name": "Search 3 Movies", "name_hi": "3 फिल्में खोजें"}, 
     "refer_2_friends": {"reward": 0.50, "target": 2, "name": "Refer 2 Friends", "name_hi": "2 दोस्तों को रेफ़र करें"},
     "claim_daily_bonus": {"reward": 0.05, "target": 1, "name": "Claim Daily Bonus", "name_hi": "दैनिक बोनस क्लेम करें"}
 }
 
-# --- Messages and Text (अपडेटेड) ---
+# --- Messages and Text ---
 MESSAGES = {
     "en": {
         "start_greeting": "Hey 👋! Welcome to the Movies Group Bot. Get your favorite movies by following these simple steps:",
@@ -201,13 +196,14 @@ MESSAGES = {
         "spin_wheel_lose": "😢 Better luck next time!\n\nYou didn't win anything this time.\n\nRemaining balance: ₹{new_balance:.2f}\n\nRemaining Spins: {spins_left}",
         "missions_title": "🎯 Daily Missions\n\nComplete missions to earn extra rewards! Check your progress below:",
         "withdrawal_insufficient": "❌ Insufficient Balance!\n\nMinimum withdrawal amount is ₹50.00",
-        "withdrawal_prompt_details": "✅ **Ready to Withdraw!**\n\nPlease send your payment details in a single message (e.g., UPI ID, Bank A/C + IFSC, or upload a QR Code screenshot).\n\n⚠️ **This request will expire in 30 seconds.**",
-        "withdrawal_session_expired": "⏳ **Withdrawal Session Expired!**\n\nYour 30-second window to send payment details has closed. Please start the withdrawal request again from the Earning Panel.",
-        "withdrawal_details_received": "✅ **Details Received!**\n\nYour withdrawal request for ₹{amount:.2f} with your payment details has been sent to the admin for approval.",
+        "withdrawal_prompt_details": "✅ Ready to Withdraw!\n\nPlease send your payment details in a single message (e.g., UPI ID, Bank A/C + IFSC, or upload a QR Code screenshot).\n\n⚠️ This request will expire in 30 seconds.",
+        "withdrawal_session_expired": "⏳ Withdrawal Session Expired!\n\nYour 30-second window to send payment details has closed. Please start the withdrawal request again from the Earning Panel.",
+        "withdrawal_details_received": "✅ Details Received!\n\nYour withdrawal request for ₹{amount:.2f} with your payment details has been sent to the admin for approval.",
         "withdrawal_approved_user": "✅ Withdrawal Approved!\n\nYour withdrawal of ₹{amount:.2f} has been approved. Payment will be processed within 24 hours.",
         "withdrawal_rejected_user": "❌ Withdrawal Rejected!\n\nYour withdrawal of ₹{amount:.2f} was rejected. Please contact admin for details.",
         "ref_link_message": "Your Referral Link:\n{referral_link}\n\nCurrent Referral Rate: ₹{tier_rate:.2f} per referral\n\nShare this link with friends and earn money when they join and search for movies!",
-        "new_referral_notification": "🎉 New Referral!\n\n{full_name} ({username}) has joined using your link!\n\n🎰 You earned <b>1 Free Spin</b>!\n\n💰 <b>IMPORTANT:</b> To earn money from this user, they must <b>search for a movie in the group</b> and complete the process. You will get paid daily when they search!",
+        "new_referral_notification": "🎉 New Referral!\n\n{full_name} ({username}) has joined using your link!\n\n⚠️ <b>PENDING:</b> This referral is not active yet.\nThey must search for a movie in the group to ACTIVATE this referral.\n\n💰 Once they search, you'll earn daily from them!",
+        "referral_activated": "🎉 <b>Great News!</b>\n\nYour referral ({full_name}) just searched their first movie!\n\n✅ This referral is now ACTIVE. You will earn daily from their searches!\n🎰 +1 Spin bonus added!",
         "daily_earning_update_new": "💰 Daily Referral Earning!\n\nYou earned ₹{amount:.2f} from your referral {full_name} for a paid search today. \nNew balance: ₹{new_balance:.2f}",
         "channel_bonus_claimed": "✅ Channel Join Bonus!\nYou have successfully claimed ₹{amount:.2f} for joining {channel}.\nNew balance: ₹{new_balance:.2f}",
         "channel_not_joined": "❌ Channel Not Joined!\nYou must join our channel {channel} to claim the bonus.",
@@ -217,6 +213,11 @@ MESSAGES = {
         "tier_benefits_message": "👑 Tier System Benefits 👑\n\nYour earning rate increases as you earn more. Reach higher tiers for more money per referral!\n\nTier 1: Beginner (Min Earning: ₹0.00, Rate: ₹0.10)\nTier 2: Pro (Min Earning: ₹100.00, Rate: ₹0.12)\nTier 3: Expert (Min Earning: ₹300.00, Rate: ₹0.15)\nTier 4: Master (Min Earning: ₹800.00, Rate: ₹0.18)\nTier 5: Legend (Min Earning: ₹2000.00, Rate: ₹0.20)",
         "leaderboard_title": "🏆 Monthly Leaderboard 🏆\n\nTop 10 referrers of the month!",
         "leaderboard_info_text": "This leaderboard shows the Top 10 users with the most 'Monthly Referrals'.\n\n🏆 <b>What's the Benefit?</b>\nThe Top 10 users at the end of the month win a cash prize!\n\n💰 <b>Prize Money (Paid on 1st of Month):</b>\n🥇 Rank 1: <b>₹150.00</b> (Min 50 Refs)\n🥈 Rank 2: <b>₹100.00</b> (Min 30 Refs)\n🥉 Rank 3: <b>₹50.00</b> (Min 30 Refs)\n🏅 Rank 4-5: <b>₹25.00</b> (Min 30 Refs)\n🏅 Rank 6-10: <b>₹5.00</b> (Min 30 Refs)\n\n🎯 <b>How to Win?</b>\nYour rank is based <i>only</i> on the number of new users you refer each month. More referrals = Higher rank!",
+        "bonus_received": "🎁 <b>SPECIAL BONUS!</b>\n\nYou have received a special bonus of <b>₹{amount:.2f}</b> from admin!\n\n💰 New Balance: ₹{new_balance:.2f}",
+        "bonus_offer_title": "🎁 <b>SPECIAL BONUS OFFER!</b>\n\nAdmin has sent a special bonus of <b>₹{amount:.2f}</b>!\n\n⚠️ <b>FIRST COME, FIRST SERVED!</b>\nOnly the first person to click the button below will receive this bonus.\n\n⏰ Expires: {expiry}",
+        "bonus_already_claimed": "❌ <b>Bonus Already Claimed!</b>\n\nThis bonus of ₹{amount:.2f} was already claimed by:\n👤 {claimed_by}\n\n⏰ Claimed at: {claimed_time}",
+        "bonus_expired": "❌ This bonus has expired!",
+        "bonus_claimed_success": "🎉 <b>CONGRATULATIONS!</b> 🎉\n\nYou successfully claimed the special bonus of <b>₹{amount:.2f}</b>!\n\n💰 New Balance: ₹{new_balance:.2f}\n\nKeep earning more by referring friends!"
     },
     "hi": {
         "start_greeting": "नमस्ते 👋! मूवी ग्रुप बॉट में आपका स्वागत है। इन आसान स्टेप्स को फॉलो करके अपनी पसंदीदा मूवी पाएँ:",
@@ -241,13 +242,14 @@ MESSAGES = {
         "spin_wheel_lose": "😢 अगली बार बेहतर किस्मत!\n\nइस बार आप कुछ नहीं जीत पाए।\n\nशेष बैलेंस: ₹{new_balance:.2f}\n\nबची हुई स्पिनें: {spins_left}",
         "missions_title": "🎯 दैनिक मिशन\n\nअतिरिक्त इनाम पाने के लिए मिशन पूरे करें! अपनी प्रगति नीचे देखें:",
         "withdrawal_insufficient": "❌ पर्याप्त बैलेंस नहीं!\n\nन्यूनतम निकासी राशि ₹50.00 है",
-        "withdrawal_prompt_details": "✅ **निकासी के लिए तैयार!**\n\nकृपया अपना भुगतान विवरण एक ही संदेश में भेजें (जैसे, UPI ID, बैंक A/C + IFSC, या QR कोड स्क्रीनशॉट अपलोड करें)।\n\n⚠️ **यह अनुरोध 30 सेकंड में समाप्त हो जाएगा।**",
-        "withdrawal_session_expired": "⏳ **निकासी सत्र समाप्त!**\n\nभुगतान विवरण भेजने के लिए आपकी 30-सेकंड की विंडो बंद हो गई है। कृपया Earning Panel से फिर से निकासी का अनुरोध शुरू करें।",
-        "withdrawal_details_received": "✅ **विवरण प्राप्त हुआ!**\n\nआपके भुगतान विवरण के साथ ₹{amount:.2f} के लिए आपका निकासी अनुरोध एडमिन को अनुमोदन के लिए भेज दिया गया है।",
+        "withdrawal_prompt_details": "✅ निकासी के लिए तैयार!\n\nकृपया अपना भुगतान विवरण एक ही संदेश में भेजें (जैसे, UPI ID, बैंक A/C + IFSC, या QR कोड स्क्रीनशॉट अपलोड करें)।\n\n⚠️ यह अनुरोध 30 सेकंड में समाप्त हो जाएगा।",
+        "withdrawal_session_expired": "⏳ निकासी सत्र समाप्त!\n\nभुगतान विवरण भेजने के लिए आपकी 30-सेकंड की विंडो बंद हो गई है। कृपया Earning Panel से फिर से निकासी का अनुरोध शुरू करें।",
+        "withdrawal_details_received": "✅ विवरण प्राप्त हुआ!\n\nआपके भुगतान विवरण के साथ ₹{amount:.2f} के लिए आपका निकासी अनुरोध एडमिन को अनुमोदन के लिए भेज दिया गया है।",
         "withdrawal_approved_user": "✅ निकासी स्वीकृत!\n\n₹{amount:.2f} की आपकी निकासी स्वीकृत कर दी गई है। भुगतान 24 घंटे के भीतर प्रोसेस किया जाएगा।",
         "withdrawal_rejected_user": "❌ निकासी अस्वीकृत!\n\n₹{amount:.2f} की आपकी निकासी अस्वीकृत कर दी गई है। विवरण के लिए एडमिन से संपर्क करें।",
         "ref_link_message": "आपकी रेफरल लिंक:\n{referral_link}\n\nवर्तमान रेफरल दर: ₹{tier_rate:.2f} प्रति रेफरल\n\nइस लिंक को दोस्तों के साथ साझा करें और जब वे शामिल होकर फिल्में खोजते हैं, तो पैसे कमाएं!",
-        "new_referral_notification": "🎉 नया रेफरल!\n\n{full_name} ({username}) आपकी लिंक का उपयोग करके शामिल हुए हैं!\n\n🎰 आपको <b>1 फ्री स्पिन</b> मिली है!\n\n💰 <b>ज़रूरी सूचना:</b> इस यूज़र से पैसे कमाने के लिए, उन्हें <b>ग्रुप में मूवी सर्च करनी होगी</b>। आपको हर दिन पैसे मिलेंगे जब वे सर्च करेंगे!",
+        "new_referral_notification": "🎉 नया रेफरल!\n\n{full_name} ({username}) आपकी लिंक का उपयोग करके शामिल हुए हैं!\n\n⚠️ <b>लंबित:</b> यह रेफरल अभी सक्रिय नहीं है।\nइसे सक्रिय करने के लिए उन्हें ग्रुप में मूवी सर्च करनी होगी।\n\n💰 एक बार सर्च करने पर, आपको उनसे रोजाना कमाई होगी!",
+        "referral_activated": "🎉 <b>बहुत बढ़िया!</b>\n\nआपके रेफरल ({full_name}) ने अपनी पहली मूवी सर्च कर ली है!\n\n✅ यह रेफरल अब सक्रिय हो गया है। अब आपको उनकी रोजाना सर्च से कमाई मिलेगी!\n🎰 +1 स्पिन बोनस मिला!",
         "daily_earning_update_new": "💰 रोजाना रेफरल कमाई!\n\nआज एक पेड सर्च के लिए आपने अपने रेफरल {full_name} से ₹{amount:.2f} कमाए। \nनया बैलेंस: ₹{new_balance:.2f}",
         "channel_bonus_claimed": "✅ चैनल जॉइन बोनस!\nआपने सफलतापूर्वक {channel} जॉइन करने के लिए ₹{amount:.2f} क्लेम कर लिए हैं।\nनया बैलेंस: ₹{new_balance:.2f}",
         "channel_not_joined": "❌ चैनल जॉइन नहीं किया!\nबोनस क्लेम करने के लिए आपको हमारा चैनल {channel} जॉइन करना होगा।",
@@ -257,5 +259,10 @@ MESSAGES = {
         "tier_benefits_message": "👑 टियर सिस्टम के लाभ 👑\n\nजैसे-जैसे आप अधिक कमाते हैं, आपकी कमाई दर बढ़ती जाती है। प्रति रेफरल अधिक पैसे के लिए उच्च टियर पर पहुँचें!\n\nटियर 1: शुरुआती (न्यूनतम कमाई: ₹0.00, दर: ₹0.10)\nटियर 2: प्रो (न्यूनतम कमाई: ₹100.00, दर: ₹0.12)\nटियर 3: एक्सपर्ट (न्यूनतम कमाई: ₹300.00, दर: ₹0.15)\nटियर 4: मास्टर (न्यूनतम कमाई: ₹800.00, दर: ₹0.18)\nटियर 5: लीजेंड (न्यूनतम कमाई: ₹2000.00, दर: ₹0.20)",
         "leaderboard_title": "🏆 मासिक लीडरबोर्ड 🏆\n\nइस महीने के टॉप 10 रेफरर!",
         "leaderboard_info_text": "यह लीडरबोर्ड 'मासिक रेफ़रल' के आधार पर टॉप 10 यूज़र्स को दिखाता है।\n\n🏆 <b>क्या फायदा है?</b>\nमहीने के अंत में टॉप 10 यूज़र्स को नकद इनाम मिलता है!\n\n💰 <b>इनाम राशि (महीने की 1 तारीख को):</b>\n🥇 रैंक 1: <b>₹150.00</b> (न्यूनतम 50 रेफ़रल)\n🥈 रैंक 2: <b>₹100.00</b> (न्यूनतम 30 रेफ़रल)\n🥉 रैंक 3: <b>₹50.00</b> (न्यूनतम 30 रेफ़रल)\n🏅 रैंक 4-5: <b>₹25.00</b> (न्यूनतम 30 रेफ़रल)\n🏅 रैंक 6-10: <b>₹5.00</b> (न्यूनतम 30 रेफ़रल)\n\n🎯 <b>कैसे जीतें?</b>\nआपकी रैंक <i>केवल</i> इस बात पर आधारित है कि आप हर महीने कितने नए यूज़र्स को रेफ़र करते हैं। ज़्यादा रेफ़रल = ऊँची रैंक!",
+        "bonus_received": "🎁 <b>स्पेशल बोनस!</b>\n\nआपको एडमिन की तरफ से <b>₹{amount:.2f}</b> का स्पेशल बोनस मिला है!\n\n💰 नया बैलेंस: ₹{new_balance:.2f}",
+        "bonus_offer_title": "🎁 <b>स्पेशल बोनस ऑफर!</b>\n\nएडमिन ने आपके लिए <b>₹{amount:.2f}</b> का स्पेशल बोनस भेजा है!\n\n⚠️ <b>पहले आओ - पहले पाओ!</b>\nयह बोनस सिर्फ पहले क्लिक करने वाले यूजर को मिलेगा।\n\n⏰ एक्सपायरी: {expiry}",
+        "bonus_already_claimed": "❌ <b>बोनस पहले ही क्लेम हो चुका है!</b>\n\n₹{amount:.2f} का यह बोनस पहले ही क्लेम किया जा चुका है:\n👤 {claimed_by}\n\n⏰ क्लेम किया गया: {claimed_time}",
+        "bonus_expired": "❌ यह बोनस एक्सपायर हो चुका है!",
+        "bonus_claimed_success": "🎉 <b>बधाई हो!</b> 🎉\n\nआपने <b>₹{amount:.2f}</b> का स्पेशल बोनस सफलतापूर्वक क्लेम कर लिया!\n\n💰 नया बैलेंस: ₹{new_balance:.2f}\n\nदोस्तों को रेफर करके और कमाएँ!"
     }
 }
