@@ -16,14 +16,14 @@ from handlers import (
     claim_daily_bonus, show_refer_example, show_spin_panel, perform_spin,
     spin_fake_btn, show_missions, request_withdrawal, show_tier_benefits,
     claim_channel_bonus, handle_group_messages, show_leaderboard, 
-    show_user_pending_withdrawals, show_my_referrals, show_leaderboard_info,
+    show_my_referrals, show_leaderboard_info,
     verify_channel_join, show_withdrawal_method_menu, handle_method_selection,
-    process_withdraw_final, on_join_request  # <-- NEW IMPORT
+    process_withdraw_final, on_join_request, claim_special_bonus  # <-- NEW IMPORT
 )
 
 from admin_handlers import (
     admin_panel, handle_admin_callbacks, 
-    handle_private_text, handle_withdrawal_approval
+    handle_private_text, handle_withdrawal_approval, handle_bonus_confirmation  # <-- NEW IMPORT
 )
 
 from games import (
@@ -82,7 +82,6 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(show_tier_benefits, pattern="^show_tier_benefits$")) 
     application.add_handler(CallbackQueryHandler(claim_channel_bonus, pattern="^claim_channel_bonus$")) 
     application.add_handler(CallbackQueryHandler(show_leaderboard, pattern="^show_leaderboard$"))
-    application.add_handler(CallbackQueryHandler(show_user_pending_withdrawals, pattern="^show_user_pending_withdrawals$"))
     application.add_handler(CallbackQueryHandler(show_my_referrals, pattern="^show_my_referrals$"))
     application.add_handler(CallbackQueryHandler(show_leaderboard_info, pattern="^show_leaderboard_info$"))
     
@@ -94,6 +93,9 @@ def main() -> None:
     
     # --- Verify Button Handler ---
     application.add_handler(CallbackQueryHandler(verify_channel_join, pattern="^verify_channel_join$"))
+    
+    # --- NEW: Special Bonus Claim Handler ---
+    application.add_handler(CallbackQueryHandler(claim_special_bonus, pattern="^claim_bonus_"))
     
     # --- GAME HANDLERS ---
     application.add_handler(CallbackQueryHandler(show_games_menu, pattern="^show_games_menu$"))
@@ -118,6 +120,8 @@ def main() -> None:
     # --- ADMIN Callback Query Handlers ---
     application.add_handler(CallbackQueryHandler(handle_admin_callbacks, pattern="^admin_")) 
     application.add_handler(CallbackQueryHandler(handle_withdrawal_approval, pattern="^(approve|reject)_withdraw_\\d+$"))
+    # ====== NEW: Bonus Confirmation Handler ======
+    application.add_handler(CallbackQueryHandler(handle_bonus_confirmation, pattern="^confirm_bonus_"))
     
     # --- NEW: CHAT JOIN REQUEST HANDLER ---
     application.add_handler(ChatJoinRequestHandler(on_join_request))
