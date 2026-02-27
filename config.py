@@ -8,7 +8,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
 MONGO_URI = os.getenv("MONGO_URI")
 PORT = int(os.getenv("PORT", 8000))
-WEB_APP_URL = os.getenv("WEB_APP_URL", "https://your-app.onrender.com")
+WEB_APP_URL = os.getenv("WEB_APP_URL", "https://promotion-user.onrender.com")
 
 # === GROUP LINKS ===
 MOVIE_GROUP_LINK = "https://t.me/asfilter_group"
