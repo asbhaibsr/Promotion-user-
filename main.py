@@ -1,161 +1,216 @@
-# main.py
-
 import logging
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ChatJoinRequestHandler
-from datetime import timedelta
-from telegram import Update, BotCommand
-
-# Local Imports
-from config import (
-    BOT_TOKEN, WEB_SERVER_URL, PORT, ADMIN_ID
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import (
+    Application, CommandHandler, MessageHandler,
+    CallbackQueryHandler, filters, ContextTypes
 )
-from handlers import (
-    start_command, earn_command, 
-    show_earning_panel, show_movie_groups_menu, back_to_main_menu,
-    language_menu, handle_lang_choice, show_help, show_refer_link,
-    claim_daily_bonus, show_refer_example, show_spin_panel, perform_spin,
-    spin_fake_btn, show_missions, request_withdrawal, show_tier_benefits,
-    claim_channel_bonus, handle_group_messages, show_leaderboard, 
-    show_my_referrals, show_leaderboard_info,
-    verify_channel_join, show_withdrawal_method_menu, handle_method_selection,
-    process_withdraw_final, on_join_request, claim_special_bonus  # <-- NEW IMPORT
-)
+from datetime import datetime
 
-from admin_handlers import (
-    admin_panel, handle_admin_callbacks, 
-    handle_private_text, handle_withdrawal_approval, handle_bonus_confirmation  # <-- NEW IMPORT
-)
+from config import *
+from database import *
 
-from games import (
-    show_games_menu, handle_coin_flip, handle_coin_flip_bet_adjust,
-    handle_coin_flip_start, handle_coin_flip_choice, handle_slot_machine_menu,
-    handle_slot_machine_bet_adjust, handle_slot_machine_spin,
-    handle_number_prediction_menu, handle_number_prediction_select_fee,
-    handle_number_prediction_select_range, handle_number_prediction_play
-)
+logging.basicConfig(level=logging.INFO)
 
-from tasks import send_random_alerts_task, process_monthly_leaderboard
+# === START COMMAND ===
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    
+    # Referral check
+    referrer = None
+    if context.args and context.args[0].startswith("ref_"):
+        try:
+            referrer = int(context.args[0].replace("ref_", ""))
+        except:
+            pass
+    
+    # Get or create user
+    db_user = get_user(user.id)
+    if not db_user:
+        create_user(user.id, user.username, user.first_name, referrer)
+        
+        # Welcome bonus
+        if not db_user or not db_user.get("welcome_bonus"):
+            update_balance(user.id, WELCOME_BONUS)
+            users.update_one({"user_id": user.id}, {"$set": {"welcome_bonus": True}})
+    
+    # Mini App Button
+    keyboard = [[
+        InlineKeyboardButton("🎬 OPEN MINI APP", web_app={"url": f"{WEB_APP_URL}?user={user.id}"})
+    ]]
+    
+    await update.message.reply_text(
+        f"👋 Welcome {user.first_name}!\n\n"
+        f"💰 Balance: ₹{get_user(user.id)['balance']:.2f}\n"
+        f"🎰 Spins: {get_user(user.id)['spins']}\n\n"
+        f"Click below to open the Earning Mini App:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
-    level=logging.INFO
-)
-logger = logging.getLogger(__name__)
-
-async def set_bot_commands_logic(application: Application) -> None:
-    """Set bot commands."""
-    user_commands = [
-        BotCommand("start", "Start the bot and see main menu"),
-        BotCommand("earn", "Go to the earning panel"),
-    ]
-    await application.bot.set_my_commands(user_commands)
-    logger.info("User-level bot commands set successfully.")
-
-def main() -> None:
-    if not BOT_TOKEN:
-        logger.error("BOT_TOKEN is missing. Please set environment variables.")
+# === GROUP MESSAGE HANDLER ===
+async def group_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message or not update.message.text:
         return
+    
+    user = update.effective_user
+    
+    # Activate referral on first search
+    referrer = activate_referral(user.id)
+    if referrer:
+        try:
+            await context.bot.send_message(
+                referrer,
+                f"🎉 Your referral {user.first_name} just searched their first movie!\n"
+                f"✅ Referral activated! +1 Spin added!"
+            )
+        except:
+            pass
+    
+    # Pay referrer (daily)
+    amount = pay_referrer(user.id)
+    if amount:
+        ref_doc = referrals.find_one({"user": user.id})
+        if ref_doc:
+            try:
+                await context.bot.send_message(
+                    ref_doc["referrer"],
+                    f"💰 Daily Earning!\n"
+                    f"From: {user.first_name}\n"
+                    f"Amount: ₹{amount:.2f}"
+                )
+            except:
+                pass
+    
+    # Update user missions
+    check_missions(user.id, "search")
 
-    application = Application.builder().token(BOT_TOKEN).concurrent_updates(True).build()
+# === MINI APP DATA HANDLER ===
+async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    data = update.effective_message.web_app_data.data
+    import json
+    
+    try:
+        payload = json.loads(data)
+        action = payload.get("action")
+        user_id = payload.get("user_id")
+        
+        if action == "get_data":
+            user = get_user(user_id)
+            stats = get_user_stats(user_id)
+            
+            await update.effective_message.reply_text(
+                json.dumps({
+                    "balance": stats["balance"],
+                    "spins": stats["spins"],
+                    "tier": stats["tier"],
+                    "total_refs": stats["total_refs"],
+                    "active_refs": stats["active_refs"],
+                    "monthly_refs": stats["monthly_refs"],
+                    "movie_group": MOVIE_GROUP_LINK,
+                    "new_group": NEW_MOVIE_GROUP_LINK,
+                    "all_groups": ALL_GROUPS_LINK
+                })
+            )
+        
+        elif action == "spin":
+            user = get_user(user_id)
+            if user["spins"] <= 0:
+                await update.effective_message.reply_text(json.dumps({"error": "No spins"}))
+                return
+            
+            import random
+            prize = random.choices(SPIN_PRIZES, weights=SPIN_WEIGHTS)[0]
+            
+            users.update_one(
+                {"user_id": user_id},
+                {"$inc": {"spins": -1, "balance": prize}}
+            )
+            
+            await update.effective_message.reply_text(
+                json.dumps({"prize": prize, "balance": user["balance"] + prize})
+            )
+        
+        elif action == "daily":
+            result = claim_daily(user_id)
+            if result:
+                await update.effective_message.reply_text(json.dumps(result))
+            else:
+                await update.effective_message.reply_text(json.dumps({"error": "Already claimed"}))
+        
+        elif action == "withdraw":
+            amount = payload.get("amount")
+            method = payload.get("method")
+            details = payload.get("details")
+            
+            success = create_withdrawal(user_id, amount, method, details)
+            await update.effective_message.reply_text(json.dumps({"success": success}))
+            
+            # Notify admin
+            if success:
+                await context.bot.send_message(
+                    ADMIN_ID,
+                    f"💰 New Withdrawal Request\n"
+                    f"User: {user_id}\n"
+                    f"Amount: ₹{amount}\n"
+                    f"Method: {method}\n"
+                    f"Details: {details}"
+                )
+        
+        elif action == "leaderboard":
+            lb = get_leaderboard()
+            result = []
+            for u in lb:
+                result.append({
+                    "name": u.get("full_name", "User"),
+                    "refs": u.get("active_referrals", 0)
+                })
+            await update.effective_message.reply_text(json.dumps(result))
+            
+    except Exception as e:
+        logging.error(f"WebApp Error: {e}")
 
-    application.post_init = set_bot_commands_logic
+# === ADMIN COMMANDS ===
+async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+    
+    text = update.message.text.split()
+    if len(text) < 3:
+        await update.message.reply_text("Usage: /add user_id amount")
+        return
+    
+    cmd = text[0]
+    target = int(text[1])
+    amount = float(text[2])
+    
+    if cmd == "/add":
+        new_balance = update_balance(target, amount)
+        await update.message.reply_text(f"✅ Added ₹{amount}. New balance: ₹{new_balance}")
+        try:
+            await context.bot.send_message(target, f"🎁 You received ₹{amount} bonus!")
+        except:
+            pass
+    
+    elif cmd == "/clear":
+        users.update_one({"user_id": target}, {"$set": {"balance": 0}})
+        await update.message.reply_text(f"✅ Balance cleared for {target}")
 
-    # --- Command Handlers ---
-    application.add_handler(CommandHandler("start", start_command))
-    application.add_handler(CommandHandler("earn", earn_command)) 
-    application.add_handler(CommandHandler("admin", admin_panel, filters=filters.User(ADMIN_ID)))
+# === MAIN ===
+def main():
+    app = Application.builder().token(BOT_TOKEN).build()
     
-    # --- USER Callback Query Handlers ---
-    application.add_handler(CallbackQueryHandler(show_earning_panel, pattern="^show_earning_panel$"))
-    application.add_handler(CallbackQueryHandler(show_movie_groups_menu, pattern="^show_movie_groups_menu$"))
-    application.add_handler(CallbackQueryHandler(back_to_main_menu, pattern="^back_to_main_menu$"))
-    application.add_handler(CallbackQueryHandler(language_menu, pattern="^select_lang$")) 
-    application.add_handler(CallbackQueryHandler(handle_lang_choice, pattern="^lang_")) 
-    application.add_handler(CallbackQueryHandler(show_help, pattern="^show_help$")) 
-    application.add_handler(CallbackQueryHandler(show_refer_link, pattern="^show_refer_link$"))
-    application.add_handler(CallbackQueryHandler(claim_daily_bonus, pattern="^claim_daily_bonus$")) 
-    application.add_handler(CallbackQueryHandler(show_refer_example, pattern="^show_refer_example$")) 
-    application.add_handler(CallbackQueryHandler(show_spin_panel, pattern="^show_spin_panel$"))
-    application.add_handler(CallbackQueryHandler(perform_spin, pattern="^perform_spin$"))
-    application.add_handler(CallbackQueryHandler(spin_fake_btn, pattern="^spin_fake_btn$"))
-    application.add_handler(CallbackQueryHandler(show_missions, pattern="^show_missions$")) 
-    application.add_handler(CallbackQueryHandler(show_tier_benefits, pattern="^show_tier_benefits$")) 
-    application.add_handler(CallbackQueryHandler(claim_channel_bonus, pattern="^claim_channel_bonus$")) 
-    application.add_handler(CallbackQueryHandler(show_leaderboard, pattern="^show_leaderboard$"))
-    application.add_handler(CallbackQueryHandler(show_my_referrals, pattern="^show_my_referrals$"))
-    application.add_handler(CallbackQueryHandler(show_leaderboard_info, pattern="^show_leaderboard_info$"))
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.ChatType.GROUPS & filters.TEXT, group_message))
+    app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, web_app_data))
+    app.add_handler(CommandHandler("add", admin, filters.User(ADMIN_ID)))
+    app.add_handler(CommandHandler("clear", admin, filters.User(ADMIN_ID)))
     
-    # --- New Withdrawal Handlers ---
-    application.add_handler(CallbackQueryHandler(request_withdrawal, pattern="^request_withdrawal$"))
-    application.add_handler(CallbackQueryHandler(show_withdrawal_method_menu, pattern="^select_withdraw_method$"))
-    application.add_handler(CallbackQueryHandler(handle_method_selection, pattern="^set_method_"))
-    application.add_handler(CallbackQueryHandler(process_withdraw_final, pattern="^process_withdraw_final$"))
-    
-    # --- Verify Button Handler ---
-    application.add_handler(CallbackQueryHandler(verify_channel_join, pattern="^verify_channel_join$"))
-    
-    # --- NEW: Special Bonus Claim Handler ---
-    application.add_handler(CallbackQueryHandler(claim_special_bonus, pattern="^claim_bonus_"))
-    
-    # --- GAME HANDLERS ---
-    application.add_handler(CallbackQueryHandler(show_games_menu, pattern="^show_games_menu$"))
-    
-    # Coin Flip Handlers
-    application.add_handler(CallbackQueryHandler(handle_coin_flip, pattern="^game_coin_flip_menu$"))
-    application.add_handler(CallbackQueryHandler(handle_coin_flip_bet_adjust, pattern="^game_coin_flip_bet_"))
-    application.add_handler(CallbackQueryHandler(handle_coin_flip_start, pattern="^game_coin_flip_start$"))
-    application.add_handler(CallbackQueryHandler(handle_coin_flip_choice, pattern="^game_coin_flip_choice_"))
-    
-    # Slot Machine Handlers
-    application.add_handler(CallbackQueryHandler(handle_slot_machine_menu, pattern="^game_slot_machine_menu$"))
-    application.add_handler(CallbackQueryHandler(handle_slot_machine_bet_adjust, pattern="^game_slot_bet_"))
-    application.add_handler(CallbackQueryHandler(handle_slot_machine_spin, pattern="^game_slot_spin$"))
-    
-    # Number Prediction Handlers
-    application.add_handler(CallbackQueryHandler(handle_number_prediction_menu, pattern="^game_number_pred_menu$"))
-    application.add_handler(CallbackQueryHandler(handle_number_prediction_select_fee, pattern="^game_num_pred_fee_"))
-    application.add_handler(CallbackQueryHandler(handle_number_prediction_select_range, pattern="^game_num_pred_range_"))
-    application.add_handler(CallbackQueryHandler(handle_number_prediction_play, pattern="^game_num_pred_play_"))
-    
-    # --- ADMIN Callback Query Handlers ---
-    application.add_handler(CallbackQueryHandler(handle_admin_callbacks, pattern="^admin_")) 
-    application.add_handler(CallbackQueryHandler(handle_withdrawal_approval, pattern="^(approve|reject)_withdraw_\\d+$"))
-    # ====== NEW: Bonus Confirmation Handler ======
-    application.add_handler(CallbackQueryHandler(handle_bonus_confirmation, pattern="^confirm_bonus_"))
-    
-    # --- NEW: CHAT JOIN REQUEST HANDLER ---
-    application.add_handler(ChatJoinRequestHandler(on_join_request))
-    
-    # --- Message Handlers ---
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_private_text)) 
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.GROUPS, handle_group_messages))
-    
-    # --- Job Queue (Background Tasks) ---
-    job_queue = application.job_queue
-    
-    if job_queue: 
-        job_queue.run_repeating(send_random_alerts_task, interval=timedelta(hours=2), first=timedelta(minutes=5))
-        logger.info("Random alert task scheduled to run every 2 hours.")
-
-        job_queue.run_repeating(process_monthly_leaderboard, interval=timedelta(hours=1), first=timedelta(minutes=10))
-        logger.info("Monthly leaderboard task scheduled to run every 1 hour (to check date).")
-    else:
-        logger.warning("Job Queue is not initialized. Skipping scheduled tasks (common in Webhook mode).")
-
-    # --- Running the Bot ---
-    if WEB_SERVER_URL and BOT_TOKEN:
-        application.run_webhook(
-            listen="0.0.0.0",
-            port=PORT,
-            url_path=BOT_TOKEN,
-            webhook_url=f"{WEB_SERVER_URL}/{BOT_TOKEN}",
-            allowed_updates=Update.ALL_TYPES
-        )
-        logger.info(f"Bot started in Webhook Mode on port {PORT}.")
-    else:
-        logger.info("WEB_SERVER_URL not found, starting in Polling Mode.")
-        application.run_polling(allowed_updates=Update.ALL_TYPES)
-        logger.info("Bot started in Polling Mode.")
+    print("🤖 Bot is running...")
+    app.run_webhook(
+        listen="0.0.0.0",
+        port=PORT,
+        url_path=BOT_TOKEN,
+        webhook_url=f"{WEB_APP_URL}/{BOT_TOKEN}"
+    )
 
 if __name__ == "__main__":
     main()
