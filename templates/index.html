@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Earnings</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(145deg, #0a0f1e 0%, #1a1f2f 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,215,0,0.2);
+        }
+        
+        .balance-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .balance-card {
+            background: linear-gradient(135deg, #2a2f3f, #1a1f2f);
+            padding: 15px 20px;
+            border-radius: 20px;
+            flex: 1;
+            margin-right: 10px;
+            border: 1px solid gold;
+        }
+        
+        .balance-label {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+        
+        .balance-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: gold;
+        }
+        
+        .spins-card {
+            background: linear-gradient(135deg, #2a2f3f, #1a1f2f);
+            padding: 15px 20px;
+            border-radius: 20px;
+            min-width: 100px;
+            text-align: center;
+            border: 1px solid #4caf50;
+        }
+        
+        .spins-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #4caf50;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            background: rgba(255,255,255,0.03);
+            padding: 15px 10px;
+            border-radius: 16px;
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        
+        .stat-number {
+            font-size: 20px;
+            font-weight: bold;
+            color: gold;
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .action-btn {
+            background: linear-gradient(145deg, #2a2f3f, #1a1f2f);
+            border: none;
+            color: white;
+            padding: 16px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+        
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .action-btn.primary {
+            background: linear-gradient(145deg, #f5b042, #f39c12);
+            color: #000;
+            border: none;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: rgba(0,0,0,0.3);
+            padding: 5px;
+            border-radius: 30px;
+        }
+        
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .tab.active {
+            background: gold;
+            color: #000;
+        }
+        
+        /* Content Sections */
+        .section {
+            display: none;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        /* Movie Groups */
+        .group-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .group-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: gold;
+        }
+        
+        .group-link {
+            display: inline-block;
+            background: gold;
+            color: #000;
+            padding: 8px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        /* Spin Wheel */
+        .wheel-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .wheel {
+            width: 250px;
+            height: 250px;
+            margin: 0 auto;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                #ff6b6b 0deg 60deg,
+                #4ecdc4 60deg 120deg,
+                #ffe66d 120deg 180deg,
+                #ff9f1c 180deg 240deg,
+                #c77dff 240deg 300deg,
+                #ff99c8 300deg 360deg
+            );
+            transition: transform 3s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            margin-bottom: 20px;
+            box-shadow: 0 0 30px rgba(255,215,0,0.5);
+        }
+        
+        .spin-btn {
+            background: gold;
+            color: #000;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 40px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .spin-btn:disabled {
+            opacity: 0.5;
+        }
+        
+        /* Leaderboard */
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .rank {
+            width: 40px;
+            height: 40px;
+            background: gold;
+            color: #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        
+        .rank.gold { background: gold; }
+        .rank.silver { background: #c0c0c0; }
+        .rank.bronze { background: #cd7f32; }
+        
+        .user-info {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .user-refs {
+            color: gold;
+            font-size: 14px;
+        }
+        
+        /* Withdraw */
+        .withdraw-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            padding: 20px;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 16px;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        
+        .method-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,215,0,0.3);
+            color: white;
+            padding: 12px;
+            border-radius: 12px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        
+        .method-btn.active {
+            background: gold;
+            color: #000;
+        }
+        
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: #1a1f2f;
+            padding: 30px;
+            border-radius: 30px;
+            max-width: 300px;
+            text-align: center;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            color: gold;
+            margin-bottom: 15px;
+        }
+        
+        .prize-amount {
+            font-size: 48px;
+            font-weight: bold;
+            color: gold;
+            margin: 20px 0;
+        }
+        
+        /* Navigation */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10,15,30,0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 16px;
+            border-top: 1px solid rgba(255,215,0,0.3);
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #888;
+            cursor: pointer;
+        }
+        
+        .nav-item.active {
+            color: gold;
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+        
+        .nav-label {
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Header with Balance -->
+        <div class="header">
+            <div class="balance-row">
+                <div class="balance-card">
+                    <div class="balance-label">💰 BALANCE</div>
+                    <div class="balance-value" id="balance">₹0.00</div>
+                </div>
+                <div class="spins-card">
+                    <div class="balance-label">🎰 SPINS</div>
+                    <div class="spins-value" id="spins">0</div>
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">TIER</div>
+                    <div class="stat-number" id="tier">1</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">ACTIVE REFS</div>
+                    <div class="stat-number" id="activeRefs">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">MONTHLY</div>
+                    <div class="stat-number" id="monthlyRefs">0</div>
+                </div>
+            </div>
+            
+            <div class="quick-actions">
+                <button class="action-btn" onclick="claimDaily()">
+                    📅 Daily
+                </button>
+                <button class="action-btn primary" onclick="showSection('spin')">
+                    🎡 Spin Now
+                </button>
+            </div>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="showSection('home')">🏠 Home</div>
+            <div class="tab" onclick="showSection('groups')">🎬 Groups</div>
+            <div class="tab" onclick="showSection('leaderboard')">🏆 Top</div>
+            <div class="tab" onclick="showSection('withdraw')">💸 Cash</div>
+        </div>
+        
+        <!-- Home Section -->
+        <div id="homeSection" class="section active">
+            <div class="group-card">
+                <div class="group-title">🎯 Daily Missions</div>
+                <div style="margin-top: 15px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>🔍 Search 3 Movies</span>
+                        <span>₹0.15 +1 Spin</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>👥 Refer 2 Friends</span>
+                        <span>₹0.50 +1 Spin</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>📅 Claim Daily Bonus</span>
+                        <span>₹0.05 +1 Spin</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="group-card">
+                <div class="group-title">📊 Your Stats</div>
+                <div style="margin-top: 15px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Total Referrals:</span>
+                        <span id="totalRefs">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Earnings Today:</span>
+                        <span>₹0.00</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Referral Rate:</span>
+                        <span id="rate">₹0.10/search</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="group-card">
+                <div class="group-title">🔗 Your Referral Link</div>
+                <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px; margin: 10px 0; font-size: 12px; word-break: break-all;" id="refLink">
+                    Loading...
+                </div>
+                <button class="group-link" onclick="copyRefLink()" style="width: 100%;">📋 Copy Link</button>
+            </div>
+        </div>
+        
+        <!-- Groups Section -->
+        <div id="groupsSection" class="section">
+            <div class="group-card">
+                <div class="group-title">🎬 New Movie Group</div>
+                <p>Latest movies updated daily</p>
+                <a href="#" class="group-link" id="newGroupLink" target="_blank">Join Group</a>
+            </div>
+            
+            <div class="group-card">
+                <div class="group-title">🍿 Main Movie Group</div>
+                <p>Search any movie here to activate referrals</p>
+                <a href="#" class="group-link" id="movieGroupLink" target="_blank">Join Group</a>
+            </div>
+            
+            <div class="group-card">
+                <div class="group-title">📢 All Groups</div>
+                <p>Join all groups at once</p>
+                <a href="#" class="group-link" id="allGroupsLink" target="_blank">Join All</a>
+            </div>
+            
+            <div style="background: rgba(255,215,0,0.1); border-radius: 16px; padding: 16px; margin-top: 20px;">
+                <div style="color: gold; font-weight: bold; margin-bottom: 10px;">⭐ IMPORTANT</div>
+                <p style="color: #ccc; font-size: 14px;">Your referrals become ACTIVE only after they search a movie in the Main Movie Group!</p>
+            </div>
+        </div>
+        
+        <!-- Spin Section (Hidden by default) -->
+        <div id="spinSection" class="section">
+            <div class="wheel-container">
+                <div class="wheel" id="wheel" style="transform: rotate(0deg);"></div>
+                <button class="spin-btn" id="spinBtn" onclick="spinWheel()">
+                    🎰 SPIN ({spins})
+                </button>
+                <p style="color: #888; margin-top: 15px;">🎁 Refer 1 friend = +1 Spin</p>
+            </div>
+        </div>
+        
+        <!-- Leaderboard Section -->
+        <div id="leaderboardSection" class="section">
+            <div class="group-card">
+                <div class="group-title">🏆 TOP 10 REFERRERS</div>
+                <div id="leaderboardList"></div>
+                <div style="margin-top: 15px; font-size: 12px; color: #888;">
+                    * Monthly rewards paid on 1st of month
+                </div>
+            </div>
+        </div>
+        
+        <!-- Withdraw Section -->
+        <div id="withdrawSection" class="section">
+            <div class="withdraw-card">
+                <h3 style="margin-bottom: 20px;">💸 Withdraw Money</h3>
+                
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <button class="method-btn active" onclick="selectMethod('upi')">🇮🇳 UPI</button>
+                        <button class="method-btn" onclick="selectMethod('bank')">🏦 Bank</button>
+                    </div>
+                    
+                    <input type="number" id="withdrawAmount" class="input-field" placeholder="Amount (min ₹50)" min="50" step="1">
+                    <input type="text" id="withdrawDetails" class="input-field" placeholder="UPI ID / Bank Details">
+                    
+                    <button class="action-btn primary" onclick="withdraw()" style="width: 100%;">
+                        💸 Request Withdrawal
+                    </button>
+                </div>
+                
+                <div style="color: #888; font-size: 12px; margin-top: 20px;">
+                    ⚠️ Minimum withdrawal: ₹50<br>
+                    ⏳ Processing time: 24 hours
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal -->
+    <div id="modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle">🎉 Congratulations!</div>
+            <div class="prize-amount" id="modalAmount">₹0.00</div>
+            <p id="modalText">You won the prize!</p>
+            <button class="action-btn primary" onclick="closeModal()" style="width: 100%;">OK</button>
+        </div>
+    </div>
+    
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="showSection('home')">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Home</span>
+        </div>
+        <div class="nav-item" onclick="showSection('groups')">
+            <span class="nav-icon">🎬</span>
+            <span class="nav-label">Groups</span>
+        </div>
+        <div class="nav-item" onclick="showSection('spin')">
+            <span class="nav-icon">🎡</span>
+            <span class="nav-label">Spin</span>
+        </div>
+        <div class="nav-item" onclick="showSection('leaderboard')">
+            <span class="nav-icon">🏆</span>
+            <span class="nav-label">Top</span>
+        </div>
+        <div class="nav-item" onclick="showSection('withdraw')">
+            <span class="nav-icon">💸</span>
+            <span class="nav-label">Cash</span>
+        </div>
+    </div>
+    
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+        
+        let userData = {
+            id: {{ user_id }},
+            balance: 0,
+            spins: 0
+        };
+        
+        let currentMethod = 'upi';
+        
+        // Initialize
+        async function loadData() {
+            const response = await fetch(`/api/user/${userData.id}`);
+            const data = await response.json();
+            
+            if (!data.error) {
+                userData.balance = data.balance;
+                userData.spins = data.spins;
+                
+                document.getElementById('balance').innerText = `₹${data.balance.toFixed(2)}`;
+                document.getElementById('spins').innerText = data.spins;
+                document.getElementById('tier').innerText = data.tier;
+                document.getElementById('activeRefs').innerText = data.active_refs;
+                document.getElementById('monthlyRefs').innerText = data.monthly_refs;
+                document.getElementById('totalRefs').innerText = data.total_refs;
+                
+                const rates = {1: 0.10, 2: 0.12, 3: 0.15, 4: 0.18, 5: 0.20};
+                document.getElementById('rate').innerText = `₹${rates[data.tier]}/search`;
+            }
+            
+            loadLeaderboard();
+        }
+        
+        async function loadLeaderboard() {
+            const response = await fetch('/api/leaderboard');
+            const data = await response.json();
+            
+            let html = '';
+            data.forEach((user, index) => {
+                let rankClass = '';
+                if (index === 0) rankClass = 'gold';
+                else if (index === 1) rankClass = 'silver';
+                else if (index === 2) rankClass = 'bronze';
+                
+                html += `
+                    <div class="leaderboard-item">
+                        <div class="rank ${rankClass}">#${index + 1}</div>
+                        <div class="user-info">
+                            <div class="user-name">${user.name}</div>
+                            <div class="user-refs">👥 ${user.refs} referrals</div>
+                        </div>
+                        <div style="color: gold;">₹${user.balance.toFixed(2)}</div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('leaderboardList').innerHTML = html;
+        }
+        
+        // Referral link
+        const botUsername = 'your_bot_username';
+        document.getElementById('refLink').innerText = `https://t.me/${botUsername}?start=ref_${userData.id}`;
+        
+        function copyRefLink() {
+            navigator.clipboard.writeText(document.getElementById('refLink').innerText);
+            tg.showAlert('✅ Link copied!');
+        }
+        
+        // Group links
+        document.getElementById('newGroupLink').href = '{{ NEW_MOVIE_GROUP_LINK }}';
+        document.getElementById('movieGroupLink').href = '{{ MOVIE_GROUP_LINK }}';
+        document.getElementById('allGroupsLink').href = '{{ ALL_GROUPS_LINK }}';
+        
+        // Section switching
+        function showSection(section) {
+            // Update tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            if (section === 'home') {
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+                document.querySelector('.nav-item:nth-child(1)').classList.add('active');
+            } else if (section === 'groups') {
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                document.querySelector('.nav-item:nth-child(2)').classList.add('active');
+            } else if (section === 'spin') {
+                document.querySelector('.tab:nth-child(3)').classList.add('active');
+                document.querySelector('.nav-item:nth-child(3)').classList.add('active');
+            } else if (section === 'leaderboard') {
+                document.querySelector('.tab:nth-child(4)').classList.add('active');
+                document.querySelector('.nav-item:nth-child(4)').classList.add('active');
+            } else if (section === 'withdraw') {
+                document.querySelector('.tab:nth-child(5)').classList.add('active');
+                document.querySelector('.nav-item:nth-child(5)').classList.add('active');
+            }
+            
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            
+            // Show selected section
+            if (section === 'home') {
+                document.getElementById('homeSection').classList.add('active');
+            } else if (section === 'groups') {
+                document.getElementById('groupsSection').classList.add('active');
+            } else if (section === 'spin') {
+                document.getElementById('spinSection').classList.add('active');
+                updateSpinButton();
+            } else if (section === 'leaderboard') {
+                document.getElementById('leaderboardSection').classList.add('active');
+                loadLeaderboard();
+            } else if (section === 'withdraw') {
+                document.getElementById('withdrawSection').classList.add('active');
+            }
+        }
+        
+        // Daily Bonus
+        async function claimDaily() {
+            tg.sendData(JSON.stringify({
+                action: 'daily',
+                user_id: userData.id
+            }));
+        }
+        
+        // Spin Wheel
+        let isSpinning = false;
+        
+        function updateSpinButton() {
+            const btn = document.getElementById('spinBtn');
+            btn.innerText = `🎰 SPIN (${userData.spins})`;
+            btn.disabled = userData.spins <= 0;
+        }
+        
+        async function spinWheel() {
+            if (isSpinning || userData.spins <= 0) return;
+            
+            isSpinning = true;
+            const wheel = document.getElementById('wheel');
+            
+            // Random rotation
+            const rotation = 720 + Math.floor(Math.random() * 360);
+            wheel.style.transform = `rotate(${rotation}deg)`;
+            
+            tg.sendData(JSON.stringify({
+                action: 'spin',
+                user_id: userData.id
+            }));
+        }
+        
+        // Handle Telegram response
+        tg.onEvent('webAppData', function(data) {
+            try {
+                const response = JSON.parse(data);
+                
+                if (response.prize !== undefined) {
+                    // Spin result
+                    setTimeout(() => {
+                        document.getElementById('modalTitle').innerText = response.prize > 0 ? '🎉 You Won!' : '😢 Try Again';
+                        document.getElementById('modalAmount').innerText = `₹${response.prize.toFixed(2)}`;
+                        document.getElementById('modalText').innerText = response.prize > 0 
+                            ? 'Amount added to your balance!' 
+                            : 'Better luck next time!';
+                        document.getElementById('modal').style.display = 'flex';
+                        
+                        userData.balance = response.balance;
+                        userData.spins--;
+                        
+                        document.getElementById('balance').innerText = `₹${response.balance.toFixed(2)}`;
+                        document.getElementById('spins').innerText = userData.spins;
+                        
+                        updateSpinButton();
+                        isSpinning = false;
+                    }, 3000);
+                    
+                } else if (response.bonus !== undefined) {
+                    // Daily bonus
+                    document.getElementById('modalTitle').innerText = '🎁 Daily Bonus';
+                    document.getElementById('modalAmount').innerText = `₹${response.bonus.toFixed(2)}`;
+                    document.getElementById('modalText').innerText = `Streak: ${response.streak} days`;
+                    document.getElementById('modal').style.display = 'flex';
+                    
+                    userData.balance = response.balance;
+                    document.getElementById('balance').innerText = `₹${response.balance.toFixed(2)}`;
+                    
+                } else if (response.success !== undefined) {
+                    // Withdrawal
+                    if (response.success) {
+                        document.getElementById('modalTitle').innerText = '✅ Success!';
+                        document.getElementById('modalAmount').innerText = 'Request Sent';
+                        document.getElementById('modalText').innerText = 'Admin will process within 24h';
+                        document.getElementById('modal').style.display = 'flex';
+                        
+                        userData.balance = 0;
+                        document.getElementById('balance').innerText = '₹0.00';
+                    } else {
+                        tg.showAlert('❌ Withdrawal failed! Check balance or minimum amount.');
+                    }
+                }
+            } catch (e) {
+                console.error('Response error:', e);
+            }
+        });
+        
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+        
+        // Withdrawal
+        function selectMethod(method) {
+            currentMethod = method;
+            document.querySelectorAll('.method-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        
+        function withdraw() {
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            const details = document.getElementById('withdrawDetails').value;
+            
+            if (amount < 50) {
+                tg.showAlert('❌ Minimum withdrawal is ₹50');
+                return;
+            }
+            
+            if (!details) {
+                tg.showAlert('❌ Please enter payment details');
+                return;
+            }
+            
+            if (amount > userData.balance) {
+                tg.showAlert('❌ Insufficient balance');
+                return;
+            }
+            
+            tg.sendData(JSON.stringify({
+                action: 'withdraw',
+                user_id: userData.id,
+                amount: amount,
+                method: currentMethod,
+                details: details
+            }));
+        }
+        
+        // Load data on start
+        loadData();
+    </script>
+</body>
+</html>
