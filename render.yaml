@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: movie-bot
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_ID
+        sync: false
+      - key: MONGO_URI
+        sync: false
+      - key: WEB_APP_URL
+        value: https://promotion-user.onrender.com
+      - key: PORT
+        value: 10000
