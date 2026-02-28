@@ -2,12 +2,13 @@ import logging
 import json
 import asyncio
 import os
+import random
+import traceback
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 import pymongo
-import random
 
 # ====== LOAD ENVIRONMENT VARIABLES ======
 from dotenv import load_dotenv
@@ -20,7 +21,7 @@ MONGO_URI = os.getenv("MONGO_URI")
 PORT = int(os.getenv("PORT", 10000))
 WEB_APP_URL = os.getenv("WEB_APP_URL", "https://promotion-user.onrender.com")
 
-# Movie Groups (आप अपने ग्रुप लिंक डाल सकते हैं)
+# Movie Groups
 MOVIE_GROUP_LINK = os.getenv("MOVIE_GROUP_LINK", "https://t.me/asfilter_group")
 NEW_MOVIE_GROUP_LINK = os.getenv("NEW_MOVIE_GROUP_LINK", "https://t.me/asfilter_bot")
 ALL_GROUPS_LINK = os.getenv("ALL_GROUPS_LINK", "https://t.me/addlist/6urdhhdLRqhiZmQ1")
@@ -277,10 +278,10 @@ def api_leaderboard():
         })
     return jsonify(result)
 
-# ====== FIXED WEBHOOK HANDLER ======
+# ====== FIXED WEBHOOK HANDLER - यह बिल्कुल सही है ======
 @flask_app.route(f'/{BOT_TOKEN}', methods=['POST'])
 def webhook():
-    """Telegram webhook handler"""
+    """Telegram webhook handler - FIXED"""
     global bot_app
     
     if not bot_app:
@@ -295,10 +296,15 @@ def webhook():
         # Update object बनाएं
         update = Update.de_json(update_data, bot_app.bot)
         
-        # Async function को sync में run करें
+        # ✅ CRITICAL FIX: Async function को sync में run करना
+        # नया event loop बनाएं
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
+        
+        # यहाँ await का काम loop.run_until_complete करेगा
         loop.run_until_complete(bot_app.process_update(update))
+        
+        # Loop को साफ करें
         loop.close()
         
         logger.info("✅ Update processed successfully")
@@ -306,7 +312,6 @@ def webhook():
         
     except Exception as e:
         logger.error(f"❌ Webhook error: {e}")
-        import traceback
         traceback.print_exc()
         return 'Error', 500
 
@@ -488,7 +493,6 @@ async def web_app_data(update: Update, context):
             
     except Exception as e:
         logger.error(f"❌ WebApp data error: {e}")
-        import traceback
         traceback.print_exc()
 
 async def error_handler(update: Update, context):
