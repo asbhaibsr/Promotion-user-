@@ -1,14 +1,15 @@
 import logging
 import json
 import asyncio
+import threading
+import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application, CommandHandler, MessageHandler,
     CallbackQueryHandler, filters, ContextTypes
 )
 from datetime import datetime
-from flask import Flask, render_template, request
-import threading
+from flask import Flask, render_template, request, jsonify
 
 from config import *
 from database import *
@@ -46,11 +47,17 @@ def api_leaderboard():
         })
     return jsonify(result)
 
+# Webhook endpoint for Telegram
+@flask_app.route(f'/{BOT_TOKEN}', methods=['POST'])
+def webhook():
+    update = Update.de_json(request.get_json(force=True), bot_app.bot)
+    bot_app.process_update(update)
+    return 'OK', 200
+
 def run_flask():
-    flask_app.run(host='0.0.0.0', port=PORT, debug=False, use_reloader=False)
+    flask_app.run(host='0.0.0.0', port=FLASK_PORT, debug=False, use_reloader=False)
 
 # ========== TELEGRAM BOT HANDLERS ==========
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     
@@ -72,7 +79,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             update_balance(user.id, WELCOME_BONUS)
             users.update_one({"user_id": user.id}, {"$set": {"welcome_bonus": True}})
     
-    # Mini App Button - FIXED: web_app URL format
+    # Mini App Button
     keyboard = [[
         InlineKeyboardButton(
             "🎬 OPEN MINI APP", 
@@ -250,39 +257,40 @@ async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ========== MAIN FUNCTION ==========
 def main():
+    global bot_app
+    
     # Start Flask in a separate thread
     flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
-    logging.info("🌐 Flask Mini App started on thread")
+    logging.info(f"🌐 Flask Mini App started on port {FLASK_PORT}")
     
-    # Create bot application - FIXED: removed job_queue to avoid weakref error
-    app = (
+    # Create bot application
+    bot_app = (
         Application.builder()
         .token(BOT_TOKEN)
+        .job_queue(None)  # Disable job queue to avoid weakref error
         .build()
     )
     
     # Add handlers
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.ChatType.GROUPS & filters.TEXT, group_message))
-    app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, web_app_data))
-    app.add_handler(CommandHandler("add", admin, filters.User(ADMIN_ID)))
-    app.add_handler(CommandHandler("clear", admin, filters.User(ADMIN_ID)))
+    bot_app.add_handler(CommandHandler("start", start))
+    bot_app.add_handler(MessageHandler(filters.ChatType.GROUPS & filters.TEXT, group_message))
+    bot_app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, web_app_data))
+    bot_app.add_handler(CommandHandler("add", admin, filters.User(ADMIN_ID)))
+    bot_app.add_handler(CommandHandler("clear", admin, filters.User(ADMIN_ID)))
     
     logging.info("🤖 Bot is starting...")
     
-    # Run bot with webhook
-    if WEB_APP_URL and BOT_TOKEN:
-        app.run_webhook(
-            listen="0.0.0.0",
-            port=PORT,
-            url_path=BOT_TOKEN,
-            webhook_url=f"{WEB_APP_URL}/{BOT_TOKEN}",
-            allowed_updates=Update.ALL_TYPES
-        )
-    else:
-        # Fallback to polling
-        app.run_polling(allowed_updates=Update.ALL_TYPES)
+    # Run bot with webhook - use the same Flask app to handle webhook
+    bot_app.run_webhook(
+        listen="0.0.0.0",
+        port=BOT_PORT,
+        url_path=BOT_TOKEN,
+        webhook_url=f"{WEB_APP_URL}/{BOT_TOKEN}",
+        allowed_updates=Update.ALL_TYPES
+    )
 
 if __name__ == "__main__":
+    # Set global variable for bot app to be used in Flask webhook
+    bot_app = None
     main()
