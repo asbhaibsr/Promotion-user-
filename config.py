@@ -5,14 +5,18 @@ load_dotenv()
 
 # === BOT CONFIG ===
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
+try:
+    ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
+except:
+    ADMIN_ID = None
+    
 MONGO_URI = os.getenv("MONGO_URI")
 PORT = int(os.getenv("PORT", 8000))
 WEB_APP_URL = os.getenv("WEB_APP_URL", "https://promotion-user.onrender.com")
 
 # === GROUP LINKS ===
 MOVIE_GROUP_LINK = "https://t.me/asfilter_group"
-NEW_MOVIE_GROUP_LINK = "https://t.me/asfilter_bot"
+NEW_MOVIE_GROUP_LINK = "https://t.me/asfilter_bot" 
 ALL_GROUPS_LINK = "https://t.me/addlist/6urdhhdLRqhiZmQ1"
 
 # === CHANNELS ===
@@ -47,5 +51,9 @@ LEADERBOARD = {
     3: {"reward": 50, "min_refs": 30},
     4: {"reward": 25, "min_refs": 20},
     5: {"reward": 25, "min_refs": 20},
-    (6, 10): {"reward": 5, "min_refs": 10}
+    6: {"reward": 5, "min_refs": 10},
+    7: {"reward": 5, "min_refs": 10},
+    8: {"reward": 5, "min_refs": 10},
+    9: {"reward": 5, "min_refs": 10},
+    10: {"reward": 5, "min_refs": 10}
 }
