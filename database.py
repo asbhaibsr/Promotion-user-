@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 from datetime import datetime, timedelta
-from config import MONGO_URI
+from config import MONGO_URI, TIERS, DAILY_BONUS_BASE, MIN_WITHDRAWAL
 
 client = MongoClient(MONGO_URI)
 db = client.movie_bot
@@ -53,7 +53,8 @@ def update_balance(user_id, amount):
         {"user_id": user_id},
         {"$inc": {"balance": amount}}
     )
-    return get_user(user_id)["balance"]
+    user = get_user(user_id)
+    return user["balance"] if user else 0
 
 # === REFERRAL FUNCTIONS ===
 def activate_referral(user_id):
@@ -130,7 +131,12 @@ def claim_daily(user_id):
         }
     )
     
-    return {"bonus": bonus, "streak": streak, "balance": user["balance"] + bonus}
+    updated_user = get_user(user_id)
+    return {
+        "bonus": bonus, 
+        "streak": streak, 
+        "balance": updated_user["balance"] if updated_user else user["balance"] + bonus
+    }
 
 # === WITHDRAWAL ===
 def create_withdrawal(user_id, amount, method, details):
@@ -170,9 +176,9 @@ def get_user_stats(user_id):
     active_refs = referrals.count_documents({"referrer": user_id, "active": True})
     
     return {
-        "balance": user["balance"],
-        "spins": user["spins"],
-        "tier": user["tier"],
+        "balance": user.get("balance", 0),
+        "spins": user.get("spins", 0),
+        "tier": user.get("tier", 1),
         "total_refs": ref_count,
         "active_refs": active_refs,
         "monthly_refs": user.get("monthly_referrals", 0)
@@ -188,7 +194,7 @@ def check_missions(user_id, mission_type):
     today = datetime.now().date().isoformat()
     
     if missions.get("date") != today:
-        missions = {"date": today}
+        missions = {"date": today, "searches": 0, "search_done": False}
     
     if mission_type == "search":
         count = missions.get("searches", 0) + 1
