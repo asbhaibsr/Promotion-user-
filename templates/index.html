@@ -1,279 +1,305 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Earnings</title>
+    <title>मूवी अर्निंग | 2026</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        /* रूट वेरिएबल्स */
+        :root {
+            --bg-primary: #0a0f1e;
+            --bg-secondary: #1a1f2f;
+            --accent-gold: #ffd700;
+            --accent-green: #4caf50;
+            --accent-red: #ff4757;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --border-glow: rgba(255, 215, 0, 0.3);
+            --shadow-glow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
-        
+
         body {
-            background: linear-gradient(145deg, #0a0f1e 0%, #1a1f2f 100%);
-            color: white;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
             padding: 16px;
-            padding-bottom: 80px;
+            padding-bottom: 90px;
+            position: relative;
         }
-        
-        /* Header with Profile */
+
+        /* एनिमेशन */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* हेडर */
         .header {
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 24px;
+            background: linear-gradient(145deg, var(--bg-secondary), #0f1424);
+            border-radius: 30px;
             padding: 20px;
             margin-bottom: 20px;
-            border: 1px solid rgba(255,215,0,0.2);
+            border: 2px solid var(--border-glow);
+            box-shadow: var(--shadow-glow);
+            animation: fadeIn 0.5s ease;
         }
-        
+
         .profile-row {
             display: flex;
             align-items: center;
             gap: 15px;
             margin-bottom: 20px;
         }
-        
+
         .profile-avatar {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, gold, #ff8c00);
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--accent-gold), #ff8c00);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 30px;
+            font-size: 35px;
             font-weight: bold;
             color: #000;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            animation: pulse 2s infinite;
         }
-        
+
         .profile-info {
             flex: 1;
         }
-        
+
         .profile-name {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
+            color: var(--accent-gold);
             margin-bottom: 4px;
-            color: gold;
         }
-        
+
         .profile-id {
             font-size: 12px;
-            color: #888;
+            color: var(--text-secondary);
         }
-        
+
         .balance-row {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            gap: 10px;
             margin-bottom: 15px;
         }
-        
+
         .balance-card {
-            background: linear-gradient(135deg, #2a2f3f, #1a1f2f);
-            padding: 15px 20px;
-            border-radius: 20px;
-            flex: 1;
-            margin-right: 10px;
-            border: 1px solid gold;
+            background: linear-gradient(135deg, #2a2f3f, var(--bg-secondary));
+            padding: 18px;
+            border-radius: 25px;
+            flex: 2;
+            border: 2px solid var(--accent-gold);
         }
-        
+
         .balance-label {
             font-size: 14px;
-            color: #aaa;
+            color: var(--text-secondary);
             margin-bottom: 5px;
         }
-        
+
         .balance-value {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: bold;
-            color: gold;
+            color: var(--accent-gold);
         }
-        
+
         .spins-card {
-            background: linear-gradient(135deg, #2a2f3f, #1a1f2f);
-            padding: 15px 20px;
-            border-radius: 20px;
-            min-width: 100px;
+            background: linear-gradient(135deg, #2a2f3f, var(--bg-secondary));
+            padding: 18px;
+            border-radius: 25px;
+            flex: 1;
             text-align: center;
-            border: 1px solid #4caf50;
+            border: 2px solid var(--accent-green);
         }
-        
+
         .spins-value {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: bold;
-            color: #4caf50;
+            color: var(--accent-green);
         }
-        
-        /* Stats Grid */
+
+        /* स्टैट्स ग्रिड */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 10px;
-            margin-bottom: 20px;
         }
-        
+
         .stat-item {
-            background: rgba(255,255,255,0.03);
-            padding: 15px 10px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px 5px;
             border-radius: 16px;
             text-align: center;
-            border: 1px solid rgba(255,215,0,0.2);
+            border: 1px solid var(--border-glow);
         }
-        
+
         .stat-label {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 5px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
         }
-        
+
         .stat-number {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
-            color: gold;
+            color: var(--accent-gold);
         }
-        
-        /* Movie Groups Button (First Screen) */
-        .movie-groups-btn {
-            background: linear-gradient(135deg, #ff6b6b, #ff4757);
-            border: none;
-            color: white;
-            padding: 20px;
-            border-radius: 30px;
-            font-size: 20px;
-            font-weight: bold;
+
+        /* नेविगेशन बार */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 15, 30, 0.98);
+            backdrop-filter: blur(10px);
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            cursor: pointer;
-            margin-bottom: 20px;
-            width: 100%;
-            border: 2px solid gold;
-            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+            justify-content: space-around;
+            padding: 12px 8px;
+            border-top: 3px solid var(--accent-gold);
+            z-index: 99;
         }
-        
-        /* Main Menu Buttons */
-        .main-menu {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        
-        .menu-btn {
-            background: linear-gradient(145deg, #2a2f3f, #1a1f2f);
-            border: 1px solid rgba(255,215,0,0.3);
-            color: white;
-            padding: 20px 12px;
-            border-radius: 20px;
-            font-size: 16px;
-            font-weight: 600;
+
+        .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-item.active {
+            color: var(--accent-gold);
+            transform: translateY(-5px);
+        }
+
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 3px;
+            background: var(--accent-gold);
+            border-radius: 3px;
+            animation: fadeIn 0.3s;
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* मेन मेनू */
+        .main-menu {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .menu-item {
+            background: linear-gradient(145deg, var(--bg-secondary), #0f1424);
+            border: 2px solid var(--border-glow);
+            border-radius: 25px;
+            padding: 20px 5px;
+            text-align: center;
             cursor: pointer;
             transition: all 0.3s;
+            animation: fadeIn 0.5s ease;
         }
-        
-        .menu-btn:active {
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .menu-item:active {
             transform: scale(0.95);
         }
-        
+
         .menu-icon {
-            font-size: 30px;
-        }
-        
-        .menu-btn.primary {
-            background: linear-gradient(145deg, gold, #ff8c00);
-            color: #000;
-            border: none;
-        }
-        
-        /* Pages */
-        .page {
-            display: none;
-            animation: slideIn 0.3s ease;
-        }
-        
-        .page.active {
+            font-size: 35px;
+            margin-bottom: 8px;
             display: block;
         }
-        
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+
+        .menu-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
         }
-        
-        /* Back Button */
-        .back-btn {
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 30px;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            margin-bottom: 20px;
-            width: fit-content;
+
+        .menu-subtitle {
+            font-size: 11px;
+            color: var(--accent-gold);
+            margin-top: 5px;
         }
-        
-        .back-btn:hover {
-            background: rgba(255,255,255,0.2);
-        }
-        
-        /* Page Title */
-        .page-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: gold;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        /* Cards */
+
+        /* कार्ड */
         .card {
-            background: rgba(255,255,255,0.03);
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 25px;
             padding: 20px;
             margin-bottom: 15px;
-            border: 1px solid rgba(255,215,0,0.2);
+            border: 2px solid var(--border-glow);
+            animation: fadeIn 0.5s ease;
         }
-        
+
         .card-title {
             font-size: 18px;
             font-weight: bold;
-            color: gold;
+            color: var(--accent-gold);
             margin-bottom: 15px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        
-        /* Buttons */
+
+        /* बटन */
         .btn {
-            background: linear-gradient(145deg, #2a2f3f, #1a1f2f);
-            border: 1px solid rgba(255,215,0,0.3);
-            color: white;
-            padding: 15px;
-            border-radius: 16px;
+            background: linear-gradient(145deg, var(--bg-secondary), #0f1424);
+            border: 2px solid var(--border-glow);
+            color: var(--text-primary);
+            padding: 16px;
+            border-radius: 25px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
@@ -283,793 +309,736 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            transition: all 0.3s;
         }
-        
+
         .btn.primary {
-            background: linear-gradient(145deg, gold, #ff8c00);
+            background: linear-gradient(145deg, var(--accent-gold), #ff8c00);
             color: #000;
             border: none;
+            font-weight: bold;
         }
-        
+
+        .btn.primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 215, 0, 0.4);
+        }
+
         .btn.small {
-            padding: 10px;
+            padding: 12px;
             font-size: 14px;
         }
-        
+
         .btn-group {
             display: flex;
             gap: 10px;
         }
-        
-        /* Spin Wheel */
+
+        /* स्पिन व्हील */
         .wheel-container {
             text-align: center;
             margin: 20px 0;
+            position: relative;
         }
-        
+
         .wheel {
-            width: 280px;
-            height: 280px;
+            width: 300px;
+            height: 300px;
             margin: 0 auto;
             border-radius: 50%;
             background: conic-gradient(
                 from 0deg,
-                #ff6b6b 0deg 60deg,
-                #4ecdc4 60deg 120deg,
-                #ffe66d 120deg 180deg,
-                #ff9f1c 180deg 240deg,
-                #c77dff 240deg 300deg,
-                #ff99c8 300deg 360deg
+                #ff6b6b 0deg 45deg,
+                #4ecdc4 45deg 90deg,
+                #ffe66d 90deg 135deg,
+                #ff9f1c 135deg 180deg,
+                #c77dff 180deg 225deg,
+                #ff99c8 225deg 270deg,
+                #6c5ce7 270deg 315deg,
+                #00cec9 315deg 360deg
             );
             transition: transform 3s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-            margin-bottom: 20px;
-            box-shadow: 0 0 30px rgba(255,215,0,0.5);
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.6);
             position: relative;
+            border: 5px solid var(--accent-gold);
         }
-        
+
+        .wheel::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            background: var(--bg-primary);
+            border-radius: 50%;
+            border: 3px solid var(--accent-gold);
+            z-index: 10;
+        }
+
         .wheel::after {
             content: '⬆️';
             position: absolute;
-            top: -20px;
+            top: -30px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 30px;
+            font-size: 40px;
+            filter: drop-shadow(0 0 10px gold);
         }
-        
+
         .spin-btn {
-            background: gold;
+            background: linear-gradient(145deg, var(--accent-gold), #ff8c00);
             color: #000;
             border: none;
-            padding: 18px;
-            border-radius: 40px;
-            font-size: 22px;
+            padding: 20px;
+            border-radius: 50px;
+            font-size: 24px;
             font-weight: bold;
             cursor: pointer;
             width: 100%;
             margin: 20px 0;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
         }
-        
+
+        .spin-btn:hover {
+            transform: scale(1.05);
+        }
+
         .spin-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
-        
-        /* Leaderboard */
+
+        /* लीडरबोर्ड */
         .leaderboard-item {
             display: flex;
             align-items: center;
-            padding: 12px;
-            background: rgba(255,255,255,0.03);
-            border-radius: 16px;
-            margin-bottom: 8px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-glow);
+            transition: all 0.3s;
         }
-        
+
+        .leaderboard-item:hover {
+            transform: translateX(5px);
+            border-color: var(--accent-gold);
+        }
+
         .rank {
-            width: 40px;
-            height: 40px;
-            background: gold;
+            width: 45px;
+            height: 45px;
+            background: var(--accent-gold);
             color: #000;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
+            font-size: 18px;
             margin-right: 15px;
         }
-        
-        .rank.gold { background: gold; }
+
+        .rank.gold { background: #ffd700; }
         .rank.silver { background: #c0c0c0; color: #000; }
         .rank.bronze { background: #cd7f32; color: #000; }
-        
-        .user-info {
-            flex: 1;
-        }
-        
-        .user-name {
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-        
-        .user-refs {
-            color: gold;
-            font-size: 14px;
-        }
-        
-        /* Withdraw */
-        .details-display {
-            background: rgba(0,0,0,0.3);
-            padding: 15px;
-            border-radius: 12px;
-            margin: 15px 0;
-            border-left: 3px solid gold;
-        }
-        
-        .method-badge {
-            background: gold;
-            color: #000;
-            padding: 5px 12px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: bold;
-            display: inline-block;
-            margin-bottom: 10px;
-        }
-        
-        .input-field {
-            width: 100%;
-            padding: 15px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,215,0,0.3);
-            border-radius: 16px;
-            color: white;
-            font-size: 16px;
-            margin-bottom: 15px;
-        }
-        
-        .input-field:focus {
-            border-color: gold;
-            outline: none;
-        }
-        
-        .method-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,215,0,0.3);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 12px;
-            cursor: pointer;
-            flex: 1;
-            font-size: 14px;
-        }
-        
-        .method-btn.active {
-            background: gold;
-            color: #000;
-        }
-        
-        /* Mission Progress */
+
+        /* मिशन */
         .mission-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
         }
-        
+
         .mission-item:last-child {
             border-bottom: none;
         }
-        
+
         .mission-reward {
-            color: gold;
+            color: var(--accent-gold);
             font-weight: bold;
+            background: rgba(255, 215, 0, 0.1);
+            padding: 5px 12px;
+            border-radius: 20px;
         }
-        
+
         .mission-status {
-            width: 24px;
-            height: 24px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
-            background: rgba(255,215,0,0.2);
+            background: rgba(255, 215, 0, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 16px;
         }
-        
+
         .mission-status.completed {
-            background: #4caf50;
+            background: var(--accent-green);
         }
-        
-        /* Help Button */
-        .help-btn {
-            position: fixed;
-            bottom: 90px;
-            right: 16px;
-            background: gold;
-            color: #000;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(255,215,0,0.3);
-            z-index: 100;
-        }
-        
-        /* Modal */
+
+        /* मोडल */
         .modal {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.95);
+            background: rgba(0, 0, 0, 0.95);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
             padding: 20px;
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.3s;
         }
-        
+
         .modal-content {
-            background: #1a1f2f;
-            padding: 30px;
-            border-radius: 30px;
-            max-width: 320px;
+            background: var(--bg-secondary);
+            padding: 40px;
+            border-radius: 40px;
+            max-width: 350px;
             width: 100%;
             text-align: center;
-            border: 2px solid gold;
+            border: 3px solid var(--accent-gold);
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+            animation: pulse 2s infinite;
         }
-        
+
         .modal-title {
-            font-size: 24px;
-            color: gold;
-            margin-bottom: 15px;
+            font-size: 28px;
+            color: var(--accent-gold);
+            margin-bottom: 20px;
         }
-        
+
         .prize-amount {
-            font-size: 48px;
+            font-size: 56px;
             font-weight: bold;
-            color: gold;
+            color: var(--accent-gold);
             margin: 20px 0;
+            text-shadow: 0 0 20px gold;
         }
-        
-        /* Navigation */
-        .nav-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(10,15,30,0.98);
-            backdrop-filter: blur(10px);
-            display: flex;
-            justify-content: space-around;
-            padding: 12px 8px;
-            border-top: 2px solid gold;
-            z-index: 99;
-        }
-        
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: #888;
+
+        /* एड्स */
+        .ad-card {
+            background: linear-gradient(145deg, #2a2f3f, var(--bg-secondary));
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 2px solid var(--accent-gold);
             cursor: pointer;
-            flex: 1;
+            transition: all 0.3s;
         }
-        
-        .nav-item.active {
-            color: gold;
+
+        .ad-card:hover {
+            transform: scale(1.02);
         }
-        
-        .nav-icon {
-            font-size: 24px;
-            margin-bottom: 4px;
+
+        .ad-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--accent-gold);
+            margin-bottom: 5px;
         }
-        
-        .nav-label {
-            font-size: 11px;
-        }
-        
-        /* Loading */
+
+        /* लोडिंग */
         .loading {
             text-align: center;
             padding: 40px;
-            color: gold;
+            color: var(--accent-gold);
+            font-size: 18px;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: pulse 1s infinite;
         }
     </style>
 </head>
 <body>
     <div id="app">
-        <!-- Header with Profile (Always Visible) -->
+        <!-- हेडर -->
         <div class="header">
             <div class="profile-row">
                 <div class="profile-avatar" id="profileAvatar">👤</div>
                 <div class="profile-info">
-                    <div class="profile-name" id="profileName">Loading...</div>
-                    <div class="profile-id" id="profileId">ID: 0</div>
+                    <div class="profile-name" id="profileName">लोड हो रहा...</div>
+                    <div class="profile-id" id="profileId">आईडी: 0</div>
                 </div>
             </div>
             
             <div class="balance-row">
                 <div class="balance-card">
-                    <div class="balance-label">💰 BALANCE</div>
+                    <div class="balance-label">💰 बैलेंस</div>
                     <div class="balance-value" id="balance">₹0.00</div>
                 </div>
                 <div class="spins-card">
-                    <div class="balance-label">🎰 SPINS</div>
+                    <div class="balance-label">🎰 स्पिन</div>
                     <div class="spins-value" id="spins">0</div>
                 </div>
             </div>
             
             <div class="stats-grid">
                 <div class="stat-item">
-                    <div class="stat-label">TIER</div>
+                    <div class="stat-label">टीयर</div>
                     <div class="stat-number" id="tier">1</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">ACTIVE</div>
+                    <div class="stat-label">एक्टिव</div>
                     <div class="stat-number" id="activeRefs">0</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">MONTHLY</div>
-                    <div class="stat-number" id="monthlyRefs">0</div>
+                    <div class="stat-label">स्ट्रीक</div>
+                    <div class="stat-number" id="dailyStreak">0</div>
                 </div>
             </div>
         </div>
-        
-        <!-- PAGE 1: Movie Groups Button (First Screen) -->
-        <div id="pageGroupsBtn" class="page active">
-            <button class="movie-groups-btn" onclick="goToPage('groups')">
-                <span>🎬</span> JOIN MOVIE GROUPS <span>🎬</span>
-            </button>
-            
-            <div class="main-menu">
-                <div class="menu-btn" onclick="goToPage('earning')">
-                    <span class="menu-icon">💰</span>
-                    <span>Earning Panel</span>
-                </div>
-                <div class="menu-btn" onclick="goToPage('profile')">
-                    <span class="menu-icon">👤</span>
-                    <span>My Profile</span>
-                </div>
-                <div class="menu-btn" onclick="goToPage('missions')">
-                    <span class="menu-icon">🎯</span>
-                    <span>Missions</span>
-                </div>
-                <div class="menu-btn" onclick="goToPage('referral')">
-                    <span class="menu-icon">🔗</span>
-                    <span>Refer & Earn</span>
-                </div>
-                <div class="menu-btn" onclick="goToPage('spin')">
-                    <span class="menu-icon">🎡</span>
-                    <span>Spin Wheel</span>
-                </div>
-                <div class="menu-btn" onclick="goToPage('leaderboard')">
-                    <span class="menu-icon">🏆</span>
-                    <span>Leaderboard</span>
-                </div>
-                <div class="menu-btn" onclick="goToPage('withdraw')">
-                    <span class="menu-icon">💸</span>
-                    <span>Withdraw</span>
-                </div>
-                <div class="menu-btn primary" onclick="goToPage('daily')">
-                    <span class="menu-icon">📅</span>
-                    <span>Daily Bonus</span>
-                </div>
+
+        <!-- मेन मेनू ग्रिड -->
+        <div class="main-menu">
+            <div class="menu-item" onclick="goToPage('daily')">
+                <span class="menu-icon">📅</span>
+                <span class="menu-title">डेली बोनस</span>
+                <span class="menu-subtitle">₹0.05+</span>
+            </div>
+            <div class="menu-item" onclick="goToPage('spin')">
+                <span class="menu-icon">🎡</span>
+                <span class="menu-title">स्पिन व्हील</span>
+                <span class="menu-subtitle">₹5 तक</span>
+            </div>
+            <div class="menu-item" onclick="goToPage('missions')">
+                <span class="menu-icon">🎯</span>
+                <span class="menu-title">मिशन</span>
+                <span class="menu-subtitle">₹0.75+</span>
+            </div>
+            <div class="menu-item" onclick="goToPage('referral')">
+                <span class="menu-icon">🔗</span>
+                <span class="menu-title">रेफर</span>
+                <span class="menu-subtitle">₹0.10/दिन</span>
+            </div>
+            <div class="menu-item" onclick="goToPage('earnings')">
+                <span class="menu-icon">💰</span>
+                <span class="menu-title">कमाई</span>
+                <span class="menu-subtitle">स्टैट्स</span>
+            </div>
+            <div class="menu-item" onclick="goToPage('leaderboard')">
+                <span class="menu-icon">🏆</span>
+                <span class="menu-title">टॉपर</span>
+                <span class="menu-subtitle">रैंकिंग</span>
+            </div>
+            <div class="menu-item" onclick="goToPage('withdraw')">
+                <span class="menu-icon">💸</span>
+                <span class="menu-title">विड्रॉल</span>
+                <span class="menu-subtitle">₹{minWithdrawal}+</span>
+            </div>
+            <div class="menu-item" onclick="goToPage('groups')">
+                <span class="menu-icon">🎬</span>
+                <span class="menu-title">ग्रुप्स</span>
+                <span class="menu-subtitle">जॉइन करें</span>
+            </div>
+            <div class="menu-item" onclick="goToPage('profile')">
+                <span class="menu-icon">👤</span>
+                <span class="menu-title">प्रोफाइल</span>
+                <span class="menu-subtitle">डिटेल्स</span>
             </div>
         </div>
-        
-        <!-- PAGE 2: Groups Page -->
-        <div id="pageGroups" class="page">
-            <button class="back-btn" onclick="goToPage('home')">
-                <span>←</span> Back
-            </button>
-            
-            <div class="page-title">🎬 Movie Groups</div>
-            
-            <div class="card">
-                <div class="card-title">🎬 New Movie Group</div>
-                <p style="color: #ccc; margin-bottom: 15px;">Latest movies updated daily</p>
-                <a href="#" class="btn primary" id="newGroupLink" target="_blank">Join New Group</a>
+
+        <!-- एड्स सेक्शन -->
+        <div id="adsSection" class="card" style="display: none;">
+            <div class="card-title">📢 स्पॉन्सर्ड</div>
+            <div id="adsContainer"></div>
+        </div>
+
+        <!-- ग्रुप्स सेक्शन -->
+        <div class="card">
+            <div class="card-title">🎬 मूवी ग्रुप्स</div>
+            <div class="btn-group">
+                <button class="btn small" onclick="joinChannel()">📢 चैनल जॉइन ₹2</button>
+                <button class="btn small primary" onclick="window.open('{{ movie_group }}')">🎬 मूवी ग्रुप</button>
             </div>
-            
-            <div class="card">
-                <div class="card-title">🍿 Main Movie Group</div>
-                <p style="color: #ccc; margin-bottom: 15px;">Search any movie here to activate referrals</p>
-                <a href="#" class="btn primary" id="movieGroupLink" target="_blank">Join Main Group</a>
-            </div>
-            
-            <div class="card">
-                <div class="card-title">📢 All Groups</div>
-                <p style="color: #ccc; margin-bottom: 15px;">Join all groups at once</p>
-                <a href="#" class="btn primary" id="allGroupsLink" target="_blank">Join All Groups</a>
-            </div>
-            
-            <div class="card" style="background: rgba(255,215,0,0.1);">
-                <div style="color: gold; font-weight: bold; margin-bottom: 10px;">⭐ IMPORTANT</div>
-                <p style="color: #ccc; font-size: 14px;">Your referrals become ACTIVE only after they search a movie in the Main Movie Group!</p>
+            <div class="btn-group" style="margin-top: 10px;">
+                <button class="btn small" onclick="window.open('{{ new_group }}')">🎥 न्यू ग्रुप</button>
+                <button class="btn small" onclick="window.open('{{ all_groups }}')">📋 सभी ग्रुप</button>
             </div>
         </div>
-        
-        <!-- PAGE 3: Earning Page -->
-        <div id="pageEarning" class="page">
-            <button class="back-btn" onclick="goToPage('home')">
-                <span>←</span> Back
-            </button>
-            
-            <div class="page-title">💰 Earning Panel</div>
-            
-            <div class="card">
-                <div class="card-title">📊 Your Earnings</div>
-                <div style="font-size: 32px; color: gold; text-align: center; margin: 20px 0;" id="earningBalance">₹0.00</div>
-                <div style="display: flex; justify-content: space-around;">
-                    <div style="text-align: center;">
-                        <div style="color: #888;">Today</div>
-                        <div style="color: gold;" id="todayEarnings">₹0.00</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="color: #888;">Total</div>
-                        <div style="color: gold;" id="totalEarnings">₹0.00</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-title">📈 Referral Stats</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div style="text-align: center;">
-                        <div style="color: #888;">Total</div>
-                        <div style="color: gold; font-size: 24px;" id="totalRefsEarn">0</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="color: #888;">Active</div>
-                        <div style="color: gold; font-size: 24px;" id="activeRefsEarn">0</div>
-                    </div>
-                </div>
-                <div style="margin-top: 15px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>Referral Rate:</span>
-                        <span style="color: gold;" id="rateEarn">₹0.10/search</span>
-                    </div>
-                </div>
-            </div>
-            
-            <button class="btn primary" onclick="goToPage('withdraw')">💸 Withdraw Now</button>
-        </div>
-        
-        <!-- PAGE 4: Profile Page -->
-        <div id="pageProfile" class="page">
-            <button class="back-btn" onclick="goToPage('home')">
-                <span>←</span> Back
-            </button>
-            
-            <div class="page-title">👤 My Profile</div>
+
+        <!-- डेली बोनस पेज -->
+        <div id="pageDaily" class="page" style="display: none;">
+            <button class="btn" onclick="goToPage('home')" style="margin-bottom: 20px;">← वापस</button>
             
             <div class="card" style="text-align: center;">
-                <div class="profile-avatar" style="margin: 0 auto 15px; width: 80px; height: 80px; font-size: 40px;" id="profileAvatarLarge">👤</div>
-                <div style="font-size: 20px; font-weight: bold;" id="profileNameLarge">Loading...</div>
-                <div style="color: #888; margin: 5px 0;" id="profileIdLarge">ID: 0</div>
-                <div style="color: gold; margin-top: 10px;" id="profileTier">Tier 1 - Beginner</div>
+                <div style="font-size: 60px; margin-bottom: 20px; animation: pulse 2s infinite;">🎁</div>
+                <div class="card-title">डेली बोनस</div>
+                <div style="font-size: 32px; color: gold; margin: 20px 0;" id="dailyBonusAmount">₹0.05+</div>
+                <div style="color: #888; margin-bottom: 20px;" id="dailyStreakText">स्ट्रीक: 0 दिन</div>
+                
+                <button class="btn primary" onclick="claimDaily()" id="claimDailyBtn">
+                    📅 क्लेम करें
+                </button>
             </div>
             
             <div class="card">
-                <div class="card-title">📊 Account Stats</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="card-title">🔥 स्ट्रीक बेनिफिट्स</div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center;">
                     <div>
-                        <div style="color: #888;">Joined</div>
-                        <div style="color: gold;" id="joinDate">-</div>
+                        <div style="color: gold;">दिन 1</div>
+                        <div>₹0.05</div>
                     </div>
                     <div>
-                        <div style="color: #888;">Daily Streak</div>
-                        <div style="color: gold;" id="streak">0 days</div>
+                        <div style="color: gold;">दिन 2</div>
+                        <div>₹0.07</div>
+                    </div>
+                    <div>
+                        <div style="color: gold;">दिन 3+</div>
+                        <div>₹0.05+</div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- PAGE 5: Missions Page -->
-        <div id="pageMissions" class="page">
-            <button class="back-btn" onclick="goToPage('home')">
-                <span>←</span> Back
-            </button>
+
+        <!-- स्पिन पेज -->
+        <div id="pageSpin" class="page" style="display: none;">
+            <button class="btn" onclick="goToPage('home')" style="margin-bottom: 20px;">← वापस</button>
             
-            <div class="page-title">🎯 Daily Missions</div>
+            <div class="card" style="text-align: center;">
+                <div class="card-title">🎡 स्पिन व्हील</div>
+                
+                <div class="wheel-container">
+                    <div class="wheel" id="wheel" style="transform: rotate(0deg);"></div>
+                    <button class="spin-btn" id="spinBtn" onclick="spinWheel()">
+                        🎰 स्पिन करें
+                    </button>
+                </div>
+            </div>
             
             <div class="card">
+                <div class="card-title">💰 प्राइज पूल</div>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center;">
+                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 15px;">₹0.00</div>
+                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 15px;">₹0.05</div>
+                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 15px;">₹0.10</div>
+                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 15px;">₹0.20</div>
+                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 15px;">₹0.50</div>
+                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 15px;">₹1.00</div>
+                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 15px;">₹2.00</div>
+                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 15px;">₹5.00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- मिशन पेज -->
+        <div id="pageMissions" class="page" style="display: none;">
+            <button class="btn" onclick="goToPage('home')" style="margin-bottom: 20px;">← वापस</button>
+            
+            <div class="card">
+                <div class="card-title">🎯 आज के मिशन</div>
+                
                 <div class="mission-item">
                     <div>
-                        <div style="font-weight: bold;">🔍 Search 3 Movies</div>
-                        <div style="color: #888; font-size: 12px;">Let your referrals search</div>
+                        <div style="font-weight: bold;">🔍 3 सर्च करें</div>
+                        <div style="color: #888;">ग्रुप में मूवी सर्च करें</div>
                     </div>
                     <div>
                         <span class="mission-reward">₹0.15 +1🎰</span>
-                        <span class="mission-status" id="mission1Status"></span>
+                        <span class="mission-status" id="mission1Status">⭕</span>
                     </div>
                 </div>
                 
                 <div class="mission-item">
                     <div>
-                        <div style="font-weight: bold;">👥 Refer 2 Friends</div>
-                        <div style="color: #888; font-size: 12px;">Get new users</div>
+                        <div style="font-weight: bold;">👥 2 रेफर करें</div>
+                        <div style="color: #888;">नए यूजर लाएं</div>
                     </div>
                     <div>
                         <span class="mission-reward">₹0.50 +1🎰</span>
-                        <span class="mission-status" id="mission2Status"></span>
+                        <span class="mission-status" id="mission2Status">⭕</span>
                     </div>
                 </div>
                 
                 <div class="mission-item">
                     <div>
-                        <div style="font-weight: bold;">📅 Claim Daily Bonus</div>
-                        <div style="color: #888; font-size: 12px;">Check in daily</div>
+                        <div style="font-weight: bold;">📅 डेली बोनस</div>
+                        <div style="color: #888;">क्लेम करें</div>
                     </div>
                     <div>
-                        <span class="mission-reward">₹0.05 +1🎰</span>
-                        <span class="mission-status" id="mission3Status"></span>
+                        <span class="mission-reward">₹0.10 +1🎰</span>
+                        <span class="mission-status" id="mission3Status">⭕</span>
                     </div>
                 </div>
             </div>
             
             <div class="card" style="background: rgba(76, 175, 80, 0.1);">
-                <div style="color: #4caf50; font-weight: bold;">💡 TIP</div>
-                <p style="color: #ccc; font-size: 14px;">Complete all missions daily to earn extra ₹0.70 + 3 Spins!</p>
+                <div style="color: #4caf50; font-weight: bold;">💡 टिप</div>
+                <p style="color: #ccc;">सभी मिशन पूरे करें और ₹0.75 + 3 स्पिन पाएं!</p>
             </div>
         </div>
-        
-        <!-- PAGE 6: Referral Page -->
-        <div id="pageReferral" class="page">
-            <button class="back-btn" onclick="goToPage('home')">
-                <span>←</span> Back
-            </button>
-            
-            <div class="page-title">🔗 Refer & Earn</div>
+
+        <!-- रेफरल पेज -->
+        <div id="pageReferral" class="page" style="display: none;">
+            <button class="btn" onclick="goToPage('home')" style="margin-bottom: 20px;">← वापस</button>
             
             <div class="card">
-                <div class="card-title">Your Referral Link</div>
-                <div style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 12px; word-break: break-all; margin-bottom: 15px;" id="refLink">
-                    Loading...
+                <div class="card-title">🔗 आपका रेफरल लिंक</div>
+                <div style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 15px; word-break: break-all; margin-bottom: 15px; font-size: 12px;" id="refLink">
+                    लोड हो रहा...
                 </div>
-                <button class="btn primary" onclick="copyRefLink()">📋 Copy Link</button>
+                <button class="btn primary small" onclick="copyRefLink()">📋 कॉपी करें</button>
             </div>
             
             <div class="card">
-                <div class="card-title">📊 Referral Stats</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: center;">
-                    <div>
-                        <div style="color: #888;">Total</div>
+                <div class="card-title">📊 रेफरल स्टैट्स</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="text-align: center;">
+                        <div style="color: #888;">कुल</div>
                         <div style="color: gold; font-size: 24px;" id="totalRefs">0</div>
                     </div>
-                    <div>
-                        <div style="color: #888;">Active</div>
-                        <div style="color: gold; font-size: 24px;" id="activeRefsRefer">0</div>
+                    <div style="text-align: center;">
+                        <div style="color: #888;">एक्टिव</div>
+                        <div style="color: gold; font-size: 24px;" id="activeRefsRef">0</div>
                     </div>
-                    <div>
-                        <div style="color: #888;">Pending</div>
+                    <div style="text-align: center;">
+                        <div style="color: #888;">पेंडिंग</div>
                         <div style="color: #ff6b6b; font-size: 24px;" id="pendingRefs">0</div>
                     </div>
-                    <div>
-                        <div style="color: #888;">Monthly</div>
-                        <div style="color: gold; font-size: 24px;" id="monthlyRefsRefer">0</div>
+                    <div style="text-align: center;">
+                        <div style="color: #888;">मंथली</div>
+                        <div style="color: gold; font-size: 24px;" id="monthlyRefs">0</div>
                     </div>
                 </div>
             </div>
             
             <div class="card">
-                <div class="card-title">💰 How It Works</div>
-                <p style="color: #ccc; margin-bottom: 10px;">1️⃣ Share your link with friends</p>
-                <p style="color: #ccc; margin-bottom: 10px;">2️⃣ They join and search a movie</p>
-                <p style="color: #ccc; margin-bottom: 10px;">3️⃣ Referral becomes ACTIVE</p>
-                <p style="color: gold;">4️⃣ You earn daily from their searches!</p>
+                <div class="card-title">💰 कैसे काम करता है?</div>
+                <p>1️⃣ लिंक शेयर करें</p>
+                <p>2️⃣ दोस्त जॉइन करें</p>
+                <p>3️⃣ वो मूवी सर्च करें</p>
+                <p style="color: gold;">4️⃣ आपको रोज ₹0.10+ मिले!</p>
             </div>
         </div>
-        
-        <!-- PAGE 7: Spin Page -->
-        <div id="pageSpin" class="page">
-            <button class="back-btn" onclick="goToPage('home')">
-                <span>←</span> Back
-            </button>
+
+        <!-- अर्निंग्स पेज -->
+        <div id="pageEarnings" class="page" style="display: none;">
+            <button class="btn" onclick="goToPage('home')" style="margin-bottom: 20px;">← वापस</button>
             
-            <div class="page-title">🎡 Spin Wheel</div>
-            
-            <div class="wheel-container">
-                <div class="wheel" id="wheel" style="transform: rotate(0deg);"></div>
-                <button class="spin-btn" id="spinBtn" onclick="spinWheel()">
-                    🎰 SPIN (0)
-                </button>
-                <p style="color: gold; text-align: center;">🎁 Refer 1 friend = +1 Spin</p>
+            <div class="card">
+                <div class="card-title">💰 कमाई स्टैट्स</div>
+                <div style="text-align: center;">
+                    <div style="font-size: 36px; color: gold; margin: 20px 0;" id="totalEarned">₹0.00</div>
+                    <div style="display: flex; justify-content: space-around;">
+                        <div>
+                            <div style="color: #888;">रेफरल रेट</div>
+                            <div style="color: gold;" id="earningRate">₹0.10/सर्च</div>
+                        </div>
+                        <div>
+                            <div style="color: #888;">कुल रेफरल</div>
+                            <div style="color: gold;" id="totalRefsEarn">0</div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div class="card">
-                <div class="card-title">💰 Prize Pool</div>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center;">
-                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">₹0.00</div>
-                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">₹0.05</div>
-                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">₹0.10</div>
-                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">₹0.20</div>
-                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">₹0.50</div>
-                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">₹1.00</div>
+                <div class="card-title">👑 टीयर सिस्टम</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">
+                        <div>बेसिक (0+)</div>
+                        <div style="color: gold;">₹0.10</div>
+                    </div>
+                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">
+                        <div>सिल्वर (10+)</div>
+                        <div style="color: gold;">₹0.12</div>
+                    </div>
+                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">
+                        <div>गोल्ड (30+)</div>
+                        <div style="color: gold;">₹0.15</div>
+                    </div>
+                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">
+                        <div>डायमंड (150+)</div>
+                        <div style="color: gold;">₹0.22</div>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <!-- PAGE 8: Leaderboard Page -->
-        <div id="pageLeaderboard" class="page">
-            <button class="back-btn" onclick="goToPage('home')">
-                <span>←</span> Back
-            </button>
-            
-            <div class="page-title">🏆 Leaderboard</div>
-            
-            <div class="card">
-                <div class="card-title">TOP 10 REFERRERS</div>
-                <div id="leaderboardList"></div>
-                <div style="margin-top: 15px; font-size: 12px; color: #888; text-align: center;">
-                    * Monthly rewards paid on 1st of month
-                </div>
-            </div>
-        </div>
-        
-        <!-- PAGE 9: Withdraw Page -->
-        <div id="pageWithdraw" class="page">
-            <button class="back-btn" onclick="goToPage('home')">
-                <span>←</span> Back
-            </button>
-            
-            <div class="page-title">💸 Withdraw Money</div>
-            
-            <div class="card">
-                <div class="card-title">💰 Available Balance</div>
-                <div style="font-size: 32px; color: gold; text-align: center;" id="withdrawBalance">₹0.00</div>
-                <div style="text-align: center; color: #888;">Minimum ₹50</div>
-            </div>
-            
-            <!-- Payment Details Section -->
-            <div class="card" id="paymentDetailsCard">
-                <div class="card-title">💳 Payment Details</div>
-                
-                <div id="savedDetails" style="display: none;">
-                    <div class="method-badge" id="savedMethod">UPI</div>
-                    <div class="details-display" id="savedDetailsText">username@oksbi</div>
-                    <div class="btn-group">
-                        <button class="btn small" onclick="editPaymentDetails()">✏️ Edit</button>
-                        <button class="btn small primary" onclick="showWithdrawForm()">💸 Withdraw</button>
-                    </div>
-                </div>
-                
-                <div id="editDetails" style="display: block;">
-                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                        <button class="method-btn active" onclick="selectMethod('upi')">🇮🇳 UPI</button>
-                        <button class="method-btn" onclick="selectMethod('bank')">🏦 Bank</button>
-                    </div>
-                    
-                    <input type="text" id="paymentInput" class="input-field" placeholder="Enter UPI ID / Bank Details">
-                    
-                    <div class="btn-group">
-                        <button class="btn" onclick="cancelEdit()">Cancel</button>
-                        <button class="btn primary" onclick="savePaymentDetails()">Save Details</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Withdraw Form (Hidden by default) -->
-            <div id="withdrawForm" style="display: none;">
-                <div class="card">
-                    <div class="card-title">📝 Withdraw Amount</div>
-                    
-                    <input type="number" id="withdrawAmount" class="input-field" placeholder="Enter amount (min ₹50)" min="50" step="1">
-                    
-                    <div class="btn-group">
-                        <button class="btn" onclick="cancelWithdraw()">Cancel</button>
-                        <button class="btn primary" onclick="withdraw()">✅ Confirm Withdrawal</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card" style="background: rgba(255,215,0,0.1);">
-                <div style="color: #888; font-size: 12px;">
-                    ⚠️ Minimum withdrawal: ₹50<br>
-                    ⏳ Processing time: 24 hours<br>
-                    📞 For help: @asbhai_bsr
-                </div>
-            </div>
-        </div>
-        
-        <!-- PAGE 10: Daily Bonus Page -->
-        <div id="pageDaily" class="page">
-            <button class="back-btn" onclick="goToPage('home')">
-                <span>←</span> Back
-            </button>
-            
-            <div class="page-title">📅 Daily Bonus</div>
+
+        <!-- प्रोफाइल पेज -->
+        <div id="pageProfile" class="page" style="display: none;">
+            <button class="btn" onclick="goToPage('home')" style="margin-bottom: 20px;">← वापस</button>
             
             <div class="card" style="text-align: center;">
-                <div style="font-size: 50px; margin-bottom: 20px;">🎁</div>
-                <div style="font-size: 24px; color: gold; margin-bottom: 10px;" id="dailyBonusAmount">Claim Now!</div>
-                <div style="color: #888; margin-bottom: 20px;" id="dailyStreak">Current Streak: 0 days</div>
-                
-                <button class="btn primary" onclick="claimDaily()" id="claimDailyBtn">📅 Claim Daily Bonus</button>
+                <div class="profile-avatar" style="margin: 0 auto 20px; width: 100px; height: 100px; font-size: 50px;" id="profileAvatarLarge">👤</div>
+                <div style="font-size: 24px; font-weight: bold;" id="profileNameLarge">लोड हो रहा...</div>
+                <div style="color: #888; margin: 10px 0;" id="profileIdLarge">आईडी: 0</div>
+                <div style="color: gold; font-size: 18px;" id="profileTier">टीयर 1 - बेसिक</div>
             </div>
             
             <div class="card">
-                <div class="card-title">🔥 Streak Benefits</div>
-                <p>Day 1: ₹0.05</p>
-                <p>Day 2: ₹0.07</p>
-                <p>Day 3: ₹0.09</p>
-                <p>Day 4+: ₹0.05 + (streak × 0.02)</p>
+                <div class="card-title">📊 अकाउंट डिटेल्स</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <div style="color: #888;">जॉइन डेट</div>
+                        <div style="color: gold;" id="joinDate">-</div>
+                    </div>
+                    <div>
+                        <div style="color: #888;">स्ट्रीक</div>
+                        <div style="color: gold;" id="profileStreak">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- विड्रॉल पेज -->
+        <div id="pageWithdraw" class="page" style="display: none;">
+            <button class="btn" onclick="goToPage('home')" style="margin-bottom: 20px;">← वापस</button>
+            
+            <div class="card">
+                <div class="card-title">💰 उपलब्ध बैलेंस</div>
+                <div style="font-size: 36px; color: gold; text-align: center;" id="withdrawBalance">₹0.00</div>
+                <div style="text-align: center; color: #888;">न्यूनतम ₹50</div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">💳 पेमेंट डिटेल्स</div>
+                
+                <div id="savedDetails" style="display: none;">
+                    <div style="background: gold; color: #000; padding: 8px 15px; border-radius: 30px; display: inline-block; margin-bottom: 10px;" id="savedMethod">UPI</div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; margin: 10px 0;" id="savedDetailsText">username@oksbi</div>
+                    <div class="btn-group">
+                        <button class="btn small" onclick="editPayment()">✏️ एडिट</button>
+                        <button class="btn small primary" onclick="showWithdrawForm()">💸 विड्रॉल</button>
+                    </div>
+                </div>
+                
+                <div id="editDetails">
+                    <div class="btn-group" style="margin-bottom: 15px;">
+                        <button class="btn small method-btn active" onclick="selectMethod('upi')">🇮🇳 UPI</button>
+                        <button class="btn small method-btn" onclick="selectMethod('bank')">🏦 बैंक</button>
+                    </div>
+                    
+                    <input type="text" id="paymentInput" class="btn" placeholder="UPI आईडी / बैंक डिटेल्स" style="text-align: left;">
+                    
+                    <button class="btn primary" onclick="savePayment()">💾 सेव करें</button>
+                </div>
+            </div>
+            
+            <div id="withdrawForm" style="display: none;">
+                <div class="card">
+                    <div class="card-title">📝 रकम डालें</div>
+                    <input type="number" id="withdrawAmount" class="btn" placeholder="₹50 या अधिक" min="50" step="1" style="text-align: left;">
+                    
+                    <div class="btn-group">
+                        <button class="btn" onclick="cancelWithdraw()">रद्द करें</button>
+                        <button class="btn primary" onclick="withdraw()">✅ कन्फर्म</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ग्रुप्स पेज -->
+        <div id="pageGroups" class="page" style="display: none;">
+            <button class="btn" onclick="goToPage('home')" style="margin-bottom: 20px;">← वापस</button>
+            
+            <div class="card">
+                <div class="card-title">📢 चैनल जॉइन करें</div>
+                <button class="btn primary" onclick="joinChannel()">
+                    जॉइन करें @{{ channel }} (₹{{ channel_bonus }} बोनस)
+                </button>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">🎬 मूवी ग्रुप्स</div>
+                <button class="btn" onclick="window.open('{{ movie_group }}')">मेन मूवी ग्रुप</button>
+                <button class="btn" onclick="window.open('{{ new_group }}')">न्यू मूवी ग्रुप</button>
+                <button class="btn primary" onclick="window.open('{{ all_groups }}')">सभी ग्रुप जॉइन करें</button>
+            </div>
+        </div>
+
+        <!-- लीडरबोर्ड पेज -->
+        <div id="pageLeaderboard" class="page" style="display: none;">
+            <button class="btn" onclick="goToPage('home')" style="margin-bottom: 20px;">← वापस</button>
+            
+            <div class="card">
+                <div class="card-title">🏆 टॉप 10 रेफरल</div>
+                <div id="leaderboardList"></div>
             </div>
         </div>
     </div>
-    
-    <!-- Help Button -->
-    <a href="https://t.me/asbhai_bsr" class="help-btn" target="_blank">❓</a>
-    
-    <!-- Navigation Bar -->
+
+    <!-- नेविगेशन बार -->
     <div class="nav-bar">
         <div class="nav-item active" onclick="goToPage('home')">
             <span class="nav-icon">🏠</span>
-            <span class="nav-label">Home</span>
+            <span class="nav-label">होम</span>
         </div>
-        <div class="nav-item" onclick="goToPage('earning')">
+        <div class="nav-item" onclick="goToPage('earnings')">
             <span class="nav-icon">💰</span>
-            <span class="nav-label">Earn</span>
+            <span class="nav-label">कमाई</span>
         </div>
         <div class="nav-item" onclick="goToPage('spin')">
             <span class="nav-icon">🎡</span>
-            <span class="nav-label">Spin</span>
+            <span class="nav-label">स्पिन</span>
         </div>
-        <div class="nav-item" onclick="goToPage('leaderboard')">
-            <span class="nav-icon">🏆</span>
-            <span class="nav-label">Top</span>
+        <div class="nav-item" onclick="goToPage('referral')">
+            <span class="nav-icon">🔗</span>
+            <span class="nav-label">रेफर</span>
         </div>
         <div class="nav-item" onclick="goToPage('profile')">
             <span class="nav-icon">👤</span>
-            <span class="nav-label">Profile</span>
+            <span class="nav-label">प्रोफाइल</span>
         </div>
     </div>
-    
-    <!-- Modal -->
+
+    <!-- मोडल -->
     <div id="modal" class="modal" style="display: none;">
         <div class="modal-content">
-            <div class="modal-title" id="modalTitle">🎉 Congratulations!</div>
+            <div class="modal-title" id="modalTitle">🎉 बधाई!</div>
             <div class="prize-amount" id="modalAmount">₹0.00</div>
-            <p id="modalText">You won the prize!</p>
-            <button class="btn primary" onclick="closeModal()" style="width: 100%;">OK</button>
+            <p id="modalText">आप जीत गए!</p>
+            <button class="btn primary" onclick="closeModal()">ठीक है</button>
         </div>
     </div>
-    
+
     <script>
+        // टेलीग्राम वेबऐप इनिशियलाइज़
         const tg = window.Telegram.WebApp;
         tg.expand();
         tg.ready();
         
-        // User Data
-        let userData = {
+        // ग्लोबल वेरिएबल्स
+        const userData = {
             id: {{ user_id }},
             firstName: '',
             balance: 0,
+            totalEarned: 0,
             spins: 3,
             tier: 1,
+            tierName: 'बेसिक',
+            tierRate: 0.10,
             totalRefs: 0,
             activeRefs: 0,
+            pendingRefs: 0,
             monthlyRefs: 0,
             dailyStreak: 0,
-            joinDate: '',
+            channelJoined: false,
             paymentMethod: 'upi',
             paymentDetails: '',
             missions: {
-                search: false,
-                refer: false,
-                daily: false
+                daily_search: { count: 0, completed: false },
+                daily_refer: { count: 0, completed: false },
+                daily_bonus: { count: 0, completed: false }
             }
         };
         
+        const minWithdrawal = 50;
+        let isSpinning = false;
         let currentMethod = 'upi';
-        
-        // Initialize
+
+        // ====== लोड डेटा ======
         async function loadData() {
             try {
                 const response = await fetch(`/api/user/${userData.id}`);
@@ -1077,65 +1046,76 @@
                 
                 if (data && !data.error) {
                     userData.balance = data.balance || 0;
+                    userData.totalEarned = data.total_earned || 0;
                     userData.spins = data.spins || 3;
                     userData.tier = data.tier || 1;
+                    userData.tierName = data.tier_name || 'बेसिक';
+                    userData.tierRate = data.tier_rate || 0.10;
                     userData.totalRefs = data.total_refs || 0;
                     userData.activeRefs = data.active_refs || 0;
+                    userData.pendingRefs = data.pending_refs || 0;
                     userData.monthlyRefs = data.monthly_refs || 0;
+                    userData.dailyStreak = data.daily_streak || 0;
+                    userData.channelJoined = data.channel_joined || false;
                     
-                    // Update UI
                     updateUI();
                 }
                 
                 loadLeaderboard();
+                loadMissions();
+                loadAds();
+                
             } catch (e) {
-                console.error('Load error:', e);
+                console.error('लोड एरर:', e);
             }
         }
-        
+
         function updateUI() {
-            // Balance & Spins
+            // हेडर
             document.getElementById('balance').innerText = `₹${userData.balance.toFixed(2)}`;
             document.getElementById('spins').innerText = userData.spins;
             document.getElementById('tier').innerText = userData.tier;
             document.getElementById('activeRefs').innerText = userData.activeRefs;
-            document.getElementById('monthlyRefs').innerText = userData.monthlyRefs;
+            document.getElementById('dailyStreak').innerText = userData.dailyStreak;
             
-            // Earning page
-            if (document.getElementById('earningBalance')) {
-                document.getElementById('earningBalance').innerText = `₹${userData.balance.toFixed(2)}`;
-                document.getElementById('totalEarnings').innerText = `₹${userData.balance.toFixed(2)}`;
+            // अर्निंग पेज
+            if (document.getElementById('totalEarned')) {
+                document.getElementById('totalEarned').innerText = `₹${userData.totalEarned.toFixed(2)}`;
+                document.getElementById('earningRate').innerText = `₹${userData.tierRate}/सर्च`;
                 document.getElementById('totalRefsEarn').innerText = userData.totalRefs;
-                document.getElementById('activeRefsEarn').innerText = userData.activeRefs;
-                
-                const rates = {1: 0.10, 2: 0.12, 3: 0.15, 4: 0.18, 5: 0.20};
-                document.getElementById('rateEarn').innerText = `₹${rates[userData.tier]}/search`;
             }
             
-            // Referral page
+            // रेफरल पेज
             if (document.getElementById('totalRefs')) {
                 document.getElementById('totalRefs').innerText = userData.totalRefs;
-                document.getElementById('activeRefsRefer').innerText = userData.activeRefs;
-                document.getElementById('pendingRefs').innerText = userData.totalRefs - userData.activeRefs;
-                document.getElementById('monthlyRefsRefer').innerText = userData.monthlyRefs;
+                document.getElementById('activeRefsRef').innerText = userData.activeRefs;
+                document.getElementById('pendingRefs').innerText = userData.pendingRefs;
+                document.getElementById('monthlyRefs').innerText = userData.monthlyRefs;
             }
             
-            // Withdraw page
+            // प्रोफाइल पेज
+            if (document.getElementById('profileTier')) {
+                document.getElementById('profileTier').innerText = `टीयर ${userData.tier} - ${userData.tierName}`;
+                document.getElementById('profileStreak').innerText = userData.dailyStreak;
+            }
+            
+            // डेली बोनस पेज
+            if (document.getElementById('dailyBonusAmount')) {
+                const bonus = 0.05 + (userData.dailyStreak * 0.02);
+                document.getElementById('dailyBonusAmount').innerText = `₹${bonus.toFixed(2)}`;
+                document.getElementById('dailyStreakText').innerText = `स्ट्रीक: ${userData.dailyStreak} दिन`;
+            }
+            
+            // विड्रॉल पेज
             if (document.getElementById('withdrawBalance')) {
                 document.getElementById('withdrawBalance').innerText = `₹${userData.balance.toFixed(2)}`;
             }
             
-            // Profile page
-            if (document.getElementById('profileNameLarge')) {
-                document.getElementById('profileNameLarge').innerText = userData.firstName || 'User';
-                document.getElementById('profileIdLarge').innerText = `ID: ${userData.id}`;
-                document.getElementById('profileTier').innerText = `Tier ${userData.tier}`;
-            }
-            
-            // Spin button
+            // स्पिन बटन
             updateSpinButton();
         }
-        
+
+        // ====== लीडरबोर्ड ======
         async function loadLeaderboard() {
             try {
                 const response = await fetch('/api/leaderboard');
@@ -1150,10 +1130,10 @@
                     
                     html += `
                         <div class="leaderboard-item">
-                            <div class="rank ${rankClass}">#${index + 1}</div>
-                            <div class="user-info">
-                                <div class="user-name">${user.name}</div>
-                                <div class="user-refs">👥 ${user.refs} referrals</div>
+                            <div class="rank ${rankClass}">#${user.rank}</div>
+                            <div class="user-info" style="flex: 1;">
+                                <div style="font-weight: bold;">${user.name}</div>
+                                <div style="color: gold;">👥 ${user.refs} रेफरल</div>
                             </div>
                             <div style="color: gold;">₹${user.balance.toFixed(2)}</div>
                         </div>
@@ -1162,110 +1142,103 @@
                 
                 document.getElementById('leaderboardList').innerHTML = html;
             } catch (e) {
-                console.error('Leaderboard error:', e);
+                console.error('लीडरबोर्ड एरर:', e);
             }
         }
-        
-        // Page Navigation
-        function goToPage(page) {
-            // Hide all pages
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+
+        // ====== मिशन ======
+        async function loadMissions() {
+            try {
+                tg.sendData(JSON.stringify({
+                    action: 'missions',
+                    user_id: userData.id
+                }));
+            } catch (e) {
+                console.error('मिशन एरर:', e);
+            }
+        }
+
+        // ====== एड्स ======
+        async function loadAds() {
+            try {
+                const response = await fetch('/api/ads');
+                const ads = await response.json();
+                
+                if (ads.length > 0) {
+                    document.getElementById('adsSection').style.display = 'block';
+                    
+                    let html = '';
+                    ads.forEach(ad => {
+                        html += `
+                            <div class="ad-card" onclick="viewAd('${ad.id}', '${ad.link_url}')">
+                                <div class="ad-title">${ad.title}</div>
+                                <div style="color: #888; font-size: 12px; margin-bottom: 5px;">${ad.description}</div>
+                                <div style="color: gold; font-size: 11px;">क्लिक करें और कमाएं ₹0.001</div>
+                            </div>
+                        `;
+                    });
+                    
+                    document.getElementById('adsContainer').innerHTML = html;
+                }
+            } catch (e) {
+                console.error('एड्स एरर:', e);
+            }
+        }
+
+        function viewAd(adId, linkUrl) {
+            // एड व्यू रिकॉर्ड करें
+            tg.sendData(JSON.stringify({
+                action: 'ad_view',
+                user_id: userData.id,
+                ad_id: adId
+            }));
             
-            // Show selected page
-            if (page === 'home') {
-                document.getElementById('pageGroupsBtn').classList.add('active');
-                document.querySelectorAll('.nav-item').forEach((item, index) => {
-                    if (index === 0) item.classList.add('active');
-                    else item.classList.remove('active');
-                });
-            } else if (page === 'groups') {
-                document.getElementById('pageGroups').classList.add('active');
-            } else if (page === 'earning') {
-                document.getElementById('pageEarning').classList.add('active');
-            } else if (page === 'profile') {
-                document.getElementById('pageProfile').classList.add('active');
-            } else if (page === 'missions') {
-                document.getElementById('pageMissions').classList.add('active');
-            } else if (page === 'referral') {
-                document.getElementById('pageReferral').classList.add('active');
-            } else if (page === 'spin') {
-                document.getElementById('pageSpin').classList.add('active');
-            } else if (page === 'leaderboard') {
-                document.getElementById('pageLeaderboard').classList.add('active');
-                loadLeaderboard();
-            } else if (page === 'withdraw') {
-                document.getElementById('pageWithdraw').classList.add('active');
-                checkPaymentDetails();
-            } else if (page === 'daily') {
-                document.getElementById('pageDaily').classList.add('active');
+            // लिंक खोलें
+            window.open(linkUrl, '_blank');
+            
+            // बैलेंस अपडेट करें
+            setTimeout(loadData, 1000);
+        }
+
+        // ====== चैनल जॉइन ======
+        async function joinChannel() {
+            if (userData.channelJoined) {
+                showModal('पहले ही जॉइन कर चुके', 'आप पहले ही चैनल जॉइन कर चुके हैं', 'info');
+                return;
             }
             
-            // Update nav active state
-            if (page === 'home') {
-                document.querySelectorAll('.nav-item')[0].classList.add('active');
-                document.querySelectorAll('.nav-item')[1].classList.remove('active');
-                document.querySelectorAll('.nav-item')[2].classList.remove('active');
-                document.querySelectorAll('.nav-item')[3].classList.remove('active');
-                document.querySelectorAll('.nav-item')[4].classList.remove('active');
-            } else if (page === 'earning') {
-                document.querySelectorAll('.nav-item')[0].classList.remove('active');
-                document.querySelectorAll('.nav-item')[1].classList.add('active');
-                document.querySelectorAll('.nav-item')[2].classList.remove('active');
-                document.querySelectorAll('.nav-item')[3].classList.remove('active');
-                document.querySelectorAll('.nav-item')[4].classList.remove('active');
-            } else if (page === 'spin') {
-                document.querySelectorAll('.nav-item')[0].classList.remove('active');
-                document.querySelectorAll('.nav-item')[1].classList.remove('active');
-                document.querySelectorAll('.nav-item')[2].classList.add('active');
-                document.querySelectorAll('.nav-item')[3].classList.remove('active');
-                document.querySelectorAll('.nav-item')[4].classList.remove('active');
-            } else if (page === 'leaderboard') {
-                document.querySelectorAll('.nav-item')[0].classList.remove('active');
-                document.querySelectorAll('.nav-item')[1].classList.remove('active');
-                document.querySelectorAll('.nav-item')[2].classList.remove('active');
-                document.querySelectorAll('.nav-item')[3].classList.add('active');
-                document.querySelectorAll('.nav-item')[4].classList.remove('active');
-            } else if (page === 'profile') {
-                document.querySelectorAll('.nav-item')[0].classList.remove('active');
-                document.querySelectorAll('.nav-item')[1].classList.remove('active');
-                document.querySelectorAll('.nav-item')[2].classList.remove('active');
-                document.querySelectorAll('.nav-item')[3].classList.remove('active');
-                document.querySelectorAll('.nav-item')[4].classList.add('active');
-            }
+            // चैनल खोलें
+            window.open('https://t.me/{{ channel }}', '_blank');
+            
+            // चैक करें (5 सेकंड बाद)
+            setTimeout(() => {
+                tg.sendData(JSON.stringify({
+                    action: 'channel_join',
+                    user_id: userData.id
+                }));
+            }, 5000);
+            
+            showModal('चैनल जॉइन करें', 'चैनल जॉइन करने के बाद वापस आएं', 'info');
         }
-        
-        // Referral Link
-        const botUsername = 'your_bot_username';
-        document.getElementById('refLink').innerText = `https://t.me/${botUsername}?start=ref_${userData.id}`;
-        
-        function copyRefLink() {
-            navigator.clipboard.writeText(document.getElementById('refLink').innerText);
-            tg.showAlert('✅ Link copied!');
-        }
-        
-        // Group Links
-        document.getElementById('newGroupLink').href = 'https://t.me/asfilter_bot';
-        document.getElementById('movieGroupLink').href = 'https://t.me/asfilter_group';
-        document.getElementById('allGroupsLink').href = 'https://t.me/addlist/6urdhhdLRqhiZmQ1';
-        
-        // Spin Wheel
-        let isSpinning = false;
-        
+
+        // ====== स्पिन व्हील ======
         function updateSpinButton() {
             const btn = document.getElementById('spinBtn');
             if (btn) {
-                btn.innerText = `🎰 SPIN (${userData.spins})`;
+                btn.innerText = userData.spins > 0 
+                    ? `🎰 स्पिन करें (${userData.spins} बचे)` 
+                    : '❌ कोई स्पिन नहीं';
                 btn.disabled = userData.spins <= 0;
             }
         }
-        
-        async function spinWheel() {
+
+        function spinWheel() {
             if (isSpinning || userData.spins <= 0) return;
             
             isSpinning = true;
             const wheel = document.getElementById('wheel');
             
-            // Random rotation
+            // रैंडम रोटेशन
             const rotation = 720 + Math.floor(Math.random() * 360);
             wheel.style.transform = `rotate(${rotation}deg)`;
             
@@ -1274,45 +1247,37 @@
                 user_id: userData.id
             }));
         }
-        
-        // Daily Bonus
-        async function claimDaily() {
+
+        // ====== डेली बोनस ======
+        function claimDaily() {
             tg.sendData(JSON.stringify({
                 action: 'daily',
                 user_id: userData.id
             }));
         }
-        
-        // Payment Details
-        function checkPaymentDetails() {
-            if (userData.paymentDetails) {
-                document.getElementById('savedDetails').style.display = 'block';
-                document.getElementById('editDetails').style.display = 'none';
-                document.getElementById('savedMethod').innerText = userData.paymentMethod.toUpperCase();
-                document.getElementById('savedDetailsText').innerText = userData.paymentDetails;
-            } else {
-                document.getElementById('savedDetails').style.display = 'none';
-                document.getElementById('editDetails').style.display = 'block';
-            }
+
+        // ====== रेफरल ======
+        function copyRefLink() {
+            navigator.clipboard.writeText(document.getElementById('refLink').innerText);
+            tg.showAlert('✅ लिंक कॉपी हो गया!');
         }
-        
+
+        // ====== पेमेंट ======
         function selectMethod(method) {
             currentMethod = method;
             document.querySelectorAll('.method-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
             
             const input = document.getElementById('paymentInput');
-            if (method === 'upi') {
-                input.placeholder = 'Enter UPI ID (e.g., username@oksbi)';
-            } else {
-                input.placeholder = 'Enter Bank Details (Account No, IFSC, Name)';
-            }
+            input.placeholder = method === 'upi' 
+                ? 'UPI आईडी डालें (जैसे: username@oksbi)' 
+                : 'बैंक डिटेल्स डालें (खाता, IFSC, नाम)';
         }
-        
-        function savePaymentDetails() {
+
+        function savePayment() {
             const details = document.getElementById('paymentInput').value;
             if (!details) {
-                tg.showAlert('❌ Please enter payment details');
+                tg.showAlert('❌ पेमेंट डिटेल्स डालें');
                 return;
             }
             
@@ -1331,42 +1296,33 @@
             document.getElementById('savedMethod').innerText = currentMethod.toUpperCase();
             document.getElementById('savedDetailsText').innerText = details;
             
-            tg.showAlert('✅ Payment details saved!');
+            tg.showAlert('✅ पेमेंट डिटेल्स सेव हो गईं!');
         }
-        
-        function editPaymentDetails() {
+
+        function editPayment() {
             document.getElementById('savedDetails').style.display = 'none';
             document.getElementById('editDetails').style.display = 'block';
             document.getElementById('withdrawForm').style.display = 'none';
         }
-        
-        function cancelEdit() {
-            if (userData.paymentDetails) {
-                document.getElementById('savedDetails').style.display = 'block';
-                document.getElementById('editDetails').style.display = 'none';
-            } else {
-                goToPage('home');
-            }
-        }
-        
+
         function showWithdrawForm() {
             document.getElementById('withdrawForm').style.display = 'block';
         }
-        
+
         function cancelWithdraw() {
             document.getElementById('withdrawForm').style.display = 'none';
         }
-        
+
         function withdraw() {
             const amount = parseFloat(document.getElementById('withdrawAmount').value);
             
-            if (amount < 50) {
-                tg.showAlert('❌ Minimum withdrawal is ₹50');
+            if (amount < minWithdrawal) {
+                tg.showAlert(`❌ न्यूनतम विड्रॉल ₹${minWithdrawal} है`);
                 return;
             }
             
             if (amount > userData.balance) {
-                tg.showAlert('❌ Insufficient balance');
+                tg.showAlert('❌ बैलेंस कम है');
                 return;
             }
             
@@ -1378,85 +1334,138 @@
                 details: userData.paymentDetails
             }));
         }
-        
-        // Handle Telegram response
+
+        // ====== नेविगेशन ======
+        function goToPage(page) {
+            // सभी पेज छुपाएं
+            document.querySelectorAll('[id^="page"]').forEach(p => p.style.display = 'none');
+            
+            if (page === 'home') {
+                document.querySelectorAll('[id^="page"]').forEach(p => p.style.display = 'none');
+                document.querySelectorAll('.nav-item').forEach((item, idx) => {
+                    item.classList.toggle('active', idx === 0);
+                });
+            } else {
+                document.getElementById(`page${page.charAt(0).toUpperCase() + page.slice(1)}`).style.display = 'block';
+                
+                // नेविगेशन अपडेट करें
+                const navMap = {
+                    'earnings': 1, 'spin': 2, 'referral': 3, 'profile': 4
+                };
+                document.querySelectorAll('.nav-item').forEach((item, idx) => {
+                    item.classList.toggle('active', navMap[page] === idx);
+                });
+            }
+        }
+
+        // ====== मोडल ======
+        function showModal(title, text, amount = '') {
+            document.getElementById('modalTitle').innerText = title;
+            if (amount) {
+                document.getElementById('modalAmount').innerText = amount;
+                document.getElementById('modalText').innerText = text;
+            } else {
+                document.getElementById('modalAmount').style.display = 'none';
+                document.getElementById('modalText').innerText = text;
+            }
+            document.getElementById('modal').style.display = 'flex';
+            
+            setTimeout(() => {
+                document.getElementById('modal').style.display = 'none';
+            }, 3000);
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // ====== टेलीग्राम इवेंट हैंडलर ======
         tg.onEvent('webAppData', function(data) {
             try {
                 const response = JSON.parse(data);
                 
                 if (response.prize !== undefined) {
-                    // Spin result
+                    // स्पिन रिजल्ट
                     setTimeout(() => {
-                        document.getElementById('modalTitle').innerText = response.prize > 0 ? '🎉 You Won!' : '😢 Try Again';
-                        document.getElementById('modalAmount').innerText = `₹${response.prize.toFixed(2)}`;
-                        document.getElementById('modalText').innerText = response.prize > 0 
-                            ? 'Amount added to your balance!' 
-                            : 'Better luck next time!';
-                        document.getElementById('modal').style.display = 'flex';
+                        showModal(
+                            response.prize > 0 ? '🎉 आप जीते!' : '😢 अगली बार',
+                            response.prize > 0 ? 'बैलेंस में जुड़ गया' : 'कोशिश करते रहें',
+                            `₹${response.prize.toFixed(2)}`
+                        );
                         
                         userData.balance = response.balance;
                         userData.spins--;
                         
-                        document.getElementById('balance').innerText = `₹${response.balance.toFixed(2)}`;
-                        document.getElementById('spins').innerText = userData.spins;
-                        
-                        updateSpinButton();
+                        updateUI();
                         isSpinning = false;
                     }, 3000);
                     
                 } else if (response.bonus !== undefined) {
-                    // Daily bonus
-                    document.getElementById('modalTitle').innerText = '🎁 Daily Bonus';
-                    document.getElementById('modalAmount').innerText = `₹${response.bonus.toFixed(2)}`;
-                    document.getElementById('modalText').innerText = `Streak: ${response.streak} days`;
-                    document.getElementById('modal').style.display = 'flex';
+                    // डेली बोनस
+                    showModal(
+                        '🎁 डेली बोनस',
+                        `${response.streak} दिन की स्ट्रीक`,
+                        `₹${response.bonus.toFixed(2)}`
+                    );
                     
                     userData.balance = response.balance;
                     userData.dailyStreak = response.streak;
                     
-                    document.getElementById('balance').innerText = `₹${response.balance.toFixed(2)}`;
-                    document.getElementById('dailyStreak').innerText = `Current Streak: ${response.streak} days`;
+                    updateUI();
                     
                 } else if (response.success !== undefined) {
-                    // Withdrawal
+                    // विड्रॉल
                     if (response.success) {
-                        document.getElementById('modalTitle').innerText = '✅ Success!';
-                        document.getElementById('modalAmount').innerText = 'Request Sent';
-                        document.getElementById('modalText').innerText = 'Admin will process within 24h';
-                        document.getElementById('modal').style.display = 'flex';
-                        
+                        showModal('✅ सफल!', 'एडमिन 24 घंटे में प्रोसेस करेंगे', 'रिक्वेस्ट भेजी');
                         userData.balance = 0;
-                        document.getElementById('balance').innerText = '₹0.00';
-                        document.getElementById('withdrawBalance').innerText = '₹0.00';
-                        
+                        updateUI();
                         goToPage('home');
                     } else {
-                        tg.showAlert('❌ Withdrawal failed! Check balance or minimum amount.');
+                        tg.showAlert('❌ ' + (response.message || 'विड्रॉल फेल'));
                     }
+                    
+                } else if (response.daily_search !== undefined) {
+                    // मिशन अपडेट
+                    userData.missions = response;
+                    updateMissionsUI();
                 }
+                
             } catch (e) {
-                console.error('Response error:', e);
+                console.error('रेस्पॉन्स एरर:', e);
             }
         });
-        
-        function closeModal() {
-            document.getElementById('modal').style.display = 'none';
-        }
-        
-        // Load data on start
-        loadData();
-        
-        // Get user info from Telegram
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            userData.firstName = tg.initDataUnsafe.user.first_name || '';
-            document.getElementById('profileName').innerText = userData.firstName || 'User';
-            document.getElementById('profileId').innerText = `ID: ${userData.id}`;
+
+        function updateMissionsUI() {
+            const missions = userData.missions;
             
-            // Avatar
-            const firstChar = userData.firstName.charAt(0) || '👤';
-            document.getElementById('profileAvatar').innerText = firstChar;
-            document.getElementById('profileAvatarLarge').innerText = firstChar;
+            document.getElementById('mission1Status').innerHTML = missions.daily_search?.completed ? '✅' : '⭕';
+            document.getElementById('mission2Status').innerHTML = missions.daily_refer?.completed ? '✅' : '⭕';
+            document.getElementById('mission3Status').innerHTML = missions.daily_bonus?.completed ? '✅' : '⭕';
         }
+
+        // ====== इनिशियलाइज़ ======
+        function initialize() {
+            // यूजर इन्फो सेट करें
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                userData.firstName = tg.initDataUnsafe.user.first_name || '';
+                document.getElementById('profileName').innerText = userData.firstName;
+                document.getElementById('profileNameLarge').innerText = userData.firstName;
+                document.getElementById('profileId').innerText = `आईडी: ${userData.id}`;
+                document.getElementById('profileIdLarge').innerText = `आईडी: ${userData.id}`;
+                
+                const firstChar = userData.firstName.charAt(0) || '👤';
+                document.getElementById('profileAvatar').innerText = firstChar;
+                document.getElementById('profileAvatarLarge').innerText = firstChar;
+            }
+            
+            // रेफरल लिंक
+            document.getElementById('refLink').innerText = `https://t.me/${tg.initDataUnsafe.user?.username || 'bot'}/?start=ref_${userData.id}`;
+            
+            // डेटा लोड करें
+            loadData();
+        }
+
+        initialize();
     </script>
 </body>
-</html>
+    </html>
