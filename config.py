@@ -11,7 +11,12 @@ except:
     ADMIN_ID = None
     
 MONGO_URI = os.getenv("MONGO_URI")
-PORT = int(os.getenv("PORT", 8000))
+PORT = int(os.getenv("PORT", 10000))  # Default Render port
+
+# Different ports for Flask and Bot webhook
+FLASK_PORT = int(os.getenv("FLASK_PORT", PORT))
+BOT_PORT = int(os.getenv("BOT_PORT", 8443))  # Use different port for bot
+
 WEB_APP_URL = os.getenv("WEB_APP_URL", "https://promotion-user.onrender.com")
 
 # === GROUP LINKS ===
@@ -20,8 +25,8 @@ NEW_MOVIE_GROUP_LINK = "https://t.me/asfilter_bot"
 ALL_GROUPS_LINK = "https://t.me/addlist/6urdhhdLRqhiZmQ1"
 
 # === CHANNELS ===
-FORCE_JOIN_CHANNELS = [-1002283182645]  # अपनी चैनल ID डालें
-PRIVATE_CHANNELS = [-1002892671107]     # प्राइवेट चैनल ID
+FORCE_JOIN_CHANNELS = [-1002283182645]
+PRIVATE_CHANNELS = [-1002892671107]
 REQUEST_MODE = True
 
 # === BONUS & RATES ===
