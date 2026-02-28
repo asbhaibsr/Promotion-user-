@@ -7,10 +7,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from config import Config
 from database import db
-from utils import (
-    get_referral_link, format_balance, get_tier_name,
-    check_channel_membership, is_admin, escape_markdown
-)
+from utils import is_admin, format_balance
 
 logger = logging.getLogger(__name__)
 
@@ -18,10 +15,8 @@ class BotHandlers:
     
     @staticmethod
     async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """स्टार्ट कमांड हैंडलर"""
         user = update.effective_user
         
-        # रेफरल चेक करें
         referrer = None
         if context.args and context.args[0].startswith("ref_"):
             try:
@@ -29,62 +24,46 @@ class BotHandlers:
             except:
                 pass
         
-        # यूजर बनाएं या प्राप्त करें
         db_user = db.get_user(user.id)
         if not db_user:
             db.create_user(user.id, user.username or "", user.first_name, referrer)
-            
-            # वेलकम बोनस
-            db.update_balance(user.id, Config.WELCOME_BONUS, "welcome", "वेलकम बोनस")
-            db.users.update_one({"user_id": user.id}, {"$set": {"welcome_bonus": True}})
+            db.update_balance(user.id, Config.WELCOME_BONUS, "welcome", "Welcome Bonus")
             
             await update.message.reply_text(
-                f"🎉 *वेलकम बोनस!*\n"
-                f"आपको ₹{Config.WELCOME_BONUS} मिले!",
+                f"🎉 *WELCOME BONUS!*\n"
+                f"You got ₹{Config.WELCOME_BONUS}!",
                 parse_mode='Markdown'
             )
         
-        # चैनल जॉइन चेक करें
-        try:
-            is_member = await check_channel_membership(context.bot, user.id, Config.CHANNEL_USERNAME)
-            if is_member and not db_user.get("channel_joined", False):
-                db.mark_channel_joined(user.id, Config.CHANNEL_USERNAME)
-                await update.message.reply_text(
-                    f"🎁 *चैनल जॉइन बोनस!*\n"
-                    f"आपको ₹{Config.CHANNEL_BONUS} मिले!",
-                    parse_mode='Markdown'
-                )
-        except Exception as e:
-            logger.error(f"चैनल चेक एरर: {e}")
+        # Check channel join
+        db_user = db.get_user(user.id)
         
-        # यूजर स्टैट्स
-        stats = db.get_user_stats(user.id)
-        
-        # मिनी ऐप बटन
+        # Mini App Button - FIXED: No asterisks in button
         keyboard = [[
             InlineKeyboardButton(
-                "🚀 *मिनी ऐप खोलें* 🚀",
-                web_app={"url": f"{Config.WEB_APP_URL}/?user={user.id}&lang=hi"}
+                "🚀 OPEN MINI APP 🚀",
+                web_app={"url": f"{Config.WEB_APP_URL}/?user={user.id}&lang=en"}
             )
         ]]
         
-        # अगर एडमिन है तो एडमिन बटन
         if is_admin(user.id):
             keyboard.append([
-                InlineKeyboardButton("👑 *एडमिन पैनल*", callback_data="admin_panel")
+                InlineKeyboardButton("👑 ADMIN PANEL", callback_data="admin_panel")
             ])
         
+        stats = db.get_user_stats(user.id)
+        
         welcome_msg = (
-            f"✨ *नमस्ते {user.first_name}!* ✨\n\n"
-            f"💰 *बैलेंस:* `{format_balance(stats['balance'])}`\n"
-            f"🎰 *स्पिन:* `{stats['spins']}`\n"
-            f"👑 *टीयर:* `{stats['tier_name']}`\n"
-            f"👥 *एक्टिव रेफरल:* `{stats['active_refs']}`\n\n"
-            f"🎯 *आज के मिशन*\n"
-            f"• 3 सर्च करें → ₹0.15 + 1 स्पिन\n"
-            f"• 2 रेफर करें → ₹0.50 + 1 स्पिन\n"
-            f"• डेली बोनस → ₹0.10 + 1 स्पिन\n\n"
-            f"👇 *मिनी ऐप खोलें और कमाई शुरू करें!*"
+            f"✨ *Hello {user.first_name}!* ✨\n\n"
+            f"💰 *Balance:* `{format_balance(stats['balance'])}`\n"
+            f"🎰 *Spins:* `{stats['spins']}`\n"
+            f"👑 *Tier:* `{stats['tier_name']}`\n"
+            f"👥 *Active Referrals:* `{stats['active_refs']}`\n\n"
+            f"🎯 *Today's Missions*\n"
+            f"• 3 Searches → ₹0.15 + 1 Spin\n"
+            f"• 2 Referrals → ₹0.50 + 1 Spin\n"
+            f"• Daily Bonus → ₹0.10 + 1 Spin\n\n"
+            f"👇 *Open Mini App to Start Earning!*"
         )
         
         await update.message.reply_text(
@@ -93,11 +72,11 @@ class BotHandlers:
             parse_mode='Markdown'
         )
         
-        logger.info(f"✅ यूजर {user.id} ने बॉट स्टार्ट किया")
+        logger.info(f"✅ User {user.id} started bot")
     
     @staticmethod
     async def group_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """ग्रुप मैसेज हैंडलर (मूवी सर्च)"""
+        """Track group messages for referral activation"""
         if not update.message or not update.message.text:
             return
         
@@ -105,50 +84,74 @@ class BotHandlers:
         if not user or user.is_bot:
             return
         
-        # सिर्फ टेक्स्ट मैसेज को ट्रैक करें
-        if len(update.message.text) > 5:  # मिनिमम लेंथ
-            logger.info(f"📝 सर्च: {user.id} -> {update.message.text[:30]}...")
+        # Track search in group
+        if len(update.message.text) > 2:
+            logger.info(f"📝 Search: {user.id} -> {update.message.text[:30]}...")
             
-            # रेफरल एक्टिवेट करें
-            referrer = db.activate_referral(user.id)
+            # Activate referral if first search
+            referrer = db.track_search(user.id)
             if referrer:
                 try:
                     await context.bot.send_message(
                         referrer,
-                        f"🎉 *रेफरल एक्टिव!*\n"
-                        f"{user.first_name} ने पहली सर्च की!\n"
-                        f"✅ +1 स्पिन मिला!",
+                        f"🎉 *Referral Activated!*\n"
+                        f"{user.first_name} did first search!\n"
+                        f"✅ +1 Spin Added!",
                         parse_mode='Markdown'
                     )
                 except Exception as e:
-                    logger.error(f"रेफरर नोटिफिकेशन फेल: {e}")
+                    logger.error(f"Referrer notification failed: {e}")
             
-            # रेफरर को पेमेंट
-            amount = db.pay_referrer(user.id)
+            # Process daily payment
+            amount = db.process_daily_referral_payment(user.id)
             if amount:
                 ref_doc = db.referrals.find_one({"user": user.id})
                 if ref_doc:
                     try:
                         await context.bot.send_message(
                             ref_doc["referrer"],
-                            f"💰 *डेली रेफरल कमाई!*\n"
-                            f"{user.first_name} से: `{format_balance(amount)}`",
+                            f"💰 *Daily Referral Earnings!*\n"
+                            f"From {user.first_name}: `{format_balance(amount)}`",
                             parse_mode='Markdown'
                         )
                     except Exception as e:
-                        logger.error(f"पेमेंट नोटिफिकेशन फेल: {e}")
+                        logger.error(f"Payment notification failed: {e}")
             
-            # मिशन अपडेट
+            # Update mission
             db.update_mission(user.id, "daily_search")
     
     @staticmethod
+    async def check_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Check if bot is active in group"""
+        if not update.message or not update.message.chat:
+            return
+        
+        chat = update.message.chat
+        user = update.effective_user
+        
+        if chat.type not in ['group', 'supergroup']:
+            await update.message.reply_text("This command only works in groups!")
+            return
+        
+        # Log group activity
+        db.check_group_active(chat.id, chat.title)
+        
+        await update.message.reply_text(
+            "✅ *I am active in this group!*\n\n"
+            "Users can search movies here to activate referrals.",
+            parse_mode='Markdown'
+        )
+        
+        logger.info(f"✅ Check command used in group {chat.id}")
+    
+    @staticmethod
     async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """मिनी ऐप से डेटा हैंडल करें"""
+        """Handle mini app data"""
         if not update.effective_message or not update.effective_message.web_app_data:
             return
         
         data = update.effective_message.web_app_data.data
-        logger.info(f"📱 वेबऐप डेटा: {data[:100]}...")
+        logger.info(f"📱 WebApp Data: {data[:100]}...")
         
         try:
             payload = json.loads(data)
@@ -156,7 +159,7 @@ class BotHandlers:
             user_id = payload.get("user_id")
             
             if not user_id:
-                await update.effective_message.reply_text(json.dumps({"error": "यूजर आईडी नहीं मिली"}))
+                await update.effective_message.reply_text(json.dumps({"error": "User ID not found"}))
                 return
             
             if action == "get_data":
@@ -167,24 +170,25 @@ class BotHandlers:
                         "new_group": Config.NEW_MOVIE_GROUP_LINK,
                         "all_groups": Config.ALL_GROUPS_LINK,
                         "channel": Config.CHANNEL_USERNAME,
-                        "channel_bonus": Config.CHANNEL_BONUS
+                        "channel_bonus": Config.CHANNEL_BONUS,
+                        "min_withdrawal": Config.MIN_WITHDRAWAL
                     })
                     await update.effective_message.reply_text(json.dumps(stats))
                 else:
-                    await update.effective_message.reply_text(json.dumps({"error": "यूजर नहीं मिला"}))
+                    await update.effective_message.reply_text(json.dumps({"error": "User not found"}))
             
             elif action == "spin":
                 result = db.spin_wheel(user_id)
                 await update.effective_message.reply_text(json.dumps(result))
-                logger.info(f"🎡 यूजर {user_id} ने स्पिन किया: {result.get('prize', 0)}")
+                logger.info(f"🎡 User {user_id} spun: {result.get('prize', 0)}")
             
             elif action == "daily":
                 result = db.claim_daily(user_id)
                 if result:
                     await update.effective_message.reply_text(json.dumps(result))
-                    logger.info(f"📅 यूजर {user_id} ने डेली बोनस क्लेम किया: {result['bonus']}")
+                    logger.info(f"📅 User {user_id} claimed daily: {result['bonus']}")
                 else:
-                    await update.effective_message.reply_text(json.dumps({"error": "आज क्लेम कर चुके हैं"}))
+                    await update.effective_message.reply_text(json.dumps({"error": "Already claimed today"}))
             
             elif action == "save_payment":
                 method = payload.get("method")
@@ -196,7 +200,7 @@ class BotHandlers:
                 })
                 
                 await update.effective_message.reply_text(json.dumps({"success": True}))
-                logger.info(f"💳 यूजर {user_id} ने पेमेंट डिटेल्स सेव की")
+                logger.info(f"💳 User {user_id} saved payment details")
             
             elif action == "withdraw":
                 amount = float(payload.get("amount", 0))
@@ -206,32 +210,31 @@ class BotHandlers:
                 success, msg = db.create_withdrawal(user_id, amount, method, details)
                 
                 if success:
-                    # एडमिन को नोटिफिकेशन
                     for admin_id in Config.ADMIN_IDS:
                         try:
                             await context.bot.send_message(
                                 admin_id,
-                                f"💰 *नई विड्रॉल रिक्वेस्ट!*\n\n"
-                                f"👤 यूजर: `{user_id}`\n"
-                                f"💵 रकम: `{format_balance(amount)}`\n"
-                                f"🏦 तरीका: `{method.upper()}`\n"
-                                f"📝 डिटेल्स: `{details}`",
+                                f"💰 *New Withdrawal Request!*\n\n"
+                                f"👤 User: `{user_id}`\n"
+                                f"💵 Amount: `{format_balance(amount)}`\n"
+                                f"🏦 Method: `{method.upper()}`\n"
+                                f"📝 Details: `{details}`",
                                 parse_mode='Markdown'
                             )
                         except:
                             pass
                 
                 await update.effective_message.reply_text(json.dumps({"success": success, "message": msg}))
-                logger.info(f"💰 यूजर {user_id} ने विड्रॉल रिक्वेस्ट की: ₹{amount}")
+                logger.info(f"💰 User {user_id} requested withdrawal: ₹{amount}")
             
             elif action == "leaderboard":
-                lb = db.get_leaderboard()
+                lb = db.get_current_leaderboard()
                 result = []
                 for idx, user in enumerate(lb, 1):
                     result.append({
                         "rank": idx,
-                        "name": user.get("full_name", "यूजर")[:20],
-                        "refs": user.get("active_referrals", 0),
+                        "name": user.get("full_name", "User")[:20],
+                        "refs": user.get("monthly_referrals", 0),
                         "balance": user.get("balance", 0)
                     })
                 await update.effective_message.reply_text(json.dumps(result))
@@ -244,18 +247,7 @@ class BotHandlers:
                 }))
             
             elif action == "missions":
-                missions = {}
-                for mission_type in Config.MISSIONS.keys():
-                    today = datetime.now().date().isoformat()
-                    mission = db.missions.find_one({
-                        "user_id": user_id,
-                        "type": mission_type,
-                        "date": today
-                    })
-                    missions[mission_type] = {
-                        "count": mission["count"] if mission else 0,
-                        "completed": mission["completed"] if mission else False
-                    }
+                missions = db.get_missions(user_id)
                 await update.effective_message.reply_text(json.dumps(missions))
             
             elif action == "ad_view":
@@ -281,23 +273,23 @@ class BotHandlers:
                     await update.effective_message.reply_text(json.dumps([]))
             
         except json.JSONDecodeError as e:
-            logger.error(f"JSON डीकोड एरर: {e}")
-            await update.effective_message.reply_text(json.dumps({"error": "इनवैलिड डेटा"}))
+            logger.error(f"JSON Decode Error: {e}")
+            await update.effective_message.reply_text(json.dumps({"error": "Invalid data"}))
         
         except Exception as e:
-            logger.error(f"वेबऐप डेटा एरर: {e}")
+            logger.error(f"WebApp Data Error: {e}")
             await update.effective_message.reply_text(json.dumps({"error": str(e)}))
     
     @staticmethod
     async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """ग्लोबल एरर हैंडलर"""
-        logger.error(f"अपडेट {update} में एरर: {context.error}")
+        """Global error handler - FIXED for event loop"""
+        logger.error(f"Error in update {update}: {context.error}")
         
         try:
             if update and update.effective_message:
                 await update.effective_message.reply_text(
-                    "❌ *टेक्निकल एरर*\n"
-                    "कृपया बाद में प्रयास करें।",
+                    "❌ *Technical Error*\n"
+                    "Please try again later.",
                     parse_mode='Markdown'
                 )
         except:
