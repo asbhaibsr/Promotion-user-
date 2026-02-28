@@ -18,9 +18,10 @@
             color: white;
             min-height: 100vh;
             padding: 16px;
+            padding-bottom: 80px;
         }
         
-        /* Header */
+        /* Header with Profile */
         .header {
             background: rgba(255,255,255,0.05);
             backdrop-filter: blur(10px);
@@ -28,6 +29,42 @@
             padding: 20px;
             margin-bottom: 20px;
             border: 1px solid rgba(255,215,0,0.2);
+        }
+        
+        .profile-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .profile-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, gold, #ff8c00);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            font-weight: bold;
+            color: #000;
+        }
+        
+        .profile-info {
+            flex: 1;
+        }
+        
+        .profile-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: gold;
+        }
+        
+        .profile-id {
+            font-size: 12px;
+            color: #888;
         }
         
         .balance-row {
@@ -86,6 +123,7 @@
             padding: 15px 10px;
             border-radius: 16px;
             text-align: center;
+            border: 1px solid rgba(255,215,0,0.2);
         }
         
         .stat-label {
@@ -100,100 +138,167 @@
             color: gold;
         }
         
-        /* Quick Actions */
-        .quick-actions {
+        /* Movie Groups Button (First Screen) */
+        .movie-groups-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ff4757);
+            border: none;
+            color: white;
+            padding: 20px;
+            border-radius: 30px;
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            width: 100%;
+            border: 2px solid gold;
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+        
+        /* Main Menu Buttons */
+        .main-menu {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 12px;
             margin-bottom: 20px;
         }
         
-        .action-btn {
+        .menu-btn {
             background: linear-gradient(145deg, #2a2f3f, #1a1f2f);
-            border: none;
+            border: 1px solid rgba(255,215,0,0.3);
             color: white;
-            padding: 16px;
+            padding: 20px 12px;
             border-radius: 20px;
             font-size: 16px;
             font-weight: 600;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
             gap: 8px;
             cursor: pointer;
             transition: all 0.3s;
-            border: 1px solid rgba(255,215,0,0.3);
         }
         
-        .action-btn:active {
+        .menu-btn:active {
             transform: scale(0.95);
         }
         
-        .action-btn.primary {
-            background: linear-gradient(145deg, #f5b042, #f39c12);
+        .menu-icon {
+            font-size: 30px;
+        }
+        
+        .menu-btn.primary {
+            background: linear-gradient(145deg, gold, #ff8c00);
             color: #000;
             border: none;
         }
         
-        /* Tabs */
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            background: rgba(0,0,0,0.3);
-            padding: 5px;
-            border-radius: 30px;
-        }
-        
-        .tab {
-            flex: 1;
-            text-align: center;
-            padding: 12px;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-        }
-        
-        .tab.active {
-            background: gold;
-            color: #000;
-        }
-        
-        /* Content Sections */
-        .section {
+        /* Pages */
+        .page {
             display: none;
+            animation: slideIn 0.3s ease;
         }
         
-        .section.active {
+        .page.active {
             display: block;
         }
         
-        /* Movie Groups */
-        .group-card {
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        /* Back Button */
+        .back-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            width: fit-content;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        /* Page Title */
+        .page-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: gold;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* Cards */
+        .card {
             background: rgba(255,255,255,0.03);
             border-radius: 20px;
-            padding: 16px;
-            margin-bottom: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255,215,0,0.2);
         }
         
-        .group-title {
+        .card-title {
             font-size: 18px;
             font-weight: bold;
-            margin-bottom: 8px;
             color: gold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        .group-link {
-            display: inline-block;
-            background: gold;
-            color: #000;
-            padding: 8px 20px;
-            border-radius: 30px;
-            text-decoration: none;
+        /* Buttons */
+        .btn {
+            background: linear-gradient(145deg, #2a2f3f, #1a1f2f);
+            border: 1px solid rgba(255,215,0,0.3);
+            color: white;
+            padding: 15px;
+            border-radius: 16px;
+            font-size: 16px;
             font-weight: 600;
-            margin-top: 10px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn.primary {
+            background: linear-gradient(145deg, gold, #ff8c00);
+            color: #000;
+            border: none;
+        }
+        
+        .btn.small {
+            padding: 10px;
+            font-size: 14px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
         }
         
         /* Spin Wheel */
@@ -203,8 +308,8 @@
         }
         
         .wheel {
-            width: 250px;
-            height: 250px;
+            width: 280px;
+            height: 280px;
             margin: 0 auto;
             border-radius: 50%;
             background: conic-gradient(
@@ -219,22 +324,34 @@
             transition: transform 3s cubic-bezier(0.17, 0.67, 0.83, 0.67);
             margin-bottom: 20px;
             box-shadow: 0 0 30px rgba(255,215,0,0.5);
+            position: relative;
+        }
+        
+        .wheel::after {
+            content: '⬆️';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 30px;
         }
         
         .spin-btn {
             background: gold;
             color: #000;
             border: none;
-            padding: 15px 40px;
+            padding: 18px;
             border-radius: 40px;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: bold;
             cursor: pointer;
             width: 100%;
+            margin: 20px 0;
         }
         
         .spin-btn:disabled {
             opacity: 0.5;
+            cursor: not-allowed;
         }
         
         /* Leaderboard */
@@ -261,8 +378,8 @@
         }
         
         .rank.gold { background: gold; }
-        .rank.silver { background: #c0c0c0; }
-        .rank.bronze { background: #cd7f32; }
+        .rank.silver { background: #c0c0c0; color: #000; }
+        .rank.bronze { background: #cd7f32; color: #000; }
         
         .user-info {
             flex: 1;
@@ -279,10 +396,23 @@
         }
         
         /* Withdraw */
-        .withdraw-card {
-            background: rgba(255,255,255,0.03);
-            border-radius: 20px;
-            padding: 20px;
+        .details-display {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border-left: 3px solid gold;
+        }
+        
+        .method-badge {
+            background: gold;
+            color: #000;
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
         }
         
         .input-field {
@@ -296,19 +426,77 @@
             margin-bottom: 15px;
         }
         
+        .input-field:focus {
+            border-color: gold;
+            outline: none;
+        }
+        
         .method-btn {
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,215,0,0.3);
             color: white;
-            padding: 12px;
+            padding: 12px 20px;
             border-radius: 12px;
-            margin: 5px;
             cursor: pointer;
+            flex: 1;
+            font-size: 14px;
         }
         
         .method-btn.active {
             background: gold;
             color: #000;
+        }
+        
+        /* Mission Progress */
+        .mission-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .mission-item:last-child {
+            border-bottom: none;
+        }
+        
+        .mission-reward {
+            color: gold;
+            font-weight: bold;
+        }
+        
+        .mission-status {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255,215,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        .mission-status.completed {
+            background: #4caf50;
+        }
+        
+        /* Help Button */
+        .help-btn {
+            position: fixed;
+            bottom: 90px;
+            right: 16px;
+            background: gold;
+            color: #000;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255,215,0,0.3);
+            z-index: 100;
         }
         
         /* Modal */
@@ -318,19 +506,22 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
+            padding: 20px;
         }
         
         .modal-content {
             background: #1a1f2f;
             padding: 30px;
             border-radius: 30px;
-            max-width: 300px;
+            max-width: 320px;
+            width: 100%;
             text-align: center;
+            border: 2px solid gold;
         }
         
         .modal-title {
@@ -352,12 +543,13 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(10,15,30,0.95);
+            background: rgba(10,15,30,0.98);
             backdrop-filter: blur(10px);
             display: flex;
             justify-content: space-around;
-            padding: 12px 16px;
-            border-top: 1px solid rgba(255,215,0,0.3);
+            padding: 12px 8px;
+            border-top: 2px solid gold;
+            z-index: 99;
         }
         
         .nav-item {
@@ -366,6 +558,7 @@
             align-items: center;
             color: #888;
             cursor: pointer;
+            flex: 1;
         }
         
         .nav-item.active {
@@ -378,14 +571,29 @@
         }
         
         .nav-label {
-            font-size: 12px;
+            font-size: 11px;
+        }
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: gold;
         }
     </style>
 </head>
 <body>
     <div id="app">
-        <!-- Header with Balance -->
+        <!-- Header with Profile (Always Visible) -->
         <div class="header">
+            <div class="profile-row">
+                <div class="profile-avatar" id="profileAvatar">👤</div>
+                <div class="profile-info">
+                    <div class="profile-name" id="profileName">Loading...</div>
+                    <div class="profile-id" id="profileId">ID: 0</div>
+                </div>
+            </div>
+            
             <div class="balance-row">
                 <div class="balance-card">
                     <div class="balance-label">💰 BALANCE</div>
@@ -403,7 +611,7 @@
                     <div class="stat-number" id="tier">1</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">ACTIVE REFS</div>
+                    <div class="stat-label">ACTIVE</div>
                     <div class="stat-number" id="activeRefs">0</div>
                 </div>
                 <div class="stat-item">
@@ -411,144 +619,415 @@
                     <div class="stat-number" id="monthlyRefs">0</div>
                 </div>
             </div>
+        </div>
+        
+        <!-- PAGE 1: Movie Groups Button (First Screen) -->
+        <div id="pageGroupsBtn" class="page active">
+            <button class="movie-groups-btn" onclick="goToPage('groups')">
+                <span>🎬</span> JOIN MOVIE GROUPS <span>🎬</span>
+            </button>
             
-            <div class="quick-actions">
-                <button class="action-btn" onclick="claimDaily()">
-                    📅 Daily
-                </button>
-                <button class="action-btn primary" onclick="showSection('spin')">
-                    🎡 Spin Now
-                </button>
+            <div class="main-menu">
+                <div class="menu-btn" onclick="goToPage('earning')">
+                    <span class="menu-icon">💰</span>
+                    <span>Earning Panel</span>
+                </div>
+                <div class="menu-btn" onclick="goToPage('profile')">
+                    <span class="menu-icon">👤</span>
+                    <span>My Profile</span>
+                </div>
+                <div class="menu-btn" onclick="goToPage('missions')">
+                    <span class="menu-icon">🎯</span>
+                    <span>Missions</span>
+                </div>
+                <div class="menu-btn" onclick="goToPage('referral')">
+                    <span class="menu-icon">🔗</span>
+                    <span>Refer & Earn</span>
+                </div>
+                <div class="menu-btn" onclick="goToPage('spin')">
+                    <span class="menu-icon">🎡</span>
+                    <span>Spin Wheel</span>
+                </div>
+                <div class="menu-btn" onclick="goToPage('leaderboard')">
+                    <span class="menu-icon">🏆</span>
+                    <span>Leaderboard</span>
+                </div>
+                <div class="menu-btn" onclick="goToPage('withdraw')">
+                    <span class="menu-icon">💸</span>
+                    <span>Withdraw</span>
+                </div>
+                <div class="menu-btn primary" onclick="goToPage('daily')">
+                    <span class="menu-icon">📅</span>
+                    <span>Daily Bonus</span>
+                </div>
             </div>
         </div>
         
-        <!-- Tabs -->
-        <div class="tabs">
-            <div class="tab active" onclick="showSection('home')">🏠 Home</div>
-            <div class="tab" onclick="showSection('groups')">🎬 Groups</div>
-            <div class="tab" onclick="showSection('leaderboard')">🏆 Top</div>
-            <div class="tab" onclick="showSection('withdraw')">💸 Cash</div>
-        </div>
-        
-        <!-- Home Section -->
-        <div id="homeSection" class="section active">
-            <div class="group-card">
-                <div class="group-title">🎯 Daily Missions</div>
-                <div style="margin-top: 15px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>🔍 Search 3 Movies</span>
-                        <span>₹0.15 +1 Spin</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>👥 Refer 2 Friends</span>
-                        <span>₹0.50 +1 Spin</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>📅 Claim Daily Bonus</span>
-                        <span>₹0.05 +1 Spin</span>
-                    </div>
-                </div>
+        <!-- PAGE 2: Groups Page -->
+        <div id="pageGroups" class="page">
+            <button class="back-btn" onclick="goToPage('home')">
+                <span>←</span> Back
+            </button>
+            
+            <div class="page-title">🎬 Movie Groups</div>
+            
+            <div class="card">
+                <div class="card-title">🎬 New Movie Group</div>
+                <p style="color: #ccc; margin-bottom: 15px;">Latest movies updated daily</p>
+                <a href="#" class="btn primary" id="newGroupLink" target="_blank">Join New Group</a>
             </div>
             
-            <div class="group-card">
-                <div class="group-title">📊 Your Stats</div>
-                <div style="margin-top: 15px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span>Total Referrals:</span>
-                        <span id="totalRefs">0</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span>Earnings Today:</span>
-                        <span>₹0.00</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>Referral Rate:</span>
-                        <span id="rate">₹0.10/search</span>
-                    </div>
-                </div>
+            <div class="card">
+                <div class="card-title">🍿 Main Movie Group</div>
+                <p style="color: #ccc; margin-bottom: 15px;">Search any movie here to activate referrals</p>
+                <a href="#" class="btn primary" id="movieGroupLink" target="_blank">Join Main Group</a>
             </div>
             
-            <div class="group-card">
-                <div class="group-title">🔗 Your Referral Link</div>
-                <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px; margin: 10px 0; font-size: 12px; word-break: break-all;" id="refLink">
-                    Loading...
-                </div>
-                <button class="group-link" onclick="copyRefLink()" style="width: 100%;">📋 Copy Link</button>
-            </div>
-        </div>
-        
-        <!-- Groups Section -->
-        <div id="groupsSection" class="section">
-            <div class="group-card">
-                <div class="group-title">🎬 New Movie Group</div>
-                <p>Latest movies updated daily</p>
-                <a href="#" class="group-link" id="newGroupLink" target="_blank">Join Group</a>
+            <div class="card">
+                <div class="card-title">📢 All Groups</div>
+                <p style="color: #ccc; margin-bottom: 15px;">Join all groups at once</p>
+                <a href="#" class="btn primary" id="allGroupsLink" target="_blank">Join All Groups</a>
             </div>
             
-            <div class="group-card">
-                <div class="group-title">🍿 Main Movie Group</div>
-                <p>Search any movie here to activate referrals</p>
-                <a href="#" class="group-link" id="movieGroupLink" target="_blank">Join Group</a>
-            </div>
-            
-            <div class="group-card">
-                <div class="group-title">📢 All Groups</div>
-                <p>Join all groups at once</p>
-                <a href="#" class="group-link" id="allGroupsLink" target="_blank">Join All</a>
-            </div>
-            
-            <div style="background: rgba(255,215,0,0.1); border-radius: 16px; padding: 16px; margin-top: 20px;">
+            <div class="card" style="background: rgba(255,215,0,0.1);">
                 <div style="color: gold; font-weight: bold; margin-bottom: 10px;">⭐ IMPORTANT</div>
                 <p style="color: #ccc; font-size: 14px;">Your referrals become ACTIVE only after they search a movie in the Main Movie Group!</p>
             </div>
         </div>
         
-        <!-- Spin Section (Hidden by default) -->
-        <div id="spinSection" class="section">
-            <div class="wheel-container">
-                <div class="wheel" id="wheel" style="transform: rotate(0deg);"></div>
-                <button class="spin-btn" id="spinBtn" onclick="spinWheel()">
-                    🎰 SPIN ({spins})
-                </button>
-                <p style="color: #888; margin-top: 15px;">🎁 Refer 1 friend = +1 Spin</p>
+        <!-- PAGE 3: Earning Page -->
+        <div id="pageEarning" class="page">
+            <button class="back-btn" onclick="goToPage('home')">
+                <span>←</span> Back
+            </button>
+            
+            <div class="page-title">💰 Earning Panel</div>
+            
+            <div class="card">
+                <div class="card-title">📊 Your Earnings</div>
+                <div style="font-size: 32px; color: gold; text-align: center; margin: 20px 0;" id="earningBalance">₹0.00</div>
+                <div style="display: flex; justify-content: space-around;">
+                    <div style="text-align: center;">
+                        <div style="color: #888;">Today</div>
+                        <div style="color: gold;" id="todayEarnings">₹0.00</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="color: #888;">Total</div>
+                        <div style="color: gold;" id="totalEarnings">₹0.00</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">📈 Referral Stats</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="text-align: center;">
+                        <div style="color: #888;">Total</div>
+                        <div style="color: gold; font-size: 24px;" id="totalRefsEarn">0</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="color: #888;">Active</div>
+                        <div style="color: gold; font-size: 24px;" id="activeRefsEarn">0</div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Referral Rate:</span>
+                        <span style="color: gold;" id="rateEarn">₹0.10/search</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn primary" onclick="goToPage('withdraw')">💸 Withdraw Now</button>
+        </div>
+        
+        <!-- PAGE 4: Profile Page -->
+        <div id="pageProfile" class="page">
+            <button class="back-btn" onclick="goToPage('home')">
+                <span>←</span> Back
+            </button>
+            
+            <div class="page-title">👤 My Profile</div>
+            
+            <div class="card" style="text-align: center;">
+                <div class="profile-avatar" style="margin: 0 auto 15px; width: 80px; height: 80px; font-size: 40px;" id="profileAvatarLarge">👤</div>
+                <div style="font-size: 20px; font-weight: bold;" id="profileNameLarge">Loading...</div>
+                <div style="color: #888; margin: 5px 0;" id="profileIdLarge">ID: 0</div>
+                <div style="color: gold; margin-top: 10px;" id="profileTier">Tier 1 - Beginner</div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">📊 Account Stats</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <div style="color: #888;">Joined</div>
+                        <div style="color: gold;" id="joinDate">-</div>
+                    </div>
+                    <div>
+                        <div style="color: #888;">Daily Streak</div>
+                        <div style="color: gold;" id="streak">0 days</div>
+                    </div>
+                </div>
             </div>
         </div>
         
-        <!-- Leaderboard Section -->
-        <div id="leaderboardSection" class="section">
-            <div class="group-card">
-                <div class="group-title">🏆 TOP 10 REFERRERS</div>
+        <!-- PAGE 5: Missions Page -->
+        <div id="pageMissions" class="page">
+            <button class="back-btn" onclick="goToPage('home')">
+                <span>←</span> Back
+            </button>
+            
+            <div class="page-title">🎯 Daily Missions</div>
+            
+            <div class="card">
+                <div class="mission-item">
+                    <div>
+                        <div style="font-weight: bold;">🔍 Search 3 Movies</div>
+                        <div style="color: #888; font-size: 12px;">Let your referrals search</div>
+                    </div>
+                    <div>
+                        <span class="mission-reward">₹0.15 +1🎰</span>
+                        <span class="mission-status" id="mission1Status"></span>
+                    </div>
+                </div>
+                
+                <div class="mission-item">
+                    <div>
+                        <div style="font-weight: bold;">👥 Refer 2 Friends</div>
+                        <div style="color: #888; font-size: 12px;">Get new users</div>
+                    </div>
+                    <div>
+                        <span class="mission-reward">₹0.50 +1🎰</span>
+                        <span class="mission-status" id="mission2Status"></span>
+                    </div>
+                </div>
+                
+                <div class="mission-item">
+                    <div>
+                        <div style="font-weight: bold;">📅 Claim Daily Bonus</div>
+                        <div style="color: #888; font-size: 12px;">Check in daily</div>
+                    </div>
+                    <div>
+                        <span class="mission-reward">₹0.05 +1🎰</span>
+                        <span class="mission-status" id="mission3Status"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" style="background: rgba(76, 175, 80, 0.1);">
+                <div style="color: #4caf50; font-weight: bold;">💡 TIP</div>
+                <p style="color: #ccc; font-size: 14px;">Complete all missions daily to earn extra ₹0.70 + 3 Spins!</p>
+            </div>
+        </div>
+        
+        <!-- PAGE 6: Referral Page -->
+        <div id="pageReferral" class="page">
+            <button class="back-btn" onclick="goToPage('home')">
+                <span>←</span> Back
+            </button>
+            
+            <div class="page-title">🔗 Refer & Earn</div>
+            
+            <div class="card">
+                <div class="card-title">Your Referral Link</div>
+                <div style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 12px; word-break: break-all; margin-bottom: 15px;" id="refLink">
+                    Loading...
+                </div>
+                <button class="btn primary" onclick="copyRefLink()">📋 Copy Link</button>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">📊 Referral Stats</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: center;">
+                    <div>
+                        <div style="color: #888;">Total</div>
+                        <div style="color: gold; font-size: 24px;" id="totalRefs">0</div>
+                    </div>
+                    <div>
+                        <div style="color: #888;">Active</div>
+                        <div style="color: gold; font-size: 24px;" id="activeRefsRefer">0</div>
+                    </div>
+                    <div>
+                        <div style="color: #888;">Pending</div>
+                        <div style="color: #ff6b6b; font-size: 24px;" id="pendingRefs">0</div>
+                    </div>
+                    <div>
+                        <div style="color: #888;">Monthly</div>
+                        <div style="color: gold; font-size: 24px;" id="monthlyRefsRefer">0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">💰 How It Works</div>
+                <p style="color: #ccc; margin-bottom: 10px;">1️⃣ Share your link with friends</p>
+                <p style="color: #ccc; margin-bottom: 10px;">2️⃣ They join and search a movie</p>
+                <p style="color: #ccc; margin-bottom: 10px;">3️⃣ Referral becomes ACTIVE</p>
+                <p style="color: gold;">4️⃣ You earn daily from their searches!</p>
+            </div>
+        </div>
+        
+        <!-- PAGE 7: Spin Page -->
+        <div id="pageSpin" class="page">
+            <button class="back-btn" onclick="goToPage('home')">
+                <span>←</span> Back
+            </button>
+            
+            <div class="page-title">🎡 Spin Wheel</div>
+            
+            <div class="wheel-container">
+                <div class="wheel" id="wheel" style="transform: rotate(0deg);"></div>
+                <button class="spin-btn" id="spinBtn" onclick="spinWheel()">
+                    🎰 SPIN (0)
+                </button>
+                <p style="color: gold; text-align: center;">🎁 Refer 1 friend = +1 Spin</p>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">💰 Prize Pool</div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center;">
+                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">₹0.00</div>
+                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">₹0.05</div>
+                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">₹0.10</div>
+                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">₹0.20</div>
+                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">₹0.50</div>
+                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">₹1.00</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PAGE 8: Leaderboard Page -->
+        <div id="pageLeaderboard" class="page">
+            <button class="back-btn" onclick="goToPage('home')">
+                <span>←</span> Back
+            </button>
+            
+            <div class="page-title">🏆 Leaderboard</div>
+            
+            <div class="card">
+                <div class="card-title">TOP 10 REFERRERS</div>
                 <div id="leaderboardList"></div>
-                <div style="margin-top: 15px; font-size: 12px; color: #888;">
+                <div style="margin-top: 15px; font-size: 12px; color: #888; text-align: center;">
                     * Monthly rewards paid on 1st of month
                 </div>
             </div>
         </div>
         
-        <!-- Withdraw Section -->
-        <div id="withdrawSection" class="section">
-            <div class="withdraw-card">
-                <h3 style="margin-bottom: 20px;">💸 Withdraw Money</h3>
+        <!-- PAGE 9: Withdraw Page -->
+        <div id="pageWithdraw" class="page">
+            <button class="back-btn" onclick="goToPage('home')">
+                <span>←</span> Back
+            </button>
+            
+            <div class="page-title">💸 Withdraw Money</div>
+            
+            <div class="card">
+                <div class="card-title">💰 Available Balance</div>
+                <div style="font-size: 32px; color: gold; text-align: center;" id="withdrawBalance">₹0.00</div>
+                <div style="text-align: center; color: #888;">Minimum ₹50</div>
+            </div>
+            
+            <!-- Payment Details Section -->
+            <div class="card" id="paymentDetailsCard">
+                <div class="card-title">💳 Payment Details</div>
                 
-                <div style="margin-bottom: 20px;">
+                <div id="savedDetails" style="display: none;">
+                    <div class="method-badge" id="savedMethod">UPI</div>
+                    <div class="details-display" id="savedDetailsText">username@oksbi</div>
+                    <div class="btn-group">
+                        <button class="btn small" onclick="editPaymentDetails()">✏️ Edit</button>
+                        <button class="btn small primary" onclick="showWithdrawForm()">💸 Withdraw</button>
+                    </div>
+                </div>
+                
+                <div id="editDetails" style="display: block;">
                     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                         <button class="method-btn active" onclick="selectMethod('upi')">🇮🇳 UPI</button>
                         <button class="method-btn" onclick="selectMethod('bank')">🏦 Bank</button>
                     </div>
                     
-                    <input type="number" id="withdrawAmount" class="input-field" placeholder="Amount (min ₹50)" min="50" step="1">
-                    <input type="text" id="withdrawDetails" class="input-field" placeholder="UPI ID / Bank Details">
+                    <input type="text" id="paymentInput" class="input-field" placeholder="Enter UPI ID / Bank Details">
                     
-                    <button class="action-btn primary" onclick="withdraw()" style="width: 100%;">
-                        💸 Request Withdrawal
-                    </button>
-                </div>
-                
-                <div style="color: #888; font-size: 12px; margin-top: 20px;">
-                    ⚠️ Minimum withdrawal: ₹50<br>
-                    ⏳ Processing time: 24 hours
+                    <div class="btn-group">
+                        <button class="btn" onclick="cancelEdit()">Cancel</button>
+                        <button class="btn primary" onclick="savePaymentDetails()">Save Details</button>
+                    </div>
                 </div>
             </div>
+            
+            <!-- Withdraw Form (Hidden by default) -->
+            <div id="withdrawForm" style="display: none;">
+                <div class="card">
+                    <div class="card-title">📝 Withdraw Amount</div>
+                    
+                    <input type="number" id="withdrawAmount" class="input-field" placeholder="Enter amount (min ₹50)" min="50" step="1">
+                    
+                    <div class="btn-group">
+                        <button class="btn" onclick="cancelWithdraw()">Cancel</button>
+                        <button class="btn primary" onclick="withdraw()">✅ Confirm Withdrawal</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" style="background: rgba(255,215,0,0.1);">
+                <div style="color: #888; font-size: 12px;">
+                    ⚠️ Minimum withdrawal: ₹50<br>
+                    ⏳ Processing time: 24 hours<br>
+                    📞 For help: @asbhai_bsr
+                </div>
+            </div>
+        </div>
+        
+        <!-- PAGE 10: Daily Bonus Page -->
+        <div id="pageDaily" class="page">
+            <button class="back-btn" onclick="goToPage('home')">
+                <span>←</span> Back
+            </button>
+            
+            <div class="page-title">📅 Daily Bonus</div>
+            
+            <div class="card" style="text-align: center;">
+                <div style="font-size: 50px; margin-bottom: 20px;">🎁</div>
+                <div style="font-size: 24px; color: gold; margin-bottom: 10px;" id="dailyBonusAmount">Claim Now!</div>
+                <div style="color: #888; margin-bottom: 20px;" id="dailyStreak">Current Streak: 0 days</div>
+                
+                <button class="btn primary" onclick="claimDaily()" id="claimDailyBtn">📅 Claim Daily Bonus</button>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">🔥 Streak Benefits</div>
+                <p>Day 1: ₹0.05</p>
+                <p>Day 2: ₹0.07</p>
+                <p>Day 3: ₹0.09</p>
+                <p>Day 4+: ₹0.05 + (streak × 0.02)</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Help Button -->
+    <a href="https://t.me/asbhai_bsr" class="help-btn" target="_blank">❓</a>
+    
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="goToPage('home')">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Home</span>
+        </div>
+        <div class="nav-item" onclick="goToPage('earning')">
+            <span class="nav-icon">💰</span>
+            <span class="nav-label">Earn</span>
+        </div>
+        <div class="nav-item" onclick="goToPage('spin')">
+            <span class="nav-icon">🎡</span>
+            <span class="nav-label">Spin</span>
+        </div>
+        <div class="nav-item" onclick="goToPage('leaderboard')">
+            <span class="nav-icon">🏆</span>
+            <span class="nav-label">Top</span>
+        </div>
+        <div class="nav-item" onclick="goToPage('profile')">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">Profile</span>
         </div>
     </div>
     
@@ -558,31 +1037,7 @@
             <div class="modal-title" id="modalTitle">🎉 Congratulations!</div>
             <div class="prize-amount" id="modalAmount">₹0.00</div>
             <p id="modalText">You won the prize!</p>
-            <button class="action-btn primary" onclick="closeModal()" style="width: 100%;">OK</button>
-        </div>
-    </div>
-    
-    <!-- Navigation Bar -->
-    <div class="nav-bar">
-        <div class="nav-item active" onclick="showSection('home')">
-            <span class="nav-icon">🏠</span>
-            <span class="nav-label">Home</span>
-        </div>
-        <div class="nav-item" onclick="showSection('groups')">
-            <span class="nav-icon">🎬</span>
-            <span class="nav-label">Groups</span>
-        </div>
-        <div class="nav-item" onclick="showSection('spin')">
-            <span class="nav-icon">🎡</span>
-            <span class="nav-label">Spin</span>
-        </div>
-        <div class="nav-item" onclick="showSection('leaderboard')">
-            <span class="nav-icon">🏆</span>
-            <span class="nav-label">Top</span>
-        </div>
-        <div class="nav-item" onclick="showSection('withdraw')">
-            <span class="nav-icon">💸</span>
-            <span class="nav-label">Cash</span>
+            <button class="btn primary" onclick="closeModal()" style="width: 100%;">OK</button>
         </div>
     </div>
     
@@ -591,64 +1046,195 @@
         tg.expand();
         tg.ready();
         
+        // User Data
         let userData = {
             id: {{ user_id }},
+            firstName: '',
             balance: 0,
-            spins: 0
+            spins: 3,
+            tier: 1,
+            totalRefs: 0,
+            activeRefs: 0,
+            monthlyRefs: 0,
+            dailyStreak: 0,
+            joinDate: '',
+            paymentMethod: 'upi',
+            paymentDetails: '',
+            missions: {
+                search: false,
+                refer: false,
+                daily: false
+            }
         };
         
         let currentMethod = 'upi';
         
         // Initialize
         async function loadData() {
-            const response = await fetch(`/api/user/${userData.id}`);
-            const data = await response.json();
-            
-            if (!data.error) {
-                userData.balance = data.balance;
-                userData.spins = data.spins;
+            try {
+                const response = await fetch(`/api/user/${userData.id}`);
+                const data = await response.json();
                 
-                document.getElementById('balance').innerText = `₹${data.balance.toFixed(2)}`;
-                document.getElementById('spins').innerText = data.spins;
-                document.getElementById('tier').innerText = data.tier;
-                document.getElementById('activeRefs').innerText = data.active_refs;
-                document.getElementById('monthlyRefs').innerText = data.monthly_refs;
-                document.getElementById('totalRefs').innerText = data.total_refs;
+                if (data && !data.error) {
+                    userData.balance = data.balance || 0;
+                    userData.spins = data.spins || 3;
+                    userData.tier = data.tier || 1;
+                    userData.totalRefs = data.total_refs || 0;
+                    userData.activeRefs = data.active_refs || 0;
+                    userData.monthlyRefs = data.monthly_refs || 0;
+                    
+                    // Update UI
+                    updateUI();
+                }
+                
+                loadLeaderboard();
+            } catch (e) {
+                console.error('Load error:', e);
+            }
+        }
+        
+        function updateUI() {
+            // Balance & Spins
+            document.getElementById('balance').innerText = `₹${userData.balance.toFixed(2)}`;
+            document.getElementById('spins').innerText = userData.spins;
+            document.getElementById('tier').innerText = userData.tier;
+            document.getElementById('activeRefs').innerText = userData.activeRefs;
+            document.getElementById('monthlyRefs').innerText = userData.monthlyRefs;
+            
+            // Earning page
+            if (document.getElementById('earningBalance')) {
+                document.getElementById('earningBalance').innerText = `₹${userData.balance.toFixed(2)}`;
+                document.getElementById('totalEarnings').innerText = `₹${userData.balance.toFixed(2)}`;
+                document.getElementById('totalRefsEarn').innerText = userData.totalRefs;
+                document.getElementById('activeRefsEarn').innerText = userData.activeRefs;
                 
                 const rates = {1: 0.10, 2: 0.12, 3: 0.15, 4: 0.18, 5: 0.20};
-                document.getElementById('rate').innerText = `₹${rates[data.tier]}/search`;
+                document.getElementById('rateEarn').innerText = `₹${rates[userData.tier]}/search`;
             }
             
-            loadLeaderboard();
+            // Referral page
+            if (document.getElementById('totalRefs')) {
+                document.getElementById('totalRefs').innerText = userData.totalRefs;
+                document.getElementById('activeRefsRefer').innerText = userData.activeRefs;
+                document.getElementById('pendingRefs').innerText = userData.totalRefs - userData.activeRefs;
+                document.getElementById('monthlyRefsRefer').innerText = userData.monthlyRefs;
+            }
+            
+            // Withdraw page
+            if (document.getElementById('withdrawBalance')) {
+                document.getElementById('withdrawBalance').innerText = `₹${userData.balance.toFixed(2)}`;
+            }
+            
+            // Profile page
+            if (document.getElementById('profileNameLarge')) {
+                document.getElementById('profileNameLarge').innerText = userData.firstName || 'User';
+                document.getElementById('profileIdLarge').innerText = `ID: ${userData.id}`;
+                document.getElementById('profileTier').innerText = `Tier ${userData.tier}`;
+            }
+            
+            // Spin button
+            updateSpinButton();
         }
         
         async function loadLeaderboard() {
-            const response = await fetch('/api/leaderboard');
-            const data = await response.json();
-            
-            let html = '';
-            data.forEach((user, index) => {
-                let rankClass = '';
-                if (index === 0) rankClass = 'gold';
-                else if (index === 1) rankClass = 'silver';
-                else if (index === 2) rankClass = 'bronze';
+            try {
+                const response = await fetch('/api/leaderboard');
+                const data = await response.json();
                 
-                html += `
-                    <div class="leaderboard-item">
-                        <div class="rank ${rankClass}">#${index + 1}</div>
-                        <div class="user-info">
-                            <div class="user-name">${user.name}</div>
-                            <div class="user-refs">👥 ${user.refs} referrals</div>
+                let html = '';
+                data.forEach((user, index) => {
+                    let rankClass = '';
+                    if (index === 0) rankClass = 'gold';
+                    else if (index === 1) rankClass = 'silver';
+                    else if (index === 2) rankClass = 'bronze';
+                    
+                    html += `
+                        <div class="leaderboard-item">
+                            <div class="rank ${rankClass}">#${index + 1}</div>
+                            <div class="user-info">
+                                <div class="user-name">${user.name}</div>
+                                <div class="user-refs">👥 ${user.refs} referrals</div>
+                            </div>
+                            <div style="color: gold;">₹${user.balance.toFixed(2)}</div>
                         </div>
-                        <div style="color: gold;">₹${user.balance.toFixed(2)}</div>
-                    </div>
-                `;
-            });
-            
-            document.getElementById('leaderboardList').innerHTML = html;
+                    `;
+                });
+                
+                document.getElementById('leaderboardList').innerHTML = html;
+            } catch (e) {
+                console.error('Leaderboard error:', e);
+            }
         }
         
-        // Referral link
+        // Page Navigation
+        function goToPage(page) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            
+            // Show selected page
+            if (page === 'home') {
+                document.getElementById('pageGroupsBtn').classList.add('active');
+                document.querySelectorAll('.nav-item').forEach((item, index) => {
+                    if (index === 0) item.classList.add('active');
+                    else item.classList.remove('active');
+                });
+            } else if (page === 'groups') {
+                document.getElementById('pageGroups').classList.add('active');
+            } else if (page === 'earning') {
+                document.getElementById('pageEarning').classList.add('active');
+            } else if (page === 'profile') {
+                document.getElementById('pageProfile').classList.add('active');
+            } else if (page === 'missions') {
+                document.getElementById('pageMissions').classList.add('active');
+            } else if (page === 'referral') {
+                document.getElementById('pageReferral').classList.add('active');
+            } else if (page === 'spin') {
+                document.getElementById('pageSpin').classList.add('active');
+            } else if (page === 'leaderboard') {
+                document.getElementById('pageLeaderboard').classList.add('active');
+                loadLeaderboard();
+            } else if (page === 'withdraw') {
+                document.getElementById('pageWithdraw').classList.add('active');
+                checkPaymentDetails();
+            } else if (page === 'daily') {
+                document.getElementById('pageDaily').classList.add('active');
+            }
+            
+            // Update nav active state
+            if (page === 'home') {
+                document.querySelectorAll('.nav-item')[0].classList.add('active');
+                document.querySelectorAll('.nav-item')[1].classList.remove('active');
+                document.querySelectorAll('.nav-item')[2].classList.remove('active');
+                document.querySelectorAll('.nav-item')[3].classList.remove('active');
+                document.querySelectorAll('.nav-item')[4].classList.remove('active');
+            } else if (page === 'earning') {
+                document.querySelectorAll('.nav-item')[0].classList.remove('active');
+                document.querySelectorAll('.nav-item')[1].classList.add('active');
+                document.querySelectorAll('.nav-item')[2].classList.remove('active');
+                document.querySelectorAll('.nav-item')[3].classList.remove('active');
+                document.querySelectorAll('.nav-item')[4].classList.remove('active');
+            } else if (page === 'spin') {
+                document.querySelectorAll('.nav-item')[0].classList.remove('active');
+                document.querySelectorAll('.nav-item')[1].classList.remove('active');
+                document.querySelectorAll('.nav-item')[2].classList.add('active');
+                document.querySelectorAll('.nav-item')[3].classList.remove('active');
+                document.querySelectorAll('.nav-item')[4].classList.remove('active');
+            } else if (page === 'leaderboard') {
+                document.querySelectorAll('.nav-item')[0].classList.remove('active');
+                document.querySelectorAll('.nav-item')[1].classList.remove('active');
+                document.querySelectorAll('.nav-item')[2].classList.remove('active');
+                document.querySelectorAll('.nav-item')[3].classList.add('active');
+                document.querySelectorAll('.nav-item')[4].classList.remove('active');
+            } else if (page === 'profile') {
+                document.querySelectorAll('.nav-item')[0].classList.remove('active');
+                document.querySelectorAll('.nav-item')[1].classList.remove('active');
+                document.querySelectorAll('.nav-item')[2].classList.remove('active');
+                document.querySelectorAll('.nav-item')[3].classList.remove('active');
+                document.querySelectorAll('.nav-item')[4].classList.add('active');
+            }
+        }
+        
+        // Referral Link
         const botUsername = 'your_bot_username';
         document.getElementById('refLink').innerText = `https://t.me/${botUsername}?start=ref_${userData.id}`;
         
@@ -657,68 +1243,20 @@
             tg.showAlert('✅ Link copied!');
         }
         
-        // Group links
-        document.getElementById('newGroupLink').href = '{{ NEW_MOVIE_GROUP_LINK }}';
-        document.getElementById('movieGroupLink').href = '{{ MOVIE_GROUP_LINK }}';
-        document.getElementById('allGroupsLink').href = '{{ ALL_GROUPS_LINK }}';
-        
-        // Section switching
-        function showSection(section) {
-            // Update tabs
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
-            if (section === 'home') {
-                document.querySelector('.tab:nth-child(1)').classList.add('active');
-                document.querySelector('.nav-item:nth-child(1)').classList.add('active');
-            } else if (section === 'groups') {
-                document.querySelector('.tab:nth-child(2)').classList.add('active');
-                document.querySelector('.nav-item:nth-child(2)').classList.add('active');
-            } else if (section === 'spin') {
-                document.querySelector('.tab:nth-child(3)').classList.add('active');
-                document.querySelector('.nav-item:nth-child(3)').classList.add('active');
-            } else if (section === 'leaderboard') {
-                document.querySelector('.tab:nth-child(4)').classList.add('active');
-                document.querySelector('.nav-item:nth-child(4)').classList.add('active');
-            } else if (section === 'withdraw') {
-                document.querySelector('.tab:nth-child(5)').classList.add('active');
-                document.querySelector('.nav-item:nth-child(5)').classList.add('active');
-            }
-            
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            
-            // Show selected section
-            if (section === 'home') {
-                document.getElementById('homeSection').classList.add('active');
-            } else if (section === 'groups') {
-                document.getElementById('groupsSection').classList.add('active');
-            } else if (section === 'spin') {
-                document.getElementById('spinSection').classList.add('active');
-                updateSpinButton();
-            } else if (section === 'leaderboard') {
-                document.getElementById('leaderboardSection').classList.add('active');
-                loadLeaderboard();
-            } else if (section === 'withdraw') {
-                document.getElementById('withdrawSection').classList.add('active');
-            }
-        }
-        
-        // Daily Bonus
-        async function claimDaily() {
-            tg.sendData(JSON.stringify({
-                action: 'daily',
-                user_id: userData.id
-            }));
-        }
+        // Group Links
+        document.getElementById('newGroupLink').href = 'https://t.me/asfilter_bot';
+        document.getElementById('movieGroupLink').href = 'https://t.me/asfilter_group';
+        document.getElementById('allGroupsLink').href = 'https://t.me/addlist/6urdhhdLRqhiZmQ1';
         
         // Spin Wheel
         let isSpinning = false;
         
         function updateSpinButton() {
             const btn = document.getElementById('spinBtn');
-            btn.innerText = `🎰 SPIN (${userData.spins})`;
-            btn.disabled = userData.spins <= 0;
+            if (btn) {
+                btn.innerText = `🎰 SPIN (${userData.spins})`;
+                btn.disabled = userData.spins <= 0;
+            }
         }
         
         async function spinWheel() {
@@ -734,6 +1272,110 @@
             tg.sendData(JSON.stringify({
                 action: 'spin',
                 user_id: userData.id
+            }));
+        }
+        
+        // Daily Bonus
+        async function claimDaily() {
+            tg.sendData(JSON.stringify({
+                action: 'daily',
+                user_id: userData.id
+            }));
+        }
+        
+        // Payment Details
+        function checkPaymentDetails() {
+            if (userData.paymentDetails) {
+                document.getElementById('savedDetails').style.display = 'block';
+                document.getElementById('editDetails').style.display = 'none';
+                document.getElementById('savedMethod').innerText = userData.paymentMethod.toUpperCase();
+                document.getElementById('savedDetailsText').innerText = userData.paymentDetails;
+            } else {
+                document.getElementById('savedDetails').style.display = 'none';
+                document.getElementById('editDetails').style.display = 'block';
+            }
+        }
+        
+        function selectMethod(method) {
+            currentMethod = method;
+            document.querySelectorAll('.method-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const input = document.getElementById('paymentInput');
+            if (method === 'upi') {
+                input.placeholder = 'Enter UPI ID (e.g., username@oksbi)';
+            } else {
+                input.placeholder = 'Enter Bank Details (Account No, IFSC, Name)';
+            }
+        }
+        
+        function savePaymentDetails() {
+            const details = document.getElementById('paymentInput').value;
+            if (!details) {
+                tg.showAlert('❌ Please enter payment details');
+                return;
+            }
+            
+            userData.paymentMethod = currentMethod;
+            userData.paymentDetails = details;
+            
+            tg.sendData(JSON.stringify({
+                action: 'save_payment',
+                user_id: userData.id,
+                method: currentMethod,
+                details: details
+            }));
+            
+            document.getElementById('savedDetails').style.display = 'block';
+            document.getElementById('editDetails').style.display = 'none';
+            document.getElementById('savedMethod').innerText = currentMethod.toUpperCase();
+            document.getElementById('savedDetailsText').innerText = details;
+            
+            tg.showAlert('✅ Payment details saved!');
+        }
+        
+        function editPaymentDetails() {
+            document.getElementById('savedDetails').style.display = 'none';
+            document.getElementById('editDetails').style.display = 'block';
+            document.getElementById('withdrawForm').style.display = 'none';
+        }
+        
+        function cancelEdit() {
+            if (userData.paymentDetails) {
+                document.getElementById('savedDetails').style.display = 'block';
+                document.getElementById('editDetails').style.display = 'none';
+            } else {
+                goToPage('home');
+            }
+        }
+        
+        function showWithdrawForm() {
+            document.getElementById('withdrawForm').style.display = 'block';
+        }
+        
+        function cancelWithdraw() {
+            document.getElementById('withdrawForm').style.display = 'none';
+        }
+        
+        function withdraw() {
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            
+            if (amount < 50) {
+                tg.showAlert('❌ Minimum withdrawal is ₹50');
+                return;
+            }
+            
+            if (amount > userData.balance) {
+                tg.showAlert('❌ Insufficient balance');
+                return;
+            }
+            
+            tg.sendData(JSON.stringify({
+                action: 'withdraw',
+                user_id: userData.id,
+                amount: amount,
+                method: userData.paymentMethod,
+                details: userData.paymentDetails
             }));
         }
         
@@ -770,7 +1412,10 @@
                     document.getElementById('modal').style.display = 'flex';
                     
                     userData.balance = response.balance;
+                    userData.dailyStreak = response.streak;
+                    
                     document.getElementById('balance').innerText = `₹${response.balance.toFixed(2)}`;
+                    document.getElementById('dailyStreak').innerText = `Current Streak: ${response.streak} days`;
                     
                 } else if (response.success !== undefined) {
                     // Withdrawal
@@ -782,6 +1427,9 @@
                         
                         userData.balance = 0;
                         document.getElementById('balance').innerText = '₹0.00';
+                        document.getElementById('withdrawBalance').innerText = '₹0.00';
+                        
+                        goToPage('home');
                     } else {
                         tg.showAlert('❌ Withdrawal failed! Check balance or minimum amount.');
                     }
@@ -795,43 +1443,20 @@
             document.getElementById('modal').style.display = 'none';
         }
         
-        // Withdrawal
-        function selectMethod(method) {
-            currentMethod = method;
-            document.querySelectorAll('.method-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-        }
-        
-        function withdraw() {
-            const amount = parseFloat(document.getElementById('withdrawAmount').value);
-            const details = document.getElementById('withdrawDetails').value;
-            
-            if (amount < 50) {
-                tg.showAlert('❌ Minimum withdrawal is ₹50');
-                return;
-            }
-            
-            if (!details) {
-                tg.showAlert('❌ Please enter payment details');
-                return;
-            }
-            
-            if (amount > userData.balance) {
-                tg.showAlert('❌ Insufficient balance');
-                return;
-            }
-            
-            tg.sendData(JSON.stringify({
-                action: 'withdraw',
-                user_id: userData.id,
-                amount: amount,
-                method: currentMethod,
-                details: details
-            }));
-        }
-        
         // Load data on start
         loadData();
+        
+        // Get user info from Telegram
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            userData.firstName = tg.initDataUnsafe.user.first_name || '';
+            document.getElementById('profileName').innerText = userData.firstName || 'User';
+            document.getElementById('profileId').innerText = `ID: ${userData.id}`;
+            
+            // Avatar
+            const firstChar = userData.firstName.charAt(0) || '👤';
+            document.getElementById('profileAvatar').innerText = firstChar;
+            document.getElementById('profileAvatarLarge').innerText = firstChar;
+        }
     </script>
 </body>
 </html>
