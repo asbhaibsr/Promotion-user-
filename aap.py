@@ -278,7 +278,7 @@ def api_leaderboard():
         })
     return jsonify(result)
 
-# ====== FIXED WEBHOOK HANDLER - यह बिल्कुल सही है ======
+# ====== CORRECTED WEBHOOK HANDLER ======
 @flask_app.route(f'/{BOT_TOKEN}', methods=['POST'])
 def webhook():
     """Telegram webhook handler - FIXED"""
@@ -289,22 +289,21 @@ def webhook():
         return 'Bot not ready', 503
     
     try:
-        # Telegram से data लें
+        # Get data from Telegram
         update_data = request.get_json(force=True)
         logger.info(f"📩 Received update: {update_data.get('update_id', 'unknown')}")
         
-        # Update object बनाएं
+        # Create Update object
         update = Update.de_json(update_data, bot_app.bot)
         
-        # ✅ CRITICAL FIX: Async function को sync में run करना
-        # नया event loop बनाएं
+        # ✅ CRITICAL FIX: Create new event loop and run async function
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         
-        # यहाँ await का काम loop.run_until_complete करेगा
+        # This properly awaits the coroutine
         loop.run_until_complete(bot_app.process_update(update))
         
-        # Loop को साफ करें
+        # Clean up
         loop.close()
         
         logger.info("✅ Update processed successfully")
