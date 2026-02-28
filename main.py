@@ -285,7 +285,7 @@ def api_leaderboard():
 # ====== CORRECTED WEBHOOK HANDLER ======
 @flask_app.route(f'/{BOT_TOKEN}', methods=['POST'])
 def webhook():
-    """Telegram webhook handler - FIXED"""
+    """Telegram webhook handler - FINAL FIX"""
     global bot_app
     
     if not bot_app:
@@ -300,7 +300,7 @@ def webhook():
         # Create Update object
         update = Update.de_json(update_data, bot_app.bot)
         
-        # ✅ CRITICAL FIX: Create new event loop and run async function
+        # ✅ FIX: Create new event loop and run async function
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         
@@ -337,9 +337,8 @@ async def start(update: Update, context):
         create_user(user.id, user.username or "", user.first_name, referrer)
         
         # Welcome bonus
-        if not db_user or not db_user.get("welcome_bonus"):
-            update_balance(user.id, WELCOME_BONUS)
-            users.update_one({"user_id": user.id}, {"$set": {"welcome_bonus": True}})
+        update_balance(user.id, WELCOME_BONUS)
+        users.update_one({"user_id": user.id}, {"$set": {"welcome_bonus": True}})
         
         # Send welcome message
         await update.message.reply_text(
@@ -490,7 +489,7 @@ async def web_app_data(update: Update, context):
                 logger.info(f"💰 Withdrawal request from {user_id}: ₹{amount}")
                 
                 # Notify admin
-                if success and ADMIN_ID:
+                if ADMIN_ID:
                     try:
                         await context.bot.send_message(
                             ADMIN_ID,
@@ -553,10 +552,9 @@ async def error_handler(update: Update, context):
     logger.error(f"Update {update} caused error {context.error}")
 
 # ====== MAIN FUNCTION ======
-def main():
+async def initialize_bot():
+    """Initialize bot application"""
     global bot_app
-    
-    logger.info("🚀 Starting application...")
     
     # Create bot application
     bot_app = (
@@ -574,24 +572,43 @@ def main():
         bot_app.add_handler(CommandHandler("clear", admin, filters.User(ADMIN_ID)))
     bot_app.add_error_handler(error_handler)
     
-    # Set webhook
-    try:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
-        webhook_url = f"{WEB_APP_URL}/{BOT_TOKEN}"
-        loop.run_until_complete(
-            bot_app.bot.set_webhook(url=webhook_url)
-        )
-        loop.close()
-        
-        logger.info(f"✅ Webhook set to: {webhook_url}")
-    except Exception as e:
-        logger.error(f"❌ Failed to set webhook: {e}")
+    # ✅ CRITICAL: Initialize the application
+    await bot_app.initialize()
     
-    # Start Flask app
-    logger.info(f"🌐 Flask app starting on port {PORT}")
-    flask_app.run(host='0.0.0.0', port=PORT, debug=False)
+    # Set webhook
+    webhook_url = f"{WEB_APP_URL}/{BOT_TOKEN}"
+    await bot_app.bot.set_webhook(url=webhook_url)
+    
+    logger.info(f"✅ Bot initialized and webhook set to: {webhook_url}")
+    return bot_app
+
+def main():
+    """Main function"""
+    logger.info("🚀 Starting application...")
+    
+    # Create new event loop for async operations
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
+    try:
+        # Initialize bot
+        loop.run_until_complete(initialize_bot())
+        logger.info("✅ Bot application initialized successfully")
+        
+        # Start Flask app (this blocks)
+        logger.info(f"🌐 Flask app starting on port {PORT}")
+        flask_app.run(host='0.0.0.0', port=PORT, debug=False)
+        
+    except KeyboardInterrupt:
+        logger.info("🛑 Shutting down...")
+    except Exception as e:
+        logger.error(f"❌ Fatal error: {e}")
+        traceback.print_exc()
+    finally:
+        # Clean shutdown
+        if bot_app:
+            loop.run_until_complete(bot_app.shutdown())
+        loop.close()
 
 if __name__ == "__main__":
     main()
