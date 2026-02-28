@@ -1,17 +1,20 @@
 services:
   - type: web
-    name: promotion-user
+    name: movie-earning-bot
     runtime: python
+    region: singapore  # भारत के पास
+    plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: python app.py
+    startCommand: python main.py
     envVars:
       - key: BOT_TOKEN
-        value: 8358888607:AAHpntpgOkZSutT65EetBZqCKVOYebZq-Vs
-      - key: ADMIN_ID
-        value: 6357654427
+        sync: false  # Render डैशबोर्ड में सेट करें
+      - key: ADMIN_IDS
+        value: "6357654427"
       - key: MONGO_URI
-        value: mongodb+srv://movieearn:Z9S4tKz1xqPc4fdP@cluster0.5y3rb.mongodb.net/?retryWrites=true&w=majority
+        sync: false  # Render डैशबोर्ड में सेट करें
       - key: WEB_APP_URL
-        value: https://promotion-user.onrender.com
+        value: https://your-app-name.onrender.com
       - key: PORT
         value: 10000
+    autoDeploy: true
