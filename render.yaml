@@ -1,20 +1,20 @@
 services:
   - type: web
-    name: movie-earning-bot
+    name: movie-earning-bot-advanced
     runtime: python
-    region: singapore  # भारत के पास
+    region: singapore
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: python main.py
+    startCommand: gunicorn main:flask_app
     envVars:
       - key: BOT_TOKEN
-        sync: false  # Render डैशबोर्ड में सेट करें
+        sync: false
       - key: ADMIN_IDS
         value: "6357654427"
       - key: MONGO_URI
-        sync: false  # Render डैशबोर्ड में सेट करें
+        sync: false
       - key: WEB_APP_URL
-        value: https://your-app-name.onrender.com
+        value: https://your-app.onrender.com
       - key: PORT
         value: 10000
     autoDeploy: true
