@@ -1,17 +1,16 @@
 services:
   - type: web
-    name: movie-bot
+    name: promotion-user
     runtime: python
-    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: python app.py
     envVars:
       - key: BOT_TOKEN
-        sync: false
+        value: 8358888607:AAHpntpgOkZSutT65EetBZqCKVOYebZq-Vs
       - key: ADMIN_ID
-        sync: false
+        value: 6357654427
       - key: MONGO_URI
-        sync: false
+        value: mongodb+srv://movieearn:Z9S4tKz1xqPc4fdP@cluster0.5y3rb.mongodb.net/?retryWrites=true&w=majority
       - key: WEB_APP_URL
         value: https://promotion-user.onrender.com
       - key: PORT
