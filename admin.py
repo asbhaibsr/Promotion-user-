@@ -1,7 +1,8 @@
-# admin.py - एडमिन कमांड्स (बिना block/unblock के)
+# admin.py - एडमिन कमांड्स
 
 import logging
 import asyncio
+import re
 from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
@@ -86,7 +87,6 @@ class AdminHandlers:
                     f"👤 *{name}* (`{w['user_id']}`)\n"
                     f"💰 Amount: `{format_balance(w['amount'])}`\n"
                     f"🏦 Method: `{w['method']}`\n"
-                    f"📝 Details: `{w['details']}`\n"
                     f"──────────\n"
                 )
             
@@ -111,7 +111,6 @@ class AdminHandlers:
                 msg += (
                     f"👤 *{name}* (`{r['user_id']}`)\n"
                     f"📝 Issue: `{r['issue'][:50]}...`\n"
-                    f"⏰ {r['timestamp'].strftime('%Y-%m-%d %H:%M')}\n"
                     f"──────────\n"
                 )
             
@@ -317,29 +316,24 @@ class AdminHandlers:
         
         text = update.message.text.lower().strip()
         
+        # Get user ID from replied message
+        replied_text = update.message.reply_to_message.text
+        match = re.search(r'`(\d+)`', replied_text)
+        
+        if not match:
+            await update.message.reply_text("❌ User ID not found in replied message")
+            context.user_data.pop("awaiting_clear", None)
+            return
+        
+        user_id = int(match.group(1))
+        
         if text == "all":
-            # Get user ID from replied message
-            replied_text = update.message.reply_to_message.text
-            import re
-            match = re.search(r'`(\d+)`', replied_text)
-            if match:
-                user_id = int(match.group(1))
-                db.clear_all_user_data(user_id)
-                await update.message.reply_text(f"✅ *All data cleared for user `{user_id}`*", parse_mode='Markdown')
-            else:
-                await update.message.reply_text("❌ User ID not found in replied message")
+            db.clear_all_user_data(user_id)
+            await update.message.reply_text(f"✅ *All data cleared for user `{user_id}`*", parse_mode='Markdown')
         
         elif text == "earnings":
-            # Get user ID from replied message
-            replied_text = update.message.reply_to_message.text
-            import re
-            match = re.search(r'`(\d+)`', replied_text)
-            if match:
-                user_id = int(match.group(1))
-                db.clear_user_earnings(user_id)
-                await update.message.reply_text(f"✅ *Earnings cleared for user `{user_id}`*", parse_mode='Markdown')
-            else:
-                await update.message.reply_text("❌ User ID not found in replied message")
+            db.clear_user_earnings(user_id)
+            await update.message.reply_text(f"✅ *Earnings cleared for user `{user_id}`*", parse_mode='Markdown')
         
         else:
             await update.message.reply_text("❌ Invalid option. Use `all` or `earnings`")
