@@ -26,16 +26,10 @@ class BotHandlers:
             except:
                 pass
         
-        # Get user photo
-        photos = await user.get_profile_photos(limit=1)
-        photo_url = None
-        if photos and photos.photos:
-            photo_url = photos.photos[0][-1].file_id
-        
         # Create or get user
         db_user = db.get_user(user.id)
         if not db_user:
-            db_user = db.create_user(user.id, user.username or "", user.first_name, photo_url, referrer)
+            db_user = db.create_user(user.id, user.username or "", user.first_name, referrer)
             db.update_balance(user.id, Config.WELCOME_BONUS, "welcome", "Welcome Bonus")
             
             await update.message.reply_text(
@@ -82,72 +76,6 @@ class BotHandlers:
         logger.info(f"✅ User {user.id} started bot")
     
     @staticmethod
-    async def group_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Track group messages for referral activation"""
-        if not update.message or not update.message.text:
-            return
-        
-        user = update.effective_user
-        if not user or user.is_bot:
-            return
-        
-        # Track search in group
-        if len(update.message.text) > 2:
-            logger.info(f"📝 Search: {user.id} -> {update.message.text[:30]}...")
-            
-            # Activate referral if first search
-            referrer = db.track_search(user.id)
-            if referrer:
-                try:
-                    await context.bot.send_message(
-                        referrer,
-                        f"🎉 *Referral Activated!*\n"
-                        f"{user.first_name} did first search!\n"
-                        f"✅ +1 Spin Added!",
-                        parse_mode='Markdown'
-                    )
-                except Exception as e:
-                    logger.error(f"Referrer notification failed: {e}")
-            
-            # Process daily payment
-            amount = db.process_daily_referral_payment(user.id)
-            if amount:
-                ref_doc = db.referrals.find_one({"user": user.id})
-                if ref_doc:
-                    try:
-                        await context.bot.send_message(
-                            ref_doc["referrer"],
-                            f"💰 *Daily Referral Earnings!*\n"
-                            f"From {user.first_name}: `{format_balance(amount)}`",
-                            parse_mode='Markdown'
-                        )
-                    except Exception as e:
-                        logger.error(f"Payment notification failed: {e}")
-            
-            # Update mission
-            db.update_mission(user.id, "daily_search")
-    
-    @staticmethod
-    async def check_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Check if bot is active in group"""
-        if not update.message or not update.message.chat:
-            return
-        
-        chat = update.message.chat
-        
-        if chat.type not in ['group', 'supergroup']:
-            await update.message.reply_text("This command only works in groups!")
-            return
-        
-        await update.message.reply_text(
-            "✅ *I am active in this group!*\n\n"
-            "Users can search movies here to activate referrals.",
-            parse_mode='Markdown'
-        )
-        
-        logger.info(f"✅ Check command used in group {chat.id}")
-    
-    @staticmethod
     async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle mini app data - FIXED ALL BUTTONS"""
         if not update.effective_message or not update.effective_message.web_app_data:
@@ -170,8 +98,6 @@ class BotHandlers:
                 stats = db.get_user_stats(user_id)
                 if stats:
                     stats.update({
-                        "movie_group": Config.MOVIE_GROUP_LINK,
-                        "new_group": Config.NEW_MOVIE_GROUP_LINK,
                         "channel": Config.CHANNEL_USERNAME,
                         "channel_link": Config.CHANNEL_LINK,
                         "channel_bonus": Config.CHANNEL_BONUS,
@@ -242,12 +168,9 @@ class BotHandlers:
                 for idx, user in enumerate(lb, 1):
                     result.append({
                         "rank": idx,
-                        "user_id": user.get("user_id"),
                         "name": user.get("full_name", "User")[:20],
-                        "photo_url": user.get("photo_url"),
                         "refs": user.get("monthly_referrals", 0),
-                        "balance": user.get("balance", 0),
-                        "active_refs": user.get("active_referrals", 0)
+                        "balance": user.get("balance", 0)
                     })
                 await update.effective_message.reply_text(json.dumps(result))
             
@@ -268,22 +191,15 @@ class BotHandlers:
             elif action == "report_issue":
                 issue = payload.get("issue")
                 
-                # Save to database
                 db.save_report(user_id, issue)
-                
-                # Send to all admins
-                user = db.get_user(user_id)
-                user_name = user.get("full_name", "Unknown") if user else "Unknown"
                 
                 for admin_id in Config.ADMIN_IDS:
                     try:
                         await context.bot.send_message(
                             admin_id,
                             f"⚠️ *NEW USER REPORT!*\n\n"
-                            f"👤 User: {user_name}\n"
-                            f"🆔 ID: `{user_id}`\n"
-                            f"📝 Issue: `{issue}`\n"
-                            f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                            f"👤 User: `{user_id}`\n"
+                            f"📝 Issue: `{issue}`",
                             parse_mode='Markdown'
                         )
                     except:
@@ -313,4 +229,4 @@ class BotHandlers:
                     parse_mode='Markdown'
                 )
         except:
-            pass
+            pas
