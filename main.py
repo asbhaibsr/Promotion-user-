@@ -1,4 +1,5 @@
-# main.py
+# main.py - मुख्य बॉट + Flask App
+
 import logging
 import asyncio
 import os
@@ -13,7 +14,6 @@ from config import Config
 from database import db
 from handlers import BotHandlers
 from admin import AdminHandlers
-from utils import is_admin
 
 # ====== LOGGING ======
 logging.basicConfig(
@@ -29,9 +29,8 @@ bot_app = None
 # ====== FLASK ROUTES ======
 @flask_app.route('/')
 def index():
-    """Mini App Home Page - English Version"""
+    """Mini App Home Page"""
     user_id = request.args.get('user', '0')
-    lang = request.args.get('lang', 'en')
     
     try:
         user_id = int(user_id)
@@ -39,13 +38,12 @@ def index():
         user_id = 0
     
     return render_template('index.html', 
-                         user_id=user_id, 
-                         lang=lang,
+                         user_id=user_id,
                          channel=Config.CHANNEL_USERNAME,
+                         channel_link=Config.CHANNEL_LINK,
                          channel_bonus=Config.CHANNEL_BONUS,
                          movie_group=Config.MOVIE_GROUP_LINK,
                          new_group=Config.NEW_MOVIE_GROUP_LINK,
-                         all_groups=Config.ALL_GROUPS_LINK,
                          min_withdrawal=Config.MIN_WITHDRAWAL)
 
 @flask_app.route('/api/user/<int:user_id>')
@@ -68,26 +66,9 @@ def api_leaderboard():
         })
     return jsonify(result)
 
-@flask_app.route('/api/ads')
-def api_ads():
-    if not Config.ENABLE_ADS:
-        return jsonify([])
-    
-    ads = db.get_active_ads()
-    result = []
-    for ad in ads:
-        result.append({
-            "id": str(ad["_id"]),
-            "title": ad["title"],
-            "description": ad["description"],
-            "image_url": ad["image_url"],
-            "link_url": ad["link_url"]
-        })
-    return jsonify(result)
-
 @flask_app.route(f'/{Config.BOT_TOKEN}', methods=['POST'])
 def webhook():
-    """Telegram Webhook Handler - FIXED event loop"""
+    """Telegram Webhook Handler"""
     global bot_app
     
     if not bot_app:
@@ -100,7 +81,6 @@ def webhook():
         
         update = Update.de_json(update_data, bot_app.bot)
         
-        # FIX: Use running loop instead of creating new one
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
@@ -127,14 +107,11 @@ async def initialize_bot():
     bot_app.add_handler(CommandHandler("start", BotHandlers.start))
     bot_app.add_handler(CommandHandler("admin", AdminHandlers.admin_panel))
     bot_app.add_handler(CommandHandler("check", BotHandlers.check_command))
-    
-    # Admin commands
-    if Config.ADMIN_IDS:
-        bot_app.add_handler(CommandHandler("add", AdminHandlers.handle_admin_text))
-        bot_app.add_handler(CommandHandler("remove", AdminHandlers.handle_admin_text))
-        bot_app.add_handler(CommandHandler("block", AdminHandlers.handle_admin_text))
-        bot_app.add_handler(CommandHandler("unblock", AdminHandlers.handle_admin_text))
-        bot_app.add_handler(CommandHandler("stats", AdminHandlers.handle_admin_text))
+    bot_app.add_handler(CommandHandler("stats", AdminHandlers.handle_admin_text))
+    bot_app.add_handler(CommandHandler("add", AdminHandlers.handle_admin_text))
+    bot_app.add_handler(CommandHandler("remove", AdminHandlers.handle_admin_text))
+    bot_app.add_handler(CommandHandler("block", AdminHandlers.handle_admin_text))
+    bot_app.add_handler(CommandHandler("unblock", AdminHandlers.handle_admin_text))
     
     # Message handlers
     bot_app.add_handler(MessageHandler(
@@ -176,16 +153,13 @@ def main():
     """Main entry point"""
     logger.info("🚀 Starting application...")
     
-    # Create event loop
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     
     try:
-        # Initialize bot
         loop.run_until_complete(initialize_bot())
         logger.info("✅ Bot ready!")
         
-        # Start Flask
         logger.info(f"🌐 Flask app starting on port {Config.PORT}")
         flask_app.run(host='0.0.0.0', port=Config.PORT, debug=False)
         
