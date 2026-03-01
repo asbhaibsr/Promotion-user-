@@ -1,4 +1,4 @@
-# main.py - मुख्य बॉट + Flask App (Event Loop Fixed)
+# main.py - मुख्य बॉट + Flask App
 
 import logging
 import asyncio
@@ -8,7 +8,7 @@ from flask import Flask, render_template, request, jsonify
 from telegram import Update
 from telegram.ext import (
     Application, CommandHandler, MessageHandler, 
-    filters, CallbackQueryHandler, ContextTypes
+    filters, CallbackQueryHandler
 )
 from config import Config
 from database import db
@@ -16,7 +16,7 @@ from handlers import BotHandlers
 from admin import AdminHandlers
 import nest_asyncio
 
-# Fix for event loop issue
+# Fix for event loop
 nest_asyncio.apply()
 
 # ====== LOGGING ======
@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 # ====== FLASK APP ======
 flask_app = Flask(__name__)
 bot_app = None
-loop = None
 
 # ====== FLASK ROUTES ======
 @flask_app.route('/')
@@ -47,8 +46,6 @@ def index():
                          channel=Config.CHANNEL_USERNAME,
                          channel_link=Config.CHANNEL_LINK,
                          channel_bonus=Config.CHANNEL_BONUS,
-                         movie_group=Config.MOVIE_GROUP_LINK,
-                         new_group=Config.NEW_MOVIE_GROUP_LINK,
                          min_withdrawal=Config.MIN_WITHDRAWAL)
 
 @flask_app.route('/api/user/<int:user_id>')
@@ -73,8 +70,8 @@ def api_leaderboard():
 
 @flask_app.route(f'/{Config.BOT_TOKEN}', methods=['POST'])
 def webhook():
-    """Telegram Webhook Handler - FIXED event loop"""
-    global bot_app, loop
+    """Telegram Webhook Handler"""
+    global bot_app
     
     if not bot_app:
         logger.error("❌ Bot not initialized")
@@ -86,12 +83,12 @@ def webhook():
         
         update = Update.de_json(update_data, bot_app.bot)
         
-        # FIX: Use existing loop instead of creating new one
-        if not loop or loop.is_closed():
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-        
-        loop.run_until_complete(bot_app.process_update(update))
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(bot_app.process_update(update))
+        finally:
+            loop.close()
         
         logger.info("✅ Update processed successfully")
         return 'OK', 200
@@ -104,11 +101,7 @@ def webhook():
 # ====== BOT INITIALIZATION ======
 async def initialize_bot():
     """Initialize bot application"""
-    global bot_app, loop
-    
-    # Create event loop
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    global bot_app
     
     bot_app = Application.builder().token(Config.BOT_TOKEN).build()
     
@@ -119,8 +112,7 @@ async def initialize_bot():
     bot_app.add_handler(CommandHandler("stats", AdminHandlers.handle_admin_text))
     bot_app.add_handler(CommandHandler("add", AdminHandlers.handle_admin_text))
     bot_app.add_handler(CommandHandler("remove", AdminHandlers.handle_admin_text))
-    bot_app.add_handler(CommandHandler("block", AdminHandlers.handle_admin_text))
-    bot_app.add_handler(CommandHandler("unblock", AdminHandlers.handle_admin_text))
+    bot_app.add_handler(CommandHandler("clear", AdminHandlers.handle_admin_text))
     
     # Message handlers
     bot_app.add_handler(MessageHandler(
@@ -139,6 +131,12 @@ async def initialize_bot():
     bot_app.add_handler(MessageHandler(
         filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE,
         AdminHandlers.handle_broadcast_message
+    ))
+    
+    # Clear reply handler
+    bot_app.add_handler(MessageHandler(
+        filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE,
+        AdminHandlers.handle_clear_reply
     ))
     
     # Error handler
