@@ -1,4 +1,4 @@
-# database.py - MongoDB से सारा काम
+# database.py - MongoDB डेटाबेस
 
 from pymongo import MongoClient, ASCENDING, DESCENDING
 from pymongo.errors import DuplicateKeyError
@@ -19,12 +19,12 @@ class Database:
         self.referrals = self.db.referrals
         self.withdrawals = self.db.withdrawals
         self.transactions = self.db.transactions
-        self.blocked_users = self.db.blocked_users
         self.channel_joins = self.db.channel_joins
         self.spins = self.db.spins
         self.missions = self.db.missions
         self.group_activity = self.db.group_activity
         self.monthly_leaderboard = self.db.monthly_leaderboard
+        self.reports = self.db.reports
         
         self._create_indexes()
         logger.info("✅ Advanced Database Connected")
@@ -43,11 +43,12 @@ class Database:
     def get_user(self, user_id):
         return self.users.find_one({"user_id": user_id})
     
-    def create_user(self, user_id, username, full_name, referrer=None):
+    def create_user(self, user_id, username, full_name, photo_url=None, referrer=None):
         user = {
             "user_id": user_id,
             "username": username,
             "full_name": full_name,
+            "photo_url": photo_url,
             "balance": 0.0,
             "total_earned": 0.0,
             "spins": Config.INITIAL_SPINS,
@@ -127,6 +128,10 @@ class Database:
         tier = self._get_tier_from_refs(active_refs)
         
         return {
+            "user_id": user_id,
+            "full_name": user.get("full_name", "User"),
+            "username": user.get("username", ""),
+            "photo_url": user.get("photo_url"),
             "balance": round(user.get("balance", 0), 2),
             "total_earned": round(user.get("total_earned", 0), 2),
             "spins": user.get("spins", 0),
@@ -346,6 +351,7 @@ class Database:
         self.spins.insert_one({
             "user_id": user_id,
             "prize": prize,
+            "prize_name": prize_data["name"],
             "timestamp": datetime.now()
         })
         
@@ -354,14 +360,16 @@ class Database:
                 "user_id": user_id,
                 "amount": prize,
                 "type": "spin",
-                "details": f"Spin Won: ₹{prize}",
+                "details": f"Spin Won: ₹{prize} - {prize_data['name']}",
                 "timestamp": datetime.now()
             })
         
         return {
             "prize": prize,
             "prize_name": prize_data["name"],
-            "color": prize_data["color"]
+            "prize_emoji": prize_data["emoji"],
+            "color": prize_data["color"],
+            "remaining_spins": user["spins"] - 1
         }
     
     # ========== CHANNEL JOIN ==========
@@ -500,7 +508,7 @@ class Database:
     # ========== LEADERBOARD ==========
     
     def get_current_leaderboard(self, limit=10):
-        """Get current month's leaderboard"""
+        """Get current month's leaderboard with user photos"""
         pipeline = [
             {"$match": {"is_blocked": False, "monthly_referrals": {"$gt": 0}}},
             {"$sort": {"monthly_referrals": -1}},
@@ -509,9 +517,11 @@ class Database:
                 "user_id": 1,
                 "full_name": 1,
                 "username": 1,
+                "photo_url": 1,
                 "monthly_referrals": 1,
                 "balance": 1,
-                "tier": 1
+                "tier": 1,
+                "active_referrals": 1
             }}
         ]
         return list(self.users.aggregate(pipeline))
@@ -535,21 +545,70 @@ class Database:
             "today_users": self.users.count_documents({"joined": {"$gte": datetime.now().replace(hour=0, minute=0, second=0)}})
         }
     
-    def block_user(self, user_id, reason=None):
-        return self.users.update_one(
-            {"user_id": user_id},
-            {"$set": {"is_blocked": True, "blocked_reason": reason}}
-        )
-    
-    def unblock_user(self, user_id):
-        return self.users.update_one(
-            {"user_id": user_id},
-            {"$set": {"is_blocked": False, "blocked_reason": None}}
-        )
-    
     def get_all_users(self, filter_blocked=False):
         query = {"is_blocked": False} if filter_blocked else {}
         return list(self.users.find(query))
+    
+    # ========== CLEAR DATA ==========
+    
+    def clear_user_earnings(self, user_id):
+        """Clear only earnings data for a user"""
+        self.users.update_one(
+            {"user_id": user_id},
+            {
+                "$set": {
+                    "balance": 0,
+                    "total_earned": 0,
+                    "spins": Config.INITIAL_SPINS,
+                    "total_referrals": 0,
+                    "active_referrals": 0,
+                    "monthly_referrals": 0,
+                    "daily_streak": 0,
+                    "total_searches": 0,
+                    "search_streak": 0,
+                    "last_daily": None,
+                    "last_spin": None
+                }
+            }
+        )
+        
+        # Clear related collections
+        self.transactions.delete_many({"user_id": user_id})
+        self.spins.delete_many({"user_id": user_id})
+        self.missions.delete_many({"user_id": user_id})
+        self.group_activity.delete_many({"user_id": user_id})
+        
+        return True
+    
+    def clear_all_user_data(self, user_id):
+        """Clear ALL data for a user (full reset)"""
+        # Delete user completely
+        self.users.delete_one({"user_id": user_id})
+        
+        # Clear all related collections
+        self.referrals.delete_many({"referrer": user_id})
+        self.referrals.delete_many({"user": user_id})
+        self.transactions.delete_many({"user_id": user_id})
+        self.withdrawals.delete_many({"user_id": user_id})
+        self.spins.delete_many({"user_id": user_id})
+        self.missions.delete_many({"user_id": user_id})
+        self.channel_joins.delete_many({"user_id": user_id})
+        self.group_activity.delete_many({"user_id": user_id})
+        
+        return True
+    
+    # ========== REPORTS ==========
+    
+    def save_report(self, user_id, issue):
+        """Save user report"""
+        report = {
+            "user_id": user_id,
+            "issue": issue,
+            "timestamp": datetime.now(),
+            "status": "pending"
+        }
+        self.reports.insert_one(report)
+        return report
 
 
 # Global database instance
