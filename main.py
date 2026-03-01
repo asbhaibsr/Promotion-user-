@@ -1,4 +1,4 @@
-# main.py - मुख्य बॉट + Flask App
+# main.py - मुख्य बॉट + Flask App (FIXED)
 
 import logging
 import asyncio
@@ -105,10 +105,10 @@ async def initialize_bot():
     
     bot_app = Application.builder().token(Config.BOT_TOKEN).build()
     
-    # Register handlers
+    # Register handlers - ALL COMMANDS INCLUDED
     bot_app.add_handler(CommandHandler("start", BotHandlers.start))
+    bot_app.add_handler(CommandHandler("check", BotHandlers.check_command))  # ✅ FIXED
     bot_app.add_handler(CommandHandler("admin", AdminHandlers.admin_panel))
-    bot_app.add_handler(CommandHandler("check", BotHandlers.check_command))
     bot_app.add_handler(CommandHandler("stats", AdminHandlers.handle_admin_text))
     bot_app.add_handler(CommandHandler("add", AdminHandlers.handle_admin_text))
     bot_app.add_handler(CommandHandler("remove", AdminHandlers.handle_admin_text))
