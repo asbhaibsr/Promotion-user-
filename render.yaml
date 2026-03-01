@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: movie-earning-bot-advanced
+    name: movie-earning-bot
     runtime: python
     region: singapore
     plan: free
@@ -10,7 +10,7 @@ services:
       - key: BOT_TOKEN
         sync: false
       - key: ADMIN_IDS
-        value: "6357654427"
+        value: "7315805581"
       - key: MONGO_URI
         sync: false
       - key: WEB_APP_URL
