@@ -1,4 +1,5 @@
-# config.py
+# config.py - सारी सेटिंग्स यहाँ हैं
+
 import os
 from datetime import timedelta
 from dotenv import load_dotenv
@@ -8,17 +9,20 @@ load_dotenv()
 class Config:
     # === टोकन और आईडी ===
     BOT_TOKEN = os.getenv("BOT_TOKEN")
-    ADMIN_IDS = [int(id) for id in os.getenv("ADMIN_IDS", "6357654427").split(",")]
+    ADMIN_IDS = [int(id) for id in os.getenv("ADMIN_IDS", "7315805581").split(",")]
     MONGO_URI = os.getenv("MONGO_URI")
     WEB_APP_URL = os.getenv("WEB_APP_URL", "https://promotion-user.onrender.com")
     PORT = int(os.getenv("PORT", 10000))
     
-    # === चैनल और ग्रुप ===
+    # === चैनल और ग्रुप - FIXED ===
     CHANNEL_USERNAME = "@asbhai_bsr"
+    CHANNEL_LINK = "https://t.me/asbhai_bsr"
+    CHANNEL_ID = -1002283182645
     CHANNEL_BONUS = 2.0
+    
     MOVIE_GROUP_LINK = "https://t.me/asfilter_group"
     NEW_MOVIE_GROUP_LINK = "https://t.me/asfilter_bot"
-    ALL_GROUPS_LINK = "https://t.me/addlist/6urdhhdLRqhiZmQ1"
+    MOVIE_GROUP_ID = -1003193018012
     
     # === बोनस और रेट्स ===
     WELCOME_BONUS = 5.0
@@ -26,7 +30,7 @@ class Config:
     DAILY_BONUS_INCREMENT = 0.02
     MIN_WITHDRAWAL = 50.0
     REFERRAL_RATE = 0.10
-    REFERRAL_BONUS = 1
+    REFERRAL_BONUS = 1  # spins
     
     # === स्पिन व्हील - एडवांस प्राइज ===
     SPIN_PRIZES = [
@@ -60,7 +64,7 @@ class Config:
         "daily_bonus": {"target": 1, "reward": 0.10, "spins": 1, "name": "📅 DAILY", "icon": "📅"},
     }
     
-    # === लीडरबोर्ड रिवॉर्ड्स - मंथली ===
+    # === लीडरबोर्ड रिवॉर्ड्स ===
     LEADERBOARD_REWARDS = {
         1: {"reward": 300, "min_refs": 50},
         2: {"reward": 200, "min_refs": 35},
@@ -77,11 +81,5 @@ class Config:
     # === एडमिन कमांड्स ===
     ADMIN_COMMANDS = ["/admin", "/broadcast", "/stats", "/add", "/remove", "/block", "/unblock", "/check"]
     
-    # === एडवांस फीचर्स ===
-    ENABLE_ADS = True
-    AD_PRICE_PER_VIEW = 0.001
-    REFERRAL_COOLDOWN = timedelta(hours=24)
-    
     # === लॉगिंग ===
     LOG_LEVEL = "INFO"
-    ENABLE_ANALYTICS = True
