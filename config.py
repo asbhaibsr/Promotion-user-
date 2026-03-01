@@ -32,16 +32,16 @@ class Config:
     REFERRAL_RATE = 0.10
     REFERRAL_BONUS = 1  # spins
     
-    # === स्पिन व्हील - एडवांस प्राइज ===
+    # === स्पिन व्हील - सिंपल प्राइज ===
     SPIN_PRIZES = [
-        {"value": 0.00, "color": "#ff6b6b", "name": "TRY AGAIN", "emoji": "😢"},
-        {"value": 0.05, "color": "#4ecdc4", "name": "5 PAISE", "emoji": "💰"},
-        {"value": 0.10, "color": "#ffe66d", "name": "10 PAISE", "emoji": "💰"},
-        {"value": 0.20, "color": "#ff9f1c", "name": "20 PAISE", "emoji": "💰"},
-        {"value": 0.50, "color": "#c77dff", "name": "50 PAISE", "emoji": "💰"},
-        {"value": 1.00, "color": "#ff99c8", "name": "₹1", "emoji": "🎉"},
-        {"value": 2.00, "color": "#6c5ce7", "name": "₹2", "emoji": "🎉"},
-        {"value": 5.00, "color": "#00cec9", "name": "₹5 JACKPOT", "emoji": "🏆"}
+        {"value": 0.00, "color": "#ff6b6b", "name": "TRY AGAIN"},
+        {"value": 0.05, "color": "#4ecdc4", "name": "5 PAISE"},
+        {"value": 0.10, "color": "#ffe66d", "name": "10 PAISE"},
+        {"value": 0.20, "color": "#ff9f1c", "name": "20 PAISE"},
+        {"value": 0.50, "color": "#c77dff", "name": "50 PAISE"},
+        {"value": 1.00, "color": "#ff99c8", "name": "₹1"},
+        {"value": 2.00, "color": "#6c5ce7", "name": "₹2"},
+        {"value": 5.00, "color": "#00cec9", "name": "₹5 JACKPOT"}
     ]
     SPIN_WEIGHTS = [40, 25, 15, 10, 5, 3, 1, 1]
     INITIAL_SPINS = 3
