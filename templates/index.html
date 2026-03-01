@@ -1,12 +1,12 @@
+<!-- templates/index.html - Advanced Mini App UI 2026 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FILMYFUND</title>
+    <title>FILMYFUND • EARN MONEY</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* Simple CSS - Lightweight */
         * {
             margin: 0;
             padding: 0;
@@ -14,123 +14,202 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
-        body {
-            background: #0a0f1e;
-            color: white;
-            padding: 15px;
-            padding-bottom: 80px;
+        :root {
+            --bg-primary: #0a0f1e;
+            --bg-secondary: #1a1f2f;
+            --bg-card: #232a3a;
+            --gold: #ffd700;
+            --gold-light: rgba(255, 215, 0, 0.1);
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --border: rgba(255, 215, 0, 0.3);
         }
 
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 15px;
+            padding-bottom: 90px;
+            min-height: 100vh;
+        }
+
+        /* Header Styles */
         .header {
-            background: #1a1f2f;
-            border-radius: 20px;
+            background: var(--bg-secondary);
+            border-radius: 25px;
             padding: 20px;
-            margin-bottom: 15px;
-            border: 1px solid #ffd700;
+            margin-bottom: 20px;
+            border: 1px solid var(--gold);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,215,0,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         .profile-row {
             display: flex;
             align-items: center;
             gap: 15px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
         }
 
         .profile-avatar {
-            width: 60px;
-            height: 60px;
-            background: #ffd700;
+            width: 65px;
+            height: 65px;
+            background: linear-gradient(135deg, var(--gold), #ffa500);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 30px;
-            color: black;
+            color: var(--bg-primary);
+            font-weight: bold;
+            border: 2px solid white;
+        }
+
+        .profile-info {
+            flex: 1;
         }
 
         .profile-name {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: bold;
-            color: #ffd700;
+            color: var(--gold);
+            margin-bottom: 5px;
         }
 
         .profile-id {
             font-size: 12px;
-            color: #888;
+            color: var(--text-secondary);
+            background: var(--bg-card);
+            padding: 3px 10px;
+            border-radius: 20px;
+            display: inline-block;
         }
 
         .balance-row {
             display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 12px;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
         }
 
         .balance-card {
-            background: #232a3a;
-            padding: 15px;
-            border-radius: 15px;
+            background: var(--bg-card);
+            padding: 18px;
+            border-radius: 20px;
             flex: 2;
-            border: 1px solid #ffd700;
+            border: 1px solid var(--gold);
+            box-shadow: 0 5px 15px rgba(255,215,0,0.1);
+        }
+
+        .balance-label {
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
         }
 
         .balance-value {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: bold;
-            color: #ffd700;
+            color: var(--gold);
+            line-height: 1.2;
         }
 
         .spins-card {
-            background: #232a3a;
-            padding: 15px;
-            border-radius: 15px;
+            background: var(--bg-card);
+            padding: 18px;
+            border-radius: 20px;
             flex: 1;
             text-align: center;
-            border: 1px solid #2ecc71;
+            border: 1px solid var(--success);
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.1);
         }
 
         .spins-value {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: bold;
-            color: #2ecc71;
+            color: var(--success);
+            line-height: 1.2;
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 8px;
+            position: relative;
+            z-index: 1;
         }
 
         .stat-item {
             background: rgba(255,255,255,0.05);
             padding: 10px;
-            border-radius: 12px;
+            border-radius: 15px;
             text-align: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 11px;
+            margin-bottom: 5px;
         }
 
         .stat-number {
-            color: #ffd700;
-            font-size: 18px;
+            color: var(--gold);
+            font-size: 20px;
             font-weight: bold;
         }
 
+        /* Main Menu */
         .main-menu {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 12px;
+            margin-bottom: 20px;
         }
 
         .menu-item {
-            background: #1a1f2f;
-            border-radius: 20px;
+            background: linear-gradient(145deg, var(--bg-secondary), #151a2a);
+            border-radius: 25px;
             padding: 25px 10px;
             text-align: center;
             cursor: pointer;
-            border: 1px solid #ffd700;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+            border-color: var(--gold);
+            box-shadow: 0 15px 30px rgba(255,215,0,0.2);
         }
 
         .menu-icon {
-            font-size: 40px;
+            font-size: 45px;
             display: block;
             margin-bottom: 10px;
         }
@@ -138,76 +217,185 @@
         .menu-title {
             font-size: 18px;
             font-weight: bold;
-            color: #ffd700;
+            color: var(--gold);
         }
 
+        /* Daily Bonus Card */
+        .bonus-card {
+            background: linear-gradient(145deg, var(--bg-secondary), #151a2a);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--gold);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .bonus-card:hover {
+            transform: translateX(5px);
+            background: var(--gold-light);
+        }
+
+        .bonus-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .bonus-icon {
+            font-size: 40px;
+        }
+
+        .bonus-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--gold);
+        }
+
+        .bonus-subtitle {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .bonus-amount {
+            color: var(--gold);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Navigation Bar */
         .nav-bar {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: #1a1f2f;
+            background: var(--bg-secondary);
             display: flex;
             justify-content: space-around;
-            padding: 10px;
-            border-top: 2px solid #ffd700;
+            padding: 10px 5px;
+            border-top: 2px solid var(--gold);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
         }
 
         .nav-item {
-            color: #888;
+            color: var(--text-secondary);
             text-align: center;
             cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            flex: 1;
         }
 
         .nav-item.active {
-            color: #ffd700;
+            color: var(--gold);
+            background: var(--gold-light);
         }
 
         .nav-icon {
-            font-size: 22px;
+            font-size: 24px;
             display: block;
         }
 
         .nav-label {
-            font-size: 11px;
+            font-size: 10px;
+            margin-top: 2px;
         }
 
+        /* Page Styles */
+        .page {
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .back-btn {
+            background: var(--bg-card);
+            padding: 12px 20px;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            color: var(--gold);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--gold-light);
+            transform: translateX(-5px);
+        }
+
+        /* Card Styles */
         .card {
-            background: #1a1f2f;
-            border-radius: 20px;
+            background: var(--bg-secondary);
+            border-radius: 25px;
             padding: 20px;
             margin-bottom: 15px;
-            border: 1px solid #ffd700;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
 
         .card-title {
             font-size: 18px;
             font-weight: bold;
-            color: #ffd700;
+            color: var(--gold);
             margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
+        /* Button Styles */
         .btn {
-            background: #232a3a;
-            border: 1px solid #ffd700;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
             color: white;
-            padding: 15px;
+            padding: 15px 20px;
             border-radius: 15px;
             width: 100%;
             margin-bottom: 10px;
             cursor: pointer;
             font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: var(--gold-light);
+            border-color: var(--gold);
         }
 
         .btn.primary {
-            background: #ffd700;
-            color: black;
+            background: var(--gold);
+            color: var(--bg-primary);
             font-weight: bold;
             border: none;
         }
 
+        .btn.primary:hover {
+            background: #ffed4a;
+            transform: scale(1.02);
+        }
+
         .btn.small {
-            padding: 10px;
+            padding: 10px 15px;
             font-size: 14px;
         }
 
@@ -220,6 +408,7 @@
         .wheel-container {
             text-align: center;
             margin: 20px 0;
+            position: relative;
         }
 
         .wheel {
@@ -238,9 +427,10 @@
                 #6c5ce7 270deg 315deg,
                 #00cec9 315deg 360deg
             );
-            transition: transform 3s;
-            border: 4px solid #ffd700;
+            transition: transform 3s cubic-bezier(0.25, 0.1, 0.15, 1);
+            border: 4px solid var(--gold);
             position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
 
         .wheel::after {
@@ -249,20 +439,28 @@
             top: -25px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 30px;
+            font-size: 35px;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
         }
 
         .spin-btn {
-            background: #ffd700;
-            color: black;
+            background: var(--gold);
+            color: var(--bg-primary);
             border: none;
             padding: 18px;
-            border-radius: 30px;
-            font-size: 20px;
+            border-radius: 50px;
+            font-size: 22px;
             font-weight: bold;
             width: 100%;
             margin: 20px 0;
             cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(255,215,0,0.3);
+        }
+
+        .spin-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 15px 30px rgba(255,215,0,0.5);
         }
 
         .spin-btn:disabled {
@@ -273,164 +471,346 @@
         .prize-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 5px;
+            gap: 8px;
             margin: 15px 0;
         }
 
         .prize-item {
-            background: rgba(0,0,0,0.3);
-            padding: 8px;
-            border-radius: 10px;
+            background: var(--bg-card);
+            padding: 10px;
+            border-radius: 12px;
             text-align: center;
             font-size: 12px;
+            border: 1px solid var(--border);
         }
 
+        /* Leaderboard */
         .leaderboard-item {
             display: flex;
             align-items: center;
-            padding: 12px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            margin-bottom: 8px;
+            padding: 15px;
+            background: var(--bg-card);
+            border-radius: 15px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .leaderboard-item:hover {
+            transform: translateX(5px);
+            background: var(--gold-light);
         }
 
         .rank {
-            width: 35px;
-            height: 35px;
-            background: #ffd700;
-            color: black;
+            width: 40px;
+            height: 40px;
+            background: var(--gold);
+            color: var(--bg-primary);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            margin-right: 12px;
+            margin-right: 15px;
+            font-size: 16px;
         }
 
+        .rank.gold { background: gold; }
+        .rank.silver { background: silver; }
+        .rank.bronze { background: #cd7f32; }
+
+        /* Missions */
         .mission-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #333;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .mission-item:last-child {
+            border-bottom: none;
+        }
+
+        .mission-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .mission-icon {
+            font-size: 30px;
+        }
+
+        .mission-name {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .mission-progress {
+            color: var(--text-secondary);
+            font-size: 12px;
         }
 
         .mission-reward {
-            color: #ffd700;
+            color: var(--gold);
             font-weight: bold;
+            font-size: 18px;
         }
 
+        .mission-completed {
+            color: var(--success);
+            font-size: 20px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--bg-card);
+            border-radius: 3px;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gold);
+            transition: width 0.3s ease;
+        }
+
+        /* Referral */
         .ref-link-box {
-            background: #232a3a;
-            padding: 15px;
-            border-radius: 12px;
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 15px;
             word-break: break-all;
             margin-bottom: 15px;
-            font-size: 12px;
-            border: 1px dashed #ffd700;
+            border: 2px dashed var(--gold);
+            font-size: 14px;
+            text-align: center;
         }
 
+        /* Tier Grid */
+        .tier-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .tier-item {
+            background: var(--bg-card);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .tier-item.active {
+            border: 2px solid var(--gold);
+            background: var(--gold-light);
+        }
+
+        .tier-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .tier-rate {
+            color: var(--gold);
+            font-size: 14px;
+        }
+
+        /* Modal */
         .modal {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.9);
-            display: flex;
+            background: rgba(0,0,0,0.95);
+            display: none;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
+            z-index: 2000;
             padding: 20px;
+            backdrop-filter: blur(10px);
         }
 
         .modal-content {
-            background: #1a1f2f;
+            background: var(--bg-secondary);
             padding: 30px;
-            border-radius: 30px;
-            max-width: 300px;
+            border-radius: 40px;
+            max-width: 320px;
             width: 100%;
             text-align: center;
-            border: 2px solid #ffd700;
+            border: 2px solid var(--gold);
+            animation: popIn 0.3s ease;
         }
 
-        .prize-amount {
-            font-size: 50px;
-            color: #ffd700;
+        @keyframes popIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-icon {
+            font-size: 70px;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 28px;
+            color: var(--gold);
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .modal-amount {
+            font-size: 48px;
+            color: var(--gold);
             margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .modal-text {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        /* Form Elements */
+        input, textarea, select {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            width: 100%;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--gold);
         }
 
         .method-btn {
             flex: 1;
-            padding: 10px;
-            border-radius: 10px;
-            background: #232a3a;
-            border: 1px solid #ffd700;
+            padding: 12px;
+            border-radius: 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
             color: white;
             cursor: pointer;
+            transition: all 0.3s ease;
         }
 
         .method-btn.active {
-            background: #ffd700;
-            color: black;
+            background: var(--gold);
+            color: var(--bg-primary);
+            border-color: var(--gold);
         }
 
-        input, textarea {
-            background: #232a3a;
-            border: 1px solid #ffd700;
-            color: white;
-            padding: 12px;
-            border-radius: 12px;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
-        .back-btn {
-            background: #232a3a;
-            padding: 10px 20px;
-            border-radius: 20px;
-            display: inline-block;
-            margin-bottom: 15px;
-            cursor: pointer;
-            color: #ffd700;
-        }
-
-        .tier-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        .tier-item {
-            background: rgba(0,0,0,0.3);
-            padding: 12px;
-            border-radius: 12px;
+        /* Loading */
+        .loading {
             text-align: center;
+            padding: 50px;
+            color: var(--gold);
+            font-size: 18px;
         }
 
-        .tier-item.active {
-            border: 1px solid #ffd700;
-            background: rgba(255,215,0,0.1);
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
         }
 
-        .progress-bar {
-            height: 8px;
-            background: #232a3a;
-            border-radius: 4px;
-            margin: 10px 0;
-            overflow: hidden;
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
         }
 
-        .progress-fill {
-            height: 100%;
-            background: #ffd700;
-            transition: width 0.3s;
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 30px;
+            border-left: 5px solid var(--gold);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            z-index: 1500;
+            display: none;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Help Button */
+        .help-btn {
+            position: fixed;
+            bottom: 110px;
+            right: 15px;
+            width: 55px;
+            height: 55px;
+            background: var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--bg-primary);
+            font-size: 26px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(255,215,0,0.3);
+            z-index: 900;
+            transition: all 0.3s ease;
+        }
+
+        .help-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 30px rgba(255,215,0,0.5);
+        }
+
+        /* Responsive */
+        @media (max-width: 380px) {
+            body {
+                padding: 10px;
+                padding-bottom: 80px;
+            }
+            
+            .balance-value {
+                font-size: 28px;
+            }
+            
+            .menu-icon {
+                font-size: 35px;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="loading" style="text-align: center; padding: 50px;">Loading...</div>
+    <!-- Loading -->
+    <div id="loading" class="loading">Loading FILMYFUND</div>
 
+    <!-- Main App -->
     <div id="app" style="display: none;">
         <!-- HEADER -->
         <div class="header">
@@ -444,26 +824,26 @@
             
             <div class="balance-row">
                 <div class="balance-card">
-                    <div style="color: #888;">BALANCE</div>
+                    <div class="balance-label">BALANCE</div>
                     <div class="balance-value" id="balance">₹0.00</div>
                 </div>
                 <div class="spins-card">
-                    <div style="color: #888;">SPINS</div>
+                    <div class="balance-label">SPINS</div>
                     <div class="spins-value" id="spins">0</div>
                 </div>
             </div>
             
             <div class="stats-grid">
                 <div class="stat-item">
-                    <div style="color: #888;">TIER</div>
+                    <div class="stat-label">TIER</div>
                     <div class="stat-number" id="tier">1</div>
                 </div>
                 <div class="stat-item">
-                    <div style="color: #888;">ACTIVE</div>
+                    <div class="stat-label">ACTIVE</div>
                     <div class="stat-number" id="activeRefs">0</div>
                 </div>
                 <div class="stat-item">
-                    <div style="color: #888;">STREAK</div>
+                    <div class="stat-label">STREAK</div>
                     <div class="stat-number" id="dailyStreak">0</div>
                 </div>
             </div>
@@ -482,49 +862,79 @@
         </div>
 
         <!-- DAILY BONUS CARD -->
-        <div class="card" onclick="openPage('daily')" style="cursor: pointer;">
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 30px;">🎁</span>
-                    <div>
-                        <div style="font-weight: bold;">DAILY BONUS</div>
-                        <div style="color: #888;">Claim your reward</div>
-                    </div>
+        <div class="bonus-card" onclick="openPage('daily')">
+            <div class="bonus-left">
+                <span class="bonus-icon">🎁</span>
+                <div>
+                    <div class="bonus-title">DAILY BONUS</div>
+                    <div class="bonus-subtitle">Claim your reward</div>
                 </div>
-                <div style="color: gold; font-size: 20px;" id="dailyHomeBonus">₹0.05</div>
             </div>
+            <div class="bonus-amount" id="dailyHomeBonus">₹0.05</div>
         </div>
 
         <!-- GROUPS PAGE -->
-        <div id="pageGroups" style="display: none;">
-            <div class="back-btn" onclick="closePage('groups')">← BACK</div>
+        <div id="pageGroups" class="page">
+            <div class="back-btn" onclick="closePage('groups')">
+                <span>←</span> BACK
+            </div>
             
             <div class="card">
-                <div class="card-title">JOIN CHANNEL</div>
+                <div class="card-title">
+                    <span>📢</span> JOIN CHANNEL
+                </div>
                 <button class="btn primary" onclick="joinChannel()" id="channelBtn">
                     CLAIM BONUS (₹{{ channel_bonus }})
                 </button>
-                <p style="color: #888; text-align: center;">@asbhai_bsr</p>
-                <p style="color: #2ecc71; text-align: center;" id="channelStatus"></p>
+                <p style="color: var(--text-secondary); text-align: center; margin: 10px 0;">
+                    {{ channel }}
+                </p>
+                <p style="color: var(--success); text-align: center;" id="channelStatus"></p>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span>🎬</span> MOVIE GROUPS
+                </div>
+                <button class="btn" onclick="window.open('{{ MOVIE_GROUP_LINK }}', '_blank')">
+                    📱 JOIN GROUP 1
+                </button>
+                <button class="btn" onclick="window.open('{{ NEW_MOVIE_GROUP_LINK }}', '_blank')">
+                    📱 JOIN GROUP 2
+                </button>
             </div>
         </div>
 
         <!-- EARNINGS PAGE -->
-        <div id="pageEarnings" style="display: none;">
-            <div class="back-btn" onclick="closePage('earnings')">← BACK</div>
-            
-            <div class="card">
-                <div class="card-title">TOTAL EARNED</div>
-                <div style="font-size: 40px; color: gold; text-align: center;" id="totalEarned">₹0.00</div>
+        <div id="pageEarnings" class="page">
+            <div class="back-btn" onclick="closePage('earnings')">
+                <span>←</span> BACK
             </div>
             
             <div class="card">
-                <div class="card-title">YOUR TIER</div>
-                <div style="text-align: center; margin-bottom: 10px;" id="tierNameDisplay">🥉 BASIC</div>
-                <div style="color: #888;">Rate: <span style="color: gold;" id="tierRateDisplay">₹0.10</span></div>
+                <div class="card-title">
+                    <span>💰</span> TOTAL EARNED
+                </div>
+                <div style="font-size: 48px; color: var(--gold); text-align: center;" id="totalEarned">₹0.00</div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">
+                    <span>👑</span> YOUR TIER
+                </div>
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <span style="font-size: 24px; font-weight: bold;" id="tierNameDisplay">🥉 BASIC</span>
+                </div>
+                <div style="color: var(--text-secondary); margin-bottom: 10px;">
+                    Rate: <span style="color: var(--gold);" id="tierRateDisplay">₹0.10</span> per referral
+                </div>
                 
                 <div class="progress-bar">
                     <div class="progress-fill" id="tierProgress" style="width: 0%"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <span id="currentRefs">0</span>
+                    <span id="nextTierRefs">5</span>
                 </div>
                 
                 <div class="tier-grid">
@@ -536,36 +946,50 @@
             </div>
             
             <div class="card">
-                <div class="card-title">REFERRALS</div>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; text-align: center;">
+                <div class="card-title">
+                    <span>👥</span> REFERRALS
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center;">
                     <div>
-                        <div style="color: #888;">TOTAL</div>
-                        <div style="color: gold; font-size: 30px;" id="totalRefsEarn">0</div>
+                        <div style="color: var(--text-secondary);">TOTAL</div>
+                        <div style="color: var(--gold); font-size: 30px;" id="totalRefsEarn">0</div>
                     </div>
                     <div>
-                        <div style="color: #888;">ACTIVE</div>
-                        <div style="color: gold; font-size: 30px;" id="activeRefsEarn">0</div>
+                        <div style="color: var(--text-secondary);">ACTIVE</div>
+                        <div style="color: var(--gold); font-size: 30px;" id="activeRefsEarn">0</div>
+                    </div>
+                    <div>
+                        <div style="color: var(--text-secondary);">EARNINGS</div>
+                        <div style="color: var(--gold); font-size: 20px;" id="refEarnings">₹0</div>
                     </div>
                 </div>
             </div>
             
             <div class="card">
-                <div class="card-title">LEADERBOARD</div>
+                <div class="card-title">
+                    <span>🏆</span> LEADERBOARD
+                </div>
                 <div id="leaderboardList"></div>
             </div>
             
             <div class="card">
-                <div class="card-title">MISSIONS</div>
+                <div class="card-title">
+                    <span>🎯</span> MISSIONS
+                </div>
                 <div id="missionsList"></div>
             </div>
         </div>
 
         <!-- SPIN PAGE -->
-        <div id="pageSpin" style="display: none;">
-            <div class="back-btn" onclick="closePage('spin')">← BACK</div>
+        <div id="pageSpin" class="page">
+            <div class="back-btn" onclick="closePage('spin')">
+                <span>←</span> BACK
+            </div>
             
-            <div class="card" style="text-align: center;">
-                <div class="card-title">SPIN WHEEL</div>
+            <div class="card">
+                <div class="card-title">
+                    <span>🎡</span> SPIN WHEEL
+                </div>
                 
                 <div class="wheel-container">
                     <div class="wheel" id="wheel" style="transform: rotate(0deg);"></div>
@@ -588,104 +1012,176 @@
         </div>
 
         <!-- REFERRAL PAGE -->
-        <div id="pageReferral" style="display: none;">
-            <div class="back-btn" onclick="closePage('referral')">← BACK</div>
-            
-            <div class="card">
-                <div class="card-title">YOUR LINK</div>
-                <div class="ref-link-box" id="refLink">Loading...</div>
-                <button class="btn primary small" onclick="copyRefLink()">COPY LINK</button>
+        <div id="pageReferral" class="page">
+            <div class="back-btn" onclick="closePage('referral')">
+                <span>←</span> BACK
             </div>
             
             <div class="card">
-                <div class="card-title">REFERRALS</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: center;">
+                <div class="card-title">
+                    <span>🔗</span> YOUR LINK
+                </div>
+                <div class="ref-link-box" id="refLink">Loading...</div>
+                <div class="btn-group">
+                    <button class="btn primary" onclick="copyRefLink()">📋 COPY</button>
+                    <button class="btn" onclick="shareRefLink()">📱 SHARE</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">
+                    <span>👥</span> REFERRALS
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; text-align: center;">
                     <div>
-                        <div style="color: #888;">TOTAL</div>
-                        <div style="color: gold; font-size: 40px;" id="totalRefs">0</div>
+                        <div style="color: var(--text-secondary);">TOTAL</div>
+                        <div style="color: var(--gold); font-size: 48px;" id="totalRefs">0</div>
                     </div>
                     <div>
-                        <div style="color: #888;">ACTIVE</div>
-                        <div style="color: gold; font-size: 40px;" id="activeRefsRef">0</div>
+                        <div style="color: var(--text-secondary);">ACTIVE</div>
+                        <div style="color: var(--gold); font-size: 48px;" id="activeRefsRef">0</div>
                     </div>
                 </div>
+                <div style="text-align: center; margin-top: 15px;">
+                    <span style="color: var(--text-secondary);">Earnings: </span>
+                    <span style="color: var(--gold); font-size: 20px;" id="refEarningsRef">₹0</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span>ℹ️</span> HOW IT WORKS
+                </div>
+                <ul style="list-style: none; color: var(--text-secondary);">
+                    <li style="margin-bottom: 10px;">• Share your referral link</li>
+                    <li style="margin-bottom: 10px;">• Friends join with ₹{{ welcome_bonus }} bonus</li>
+                    <li style="margin-bottom: 10px;">• They search in group to activate</li>
+                    <li>• You earn daily from active referrals</li>
+                </ul>
             </div>
         </div>
 
         <!-- PROFILE PAGE -->
-        <div id="pageProfile" style="display: none;">
-            <div class="back-btn" onclick="closePage('profile')">← BACK</div>
+        <div id="pageProfile" class="page">
+            <div class="back-btn" onclick="closePage('profile')">
+                <span>←</span> BACK
+            </div>
             
             <div class="card" style="text-align: center;">
-                <div class="profile-avatar" style="margin: 0 auto 15px; width: 80px; height: 80px; font-size: 40px;" id="profileAvatarLarge">👤</div>
-                <div style="font-size: 20px; font-weight: bold;" id="profileNameLarge">Loading...</div>
-                <div style="color: #888; margin: 10px;" id="profileIdLarge">ID: 0</div>
-                <div style="color: gold;" id="profileTier">Tier 1 - BASIC</div>
+                <div class="profile-avatar" style="margin: 0 auto 20px; width: 100px; height: 100px; font-size: 50px;" id="profileAvatarLarge">👤</div>
+                <div style="font-size: 24px; font-weight: bold;" id="profileNameLarge">Loading...</div>
+                <div style="color: var(--text-secondary); margin: 10px;" id="profileIdLarge">ID: 0</div>
+                <div style="color: var(--gold);" id="profileTier">Tier 1 - BASIC</div>
             </div>
             
             <div class="card">
-                <div class="card-title">WITHDRAW</div>
-                <button class="btn primary" onclick="openPage('withdraw')">WITHDRAW NOW</button>
-            </div>
-        </div>
-
-        <!-- DAILY PAGE -->
-        <div id="pageDaily" style="display: none;">
-            <div class="back-btn" onclick="closePage('daily')">← BACK</div>
-            
-            <div class="card" style="text-align: center;">
-                <div style="font-size: 60px;">🎁</div>
-                <div class="card-title">DAILY BONUS</div>
-                
-                <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 20px; margin: 15px;">
-                    <span id="dailyStreakBadge">🔥 0 Day Streak</span>
+                <div class="card-title">
+                    <span>📊</span> STATISTICS
                 </div>
-                
-                <div style="font-size: 40px; color: gold; margin: 15px;" id="dailyBonusAmount">₹0.05</div>
-                
-                <button class="btn primary" onclick="claimDaily()" id="claimDailyBtn">
-                    CLAIM NOW
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                    <div>
+                        <div style="color: var(--text-secondary);">Joined</div>
+                        <div id="profileJoined">Today</div>
+                    </div>
+                    <div>
+                        <div style="color: var(--text-secondary);">Last Active</div>
+                        <div id="profileLastActive">Now</div>
+                    </div>
+                    <div>
+                        <div style="color: var(--text-secondary);">Total Spins</div>
+                        <div id="profileTotalSpins">0</div>
+                    </div>
+                    <div>
+                        <div style="color: var(--text-secondary);">Best Win</div>
+                        <div id="profileBestWin">₹0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">
+                    <span>💳</span> WITHDRAW
+                </div>
+                <button class="btn primary" onclick="openPage('withdraw')">
+                    WITHDRAW NOW
                 </button>
             </div>
         </div>
 
-        <!-- WITHDRAW PAGE -->
-        <div id="pageWithdraw" style="display: none;">
-            <div class="back-btn" onclick="closePage('withdraw')">← BACK</div>
+        <!-- DAILY PAGE -->
+        <div id="pageDaily" class="page">
+            <div class="back-btn" onclick="closePage('daily')">
+                <span>←</span> BACK
+            </div>
             
-            <div class="card">
-                <div class="card-title">BALANCE</div>
-                <div style="font-size: 40px; color: gold; text-align: center;" id="withdrawBalance">₹0.00</div>
-                <div style="text-align: center; color: #888;">Min ₹{{ min_withdrawal }}</div>
+            <div class="card" style="text-align: center;">
+                <div style="font-size: 80px;">🎁</div>
+                <div class="card-title">DAILY BONUS</div>
+                
+                <div style="background: var(--gold-light); padding: 15px; border-radius: 30px; margin: 15px;">
+                    <span style="font-size: 20px;" id="dailyStreakBadge">🔥 0 Day Streak</span>
+                </div>
+                
+                <div style="font-size: 48px; color: var(--gold); margin: 20px;" id="dailyBonusAmount">₹0.05</div>
+                
+                <button class="btn primary" onclick="claimDaily()" id="claimDailyBtn">
+                    CLAIM NOW
+                </button>
+                
+                <div style="margin-top: 20px; color: var(--text-secondary);">
+                    <p>• Base: ₹0.05</p>
+                    <p>• +₹0.02 per streak day</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- WITHDRAW PAGE -->
+        <div id="pageWithdraw" class="page">
+            <div class="back-btn" onclick="closePage('withdraw')">
+                <span>←</span> BACK
             </div>
             
             <div class="card">
-                <div class="card-title">PAYMENT DETAILS</div>
+                <div class="card-title">
+                    <span>💰</span> YOUR BALANCE
+                </div>
+                <div style="font-size: 48px; color: var(--gold); text-align: center;" id="withdrawBalance">₹0.00</div>
+                <div style="text-align: center; color: var(--text-secondary);">
+                    Min ₹{{ min_withdrawal }}
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">
+                    <span>💳</span> PAYMENT DETAILS
+                </div>
                 
                 <div id="savedDetails" style="display: none;">
-                    <div style="background: gold; color: black; padding: 8px; border-radius: 15px; display: inline-block; margin-bottom: 10px;" id="savedMethod">UPI</div>
-                    <div style="background: #232a3a; padding: 12px; border-radius: 10px;" id="savedDetailsText">username@oksbi</div>
-                    <div class="btn-group" style="margin-top: 10px;">
-                        <button class="btn small" onclick="editPayment()">EDIT</button>
-                        <button class="btn small primary" onclick="showWithdrawForm()">WITHDRAW</button>
+                    <div style="background: var(--gold); color: var(--bg-primary); padding: 8px 15px; border-radius: 30px; display: inline-block; margin-bottom: 15px;" id="savedMethod">UPI</div>
+                    <div style="background: var(--bg-card); padding: 15px; border-radius: 12px; border: 1px solid var(--border);" id="savedDetailsText">username@oksbi</div>
+                    <div class="btn-group" style="margin-top: 15px;">
+                        <button class="btn small" onclick="editPayment()">✏️ EDIT</button>
+                        <button class="btn small primary" onclick="showWithdrawForm()">💸 WITHDRAW</button>
                     </div>
                 </div>
                 
                 <div id="editDetails">
-                    <div class="btn-group" style="margin-bottom: 10px;">
+                    <div class="btn-group" style="margin-bottom: 15px;">
                         <button class="method-btn active" onclick="selectMethod('upi')">UPI</button>
                         <button class="method-btn" onclick="selectMethod('bank')">BANK</button>
                     </div>
                     
                     <input type="text" id="paymentInput" placeholder="Enter UPI ID or Bank Details">
-                    <button class="btn primary" onclick="savePayment()">SAVE</button>
+                    <button class="btn primary" onclick="savePayment()">💾 SAVE</button>
                 </div>
             </div>
             
             <div id="withdrawForm" style="display: none;">
                 <div class="card">
-                    <div class="card-title">ENTER AMOUNT</div>
-                    <input type="number" id="withdrawAmount" placeholder="₹50 or more" min="{{ min_withdrawal }}">
+                    <div class="card-title">
+                        <span>💸</span> ENTER AMOUNT
+                    </div>
+                    <input type="number" id="withdrawAmount" placeholder="₹50 or more" min="{{ min_withdrawal }}" step="1">
                     <div class="btn-group">
                         <button class="btn" onclick="cancelWithdraw()">CANCEL</button>
                         <button class="btn primary" onclick="withdraw()">CONFIRM</button>
@@ -695,25 +1191,22 @@
         </div>
     </div>
 
-    <!-- MODAL -->
-    <div id="resultModal" class="modal" style="display: none;">
+    <!-- RESULT MODAL -->
+    <div id="resultModal" class="modal">
         <div class="modal-content">
-            <div style="font-size: 60px;" id="resultIcon">🎉</div>
-            <div style="font-size: 24px; color: gold;" id="resultTitle">CONGRATULATIONS!</div>
-            <div class="prize-amount" id="resultAmount">₹0.00</div>
-            <div id="resultText">You won!</div>
+            <div class="modal-icon" id="resultIcon">🎉</div>
+            <div class="modal-title" id="resultTitle">CONGRATULATIONS!</div>
+            <div class="modal-amount" id="resultAmount">₹0.00</div>
+            <div class="modal-text" id="resultText">You won!</div>
             <button class="btn primary" onclick="closeModal()">OK</button>
         </div>
     </div>
 
-    <!-- HELP BUTTON -->
-    <div style="position: fixed; bottom: 100px; right: 15px; width: 50px; height: 50px; background: gold; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: black; font-size: 24px; cursor: pointer;" onclick="showHelp()">❓</div>
-
     <!-- HELP MODAL -->
-    <div id="helpModal" class="modal" style="display: none;">
+    <div id="helpModal" class="modal">
         <div class="modal-content">
-            <div style="font-size: 40px;">❓</div>
-            <div style="font-size: 20px; color: gold;">HELP</div>
+            <div class="modal-icon">❓</div>
+            <div class="modal-title">HELP</div>
             <textarea id="issueText" rows="3" placeholder="Describe your problem..."></textarea>
             <div class="btn-group">
                 <button class="btn" onclick="closeHelp()">CANCEL</button>
@@ -721,6 +1214,12 @@
             </div>
         </div>
     </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="toast"></div>
+
+    <!-- HELP BUTTON -->
+    <div class="help-btn" onclick="showHelp()">❓</div>
 
     <!-- NAVIGATION BAR -->
     <div class="nav-bar">
@@ -751,6 +1250,7 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
         tg.ready();
+        tg.enableClosingConfirmation();
 
         // Hide loading
         setTimeout(() => {
@@ -765,18 +1265,33 @@
             balance: 0,
             spins: 3,
             tier: 1,
+            tierName: '🥉 BASIC',
             activeRefs: 0,
             dailyStreak: 0,
             channelJoined: false,
             paymentMethod: 'upi',
-            paymentDetails: ''
+            paymentDetails: '',
+            totalRefs: 0,
+            refEarnings: 0
         };
 
         const minWithdrawal = {{ min_withdrawal }};
         let isSpinning = false;
         let currentMethod = 'upi';
 
-        // Load data
+        // Toast function
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.style.display = 'block';
+            toast.innerHTML = message;
+            toast.style.borderLeftColor = type === 'success' ? '#2ecc71' : type === 'error' ? '#e74c3c' : '#ffd700';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // Load data from server
         async function loadData() {
             try {
                 const res = await fetch(`/api/user/${userData.id}`);
@@ -786,9 +1301,12 @@
                     userData.balance = data.balance || 0;
                     userData.spins = data.spins || 3;
                     userData.tier = data.tier || 1;
+                    userData.tierName = data.tier_name || '🥉 BASIC';
                     userData.activeRefs = data.active_refs || 0;
                     userData.dailyStreak = data.daily_streak || 0;
                     userData.channelJoined = data.channel_joined || false;
+                    userData.totalRefs = data.total_refs || 0;
+                    userData.refEarnings = data.ref_earnings || 0;
                     
                     updateUI();
                 }
@@ -796,10 +1314,12 @@
                 loadMissions();
             } catch (e) {
                 console.error(e);
+                showToast('Failed to load data', 'error');
             }
         }
 
         function updateUI() {
+            // Home
             document.getElementById('balance').innerText = `₹${userData.balance.toFixed(2)}`;
             document.getElementById('spins').innerText = userData.spins;
             document.getElementById('tier').innerText = userData.tier;
@@ -809,20 +1329,55 @@
             const dailyBonus = 0.05 + (userData.dailyStreak * 0.02);
             document.getElementById('dailyHomeBonus').innerText = `₹${dailyBonus.toFixed(2)}`;
             
+            // Spin
             document.getElementById('spinsLeft').innerText = userData.spins;
             document.getElementById('spinBtn').disabled = userData.spins <= 0;
             
+            // Channel
             if (userData.channelJoined) {
-                document.getElementById('channelStatus').innerText = '✅ Claimed';
+                document.getElementById('channelStatus').innerHTML = '✅ Bonus Claimed';
                 document.getElementById('channelBtn').disabled = true;
             }
+            
+            // Earnings
+            document.getElementById('totalEarned').innerText = `₹${(userData.balance + (userData.refEarnings || 0)).toFixed(2)}`;
+            document.getElementById('tierNameDisplay').innerText = userData.tierName;
+            document.getElementById('tierRateDisplay').innerText = `₹${(0.10 + (userData.tier - 1) * 0.02).toFixed(2)}`;
+            document.getElementById('totalRefsEarn').innerText = userData.totalRefs;
+            document.getElementById('activeRefsEarn').innerText = userData.activeRefs;
+            document.getElementById('refEarnings').innerText = `₹${userData.refEarnings.toFixed(2)}`;
+            
+            // Tier progress
+            const nextTierRefs = userData.tier < 6 ? [5, 15, 30, 50, 100][userData.tier - 1] : userData.tier * 20;
+            const progress = (userData.activeRefs / nextTierRefs) * 100;
+            document.getElementById('tierProgress').style.width = `${Math.min(progress, 100)}%`;
+            document.getElementById('currentRefs').innerText = userData.activeRefs;
+            document.getElementById('nextTierRefs').innerText = nextTierRefs;
+            
+            // Highlight current tier
+            document.querySelectorAll('.tier-item').forEach((el, idx) => {
+                el.classList.toggle('active', idx + 1 === userData.tier);
+            });
+            
+            // Referral
+            document.getElementById('totalRefs').innerText = userData.totalRefs;
+            document.getElementById('activeRefsRef').innerText = userData.activeRefs;
+            document.getElementById('refEarningsRef').innerText = `₹${userData.refEarnings.toFixed(2)}`;
+            
+            // Daily
+            document.getElementById('dailyStreakBadge').innerHTML = `🔥 ${userData.dailyStreak} Day Streak`;
+            document.getElementById('dailyBonusAmount').innerText = `₹${dailyBonus.toFixed(2)}`;
+            
+            // Withdraw
+            document.getElementById('withdrawBalance').innerText = `₹${userData.balance.toFixed(2)}`;
         }
 
         // Navigation
         function goToHome() {
-            document.querySelectorAll('[id^="page"]').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.querySelector('.header').style.display = 'block';
             document.querySelector('.main-menu').style.display = 'grid';
+            document.querySelector('.bonus-card').style.display = 'flex';
             
             document.querySelectorAll('.nav-item').forEach((item, idx) => {
                 item.classList.toggle('active', idx === 0);
@@ -832,7 +1387,8 @@
         function openPage(page) {
             document.querySelector('.header').style.display = 'none';
             document.querySelector('.main-menu').style.display = 'none';
-            document.querySelectorAll('[id^="page"]').forEach(p => p.style.display = 'none');
+            document.querySelector('.bonus-card').style.display = 'none';
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             
             document.getElementById('page' + page.charAt(0).toUpperCase() + page.slice(1)).style.display = 'block';
             
@@ -840,6 +1396,8 @@
             document.querySelectorAll('.nav-item').forEach((item, idx) => {
                 item.classList.toggle('active', navMap[page] === idx);
             });
+            
+            if (page === 'referral') loadReferralData();
         }
 
         function closePage() {
@@ -848,7 +1406,10 @@
 
         // Spin Wheel
         function spinWheel() {
-            if (isSpinning || userData.spins <= 0) return;
+            if (isSpinning || userData.spins <= 0) {
+                showToast('No spins left!', 'error');
+                return;
+            }
             
             isSpinning = true;
             const wheel = document.getElementById('wheel');
@@ -872,10 +1433,12 @@
         // Channel Join
         function joinChannel() {
             if (userData.channelJoined) {
-                alert('Already claimed!');
+                showToast('Already claimed!', 'error');
                 return;
             }
             window.open('{{ channel_link }}', '_blank');
+            showToast('Wait 5 seconds for verification...', 'info');
+            
             setTimeout(() => {
                 tg.sendData(JSON.stringify({
                     action: 'channel_join',
@@ -886,8 +1449,17 @@
 
         // Referral
         function copyRefLink() {
-            navigator.clipboard.writeText(document.getElementById('refLink').innerText);
-            tg.showAlert('✅ Copied!');
+            const link = document.getElementById('refLink').innerText;
+            navigator.clipboard.writeText(link);
+            showToast('✅ Link copied!', 'success');
+        }
+
+        function shareRefLink() {
+            const link = document.getElementById('refLink').innerText;
+            tg.sendData(JSON.stringify({
+                action: 'share',
+                text: `Join FILMYFUND and earn money! 🎬💰\n\nGet ₹{{ welcome_bonus }} welcome bonus!\n${link}`
+            }));
         }
 
         // Payment
@@ -895,12 +1467,15 @@
             currentMethod = method;
             document.querySelectorAll('.method-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
+            
+            const input = document.getElementById('paymentInput');
+            input.placeholder = method === 'upi' ? 'Enter UPI ID' : 'Enter Bank Details (Account No, IFSC)';
         }
 
         function savePayment() {
-            const details = document.getElementById('paymentInput').value;
+            const details = document.getElementById('paymentInput').value.trim();
             if (!details) {
-                tg.showAlert('❌ Enter details');
+                showToast('❌ Enter details', 'error');
                 return;
             }
             
@@ -913,6 +1488,10 @@
         }
 
         function showWithdrawForm() {
+            if (!userData.paymentDetails) {
+                showToast('Please save payment details first', 'error');
+                return;
+            }
             document.getElementById('withdrawForm').style.display = 'block';
         }
 
@@ -928,12 +1507,13 @@
 
         function withdraw() {
             const amount = parseFloat(document.getElementById('withdrawAmount').value);
-            if (amount < minWithdrawal) {
-                tg.showAlert(`❌ Min ₹${minWithdrawal}`);
+            
+            if (isNaN(amount) || amount < minWithdrawal) {
+                showToast(`❌ Min ₹${minWithdrawal}`, 'error');
                 return;
             }
             if (amount > userData.balance) {
-                tg.showAlert('❌ Insufficient balance');
+                showToast('❌ Insufficient balance', 'error');
                 return;
             }
             
@@ -944,6 +1524,8 @@
                 method: userData.paymentMethod,
                 details: userData.paymentDetails
             }));
+            
+            cancelWithdraw();
         }
 
         // Help
@@ -953,12 +1535,13 @@
 
         function closeHelp() {
             document.getElementById('helpModal').style.display = 'none';
+            document.getElementById('issueText').value = '';
         }
 
         function submitIssue() {
-            const issue = document.getElementById('issueText').value;
+            const issue = document.getElementById('issueText').value.trim();
             if (!issue) {
-                tg.showAlert('❌ Describe your problem');
+                showToast('❌ Describe your problem', 'error');
                 return;
             }
             
@@ -969,7 +1552,7 @@
             }));
             
             closeHelp();
-            tg.showAlert('✅ Report sent!');
+            showToast('✅ Report sent! We\'ll respond soon.', 'success');
         }
 
         // Modal
@@ -994,15 +1577,29 @@
                 const data = await res.json();
                 let html = '';
                 data.forEach((u, i) => {
-                    html += `<div class="leaderboard-item"><div class="rank">#${u.rank}</div><div style="flex:1">${u.name}</div><div style="color:gold">👥 ${u.refs}</div></div>`;
+                    const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+                    html += `
+                        <div class="leaderboard-item">
+                            <div class="rank ${rankClass}">#${u.rank}</div>
+                            <div style="flex:1">${u.name}</div>
+                            <div style="color:var(--gold)">👥 ${u.refs}</div>
+                        </div>
+                    `;
                 });
                 document.getElementById('leaderboardList').innerHTML = html;
-            } catch (e) {}
+            } catch (e) {
+                console.error(e);
+            }
         }
 
         // Missions
         function loadMissions() {
             tg.sendData(JSON.stringify({action: 'missions', user_id: userData.id}));
+        }
+
+        // Referral data
+        async function loadReferralData() {
+            tg.sendData(JSON.stringify({action: 'referral_info', user_id: userData.id}));
         }
 
         // Telegram callback
@@ -1012,12 +1609,15 @@
                 
                 if (res.prize !== undefined) {
                     setTimeout(() => {
-                        showResult(res.prize > 0 ? 'success' : 'error', 
-                                 res.prize > 0 ? 'YOU WON!' : 'TRY AGAIN', 
-                                 '', `₹${res.prize.toFixed(2)}`);
+                        if (res.prize > 0) {
+                            showResult('success', 'YOU WON!', '', `₹${res.prize.toFixed(2)}`);
+                        } else {
+                            showResult('error', 'TRY AGAIN', 'Better luck next time!', '₹0.00');
+                        }
                         userData.spins = res.remaining_spins;
                         updateUI();
                         isSpinning = false;
+                        loadData(); // Reload full data
                     }, 3000);
                     
                 } else if (res.bonus !== undefined) {
@@ -1029,22 +1629,60 @@
                         if (res.bonus) {
                             showResult('success', 'BONUS CLAIMED!', '', `₹${res.bonus}`);
                             loadData();
+                        } else if (res.method) {
+                            userData.paymentMethod = res.method;
+                            userData.paymentDetails = res.details;
+                            
+                            document.getElementById('savedDetails').style.display = 'block';
+                            document.getElementById('editDetails').style.display = 'none';
+                            document.getElementById('savedMethod').innerText = res.method.toUpperCase();
+                            document.getElementById('savedDetailsText').innerText = res.details;
+                            
+                            showToast('✅ Payment details saved!', 'success');
                         } else {
-                            showResult('success', 'SUCCESS!', 'Request sent', '✅');
+                            showToast('✅ Success!', 'success');
                             loadData();
-                            goToHome();
                         }
+                    } else {
+                        showToast(res.message || '❌ Failed', 'error');
                     }
                 } else if (res.daily_search) {
                     updateMissions(res);
+                } else if (res.total_refs !== undefined) {
+                    document.getElementById('totalRefs').innerText = res.total_refs;
+                    document.getElementById('activeRefsRef').innerText = res.active_refs;
+                    document.getElementById('refEarningsRef').innerText = `₹${(res.ref_earnings || 0).toFixed(2)}`;
+                    document.getElementById('refLink').innerText = res.referral_link || `https://t.me/{{ bot_username }}?start=ref_${userData.id}`;
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.error(e);
+            }
         });
 
         function updateMissions(m) {
             let html = '';
             for (let [k, v] of Object.entries(m)) {
-                html += `<div class="mission-item"><div>${v.icon} ${v.name}</div><div class="mission-reward">₹${v.reward}</div></div>`;
+                const progress = (v.count / v.target * 100).toFixed(0);
+                html += `
+                    <div class="mission-item">
+                        <div class="mission-info">
+                            <span class="mission-icon">${v.icon}</span>
+                            <div>
+                                <div class="mission-name">${v.name}</div>
+                                <div class="mission-progress">${v.count}/${v.target}</div>
+                            </div>
+                        </div>
+                        <div>
+                            ${v.completed ? 
+                                '<span class="mission-completed">✅</span>' : 
+                                `<span class="mission-reward">₹${v.reward}</span>`
+                            }
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                `;
             }
             document.getElementById('missionsList').innerHTML = html;
         }
@@ -1053,19 +1691,23 @@
         function init() {
             if (tg.initDataUnsafe?.user) {
                 userData.firstName = tg.initDataUnsafe.user.first_name || '';
+                userData.username = tg.initDataUnsafe.user.username || '';
+                
                 document.getElementById('profileName').innerText = userData.firstName;
                 document.getElementById('profileNameLarge').innerText = userData.firstName;
                 document.getElementById('profileId').innerText = `ID: ${userData.id}`;
                 document.getElementById('profileIdLarge').innerText = `ID: ${userData.id}`;
-                document.getElementById('profileAvatar').innerText = userData.firstName.charAt(0) || '👤';
-                document.getElementById('profileAvatarLarge').innerText = userData.firstName.charAt(0) || '👤';
+                
+                const avatar = userData.firstName.charAt(0).toUpperCase() || '👤';
+                document.getElementById('profileAvatar').innerText = avatar;
+                document.getElementById('profileAvatarLarge').innerText = avatar;
             }
             
-            document.getElementById('refLink').innerText = `https://t.me/LinkProviderRobot?start=ref_${userData.id}`;
+            document.getElementById('refLink').innerText = `https://t.me/{{ bot_username }}?start=ref_${userData.id}`;
             loadData();
         }
 
         init();
     </script>
 </body>
-                        </html>
+    </html>
