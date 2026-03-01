@@ -1,7 +1,8 @@
-# admin.py
+# admin.py - एडमिन कमांड्स और पैनल
+
 import logging
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from config import Config
@@ -19,12 +20,9 @@ class AdminHandlers:
             return
         
         keyboard = [
-            [InlineKeyboardButton("📢 Broadcast", callback_data="admin_broadcast")],
-            [InlineKeyboardButton("🗑️ Clear Junk", callback_data="admin_clear_junk")],
             [InlineKeyboardButton("📊 Global Stats", callback_data="admin_global_stats")],
-            [InlineKeyboardButton("💰 Add/Remove Balance", callback_data="admin_balance")],
-            [InlineKeyboardButton("🚫 Block/Unblock", callback_data="admin_block")],
-            [InlineKeyboardButton("📝 Pending Withdrawals", callback_data="admin_withdrawals")],
+            [InlineKeyboardButton("📢 Broadcast", callback_data="admin_broadcast")],
+            [InlineKeyboardButton("💰 Pending Withdrawals", callback_data="admin_withdrawals")],
             [InlineKeyboardButton("🏆 Process Leaderboard", callback_data="admin_leaderboard")],
             [InlineKeyboardButton("❌ Close", callback_data="admin_close")]
         ]
@@ -56,14 +54,6 @@ class AdminHandlers:
                 parse_mode='Markdown'
             )
         
-        elif data == "admin_clear_junk":
-            count = db.clear_junk_users()
-            await query.edit_message_text(
-                f"🗑️ *Clear Junk*\n\n"
-                f"✅ Cleared {count} blocked users data!",
-                parse_mode='Markdown'
-            )
-        
         elif data == "admin_global_stats":
             stats = db.get_stats()
             
@@ -78,16 +68,6 @@ class AdminHandlers:
                 f"📝 *Pending:* {stats['pending_withdrawals']}\n\n"
                 f"📅 *Joined Today:* {stats['today_users']}"
             )
-            
-            await query.edit_message_text(msg, parse_mode='Markdown')
-        
-        elif data == "admin_leaderboard":
-            top_users = db.process_monthly_leaderboard()
-            
-            msg = "🏆 *Monthly Leaderboard Processed!*\n\n"
-            for idx, user in enumerate(top_users[:5], 1):
-                reward = Config.LEADERBOARD_REWARDS.get(idx, {}).get("reward", 0)
-                msg += f"#{idx} {user.get('full_name', 'User')[:15]} - {user['monthly_referrals']} refs - ₹{reward}\n"
             
             await query.edit_message_text(msg, parse_mode='Markdown')
         
@@ -106,6 +86,7 @@ class AdminHandlers:
                     f"👤 *{name}* (`{w['user_id']}`)\n"
                     f"💰 Amount: `{format_balance(w['amount'])}`\n"
                     f"🏦 Method: `{w['method']}`\n"
+                    f"📝 Details: `{w['details']}`\n"
                     f"──────────\n"
                 )
             
@@ -118,12 +99,9 @@ class AdminHandlers:
         
         elif data == "admin_panel":
             keyboard = [
-                [InlineKeyboardButton("📢 Broadcast", callback_data="admin_broadcast")],
-                [InlineKeyboardButton("🗑️ Clear Junk", callback_data="admin_clear_junk")],
                 [InlineKeyboardButton("📊 Global Stats", callback_data="admin_global_stats")],
-                [InlineKeyboardButton("💰 Add/Remove", callback_data="admin_balance")],
-                [InlineKeyboardButton("🚫 Block/Unblock", callback_data="admin_block")],
-                [InlineKeyboardButton("📝 Withdrawals", callback_data="admin_withdrawals")],
+                [InlineKeyboardButton("📢 Broadcast", callback_data="admin_broadcast")],
+                [InlineKeyboardButton("💰 Withdrawals", callback_data="admin_withdrawals")],
                 [InlineKeyboardButton("🏆 Process Leaderboard", callback_data="admin_leaderboard")],
                 [InlineKeyboardButton("❌ Close", callback_data="admin_close")]
             ]
@@ -174,20 +152,12 @@ class AdminHandlers:
             user_id = user["user_id"]
             
             try:
-                if update.message.text:
-                    await context.bot.send_message(
-                        user_id,
-                        update.message.text,
-                        parse_mode='Markdown',
-                        disable_web_page_preview=True
-                    )
-                elif update.message.photo:
-                    await context.bot.send_photo(
-                        user_id,
-                        update.message.photo[-1].file_id,
-                        caption=update.message.caption
-                    )
-                
+                await context.bot.send_message(
+                    user_id,
+                    update.message.text,
+                    parse_mode='Markdown',
+                    disable_web_page_preview=True
+                )
                 sent += 1
                 
                 if i % 10 == 0:
@@ -274,42 +244,6 @@ class AdminHandlers:
                         f"User: `{user_id}`\n"
                         f"Amount: `{format_balance(amount)}`\n"
                         f"New Balance: `{format_balance(new_balance)}`",
-                        parse_mode='Markdown'
-                    )
-                    
-                except Exception as e:
-                    await update.message.reply_text(f"❌ Error: {e}")
-        
-        elif text.startswith("/block "):
-            parts = text.split()
-            if len(parts) >= 2:
-                try:
-                    user_id = int(parts[1])
-                    reason = " ".join(parts[2:]) if len(parts) > 2 else "Blocked by admin"
-                    
-                    db.block_user(user_id, reason)
-                    
-                    await update.message.reply_text(
-                        f"🚫 *User Blocked*\n\n"
-                        f"User: `{user_id}`\n"
-                        f"Reason: {reason}",
-                        parse_mode='Markdown'
-                    )
-                    
-                except Exception as e:
-                    await update.message.reply_text(f"❌ Error: {e}")
-        
-        elif text.startswith("/unblock "):
-            parts = text.split()
-            if len(parts) >= 2:
-                try:
-                    user_id = int(parts[1])
-                    
-                    db.unblock_user(user_id)
-                    
-                    await update.message.reply_text(
-                        f"✅ *User Unblocked*\n\n"
-                        f"User: `{user_id}`",
                         parse_mode='Markdown'
                     )
                     
