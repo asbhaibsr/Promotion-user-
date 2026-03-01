@@ -1,13 +1,14 @@
-# handlers.py - Advanced Bot Handlers
+# handlers.py - Complete Bot Handlers
 
 import logging
 import json
+import random
 from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from config import Config
 from database import db
-from utils import is_admin, format_balance, escape_markdown
+from utils import is_admin, format_balance, check_channel_membership
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,6 @@ class BotHandlers:
     
     @staticmethod
     async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Start command handler"""
         user = update.effective_user
         
         # Check for referral
@@ -23,79 +23,57 @@ class BotHandlers:
         if context.args and context.args[0].startswith("ref_"):
             try:
                 referrer = int(context.args[0].replace("ref_", ""))
-                logger.info(f"🔗 Referral click: {referrer} -> {user.id}")
+                logger.info(f"🔗 Referral: {referrer} -> {user.id}")
             except:
                 pass
+        
+        # Get user photo
+        photos = await user.get_profile_photos(limit=1)
+        photo_url = None
+        if photos and photos.photos:
+            photo_url = photos.photos[0][-1].file_id
         
         # Create or get user
         db_user = db.get_user(user.id)
         if not db_user:
-            db_user = db.create_user(user.id, user.username or "", user.first_name, referrer)
+            db_user = db.create_user(user.id, user.username or "", user.first_name, photo_url, referrer)
             db.update_balance(user.id, Config.WELCOME_BONUS, "welcome", "Welcome Bonus")
             
-            # Send welcome bonus message
             await update.message.reply_text(
                 f"🎉 *WELCOME BONUS!*\n"
-                f"You got ₹{Config.WELCOME_BONUS} credited to your account!",
+                f"You got ₹{Config.WELCOME_BONUS}!",
                 parse_mode='Markdown'
             )
-            
-            # Notify referrer if exists
-            if referrer and referrer != user.id:
-                try:
-                    ref_user = db.get_user(referrer)
-                    if ref_user:
-                        await context.bot.send_message(
-                            referrer,
-                            f"🎉 *New Referral!*\n\n"
-                            f"👤 {user.first_name} joined using your link!\n"
-                            f"✅ They need to search in group to activate.",
-                            parse_mode='Markdown'
-                        )
-                except Exception as e:
-                    logger.error(f"Referrer notification failed: {e}")
         
         # Get user stats
         stats = db.get_user_stats(user.id)
         
-        # Create welcome message with animations
-        welcome_msg = (
-            f"✨ *WELCOME TO FILMYFUND* ✨\n\n"
-            f"👋 *Hello {escape_markdown(user.first_name)}!*\n\n"
-            f"━━━━━━━━━━━━━━━━━━\n"
-            f"💰 *Balance:* `{format_balance(stats['balance'])}`\n"
-            f"🎰 *Spins:* `{stats['spins']}`\n"
-            f"👑 *Tier:* `{stats['tier_name']}`\n"
-            f"👥 *Active Referrals:* `{stats['active_refs']}`\n"
-            f"━━━━━━━━━━━━━━━━━━\n\n"
-            f"🎯 *How to Earn?*\n"
-            f"• 🔍 Search movies in group → Daily ₹\n"
-            f"• 👥 Refer friends → Lifetime earnings\n"
-            f"• 🎡 Spin wheel → Win up to ₹5\n"
-            f"• 📅 Daily bonus → Streak rewards\n\n"
-            f"👇 *Open Mini App to Start!*"
-        )
-        
-        # Create keyboard
-        keyboard = [
-            [
-                InlineKeyboardButton(
-                    "🚀 OPEN MINI APP 🚀",
-                    web_app={"url": f"{Config.WEB_APP_URL}/?user={user.id}"}
-                )
-            ],
-            [
-                InlineKeyboardButton("📢 Join Channel", url=Config.CHANNEL_LINK),
-                InlineKeyboardButton("👥 Refer & Earn", callback_data="show_ref_link")
-            ]
-        ]
+        # Mini App Button
+        keyboard = [[
+            InlineKeyboardButton(
+                "🚀 OPEN MINI APP 🚀",
+                web_app={"url": f"{Config.WEB_APP_URL}/?user={user.id}"}
+            )
+        ]]
         
         if is_admin(user.id):
             keyboard.append([
                 InlineKeyboardButton("👑 ADMIN PANEL", callback_data="admin_panel")
             ])
         
-        # Send message
+        welcome_msg = (
+            f"✨ *Hello {user.first_name}!* ✨\n\n"
+            f"💰 *Balance:* `{format_balance(stats['balance'])}`\n"
+            f"🎰 *Spins:* `{stats['spins']}`\n"
+            f"👑 *Tier:* `{stats['tier_name']}`\n"
+            f"👥 *Active Referrals:* `{stats['active_refs']}`\n\n"
+            f"🎯 *Today's Missions*\n"
+            f"• 3 Searches → ₹0.15 + 1 Spin\n"
+            f"• 2 Referrals → ₹0.50 + 1 Spin\n"
+            f"• Daily Bonus → ₹0.10 + 1 Spin\n\n"
+            f"👇 *Open Mini App to Start Earning!*"
+        )
+        
         await update.message.reply_text(
             welcome_msg,
             reply_markup=InlineKeyboardMarkup(keyboard),
@@ -116,16 +94,12 @@ class BotHandlers:
             await update.message.reply_text("❌ This command only works in groups!")
             return
         
-        # Check if user is admin
-        user_id = update.effective_user.id
-        if not is_admin(user_id):
-            await update.message.reply_text("❌ Only admins can use this command!")
-            return
+        # Log group activity
+        db.check_group_active(chat.id, chat.title)
         
         await update.message.reply_text(
             "✅ *I am active in this group!*\n\n"
-            "Users can search movies here to activate referrals.\n"
-            "Each search contributes to daily missions.",
+            "Users can search movies here to activate referrals.",
             parse_mode='Markdown'
         )
         
@@ -141,39 +115,34 @@ class BotHandlers:
         if not user or user.is_bot:
             return
         
-        # Only track if message is longer than 2 chars (likely a search)
+        # Track search in group
         if len(update.message.text) > 2:
-            logger.info(f"📝 Search in group: {user.id} -> {update.message.text[:30]}...")
+            logger.info(f"📝 Search: {user.id} -> {update.message.text[:30]}...")
             
-            # Track search and get referrer if activated
+            # Activate referral if first search
             referrer = db.track_search(user.id)
-            
-            # Notify referrer if first search
             if referrer:
                 try:
                     await context.bot.send_message(
                         referrer,
-                        f"🎉 *Referral Activated!*\n\n"
-                        f"👤 {user.first_name} did their first search!\n"
-                        f"✅ You got +1 Spin as bonus!\n\n"
-                        f"Now you'll earn daily from their activity!",
+                        f"🎉 *Referral Activated!*\n"
+                        f"{user.first_name} did first search!\n"
+                        f"✅ +1 Spin Added!",
                         parse_mode='Markdown'
                     )
                 except Exception as e:
                     logger.error(f"Referrer notification failed: {e}")
             
-            # Process daily payment for this user's referrer
+            # Process daily payment
             amount = db.process_daily_referral_payment(user.id)
             if amount:
                 ref_doc = db.referrals.find_one({"user": user.id})
                 if ref_doc:
                     try:
-                        referrer_name = user.first_name
                         await context.bot.send_message(
                             ref_doc["referrer"],
-                            f"💰 *Daily Referral Earnings!*\n\n"
-                            f"From {referrer_name}: `{format_balance(amount)}`\n"
-                            f"Keep searching to earn more!",
+                            f"💰 *Daily Referral Earnings!*\n"
+                            f"From {user.first_name}: `{format_balance(amount)}`",
                             parse_mode='Markdown'
                         )
                     except Exception as e:
@@ -184,12 +153,12 @@ class BotHandlers:
     
     @staticmethod
     async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle mini app data - ALL ACTIONS WORKING"""
+        """Handle mini app data - COMPLETE with all actions"""
         if not update.effective_message or not update.effective_message.web_app_data:
             return
         
         data = update.effective_message.web_app_data.data
-        logger.info(f"📱 WebApp Data received: {data[:100]}...")
+        logger.info(f"📱 WebApp Data: {data[:100]}...")
         
         try:
             payload = json.loads(data)
@@ -204,17 +173,14 @@ class BotHandlers:
             if action == "get_data":
                 stats = db.get_user_stats(user_id)
                 if stats:
-                    # Add config data
                     stats.update({
+                        "movie_group": Config.MOVIE_GROUP_LINK,
+                        "new_group": Config.NEW_MOVIE_GROUP_LINK,
+                        "all_groups": Config.ALL_GROUPS_LINK,
                         "channel": Config.CHANNEL_USERNAME,
                         "channel_link": Config.CHANNEL_LINK,
                         "channel_bonus": Config.CHANNEL_BONUS,
-                        "min_withdrawal": Config.MIN_WITHDRAWAL,
-                        "daily_base": Config.DAILY_BONUS_BASE,
-                        "daily_increment": Config.DAILY_BONUS_INCREMENT,
-                        "welcome_bonus": Config.WELCOME_BONUS,
-                        "spin_prizes": Config.SPIN_PRIZES,
-                        "bot_username": Config.BOT_USERNAME
+                        "min_withdrawal": Config.MIN_WITHDRAWAL
                     })
                     await update.effective_message.reply_text(json.dumps(stats))
                 else:
@@ -237,20 +203,16 @@ class BotHandlers:
             
             # ===== SAVE PAYMENT =====
             elif action == "save_payment":
-                method = payload.get("method", "upi")
-                details = payload.get("details", "")
+                method = payload.get("method")
+                details = payload.get("details")
                 
                 db.update_user(user_id, {
                     "payment_method": method,
                     "payment_details": details
                 })
                 
-                await update.effective_message.reply_text(json.dumps({
-                    "success": True,
-                    "method": method,
-                    "details": details
-                }))
-                logger.info(f"💳 User {user_id} saved payment details: {method}")
+                await update.effective_message.reply_text(json.dumps({"success": True}))
+                logger.info(f"💳 User {user_id} saved payment details")
             
             # ===== WITHDRAW =====
             elif action == "withdraw":
@@ -261,30 +223,21 @@ class BotHandlers:
                 success, msg = db.create_withdrawal(user_id, amount, method, details)
                 
                 if success:
-                    # Notify all admins
                     for admin_id in Config.ADMIN_IDS:
                         try:
-                            user = db.get_user(user_id)
-                            name = user.get("full_name", "User") if user else "User"
-                            
                             await context.bot.send_message(
                                 admin_id,
                                 f"💰 *New Withdrawal Request!*\n\n"
-                                f"👤 User: {name}\n"
-                                f"🆔 ID: `{user_id}`\n"
+                                f"👤 User: `{user_id}`\n"
                                 f"💵 Amount: `{format_balance(amount)}`\n"
                                 f"🏦 Method: `{method.upper()}`\n"
-                                f"📝 Details: `{details}`\n\n"
-                                f"Use /process_{payload.get('withdrawal_id', '')} to process",
+                                f"📝 Details: `{details}`",
                                 parse_mode='Markdown'
                             )
-                        except Exception as e:
-                            logger.error(f"Admin notification failed: {e}")
+                        except:
+                            pass
                 
-                await update.effective_message.reply_text(json.dumps({
-                    "success": success, 
-                    "message": msg
-                }))
+                await update.effective_message.reply_text(json.dumps({"success": success, "message": msg}))
                 logger.info(f"💰 User {user_id} requested withdrawal: ₹{amount}")
             
             # ===== LEADERBOARD =====
@@ -294,22 +247,12 @@ class BotHandlers:
                 for idx, user in enumerate(lb, 1):
                     result.append({
                         "rank": idx,
+                        "user_id": user.get("user_id"),
                         "name": user.get("full_name", "User")[:20],
+                        "photo_url": user.get("photo_url"),
                         "refs": user.get("monthly_referrals", 0),
                         "balance": user.get("balance", 0),
-                        "tier": user.get("tier", 1)
-                    })
-                await update.effective_message.reply_text(json.dumps(result))
-            
-            # ===== TOP EARNERS =====
-            elif action == "top_earners":
-                top = db.get_balance_leaderboard()
-                result = []
-                for idx, user in enumerate(top, 1):
-                    result.append({
-                        "rank": idx,
-                        "name": user.get("full_name", "User")[:20],
-                        "balance": user.get("balance", 0)
+                        "active_refs": user.get("active_referrals", 0)
                     })
                 await update.effective_message.reply_text(json.dumps(result))
             
@@ -326,122 +269,65 @@ class BotHandlers:
                 missions = db.get_missions(user_id)
                 await update.effective_message.reply_text(json.dumps(missions))
             
-            # ===== REFERRAL INFO =====
-            elif action == "referral_info":
-                stats = db.get_user_stats(user_id)
-                if stats:
-                    await update.effective_message.reply_text(json.dumps({
-                        "total_refs": stats["total_refs"],
-                        "active_refs": stats["active_refs"],
-                        "ref_earnings": stats["ref_earnings"],
-                        "referral_link": stats["referral_link"]
-                    }))
-            
             # ===== REPORT ISSUE =====
             elif action == "report_issue":
-                issue = payload.get("issue", "")
+                issue = payload.get("issue")
                 
+                # Save to database
                 db.save_report(user_id, issue)
                 
-                # Notify admins
+                # Send to all admins
+                user = db.get_user(user_id)
+                user_name = user.get("full_name", "Unknown") if user else "Unknown"
+                
                 for admin_id in Config.ADMIN_IDS:
                     try:
-                        user = db.get_user(user_id)
-                        name = user.get("full_name", "User") if user else "User"
-                        
                         await context.bot.send_message(
                             admin_id,
                             f"⚠️ *NEW USER REPORT!*\n\n"
-                            f"👤 User: {name}\n"
+                            f"👤 User: {user_name}\n"
                             f"🆔 ID: `{user_id}`\n"
-                            f"📝 Issue: `{issue}`",
+                            f"📝 Issue: `{issue}`\n"
+                            f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
                             parse_mode='Markdown'
                         )
-                    except Exception as e:
-                        logger.error(f"Admin notification failed: {e}")
+                    except:
+                        pass
                 
                 await update.effective_message.reply_text(json.dumps({"success": True}))
-                logger.info(f"📝 Report from user {user_id}: {issue[:50]}...")
+                logger.info(f"📝 Report from user {user_id}: {issue}")
             
-            # ===== CHECK SEARCH STATUS =====
-            elif action == "check_search":
-                today = datetime.now().date().isoformat()
-                searches = db.group_activity.count_documents({
-                    "user_id": user_id,
-                    "date": today
-                })
-                await update.effective_message.reply_text(json.dumps({
-                    "searches": searches
-                }))
+            # ===== AD VIEW =====
+            elif action == "ad_view":
+                ad_id = payload.get("ad_id")
+                if ad_id and Config.ENABLE_ADS:
+                    db.record_ad_view(ad_id, user_id)
+                    await update.effective_message.reply_text(json.dumps({"success": True}))
+            
+            # ===== GET ADS =====
+            elif action == "get_ads":
+                if Config.ENABLE_ADS:
+                    ads = db.get_active_ads()
+                    result = []
+                    for ad in ads:
+                        result.append({
+                            "id": str(ad["_id"]),
+                            "title": ad["title"],
+                            "description": ad["description"],
+                            "image_url": ad["image_url"],
+                            "link_url": ad["link_url"]
+                        })
+                    await update.effective_message.reply_text(json.dumps(result))
+                else:
+                    await update.effective_message.reply_text(json.dumps([]))
             
         except json.JSONDecodeError as e:
             logger.error(f"JSON Decode Error: {e}")
-            await update.effective_message.reply_text(json.dumps({"error": "Invalid data format"}))
+            await update.effective_message.reply_text(json.dumps({"error": "Invalid data"}))
         
         except Exception as e:
             logger.error(f"WebApp Data Error: {e}")
             await update.effective_message.reply_text(json.dumps({"error": str(e)}))
-    
-    @staticmethod
-    async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle button callbacks"""
-        query = update.callback_query
-        await query.answer()
-        
-        data = query.data
-        
-        if data == "show_ref_link":
-            user_id = query.from_user.id
-            stats = db.get_user_stats(user_id)
-            
-            if stats:
-                await query.edit_message_text(
-                    f"🔗 *Your Referral Link*\n\n"
-                    f"`{stats['referral_link']}`\n\n"
-                    f"👥 Total: {stats['total_refs']}\n"
-                    f"✅ Active: {stats['active_refs']}\n"
-                    f"💰 Earnings: {format_balance(stats['ref_earnings'])}\n\n"
-                    f"Share this link with friends!\n"
-                    f"They get ₹{Config.WELCOME_BONUS} on joining!",
-                    parse_mode='Markdown',
-                    reply_markup=InlineKeyboardMarkup([[
-                        InlineKeyboardButton("🔙 Back", callback_data="back_to_start")
-                    ]])
-                )
-        
-        elif data == "back_to_start":
-            # Re-show start message
-            user = query.from_user
-            stats = db.get_user_stats(user.id)
-            
-            welcome_msg = (
-                f"✨ *WELCOME BACK* ✨\n\n"
-                f"👋 *Hello {escape_markdown(user.first_name)}!*\n\n"
-                f"━━━━━━━━━━━━━━━━━━\n"
-                f"💰 *Balance:* `{format_balance(stats['balance'])}`\n"
-                f"🎰 *Spins:* `{stats['spins']}`\n"
-                f"👑 *Tier:* `{stats['tier_name']}`\n"
-                f"👥 *Active:* `{stats['active_refs']}`\n"
-                f"━━━━━━━━━━━━━━━━━━"
-            )
-            
-            keyboard = [[
-                InlineKeyboardButton(
-                    "🚀 OPEN MINI APP 🚀",
-                    web_app={"url": f"{Config.WEB_APP_URL}/?user={user.id}"}
-                )
-            ]]
-            
-            if is_admin(user.id):
-                keyboard.append([
-                    InlineKeyboardButton("👑 ADMIN PANEL", callback_data="admin_panel")
-                ])
-            
-            await query.edit_message_text(
-                welcome_msg,
-                reply_markup=InlineKeyboardMarkup(keyboard),
-                parse_mode='Markdown'
-            )
     
     @staticmethod
     async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
