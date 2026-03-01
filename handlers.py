@@ -1,4 +1,4 @@
-# handlers.py - बॉट के सारे कमांड हैंडलर्स
+# handlers.py - बॉट के सारे कमांड हैंडलर्स (FIXED)
 
 import logging
 import json
@@ -29,7 +29,7 @@ class BotHandlers:
         # Create or get user
         db_user = db.get_user(user.id)
         if not db_user:
-            db.create_user(user.id, user.username or "", user.first_name, referrer)
+            db_user = db.create_user(user.id, user.username or "", user.first_name, referrer)
             db.update_balance(user.id, Config.WELCOME_BONUS, "welcome", "Welcome Bonus")
             
             await update.message.reply_text(
