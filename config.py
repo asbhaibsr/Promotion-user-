@@ -1,4 +1,4 @@
-# config.py - सारी सेटिंग्स
+# config.py - Complete Configuration
 
 import os
 from datetime import timedelta
@@ -22,6 +22,7 @@ class Config:
     
     MOVIE_GROUP_LINK = "https://t.me/asfilter_group"
     NEW_MOVIE_GROUP_LINK = "https://t.me/asfilter_bot"
+    MOVIE_GROUP_ID = -1003193018012
     ALL_GROUPS_LINK = "https://t.me/addlist/6urdhhdLRqhiZmQ1"
     
     # === बोनस और रेट्स ===
@@ -30,18 +31,18 @@ class Config:
     DAILY_BONUS_INCREMENT = 0.02
     MIN_WITHDRAWAL = 50.0
     REFERRAL_RATE = 0.10
-    REFERRAL_BONUS = 1  # spins
+    REFERRAL_BONUS = 1
     
-    # === स्पिन व्हील - प्राइजेज ===
+    # === स्पिन व्हील ===
     SPIN_PRIZES = [
-        {"value": 0.00, "angle": 0, "name": "TRY AGAIN"},
-        {"value": 0.05, "angle": 45, "name": "5 PAISE"},
-        {"value": 0.10, "angle": 90, "name": "10 PAISE"},
-        {"value": 0.20, "angle": 135, "name": "20 PAISE"},
-        {"value": 0.50, "angle": 180, "name": "50 PAISE"},
-        {"value": 1.00, "angle": 225, "name": "₹1"},
-        {"value": 2.00, "angle": 270, "name": "₹2"},
-        {"value": 5.00, "angle": 315, "name": "₹5 JACKPOT"}
+        {"value": 0.00, "color": "#ff6b6b", "name": "TRY AGAIN", "angle": 0},
+        {"value": 0.05, "color": "#4ecdc4", "name": "5 PAISE", "angle": 45},
+        {"value": 0.10, "color": "#ffe66d", "name": "10 PAISE", "angle": 90},
+        {"value": 0.20, "color": "#ff9f1c", "name": "20 PAISE", "angle": 135},
+        {"value": 0.50, "color": "#c77dff", "name": "50 PAISE", "angle": 180},
+        {"value": 1.00, "color": "#ff99c8", "name": "₹1", "angle": 225},
+        {"value": 2.00, "color": "#6c5ce7", "name": "₹2", "angle": 270},
+        {"value": 5.00, "color": "#00cec9", "name": "₹5 JACKPOT", "angle": 315}
     ]
     SPIN_WEIGHTS = [40, 25, 15, 10, 5, 3, 1, 1]
     INITIAL_SPINS = 3
@@ -49,19 +50,33 @@ class Config:
     
     # === टीयर सिस्टम ===
     TIERS = {
-        1: {"min_refs": 0, "rate": 0.10, "name": "🥉 BASIC"},
-        2: {"min_refs": 10, "rate": 0.12, "name": "🥈 SILVER"},
-        3: {"min_refs": 30, "rate": 0.15, "name": "🥇 GOLD"},
-        4: {"min_refs": 70, "rate": 0.18, "name": "👑 PLATINUM"},
-        5: {"min_refs": 150, "rate": 0.22, "name": "💎 DIAMOND"},
-        6: {"min_refs": 300, "rate": 0.27, "name": "⚡ VIP"},
+        1: {"min_refs": 0, "rate": 0.10, "name": "🥉 BASIC", "bonus": 0},
+        2: {"min_refs": 10, "rate": 0.12, "name": "🥈 SILVER", "bonus": 5},
+        3: {"min_refs": 30, "rate": 0.15, "name": "🥇 GOLD", "bonus": 15},
+        4: {"min_refs": 70, "rate": 0.18, "name": "👑 PLATINUM", "bonus": 30},
+        5: {"min_refs": 150, "rate": 0.22, "name": "💎 DIAMOND", "bonus": 60},
+        6: {"min_refs": 300, "rate": 0.27, "name": "⚡ VIP", "bonus": 120},
     }
     
     # === मिशन सिस्टम ===
     MISSIONS = {
-        "daily_search": {"target": 3, "reward": 0.15, "spins": 1, "name": "🔍 SEARCH"},
-        "daily_refer": {"target": 2, "reward": 0.50, "spins": 1, "name": "👥 REFER"},
-        "daily_bonus": {"target": 1, "reward": 0.10, "spins": 1, "name": "📅 DAILY"},
+        "daily_search": {"target": 3, "reward": 0.15, "spins": 1, "name": "🔍 SEARCH", "icon": "🔍"},
+        "daily_refer": {"target": 2, "reward": 0.50, "spins": 1, "name": "👥 REFER", "icon": "👥"},
+        "daily_bonus": {"target": 1, "reward": 0.10, "spins": 1, "name": "📅 DAILY", "icon": "📅"},
+    }
+    
+    # === लीडरबोर्ड रिवॉर्ड्स ===
+    LEADERBOARD_REWARDS = {
+        1: {"reward": 300, "min_refs": 50},
+        2: {"reward": 200, "min_refs": 35},
+        3: {"reward": 100, "min_refs": 15},
+        4: {"reward": 50, "min_refs": 5},
+        5: {"reward": 50, "min_refs": 5},
+        6: {"reward": 50, "min_refs": 5},
+        7: {"reward": 50, "min_refs": 5},
+        8: {"reward": 50, "min_refs": 5},
+        9: {"reward": 50, "min_refs": 5},
+        10: {"reward": 50, "min_refs": 5},
     }
     
     # === एडमिन कमांड्स ===
