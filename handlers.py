@@ -1,4 +1,4 @@
-# handlers.py - बॉट के सारे कमांड हैंडलर्स (FIXED)
+# handlers.py - बॉट हैंडलर्स
 
 import logging
 import json
@@ -26,10 +26,16 @@ class BotHandlers:
             except:
                 pass
         
+        # Get user photo
+        photos = await user.get_profile_photos(limit=1)
+        photo_url = None
+        if photos and photos.photos:
+            photo_url = photos.photos[0][-1].file_id
+        
         # Create or get user
         db_user = db.get_user(user.id)
         if not db_user:
-            db_user = db.create_user(user.id, user.username or "", user.first_name, referrer)
+            db_user = db.create_user(user.id, user.username or "", user.first_name, photo_url, referrer)
             db.update_balance(user.id, Config.WELCOME_BONUS, "welcome", "Welcome Bonus")
             
             await update.message.reply_text(
@@ -143,7 +149,7 @@ class BotHandlers:
     
     @staticmethod
     async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle mini app data"""
+        """Handle mini app data - FIXED ALL BUTTONS"""
         if not update.effective_message or not update.effective_message.web_app_data:
             return
         
@@ -159,6 +165,7 @@ class BotHandlers:
                 await update.effective_message.reply_text(json.dumps({"error": "User ID not found"}))
                 return
             
+            # ===== GET USER DATA =====
             if action == "get_data":
                 stats = db.get_user_stats(user_id)
                 if stats:
@@ -174,11 +181,13 @@ class BotHandlers:
                 else:
                     await update.effective_message.reply_text(json.dumps({"error": "User not found"}))
             
+            # ===== SPIN WHEEL =====
             elif action == "spin":
                 result = db.spin_wheel(user_id)
                 await update.effective_message.reply_text(json.dumps(result))
                 logger.info(f"🎡 User {user_id} spun: {result.get('prize', 0)}")
             
+            # ===== DAILY BONUS =====
             elif action == "daily":
                 result = db.claim_daily(user_id)
                 if result:
@@ -187,6 +196,7 @@ class BotHandlers:
                 else:
                     await update.effective_message.reply_text(json.dumps({"error": "Already claimed today"}))
             
+            # ===== SAVE PAYMENT =====
             elif action == "save_payment":
                 method = payload.get("method")
                 details = payload.get("details")
@@ -199,6 +209,7 @@ class BotHandlers:
                 await update.effective_message.reply_text(json.dumps({"success": True}))
                 logger.info(f"💳 User {user_id} saved payment details")
             
+            # ===== WITHDRAW =====
             elif action == "withdraw":
                 amount = float(payload.get("amount", 0))
                 method = payload.get("method")
@@ -224,18 +235,23 @@ class BotHandlers:
                 await update.effective_message.reply_text(json.dumps({"success": success, "message": msg}))
                 logger.info(f"💰 User {user_id} requested withdrawal: ₹{amount}")
             
+            # ===== LEADERBOARD =====
             elif action == "leaderboard":
                 lb = db.get_current_leaderboard()
                 result = []
                 for idx, user in enumerate(lb, 1):
                     result.append({
                         "rank": idx,
+                        "user_id": user.get("user_id"),
                         "name": user.get("full_name", "User")[:20],
+                        "photo_url": user.get("photo_url"),
                         "refs": user.get("monthly_referrals", 0),
-                        "balance": user.get("balance", 0)
+                        "balance": user.get("balance", 0),
+                        "active_refs": user.get("active_referrals", 0)
                     })
                 await update.effective_message.reply_text(json.dumps(result))
             
+            # ===== CHANNEL JOIN =====
             elif action == "channel_join":
                 joined = db.mark_channel_joined(user_id, Config.CHANNEL_USERNAME)
                 await update.effective_message.reply_text(json.dumps({
@@ -243,24 +259,38 @@ class BotHandlers:
                     "bonus": Config.CHANNEL_BONUS if joined else 0
                 }))
             
+            # ===== MISSIONS =====
             elif action == "missions":
                 missions = db.get_missions(user_id)
                 await update.effective_message.reply_text(json.dumps(missions))
             
+            # ===== REPORT ISSUE =====
             elif action == "report_issue":
                 issue = payload.get("issue")
+                
+                # Save to database
+                db.save_report(user_id, issue)
+                
+                # Send to all admins
+                user = db.get_user(user_id)
+                user_name = user.get("full_name", "Unknown") if user else "Unknown"
+                
                 for admin_id in Config.ADMIN_IDS:
                     try:
                         await context.bot.send_message(
                             admin_id,
-                            f"⚠️ *User Report!*\n\n"
-                            f"👤 User: `{user_id}`\n"
-                            f"📝 Issue: `{issue}`",
+                            f"⚠️ *NEW USER REPORT!*\n\n"
+                            f"👤 User: {user_name}\n"
+                            f"🆔 ID: `{user_id}`\n"
+                            f"📝 Issue: `{issue}`\n"
+                            f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
                             parse_mode='Markdown'
                         )
                     except:
                         pass
+                
                 await update.effective_message.reply_text(json.dumps({"success": True}))
+                logger.info(f"📝 Report from user {user_id}: {issue}")
             
         except json.JSONDecodeError as e:
             logger.error(f"JSON Decode Error: {e}")
