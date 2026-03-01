@@ -1,4 +1,4 @@
-# main.py - मुख्य बॉट + Flask App (FIXED)
+# main.py - Main Application Entry Point
 
 import logging
 import asyncio
@@ -21,7 +21,7 @@ nest_asyncio.apply()
 
 # ====== LOGGING ======
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format=Config.LOG_FORMAT,
     level=getattr(logging, Config.LOG_LEVEL)
 )
 logger = logging.getLogger(__name__)
@@ -31,6 +31,7 @@ flask_app = Flask(__name__)
 bot_app = None
 
 # ====== FLASK ROUTES ======
+
 @flask_app.route('/')
 def index():
     """Mini App Home Page"""
@@ -46,10 +47,12 @@ def index():
                          channel=Config.CHANNEL_USERNAME,
                          channel_link=Config.CHANNEL_LINK,
                          channel_bonus=Config.CHANNEL_BONUS,
-                         min_withdrawal=Config.MIN_WITHDRAWAL)
+                         min_withdrawal=Config.MIN_WITHDRAWAL,
+                         bot_username=Config.BOT_USERNAME)
 
 @flask_app.route('/api/user/<int:user_id>')
 def api_user(user_id):
+    """Get user data API"""
     stats = db.get_user_stats(user_id)
     if not stats:
         return jsonify({"error": "User not found"})
@@ -57,6 +60,7 @@ def api_user(user_id):
 
 @flask_app.route('/api/leaderboard')
 def api_leaderboard():
+    """Get leaderboard API"""
     lb = db.get_current_leaderboard()
     result = []
     for idx, user in enumerate(lb, 1):
@@ -64,9 +68,29 @@ def api_leaderboard():
             "rank": idx,
             "name": user.get("full_name", "User")[:20],
             "refs": user.get("monthly_referrals", 0),
+            "balance": user.get("balance", 0),
+            "tier": user.get("tier", 1)
+        })
+    return jsonify(result)
+
+@flask_app.route('/api/top_earners')
+def api_top_earners():
+    """Get top earners API"""
+    top = db.get_balance_leaderboard()
+    result = []
+    for idx, user in enumerate(top, 1):
+        result.append({
+            "rank": idx,
+            "name": user.get("full_name", "User")[:20],
             "balance": user.get("balance", 0)
         })
     return jsonify(result)
+
+@flask_app.route('/api/stats')
+def api_stats():
+    """Get global stats API"""
+    stats = db.get_stats()
+    return jsonify(stats)
 
 @flask_app.route(f'/{Config.BOT_TOKEN}', methods=['POST'])
 def webhook():
@@ -83,6 +107,7 @@ def webhook():
         
         update = Update.de_json(update_data, bot_app.bot)
         
+        # Process update in new event loop
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
@@ -99,47 +124,52 @@ def webhook():
         return 'Error', 500
 
 # ====== BOT INITIALIZATION ======
+
 async def initialize_bot():
     """Initialize bot application"""
     global bot_app
     
     bot_app = Application.builder().token(Config.BOT_TOKEN).build()
     
-    # Register handlers - ALL COMMANDS INCLUDED
+    # ===== COMMAND HANDLERS =====
     bot_app.add_handler(CommandHandler("start", BotHandlers.start))
-    bot_app.add_handler(CommandHandler("check", BotHandlers.check_command))  # ✅ FIXED
+    bot_app.add_handler(CommandHandler("check", BotHandlers.check_command))
     bot_app.add_handler(CommandHandler("admin", AdminHandlers.admin_panel))
     bot_app.add_handler(CommandHandler("stats", AdminHandlers.handle_admin_text))
     bot_app.add_handler(CommandHandler("add", AdminHandlers.handle_admin_text))
     bot_app.add_handler(CommandHandler("remove", AdminHandlers.handle_admin_text))
     bot_app.add_handler(CommandHandler("clear", AdminHandlers.handle_admin_text))
     
-    # Message handlers
+    # ===== MESSAGE HANDLERS =====
+    # Group messages for tracking
     bot_app.add_handler(MessageHandler(
         filters.TEXT & ~filters.COMMAND & filters.ChatType.GROUPS, 
         BotHandlers.group_message
     ))
+    
+    # WebApp data handler
     bot_app.add_handler(MessageHandler(
         filters.StatusUpdate.WEB_APP_DATA, 
         BotHandlers.web_app_data
     ))
     
-    # Callback handlers
+    # ===== CALLBACK HANDLERS =====
     bot_app.add_handler(CallbackQueryHandler(AdminHandlers.admin_callback, pattern="^admin_"))
+    bot_app.add_handler(CallbackQueryHandler(BotHandlers.button_callback))
     
-    # Broadcast handler
+    # ===== BROADCAST HANDLER =====
     bot_app.add_handler(MessageHandler(
         filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE,
         AdminHandlers.handle_broadcast_message
     ))
     
-    # Clear reply handler
+    # ===== CLEAR REPLY HANDLER =====
     bot_app.add_handler(MessageHandler(
         filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE,
         AdminHandlers.handle_clear_reply
     ))
     
-    # Error handler
+    # ===== ERROR HANDLER =====
     bot_app.add_error_handler(BotHandlers.error_handler)
     
     # Initialize bot
@@ -149,16 +179,23 @@ async def initialize_bot():
     webhook_url = f"{Config.WEB_APP_URL}/{Config.BOT_TOKEN}"
     await bot_app.bot.set_webhook(
         url=webhook_url,
-        allowed_updates=["message", "callback_query", "chat_member"]
+        allowed_updates=["message", "callback_query", "chat_member", "web_app_data"],
+        drop_pending_updates=True
     )
     
     logger.info(f"✅ Bot initialized! Webhook: {webhook_url}")
+    
+    # Get bot info
+    bot_info = await bot_app.bot.get_me()
+    logger.info(f"🤖 Bot: @{bot_info.username}")
+    
     return bot_app
 
 # ====== MAIN ======
+
 def main():
     """Main entry point"""
-    logger.info("🚀 Starting application...")
+    logger.info("🚀 Starting FILMYFUND application...")
     
     # Initialize bot
     asyncio.run(initialize_bot())
@@ -166,7 +203,7 @@ def main():
     
     # Start Flask
     logger.info(f"🌐 Flask app starting on port {Config.PORT}")
-    flask_app.run(host='0.0.0.0', port=Config.PORT, debug=False)
+    flask_app.run(host='0.0.0.0', port=Config.PORT, debug=False, threaded=True)
 
 if __name__ == "__main__":
     main()
