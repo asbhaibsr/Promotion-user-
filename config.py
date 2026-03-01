@@ -11,7 +11,7 @@ class Config:
     BOT_TOKEN = os.getenv("BOT_TOKEN")
     ADMIN_IDS = [int(id) for id in os.getenv("ADMIN_IDS", "7315805581").split(",")]
     MONGO_URI = os.getenv("MONGO_URI")
-    WEB_APP_URL = os.getenv("WEB_APP_URL", "https://your-app.onrender.com")
+    WEB_APP_URL = os.getenv("WEB_APP_URL", "https://promotion-user.onrender.com")
     PORT = int(os.getenv("PORT", 10000))
     
     # === CHANNEL & GROUP ===
