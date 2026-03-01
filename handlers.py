@@ -1,4 +1,4 @@
-# handlers.py - बॉट हैंडलर्स
+# handlers.py - बॉट हैंडलर्स (FIXED)
 
 import logging
 import json
@@ -76,8 +76,74 @@ class BotHandlers:
         logger.info(f"✅ User {user.id} started bot")
     
     @staticmethod
+    async def check_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Check if bot is active in group - FIXED"""
+        if not update.message or not update.message.chat:
+            return
+        
+        chat = update.message.chat
+        
+        if chat.type not in ['group', 'supergroup']:
+            await update.message.reply_text("❌ This command only works in groups!")
+            return
+        
+        await update.message.reply_text(
+            "✅ *I am active in this group!*\n\n"
+            "Users can search movies here to activate referrals.",
+            parse_mode='Markdown'
+        )
+        
+        logger.info(f"✅ Check command used in group {chat.id}")
+    
+    @staticmethod
+    async def group_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Track group messages for referral activation"""
+        if not update.message or not update.message.text:
+            return
+        
+        user = update.effective_user
+        if not user or user.is_bot:
+            return
+        
+        # Track search in group
+        if len(update.message.text) > 2:
+            logger.info(f"📝 Search: {user.id} -> {update.message.text[:30]}...")
+            
+            # Activate referral if first search
+            referrer = db.track_search(user.id)
+            if referrer:
+                try:
+                    await context.bot.send_message(
+                        referrer,
+                        f"🎉 *Referral Activated!*\n"
+                        f"{user.first_name} did first search!\n"
+                        f"✅ +1 Spin Added!",
+                        parse_mode='Markdown'
+                    )
+                except Exception as e:
+                    logger.error(f"Referrer notification failed: {e}")
+            
+            # Process daily payment
+            amount = db.process_daily_referral_payment(user.id)
+            if amount:
+                ref_doc = db.referrals.find_one({"user": user.id})
+                if ref_doc:
+                    try:
+                        await context.bot.send_message(
+                            ref_doc["referrer"],
+                            f"💰 *Daily Referral Earnings!*\n"
+                            f"From {user.first_name}: `{format_balance(amount)}`",
+                            parse_mode='Markdown'
+                        )
+                    except Exception as e:
+                        logger.error(f"Payment notification failed: {e}")
+            
+            # Update mission
+            db.update_mission(user.id, "daily_search")
+    
+    @staticmethod
     async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle mini app data - FIXED ALL BUTTONS"""
+        """Handle mini app data"""
         if not update.effective_message or not update.effective_message.web_app_data:
             return
         
@@ -229,4 +295,4 @@ class BotHandlers:
                     parse_mode='Markdown'
                 )
         except:
-            pas
+            pass
