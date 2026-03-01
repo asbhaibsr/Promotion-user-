@@ -1,14 +1,14 @@
-# utils.py
+# utils.py - हेल्पर फंक्शन्स
+
 import re
 from datetime import datetime
-from telegram import Bot
 from config import Config
 
 def is_admin(user_id):
     return user_id in Config.ADMIN_IDS
 
-def get_referral_link(bot_username, user_id):
-    return f"https://t.me/{bot_username}?start=ref_{user_id}"
+def get_referral_link(user_id):
+    return f"https://t.me/LinkProviderRobot?start=ref_{user_id}"
 
 def format_balance(amount):
     return f"₹{amount:.2f}"
@@ -16,23 +16,6 @@ def format_balance(amount):
 def escape_markdown(text):
     escape_chars = r'_*[]()~`>#+-=|{}.!'
     return re.sub(f'([{re.escape(escape_chars)}])', r'\\\1', str(text))
-
-async def check_channel_membership(bot: Bot, user_id: int, channel: str):
-    try:
-        if channel.startswith('@'):
-            chat_id = channel
-        else:
-            chat_id = f"@{channel}"
-        
-        member = await bot.get_chat_member(chat_id, user_id)
-        return member.status in ['member', 'administrator', 'creator']
-    except Exception as e:
-        return False
-
-def generate_spin_result():
-    import random
-    prize_data = random.choices(Config.SPIN_PRIZES, weights=Config.SPIN_WEIGHTS)[0]
-    return prize_data
 
 def time_ago(timestamp):
     if not timestamp:
@@ -51,9 +34,6 @@ def time_ago(timestamp):
     if diff.seconds > 60:
         return f"{diff.seconds // 60} minutes ago"
     return "Just now"
-
-def chunk_list(lst, size):
-    return [lst[i:i + size] for i in range(0, len(lst), size)]
 
 def get_earning_rate(tier):
     return Config.TIERS.get(tier, {}).get("rate", Config.REFERRAL_RATE)
