@@ -1,7 +1,7 @@
-# handlers.py
+# handlers.py - बॉट के सारे कमांड हैंडलर्स
+
 import logging
 import json
-import random
 from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
@@ -17,13 +17,16 @@ class BotHandlers:
     async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user = update.effective_user
         
+        # Check for referral
         referrer = None
         if context.args and context.args[0].startswith("ref_"):
             try:
                 referrer = int(context.args[0].replace("ref_", ""))
+                logger.info(f"🔗 Referral: {referrer} -> {user.id}")
             except:
                 pass
         
+        # Create or get user
         db_user = db.get_user(user.id)
         if not db_user:
             db.create_user(user.id, user.username or "", user.first_name, referrer)
@@ -35,14 +38,14 @@ class BotHandlers:
                 parse_mode='Markdown'
             )
         
-        # Check channel join
-        db_user = db.get_user(user.id)
+        # Get user stats
+        stats = db.get_user_stats(user.id)
         
-        # Mini App Button - FIXED: No asterisks in button
+        # Mini App Button
         keyboard = [[
             InlineKeyboardButton(
                 "🚀 OPEN MINI APP 🚀",
-                web_app={"url": f"{Config.WEB_APP_URL}/?user={user.id}&lang=en"}
+                web_app={"url": f"{Config.WEB_APP_URL}/?user={user.id}"}
             )
         ]]
         
@@ -50,8 +53,6 @@ class BotHandlers:
             keyboard.append([
                 InlineKeyboardButton("👑 ADMIN PANEL", callback_data="admin_panel")
             ])
-        
-        stats = db.get_user_stats(user.id)
         
         welcome_msg = (
             f"✨ *Hello {user.first_name}!* ✨\n\n"
@@ -127,14 +128,10 @@ class BotHandlers:
             return
         
         chat = update.message.chat
-        user = update.effective_user
         
         if chat.type not in ['group', 'supergroup']:
             await update.message.reply_text("This command only works in groups!")
             return
-        
-        # Log group activity
-        db.check_group_active(chat.id, chat.title)
         
         await update.message.reply_text(
             "✅ *I am active in this group!*\n\n"
@@ -168,8 +165,8 @@ class BotHandlers:
                     stats.update({
                         "movie_group": Config.MOVIE_GROUP_LINK,
                         "new_group": Config.NEW_MOVIE_GROUP_LINK,
-                        "all_groups": Config.ALL_GROUPS_LINK,
                         "channel": Config.CHANNEL_USERNAME,
+                        "channel_link": Config.CHANNEL_LINK,
                         "channel_bonus": Config.CHANNEL_BONUS,
                         "min_withdrawal": Config.MIN_WITHDRAWAL
                     })
@@ -250,27 +247,20 @@ class BotHandlers:
                 missions = db.get_missions(user_id)
                 await update.effective_message.reply_text(json.dumps(missions))
             
-            elif action == "ad_view":
-                ad_id = payload.get("ad_id")
-                if ad_id and Config.ENABLE_ADS:
-                    db.record_ad_view(ad_id, user_id)
-                    await update.effective_message.reply_text(json.dumps({"success": True}))
-            
-            elif action == "get_ads":
-                if Config.ENABLE_ADS:
-                    ads = db.get_active_ads()
-                    result = []
-                    for ad in ads:
-                        result.append({
-                            "id": str(ad["_id"]),
-                            "title": ad["title"],
-                            "description": ad["description"],
-                            "image_url": ad["image_url"],
-                            "link_url": ad["link_url"]
-                        })
-                    await update.effective_message.reply_text(json.dumps(result))
-                else:
-                    await update.effective_message.reply_text(json.dumps([]))
+            elif action == "report_issue":
+                issue = payload.get("issue")
+                for admin_id in Config.ADMIN_IDS:
+                    try:
+                        await context.bot.send_message(
+                            admin_id,
+                            f"⚠️ *User Report!*\n\n"
+                            f"👤 User: `{user_id}`\n"
+                            f"📝 Issue: `{issue}`",
+                            parse_mode='Markdown'
+                        )
+                    except:
+                        pass
+                await update.effective_message.reply_text(json.dumps({"success": True}))
             
         except json.JSONDecodeError as e:
             logger.error(f"JSON Decode Error: {e}")
@@ -282,7 +272,7 @@ class BotHandlers:
     
     @staticmethod
     async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Global error handler - FIXED for event loop"""
+        """Global error handler"""
         logger.error(f"Error in update {update}: {context.error}")
         
         try:
