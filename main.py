@@ -1,4 +1,4 @@
-# main.py - मुख्य बॉट + Flask App
+# main.py - मुख्य बॉट + Flask App (Event Loop Fixed)
 
 import logging
 import asyncio
@@ -8,12 +8,16 @@ from flask import Flask, render_template, request, jsonify
 from telegram import Update
 from telegram.ext import (
     Application, CommandHandler, MessageHandler, 
-    filters, CallbackQueryHandler
+    filters, CallbackQueryHandler, ContextTypes
 )
 from config import Config
 from database import db
 from handlers import BotHandlers
 from admin import AdminHandlers
+import nest_asyncio
+
+# Fix for event loop issue
+nest_asyncio.apply()
 
 # ====== LOGGING ======
 logging.basicConfig(
@@ -25,6 +29,7 @@ logger = logging.getLogger(__name__)
 # ====== FLASK APP ======
 flask_app = Flask(__name__)
 bot_app = None
+loop = None
 
 # ====== FLASK ROUTES ======
 @flask_app.route('/')
@@ -68,8 +73,8 @@ def api_leaderboard():
 
 @flask_app.route(f'/{Config.BOT_TOKEN}', methods=['POST'])
 def webhook():
-    """Telegram Webhook Handler"""
-    global bot_app
+    """Telegram Webhook Handler - FIXED event loop"""
+    global bot_app, loop
     
     if not bot_app:
         logger.error("❌ Bot not initialized")
@@ -81,12 +86,12 @@ def webhook():
         
         update = Update.de_json(update_data, bot_app.bot)
         
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            loop.run_until_complete(bot_app.process_update(update))
-        finally:
-            loop.close()
+        # FIX: Use existing loop instead of creating new one
+        if not loop or loop.is_closed():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        
+        loop.run_until_complete(bot_app.process_update(update))
         
         logger.info("✅ Update processed successfully")
         return 'OK', 200
@@ -99,7 +104,11 @@ def webhook():
 # ====== BOT INITIALIZATION ======
 async def initialize_bot():
     """Initialize bot application"""
-    global bot_app
+    global bot_app, loop
+    
+    # Create event loop
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     
     bot_app = Application.builder().token(Config.BOT_TOKEN).build()
     
@@ -153,26 +162,13 @@ def main():
     """Main entry point"""
     logger.info("🚀 Starting application...")
     
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    # Initialize bot
+    asyncio.run(initialize_bot())
+    logger.info("✅ Bot ready!")
     
-    try:
-        loop.run_until_complete(initialize_bot())
-        logger.info("✅ Bot ready!")
-        
-        logger.info(f"🌐 Flask app starting on port {Config.PORT}")
-        flask_app.run(host='0.0.0.0', port=Config.PORT, debug=False)
-        
-    except KeyboardInterrupt:
-        logger.info("🛑 Shutting down...")
-    except Exception as e:
-        logger.error(f"❌ Fatal error: {e}")
-        traceback.print_exc()
-    finally:
-        if bot_app:
-            loop.run_until_complete(bot_app.shutdown())
-        loop.close()
-        logger.info("👋 Bot stopped")
+    # Start Flask
+    logger.info(f"🌐 Flask app starting on port {Config.PORT}")
+    flask_app.run(host='0.0.0.0', port=Config.PORT, debug=False)
 
 if __name__ == "__main__":
     main()
