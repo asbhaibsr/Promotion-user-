@@ -1,4 +1,5 @@
-# database.py
+# database.py - MongoDB से सारा काम
+
 from pymongo import MongoClient, ASCENDING, DESCENDING
 from pymongo.errors import DuplicateKeyError
 from datetime import datetime, timedelta
@@ -19,12 +20,9 @@ class Database:
         self.withdrawals = self.db.withdrawals
         self.transactions = self.db.transactions
         self.blocked_users = self.db.blocked_users
-        self.ads = self.db.ads
         self.channel_joins = self.db.channel_joins
         self.spins = self.db.spins
         self.missions = self.db.missions
-        self.broadcast_queue = self.db.broadcast_queue
-        self.analytics = self.db.analytics
         self.group_activity = self.db.group_activity
         self.monthly_leaderboard = self.db.monthly_leaderboard
         
@@ -35,13 +33,9 @@ class Database:
         self.users.create_index("user_id", unique=True)
         self.users.create_index([("balance", DESCENDING)])
         self.users.create_index([("monthly_referrals", DESCENDING)])
-        
         self.referrals.create_index([("referrer", ASCENDING), ("user", ASCENDING)], unique=True)
         self.referrals.create_index("user", unique=True)
-        self.referrals.create_index("last_active")
-        
         self.group_activity.create_index([("user_id", ASCENDING), ("date", ASCENDING)], unique=True)
-        
         logger.info("✅ Indexes Created")
     
     # ========== USER FUNCTIONS ==========
@@ -71,11 +65,6 @@ class Database:
             "welcome_bonus": False,
             "channel_joined": False,
             "is_blocked": False,
-            "language": "en",
-            "settings": {
-                "notifications": True,
-                "daily_reminder": True
-            },
             "total_searches": 0,
             "last_search_date": None,
             "search_streak": 0
@@ -93,9 +82,7 @@ class Database:
                         "joined": datetime.now(),
                         "active": False,
                         "first_search": None,
-                        "last_active": None,
-                        "total_earned": 0.0,
-                        "daily_earnings": []
+                        "last_active": None
                     })
             
             return user
@@ -154,7 +141,7 @@ class Database:
             "channel_joined": user.get("channel_joined", False),
             "total_searches": user.get("total_searches", 0),
             "search_streak": user.get("search_streak", 0),
-            "referral_link": f"https://t.me/{(user.get('username') or 'bot')}?start=ref_{user_id}"
+            "referral_link": f"https://t.me/LinkProviderRobot?start=ref_{user_id}"
         }
     
     def _get_tier_from_refs(self, refs):
@@ -163,7 +150,7 @@ class Database:
                 return tier
         return 1
     
-    # ========== REFERRAL SYSTEM - FIXED ==========
+    # ========== REFERRAL SYSTEM ==========
     
     def track_search(self, user_id):
         """Track user search in group - activates referral"""
@@ -321,7 +308,7 @@ class Database:
             "balance": round(user["balance"] + bonus, 2)
         }
     
-    # ========== SPIN WHEEL - ADVANCED ==========
+    # ========== SPIN WHEEL ==========
     
     def can_spin(self, user_id):
         user = self.get_user(user_id)
@@ -510,55 +497,7 @@ class Database:
         
         return missions
     
-    # ========== MONTHLY LEADERBOARD ==========
-    
-    def process_monthly_leaderboard(self):
-        """Process and reset monthly leaderboard"""
-        today = datetime.now()
-        
-        # Get current month's top referrers (active only)
-        pipeline = [
-            {"$match": {"is_blocked": False, "monthly_referrals": {"$gt": 0}}},
-            {"$sort": {"monthly_referrals": -1}},
-            {"$limit": 10},
-            {"$project": {
-                "user_id": 1,
-                "full_name": 1,
-                "username": 1,
-                "monthly_referrals": 1,
-                "balance": 1
-            }}
-        ]
-        
-        top_users = list(self.users.aggregate(pipeline))
-        
-        # Save to history
-        month_key = today.strftime("%Y-%m")
-        leaderboard_data = {
-            "month": month_key,
-            "date": today,
-            "users": top_users
-        }
-        self.monthly_leaderboard.insert_one(leaderboard_data)
-        
-        # Give rewards
-        for idx, user in enumerate(top_users, 1):
-            reward_config = Config.LEADERBOARD_REWARDS.get(idx)
-            if reward_config and user["monthly_referrals"] >= reward_config["min_refs"]:
-                self.update_balance(
-                    user["user_id"],
-                    reward_config["reward"],
-                    "leaderboard_bonus",
-                    f"Monthly Leaderboard Rank #{idx} - ₹{reward_config['reward']}"
-                )
-        
-        # Reset monthly referrals
-        self.users.update_many(
-            {},
-            {"$set": {"monthly_referrals": 0}}
-        )
-        
-        return top_users
+    # ========== LEADERBOARD ==========
     
     def get_current_leaderboard(self, limit=10):
         """Get current month's leaderboard"""
@@ -579,27 +518,6 @@ class Database:
     
     # ========== ADMIN FUNCTIONS ==========
     
-    def check_group_active(self, group_id, group_title):
-        """Check if bot is active in group"""
-        analytics = self.analytics.find_one({"type": "group_check"})
-        if not analytics:
-            analytics = {"groups": []}
-        
-        group_data = {
-            "group_id": group_id,
-            "title": group_title,
-            "last_check": datetime.now(),
-            "status": "active"
-        }
-        
-        self.analytics.update_one(
-            {"type": "group_check"},
-            {"$set": {"groups": [group_data]}},
-            upsert=True
-        )
-        
-        return group_data
-    
     def get_stats(self):
         total_users = self.users.count_documents({})
         active_today = self.group_activity.count_documents({
@@ -611,7 +529,6 @@ class Database:
             "active_users": self.users.count_documents({"is_blocked": False}),
             "blocked_users": self.users.count_documents({"is_blocked": True}),
             "active_today": active_today,
-            "total_withdrawals": self.withdrawals.count_documents({"status": "completed"}),
             "pending_withdrawals": self.withdrawals.count_documents({"status": "pending"}),
             "total_earned": sum(u.get("total_earned", 0) for u in self.users.find({}, {"total_earned": 1})),
             "total_paid": sum(w.get("amount", 0) for w in self.withdrawals.find({"status": "completed"})),
@@ -633,36 +550,6 @@ class Database:
     def get_all_users(self, filter_blocked=False):
         query = {"is_blocked": False} if filter_blocked else {}
         return list(self.users.find(query))
-    
-    def clear_junk_users(self):
-        blocked = self.users.find({"is_blocked": True})
-        count = 0
-        
-        for user in blocked:
-            user_id = user["user_id"]
-            self.referrals.delete_many({"referrer": user_id})
-            self.referrals.delete_many({"user": user_id})
-            self.transactions.delete_many({"user_id": user_id})
-            self.spins.delete_many({"user_id": user_id})
-            self.missions.delete_many({"user_id": user_id})
-            self.channel_joins.delete_many({"user_id": user_id})
-            self.group_activity.delete_many({"user_id": user_id})
-            self.users.delete_one({"user_id": user_id})
-            count += 1
-        
-        return count
-    
-    # ========== ADS ==========
-    
-    def get_active_ads(self):
-        return list(self.ads.find({"active": True}))
-    
-    def record_ad_view(self, ad_id, user_id):
-        self.ads.update_one(
-            {"_id": ad_id},
-            {"$inc": {"views": 1}}
-        )
-        self.update_balance(user_id, Config.AD_PRICE_PER_VIEW, "ad_view", "Ad view earnings")
 
 
 # Global database instance
