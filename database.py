@@ -11,8 +11,16 @@ logger = logging.getLogger(__name__)
 
 class Database:
     def __init__(self):
-        self.client = MongoClient(Config.MONGO_URI)
-        self.db = self.client.movie_bot_advanced
+        try:
+            self.client = MongoClient(Config.MONGO_URI, serverSelectionTimeoutMS=5000)
+            self.db = self.client.movie_bot_advanced
+            
+            # Test connection
+            self.client.admin.command('ping')
+            logger.info("✅ MongoDB Connected Successfully")
+        except Exception as e:
+            logger.error(f"❌ MongoDB Connection Failed: {e}")
+            raise e
         
         # कलेक्शन
         self.users = self.db.users
@@ -27,51 +35,52 @@ class Database:
         self.reports = self.db.reports
         
         self._create_indexes()
-        logger.info("✅ Advanced Database Connected")
+        logger.info("✅ Database Ready")
     
     def _create_indexes(self):
         self.users.create_index("user_id", unique=True)
         self.users.create_index([("balance", DESCENDING)])
-        self.users.create_index([("monthly_referrals", DESCENDING)])
         self.referrals.create_index([("referrer", ASCENDING), ("user", ASCENDING)], unique=True)
         self.referrals.create_index("user", unique=True)
         self.group_activity.create_index([("user_id", ASCENDING), ("date", ASCENDING)], unique=True)
-        logger.info("✅ Indexes Created")
     
     # ========== USER FUNCTIONS ==========
     
     def get_user(self, user_id):
-        return self.users.find_one({"user_id": user_id})
-    
-    def create_user(self, user_id, username, full_name, photo_url=None, referrer=None):
-        user = {
-            "user_id": user_id,
-            "username": username,
-            "full_name": full_name,
-            "photo_url": photo_url,
-            "balance": 0.0,
-            "total_earned": 0.0,
-            "spins": Config.INITIAL_SPINS,
-            "tier": 1,
-            "total_referrals": 0,
-            "active_referrals": 0,
-            "monthly_referrals": 0,
-            "joined": datetime.now(),
-            "last_active": datetime.now(),
-            "last_daily": None,
-            "daily_streak": 0,
-            "last_spin": None,
-            "payment_method": None,
-            "payment_details": None,
-            "welcome_bonus": False,
-            "channel_joined": False,
-            "is_blocked": False,
-            "total_searches": 0,
-            "last_search_date": None,
-            "search_streak": 0
-        }
-        
         try:
+            return self.users.find_one({"user_id": user_id})
+        except Exception as e:
+            logger.error(f"Error getting user {user_id}: {e}")
+            return None
+    
+    def create_user(self, user_id, username, full_name, referrer=None):
+        try:
+            user = {
+                "user_id": user_id,
+                "username": username,
+                "full_name": full_name,
+                "balance": 0.0,
+                "total_earned": 0.0,
+                "spins": Config.INITIAL_SPINS,
+                "tier": 1,
+                "total_referrals": 0,
+                "active_referrals": 0,
+                "monthly_referrals": 0,
+                "joined": datetime.now(),
+                "last_active": datetime.now(),
+                "last_daily": None,
+                "daily_streak": 0,
+                "last_spin": None,
+                "payment_method": None,
+                "payment_details": None,
+                "welcome_bonus": False,
+                "channel_joined": False,
+                "is_blocked": False,
+                "total_searches": 0,
+                "last_search_date": None,
+                "search_streak": 0
+            }
+            
             self.users.insert_one(user)
             
             if referrer and referrer != user_id:
@@ -90,31 +99,42 @@ class Database:
             
         except DuplicateKeyError:
             return self.get_user(user_id)
+        except Exception as e:
+            logger.error(f"Error creating user {user_id}: {e}")
+            return None
     
     def update_user(self, user_id, updates):
-        updates["last_active"] = datetime.now()
-        return self.users.update_one(
-            {"user_id": user_id},
-            {"$set": updates}
-        )
+        try:
+            updates["last_active"] = datetime.now()
+            return self.users.update_one(
+                {"user_id": user_id},
+                {"$set": updates}
+            )
+        except Exception as e:
+            logger.error(f"Error updating user {user_id}: {e}")
+            return None
     
     def update_balance(self, user_id, amount, transaction_type=None, details=None):
-        result = self.users.update_one(
-            {"user_id": user_id},
-            {"$inc": {"balance": amount, "total_earned": max(0, amount)}}
-        )
-        
-        if result.modified_count > 0 and transaction_type:
-            self.transactions.insert_one({
-                "user_id": user_id,
-                "amount": amount,
-                "type": transaction_type,
-                "details": details,
-                "timestamp": datetime.now()
-            })
-        
-        user = self.get_user(user_id)
-        return user["balance"] if user else 0
+        try:
+            result = self.users.update_one(
+                {"user_id": user_id},
+                {"$inc": {"balance": amount, "total_earned": max(0, amount)}}
+            )
+            
+            if result.modified_count > 0 and transaction_type:
+                self.transactions.insert_one({
+                    "user_id": user_id,
+                    "amount": amount,
+                    "type": transaction_type,
+                    "details": details,
+                    "timestamp": datetime.now()
+                })
+            
+            user = self.get_user(user_id)
+            return user["balance"] if user else 0
+        except Exception as e:
+            logger.error(f"Error updating balance for {user_id}: {e}")
+            return 0
     
     def get_user_stats(self, user_id):
         user = self.get_user(user_id)
@@ -128,10 +148,6 @@ class Database:
         tier = self._get_tier_from_refs(active_refs)
         
         return {
-            "user_id": user_id,
-            "full_name": user.get("full_name", "User"),
-            "username": user.get("username", ""),
-            "photo_url": user.get("photo_url"),
             "balance": round(user.get("balance", 0), 2),
             "total_earned": round(user.get("total_earned", 0), 2),
             "spins": user.get("spins", 0),
@@ -145,7 +161,6 @@ class Database:
             "daily_streak": user.get("daily_streak", 0),
             "channel_joined": user.get("channel_joined", False),
             "total_searches": user.get("total_searches", 0),
-            "search_streak": user.get("search_streak", 0),
             "referral_link": f"https://t.me/LinkProviderRobot?start=ref_{user_id}"
         }
     
@@ -154,119 +169,6 @@ class Database:
             if refs >= config["min_refs"]:
                 return tier
         return 1
-    
-    # ========== REFERRAL SYSTEM ==========
-    
-    def track_search(self, user_id):
-        """Track user search in group - activates referral"""
-        user = self.get_user(user_id)
-        if not user:
-            return None
-        
-        today = datetime.now().date()
-        last_search = user.get("last_search_date")
-        
-        # Update search streak
-        if last_search and last_search.date() == today - timedelta(days=1):
-            streak = user.get("search_streak", 0) + 1
-        else:
-            streak = 1
-        
-        self.users.update_one(
-            {"user_id": user_id},
-            {
-                "$inc": {"total_searches": 1},
-                "$set": {
-                    "last_search_date": datetime.now(),
-                    "search_streak": streak
-                }
-            }
-        )
-        
-        # Record daily activity
-        today_str = today.isoformat()
-        try:
-            self.group_activity.insert_one({
-                "user_id": user_id,
-                "date": today_str,
-                "timestamp": datetime.now()
-            })
-        except DuplicateKeyError:
-            pass  # Already recorded today
-        
-        # Activate referral if not active
-        ref = self.referrals.find_one({"user": user_id})
-        if ref and not ref.get("active"):
-            self.referrals.update_one(
-                {"user": user_id},
-                {"$set": {"active": True, "first_search": datetime.now(), "last_active": datetime.now()}}
-            )
-            
-            # Update referrer stats
-            self.users.update_one(
-                {"user_id": ref["referrer"]},
-                {
-                    "$inc": {
-                        "active_referrals": 1,
-                        "monthly_referrals": 1,
-                        "spins": Config.REFERRAL_BONUS
-                    }
-                }
-            )
-            
-            return ref["referrer"]
-        
-        # Update last active for existing referral
-        if ref:
-            self.referrals.update_one(
-                {"user": user_id},
-                {"$set": {"last_active": datetime.now()}}
-            )
-        
-        return None
-    
-    def process_daily_referral_payment(self, user_id):
-        """Pay referrer daily (once per day)"""
-        ref = self.referrals.find_one({"user": user_id, "active": True})
-        if not ref:
-            return None
-        
-        today = datetime.now().date()
-        
-        # Check if already paid today
-        if ref.get("last_paid") and ref["last_paid"].date() == today:
-            return None
-        
-        # Check if user searched today
-        today_activity = self.group_activity.find_one({
-            "user_id": user_id,
-            "date": today.isoformat()
-        })
-        
-        if not today_activity:
-            return None  # No search today, no payment
-        
-        referrer = self.get_user(ref["referrer"])
-        if not referrer or referrer.get("is_blocked", False):
-            return None
-        
-        tier = referrer.get("tier", 1)
-        rate = Config.TIERS[tier]["rate"]
-        
-        # Pay referrer
-        self.update_balance(
-            ref["referrer"],
-            rate,
-            "referral_daily",
-            f"Daily earnings from referral {user_id}"
-        )
-        
-        self.referrals.update_one(
-            {"user": user_id},
-            {"$set": {"last_paid": datetime.now()}}
-        )
-        
-        return rate
     
     # ========== DAILY BONUS ==========
     
@@ -296,14 +198,6 @@ class Database:
             }
         )
         
-        self.transactions.insert_one({
-            "user_id": user_id,
-            "amount": bonus,
-            "type": "daily_bonus",
-            "details": f"Daily Bonus (Streak: {streak})",
-            "timestamp": datetime.now()
-        })
-        
         # Update mission
         self.update_mission(user_id, "daily_bonus")
         
@@ -315,27 +209,13 @@ class Database:
     
     # ========== SPIN WHEEL ==========
     
-    def can_spin(self, user_id):
+    def spin_wheel(self, user_id):
         user = self.get_user(user_id)
         if not user:
-            return False, "User not found"
+            return {"error": "User not found"}
         
         if user["spins"] <= 0:
-            return False, "No spins left"
-        
-        last_spin = user.get("last_spin")
-        if last_spin and Config.SPIN_COOLDOWN:
-            if datetime.now() - last_spin < Config.SPIN_COOLDOWN:
-                remaining = Config.SPIN_COOLDOWN - (datetime.now() - last_spin)
-                minutes = int(remaining.total_seconds() / 60)
-                return False, f"Next spin in {minutes} minutes"
-        
-        return True, "OK"
-    
-    def spin_wheel(self, user_id):
-        can, msg = self.can_spin(user_id)
-        if not can:
-            return {"error": msg}
+            return {"error": "No spins left"}
         
         prize_data = random.choices(Config.SPIN_PRIZES, weights=Config.SPIN_WEIGHTS)[0]
         prize = prize_data["value"]
@@ -348,27 +228,9 @@ class Database:
             }
         )
         
-        self.spins.insert_one({
-            "user_id": user_id,
-            "prize": prize,
-            "prize_name": prize_data["name"],
-            "timestamp": datetime.now()
-        })
-        
-        if prize > 0:
-            self.transactions.insert_one({
-                "user_id": user_id,
-                "amount": prize,
-                "type": "spin",
-                "details": f"Spin Won: ₹{prize} - {prize_data['name']}",
-                "timestamp": datetime.now()
-            })
-        
         return {
             "prize": prize,
             "prize_name": prize_data["name"],
-            "prize_emoji": prize_data["emoji"],
-            "color": prize_data["color"],
             "remaining_spins": user["spins"] - 1
         }
     
@@ -423,14 +285,6 @@ class Database:
             {"$inc": {"balance": -amount}}
         )
         
-        self.transactions.insert_one({
-            "user_id": user_id,
-            "amount": -amount,
-            "type": "withdrawal",
-            "details": f"Withdrawal request ₹{amount}",
-            "timestamp": datetime.now()
-        })
-        
         return True, "Withdrawal request submitted"
     
     # ========== MISSIONS ==========
@@ -476,8 +330,7 @@ class Database:
             return {
                 "completed": True,
                 "reward": config["reward"],
-                "spins": config["spins"],
-                "name": config["name"]
+                "spins": config["spins"]
             }
         
         return {"count": mission["count"], "completed": mission.get("completed", False)}
@@ -508,7 +361,6 @@ class Database:
     # ========== LEADERBOARD ==========
     
     def get_current_leaderboard(self, limit=10):
-        """Get current month's leaderboard with user photos"""
         pipeline = [
             {"$match": {"is_blocked": False, "monthly_referrals": {"$gt": 0}}},
             {"$sort": {"monthly_referrals": -1}},
@@ -516,11 +368,8 @@ class Database:
             {"$project": {
                 "user_id": 1,
                 "full_name": 1,
-                "username": 1,
-                "photo_url": 1,
                 "monthly_referrals": 1,
                 "balance": 1,
-                "tier": 1,
                 "active_referrals": 1
             }}
         ]
@@ -549,10 +398,7 @@ class Database:
         query = {"is_blocked": False} if filter_blocked else {}
         return list(self.users.find(query))
     
-    # ========== CLEAR DATA ==========
-    
     def clear_user_earnings(self, user_id):
-        """Clear only earnings data for a user"""
         self.users.update_one(
             {"user_id": user_id},
             {
@@ -571,21 +417,10 @@ class Database:
                 }
             }
         )
-        
-        # Clear related collections
-        self.transactions.delete_many({"user_id": user_id})
-        self.spins.delete_many({"user_id": user_id})
-        self.missions.delete_many({"user_id": user_id})
-        self.group_activity.delete_many({"user_id": user_id})
-        
         return True
     
     def clear_all_user_data(self, user_id):
-        """Clear ALL data for a user (full reset)"""
-        # Delete user completely
         self.users.delete_one({"user_id": user_id})
-        
-        # Clear all related collections
         self.referrals.delete_many({"referrer": user_id})
         self.referrals.delete_many({"user": user_id})
         self.transactions.delete_many({"user_id": user_id})
@@ -594,13 +429,9 @@ class Database:
         self.missions.delete_many({"user_id": user_id})
         self.channel_joins.delete_many({"user_id": user_id})
         self.group_activity.delete_many({"user_id": user_id})
-        
         return True
     
-    # ========== REPORTS ==========
-    
     def save_report(self, user_id, issue):
-        """Save user report"""
         report = {
             "user_id": user_id,
             "issue": issue,
@@ -612,4 +443,175 @@ class Database:
 
 
 # Global database instance
-db = Database()
+db = Database()# main.py - मुख्य बॉट + Flask App
+
+import logging
+import asyncio
+import os
+import traceback
+from flask import Flask, render_template, request, jsonify
+from telegram import Update
+from telegram.ext import (
+    Application, CommandHandler, MessageHandler, 
+    filters, CallbackQueryHandler
+)
+from config import Config
+from database import db
+from handlers import BotHandlers
+from admin import AdminHandlers
+import nest_asyncio
+
+# Fix for event loop
+nest_asyncio.apply()
+
+# ====== LOGGING ======
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=getattr(logging, Config.LOG_LEVEL)
+)
+logger = logging.getLogger(__name__)
+
+# ====== FLASK APP ======
+flask_app = Flask(__name__)
+bot_app = None
+
+# ====== FLASK ROUTES ======
+@flask_app.route('/')
+def index():
+    """Mini App Home Page"""
+    user_id = request.args.get('user', '0')
+    
+    try:
+        user_id = int(user_id)
+    except:
+        user_id = 0
+    
+    return render_template('index.html', 
+                         user_id=user_id,
+                         channel=Config.CHANNEL_USERNAME,
+                         channel_link=Config.CHANNEL_LINK,
+                         channel_bonus=Config.CHANNEL_BONUS,
+                         min_withdrawal=Config.MIN_WITHDRAWAL)
+
+@flask_app.route('/api/user/<int:user_id>')
+def api_user(user_id):
+    stats = db.get_user_stats(user_id)
+    if not stats:
+        return jsonify({"error": "User not found"})
+    return jsonify(stats)
+
+@flask_app.route('/api/leaderboard')
+def api_leaderboard():
+    lb = db.get_current_leaderboard()
+    result = []
+    for idx, user in enumerate(lb, 1):
+        result.append({
+            "rank": idx,
+            "name": user.get("full_name", "User")[:20],
+            "refs": user.get("monthly_referrals", 0),
+            "balance": user.get("balance", 0)
+        })
+    return jsonify(result)
+
+@flask_app.route(f'/{Config.BOT_TOKEN}', methods=['POST'])
+def webhook():
+    """Telegram Webhook Handler"""
+    global bot_app
+    
+    if not bot_app:
+        logger.error("❌ Bot not initialized")
+        return 'Bot not ready', 503
+    
+    try:
+        update_data = request.get_json(force=True)
+        logger.info(f"📩 Update received: {update_data.get('update_id', 'unknown')}")
+        
+        update = Update.de_json(update_data, bot_app.bot)
+        
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(bot_app.process_update(update))
+        finally:
+            loop.close()
+        
+        logger.info("✅ Update processed successfully")
+        return 'OK', 200
+        
+    except Exception as e:
+        logger.error(f"❌ Webhook error: {e}")
+        traceback.print_exc()
+        return 'Error', 500
+
+# ====== BOT INITIALIZATION ======
+async def initialize_bot():
+    """Initialize bot application"""
+    global bot_app
+    
+    bot_app = Application.builder().token(Config.BOT_TOKEN).build()
+    
+    # Register handlers
+    bot_app.add_handler(CommandHandler("start", BotHandlers.start))
+    bot_app.add_handler(CommandHandler("admin", AdminHandlers.admin_panel))
+    bot_app.add_handler(CommandHandler("check", BotHandlers.check_command))
+    bot_app.add_handler(CommandHandler("stats", AdminHandlers.handle_admin_text))
+    bot_app.add_handler(CommandHandler("add", AdminHandlers.handle_admin_text))
+    bot_app.add_handler(CommandHandler("remove", AdminHandlers.handle_admin_text))
+    bot_app.add_handler(CommandHandler("clear", AdminHandlers.handle_admin_text))
+    
+    # Message handlers
+    bot_app.add_handler(MessageHandler(
+        filters.TEXT & ~filters.COMMAND & filters.ChatType.GROUPS, 
+        BotHandlers.group_message
+    ))
+    bot_app.add_handler(MessageHandler(
+        filters.StatusUpdate.WEB_APP_DATA, 
+        BotHandlers.web_app_data
+    ))
+    
+    # Callback handlers
+    bot_app.add_handler(CallbackQueryHandler(AdminHandlers.admin_callback, pattern="^admin_"))
+    
+    # Broadcast handler
+    bot_app.add_handler(MessageHandler(
+        filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE,
+        AdminHandlers.handle_broadcast_message
+    ))
+    
+    # Clear reply handler
+    bot_app.add_handler(MessageHandler(
+        filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE,
+        AdminHandlers.handle_clear_reply
+    ))
+    
+    # Error handler
+    bot_app.add_error_handler(BotHandlers.error_handler)
+    
+    # Initialize bot
+    await bot_app.initialize()
+    
+    # Set webhook
+    webhook_url = f"{Config.WEB_APP_URL}/{Config.BOT_TOKEN}"
+    await bot_app.bot.set_webhook(
+        url=webhook_url,
+        allowed_updates=["message", "callback_query", "chat_member"]
+    )
+    
+    logger.info(f"✅ Bot initialized! Webhook: {webhook_url}")
+    return bot_app
+
+# ====== MAIN ======
+def main():
+    """Main entry point"""
+    logger.info("🚀 Starting application...")
+    
+    # Initialize bot
+    asyncio.run(initialize_bot())
+    logger.info("✅ Bot ready!")
+    
+    # Start Flask
+    logger.info(f"🌐 Flask app starting on port {Config.PORT}")
+    flask_app.run(host='0.0.0.0', port=Config.PORT, debug=False)
+
+if __name__ == "__main__":
+    main()
