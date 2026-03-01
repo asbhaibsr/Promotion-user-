@@ -1,4 +1,4 @@
-# admin.py - एडमिन कमांड्स और पैनल
+# admin.py - एडमिन कमांड्स (बिना block/unblock के)
 
 import logging
 import asyncio
@@ -23,7 +23,7 @@ class AdminHandlers:
             [InlineKeyboardButton("📊 Global Stats", callback_data="admin_global_stats")],
             [InlineKeyboardButton("📢 Broadcast", callback_data="admin_broadcast")],
             [InlineKeyboardButton("💰 Pending Withdrawals", callback_data="admin_withdrawals")],
-            [InlineKeyboardButton("🏆 Process Leaderboard", callback_data="admin_leaderboard")],
+            [InlineKeyboardButton("📝 User Reports", callback_data="admin_reports")],
             [InlineKeyboardButton("❌ Close", callback_data="admin_close")]
         ]
         
@@ -65,7 +65,7 @@ class AdminHandlers:
                 f"📅 *Active Today:* {stats['active_today']}\n\n"
                 f"💰 *Total Earned:* {format_balance(stats['total_earned'])}\n"
                 f"💸 *Total Paid:* {format_balance(stats['total_paid'])}\n"
-                f"📝 *Pending:* {stats['pending_withdrawals']}\n\n"
+                f"📝 *Pending Withdrawals:* {stats['pending_withdrawals']}\n\n"
                 f"📅 *Joined Today:* {stats['today_users']}"
             )
             
@@ -97,12 +97,37 @@ class AdminHandlers:
                 parse_mode='Markdown'
             )
         
+        elif data == "admin_reports":
+            reports = list(db.reports.find({"status": "pending"}).sort("timestamp", -1).limit(10))
+            
+            if not reports:
+                await query.edit_message_text("📝 No pending reports")
+                return
+            
+            msg = "📝 *User Reports*\n\n"
+            for r in reports:
+                user = db.get_user(r["user_id"])
+                name = user.get("full_name", "User") if user else "Unknown"
+                msg += (
+                    f"👤 *{name}* (`{r['user_id']}`)\n"
+                    f"📝 Issue: `{r['issue'][:50]}...`\n"
+                    f"⏰ {r['timestamp'].strftime('%Y-%m-%d %H:%M')}\n"
+                    f"──────────\n"
+                )
+            
+            keyboard = [[InlineKeyboardButton("🔙 Back", callback_data="admin_panel")]]
+            await query.edit_message_text(
+                msg,
+                reply_markup=InlineKeyboardMarkup(keyboard),
+                parse_mode='Markdown'
+            )
+        
         elif data == "admin_panel":
             keyboard = [
                 [InlineKeyboardButton("📊 Global Stats", callback_data="admin_global_stats")],
                 [InlineKeyboardButton("📢 Broadcast", callback_data="admin_broadcast")],
                 [InlineKeyboardButton("💰 Withdrawals", callback_data="admin_withdrawals")],
-                [InlineKeyboardButton("🏆 Process Leaderboard", callback_data="admin_leaderboard")],
+                [InlineKeyboardButton("📝 Reports", callback_data="admin_reports")],
                 [InlineKeyboardButton("❌ Close", callback_data="admin_close")]
             ]
             
@@ -146,7 +171,6 @@ class AdminHandlers:
         
         sent = 0
         failed = 0
-        blocked = 0
         
         for i, user in enumerate(all_users, 1):
             user_id = user["user_id"]
@@ -166,7 +190,6 @@ class AdminHandlers:
                         f"Total: {total}\n"
                         f"✅ Sent: {sent}\n"
                         f"❌ Failed: {failed}\n"
-                        f"🚫 Blocked: {blocked}\n"
                         f"Progress: {i}/{total}",
                         parse_mode='Markdown'
                     )
@@ -174,17 +197,12 @@ class AdminHandlers:
                 await asyncio.sleep(0.05)
                 
             except Exception as e:
-                if "bot was blocked" in str(e).lower() or "user is deactivated" in str(e).lower():
-                    db.block_user(user_id, "Blocked user")
-                    blocked += 1
-                else:
-                    failed += 1
-                    logger.error(f"Broadcast failed {user_id}: {e}")
+                failed += 1
+                logger.error(f"Broadcast failed {user_id}: {e}")
         
         await status_msg.edit_text(
             f"📢 *Broadcast Complete*\n\n"
             f"✅ *Sent:* {sent}/{total}\n"
-            f"🚫 *Blocked:* {blocked}\n"
             f"❌ *Failed:* {failed}",
             parse_mode='Markdown'
         )
@@ -198,6 +216,7 @@ class AdminHandlers:
         
         text = update.message.text
         
+        # ===== ADD BALANCE =====
         if text.startswith("/add "):
             parts = text.split()
             if len(parts) >= 3:
@@ -230,6 +249,7 @@ class AdminHandlers:
                 except Exception as e:
                     await update.message.reply_text(f"❌ Error: {e}")
         
+        # ===== REMOVE BALANCE =====
         elif text.startswith("/remove "):
             parts = text.split()
             if len(parts) >= 3:
@@ -250,6 +270,18 @@ class AdminHandlers:
                 except Exception as e:
                     await update.message.reply_text(f"❌ Error: {e}")
         
+        # ===== CLEAR DATA =====
+        elif text.startswith("/clear"):
+            await update.message.reply_text(
+                "🗑️ *Clear Data*\n\n"
+                "Reply to this message with:\n"
+                "• `all` - Clear ALL data (full reset)\n"
+                "• `earnings` - Clear only earnings & referrals",
+                parse_mode='Markdown'
+            )
+            context.user_data["awaiting_clear"] = True
+        
+        # ===== STATS =====
         elif text == "/stats":
             stats = db.get_stats()
             
@@ -267,5 +299,49 @@ class AdminHandlers:
             
             await update.message.reply_text(msg, parse_mode='Markdown')
         
+        # ===== ADMIN PANEL =====
         elif text == "/admin":
             await AdminHandlers.admin_panel(update, context)
+    
+    @staticmethod
+    async def handle_clear_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle clear command reply"""
+        if not is_admin(update.effective_user.id):
+            return
+        
+        if not context.user_data.get("awaiting_clear"):
+            return
+        
+        if not update.message.reply_to_message:
+            return
+        
+        text = update.message.text.lower().strip()
+        
+        if text == "all":
+            # Get user ID from replied message
+            replied_text = update.message.reply_to_message.text
+            import re
+            match = re.search(r'`(\d+)`', replied_text)
+            if match:
+                user_id = int(match.group(1))
+                db.clear_all_user_data(user_id)
+                await update.message.reply_text(f"✅ *All data cleared for user `{user_id}`*", parse_mode='Markdown')
+            else:
+                await update.message.reply_text("❌ User ID not found in replied message")
+        
+        elif text == "earnings":
+            # Get user ID from replied message
+            replied_text = update.message.reply_to_message.text
+            import re
+            match = re.search(r'`(\d+)`', replied_text)
+            if match:
+                user_id = int(match.group(1))
+                db.clear_user_earnings(user_id)
+                await update.message.reply_text(f"✅ *Earnings cleared for user `{user_id}`*", parse_mode='Markdown')
+            else:
+                await update.message.reply_text("❌ User ID not found in replied message")
+        
+        else:
+            await update.message.reply_text("❌ Invalid option. Use `all` or `earnings`")
+        
+        context.user_data.pop("awaiting_clear", None)
