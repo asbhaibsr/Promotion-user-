@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Earnings | 2026</title>
+    <title>🎬 FilmyFund - Earn Money</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* ULTRA ADVANCED CSS */
+        /* ULTRA PROFESSIONAL CSS */
         :root {
-            --bg-primary: #0a0f1e;
-            --bg-secondary: #1a1f2f;
+            --bg-primary: #0a0b0e;
+            --bg-secondary: #1a1d24;
             --accent-gold: #ffd700;
-            --accent-green: #4caf50;
-            --accent-red: #ff4757;
-            --accent-blue: #00a8ff;
+            --accent-green: #2ecc71;
+            --accent-red: #e74c3c;
+            --accent-blue: #3498db;
             --accent-purple: #9b59b6;
             --text-primary: #ffffff;
-            --text-secondary: #888888;
-            --border-glow: rgba(255, 215, 0, 0.3);
-            --shadow-glow: 0 0 30px rgba(255, 215, 0, 0.2);
+            --text-secondary: #8e9aaf;
+            --border-glow: rgba(255, 215, 0, 0.2);
+            --shadow-glow: 0 0 30px rgba(255, 215, 0, 0.15);
         }
 
         * {
@@ -54,23 +54,37 @@
             to { transform: rotate(360deg); }
         }
 
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
-        }
-
         .fade-in {
             animation: fadeIn 0.3s ease;
         }
 
-        .float {
-            animation: float 3s ease-in-out infinite;
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 0.5s;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--bg-secondary);
+            border-top: 5px solid var(--accent-gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
 
         /* Header */
         .header {
-            background: linear-gradient(145deg, var(--bg-secondary), #0f1424);
+            background: linear-gradient(145deg, var(--bg-secondary), #13161f);
             border-radius: 30px;
             padding: 20px;
             margin-bottom: 20px;
@@ -89,7 +103,7 @@
         .profile-avatar {
             width: 70px;
             height: 70px;
-            background: linear-gradient(135deg, var(--accent-gold), #ff8c00);
+            background: linear-gradient(135deg, var(--accent-gold), #f39c12);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -98,7 +112,6 @@
             font-weight: bold;
             color: #000;
             box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
-            animation: pulse 2s infinite;
         }
 
         .profile-info {
@@ -106,14 +119,14 @@
         }
 
         .profile-name {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: bold;
             color: var(--accent-gold);
             margin-bottom: 4px;
         }
 
         .profile-id {
-            font-size: 12px;
+            font-size: 13px;
             color: var(--text-secondary);
         }
 
@@ -124,7 +137,7 @@
         }
 
         .balance-card {
-            background: linear-gradient(135deg, #2a2f3f, var(--bg-secondary));
+            background: linear-gradient(135deg, #232835, var(--bg-secondary));
             padding: 18px;
             border-radius: 25px;
             flex: 2;
@@ -144,7 +157,7 @@
         }
 
         .spins-card {
-            background: linear-gradient(135deg, #2a2f3f, var(--bg-secondary));
+            background: linear-gradient(135deg, #232835, var(--bg-secondary));
             padding: 18px;
             border-radius: 25px;
             flex: 1;
@@ -185,13 +198,73 @@
             color: var(--accent-gold);
         }
 
-        /* Navigation Bar - FIXED */
+        /* Main Menu - 2 BIG BUTTONS */
+        .main-menu {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .menu-item {
+            background: linear-gradient(145deg, var(--bg-secondary), #13161f);
+            border: 2px solid var(--border-glow);
+            border-radius: 30px;
+            padding: 30px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            animation: fadeIn 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-item::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,215,0,0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s;
+        }
+
+        .menu-item:hover::before {
+            left: 100%;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .menu-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .menu-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent-gold);
+            margin-bottom: 8px;
+        }
+
+        .menu-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Navigation Bar */
         .nav-bar {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(10, 15, 30, 0.98);
+            background: rgba(10, 11, 14, 0.98);
             backdrop-filter: blur(10px);
             display: flex;
             justify-content: space-around;
@@ -239,70 +312,6 @@
             font-weight: 600;
         }
 
-        /* Main Menu - 2 ICONS ON TOP */
-        .main-menu {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .menu-item {
-            background: linear-gradient(145deg, var(--bg-secondary), #0f1424);
-            border: 2px solid var(--border-glow);
-            border-radius: 25px;
-            padding: 25px 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            animation: fadeIn 0.5s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .menu-item::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,215,0,0.1), transparent);
-            transform: rotate(45deg);
-            transition: all 0.5s;
-        }
-
-        .menu-item:hover::before {
-            left: 100%;
-        }
-
-        .menu-item:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-glow);
-        }
-
-        .menu-item:active {
-            transform: scale(0.95);
-        }
-
-        .menu-icon {
-            font-size: 45px;
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        .menu-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--text-primary);
-        }
-
-        .menu-subtitle {
-            font-size: 12px;
-            color: var(--accent-gold);
-            margin-top: 8px;
-        }
-
         /* Cards */
         .card {
             background: rgba(255, 255, 255, 0.03);
@@ -326,7 +335,7 @@
 
         /* Buttons */
         .btn {
-            background: linear-gradient(145deg, var(--bg-secondary), #0f1424);
+            background: linear-gradient(145deg, var(--bg-secondary), #13161f);
             border: 2px solid var(--border-glow);
             color: var(--text-primary);
             padding: 16px;
@@ -344,7 +353,7 @@
         }
 
         .btn.primary {
-            background: linear-gradient(145deg, var(--accent-gold), #ff8c00);
+            background: linear-gradient(145deg, var(--accent-gold), #f39c12);
             color: #000;
             border: none;
             font-weight: bold;
@@ -365,7 +374,7 @@
             gap: 10px;
         }
 
-        /* Spin Wheel - ADVANCED */
+        /* Spin Wheel */
         .wheel-container {
             text-align: center;
             margin: 20px 0;
@@ -419,7 +428,7 @@
         }
 
         .spin-btn {
-            background: linear-gradient(145deg, var(--accent-gold), #ff8c00);
+            background: linear-gradient(145deg, var(--accent-gold), #f39c12);
             color: #000;
             border: none;
             padding: 20px;
@@ -440,21 +449,6 @@
         .spin-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-        }
-
-        /* Prize Tags on Wheel */
-        .prize-tag {
-            position: absolute;
-            width: 40px;
-            height: 20px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            font-size: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            transform-origin: center;
         }
 
         /* Leaderboard */
@@ -528,6 +522,22 @@
             background: var(--accent-green);
         }
 
+        /* Progress Bar */
+        .progress-bar {
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-gold), #f39c12);
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+
         /* Modal */
         .modal {
             position: fixed;
@@ -554,7 +564,6 @@
             text-align: center;
             border: 3px solid var(--accent-gold);
             box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
-            animation: float 3s ease-in-out infinite;
         }
 
         .modal-title {
@@ -571,29 +580,31 @@
             text-shadow: 0 0 20px gold;
         }
 
-        /* Ads */
-        .ad-card {
-            background: linear-gradient(145deg, #2a2f3f, var(--bg-secondary));
-            border-radius: 20px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 2px solid var(--accent-blue);
+        /* Help Button */
+        .help-btn {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: var(--accent-gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: #000;
             cursor: pointer;
+            box-shadow: 0 0 20px gold;
+            z-index: 100;
             transition: all 0.3s;
         }
 
-        .ad-card:hover {
-            transform: scale(1.02);
+        .help-btn:hover {
+            transform: scale(1.1);
         }
 
-        .ad-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: var(--accent-blue);
-            margin-bottom: 5px;
-        }
-
-        /* Pages - Each opens like new tab */
+        /* Pages */
         .page {
             animation: fadeIn 0.3s ease;
             background: var(--bg-primary);
@@ -601,22 +612,58 @@
             position: relative;
         }
 
-        /* Loading */
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: var(--accent-gold);
-            font-size: 18px;
+        /* Input */
+        input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--border-glow);
+            color: white;
+            padding: 15px;
+            border-radius: 25px;
+            width: 100%;
+            font-size: 16px;
+            margin-bottom: 10px;
         }
 
-        .loading::after {
-            content: '...';
-            animation: pulse 1s infinite;
+        input:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+        }
+
+        /* Tier Grid */
+        .tier-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .tier-item {
+            background: rgba(255, 215, 0, 0.1);
+            padding: 12px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid var(--border-glow);
+        }
+
+        .tier-name {
+            color: var(--accent-gold);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .tier-rate {
+            font-size: 20px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <div id="app">
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loader"></div>
+    </div>
+
+    <div id="app" style="display: none;">
         <!-- HEADER -->
         <div class="header">
             <div class="profile-row">
@@ -654,12 +701,12 @@
             </div>
         </div>
 
-        <!-- MAIN MENU - 2 ICONS ONLY ON TOP -->
+        <!-- MAIN MENU - 2 BIG BUTTONS -->
         <div class="main-menu">
             <div class="menu-item" onclick="openPage('groups')">
-                <span class="menu-icon">👥</span>
-                <span class="menu-title">GROUPS</span>
-                <span class="menu-subtitle">Join & Earn</span>
+                <span class="menu-icon">🎬</span>
+                <span class="menu-title">MOVIES</span>
+                <span class="menu-subtitle">Join & Search</span>
             </div>
             <div class="menu-item" onclick="openPage('earnings')">
                 <span class="menu-icon">💰</span>
@@ -668,23 +715,20 @@
             </div>
         </div>
 
-        <!-- ADS SECTION -->
-        <div id="adsSection" class="card" style="display: none;">
-            <div class="card-title">📢 SPONSORED</div>
-            <div id="adsContainer"></div>
-        </div>
+        <!-- HELP BUTTON -->
+        <div class="help-btn" onclick="showHelp()">❓</div>
 
-        <!-- GROUPS PAGE - Opens in new tab style -->
+        <!-- GROUPS PAGE -->
         <div id="pageGroups" class="page" style="display: none;">
             <button class="btn" onclick="closePage('groups')" style="margin-bottom: 20px;">← BACK</button>
             
             <div class="card">
                 <div class="card-title">📢 JOIN CHANNEL</div>
                 <button class="btn primary" onclick="joinChannel()">
-                    JOIN @{{ channel }} (₹{{ channel_bonus }} BONUS)
+                    CLAIM BONUS (₹{{ channel_bonus }})
                 </button>
                 <p style="color: #888; text-align: center; margin-top: 10px;">
-                    After joining, come back and click again
+                    Channel: {{ channel }}
                 </p>
             </div>
             
@@ -696,33 +740,30 @@
                 <button class="btn" onclick="window.open('{{ new_group }}', '_blank')">
                     NEW MOVIE GROUP
                 </button>
-                <button class="btn primary" onclick="window.open('{{ all_groups }}', '_blank')">
-                    JOIN ALL GROUPS
-                </button>
             </div>
             
-            <div class="card" style="background: rgba(76, 175, 80, 0.1);">
-                <div style="color: #4caf50; font-weight: bold;">💡 TIP</div>
-                <p style="color: #ccc;">Search in these groups to activate referrals. Your referrer gets paid when you search daily!</p>
+            <div class="card" style="background: rgba(46, 204, 113, 0.1);">
+                <div style="color: #2ecc71; font-weight: bold;">💡 TIP</div>
+                <p style="color: #ccc;">Search in these groups to activate referrals! Each search = earnings for your referrer.</p>
             </div>
         </div>
 
-        <!-- EARNINGS PAGE - Opens in new tab style -->
+        <!-- EARNINGS PAGE -->
         <div id="pageEarnings" class="page" style="display: none;">
             <button class="btn" onclick="closePage('earnings')" style="margin-bottom: 20px;">← BACK</button>
             
             <div class="card">
-                <div class="card-title">💰 EARNINGS STATS</div>
+                <div class="card-title">💰 YOUR EARNINGS</div>
                 <div style="text-align: center;">
-                    <div style="font-size: 36px; color: gold; margin: 20px 0;" id="totalEarned">₹0.00</div>
+                    <div style="font-size: 48px; color: gold; margin: 20px 0;" id="totalEarned">₹0.00</div>
                     <div style="display: flex; justify-content: space-around;">
                         <div>
-                            <div style="color: #888;">REFERRAL RATE</div>
+                            <div style="color: #888;">RATE</div>
                             <div style="color: gold;" id="earningRate">₹0.10/search</div>
                         </div>
                         <div>
-                            <div style="color: #888;">TOTAL REFS</div>
-                            <div style="color: gold;" id="totalRefsEarn">0</div>
+                            <div style="color: #888;">TIER</div>
+                            <div style="color: gold;" id="tierNameEarn">BASIC</div>
                         </div>
                     </div>
                 </div>
@@ -730,29 +771,73 @@
             
             <div class="card">
                 <div class="card-title">👑 TIER SYSTEM</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">
-                        <div>🥉 BASIC (0+)</div>
-                        <div style="color: gold;">₹0.10</div>
+                <div class="tier-grid">
+                    <div class="tier-item">
+                        <div class="tier-name">🥉 BASIC</div>
+                        <div class="tier-rate">₹0.10</div>
+                        <div>0+ refs</div>
                     </div>
-                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">
-                        <div>🥈 SILVER (10+)</div>
-                        <div style="color: gold;">₹0.12</div>
+                    <div class="tier-item">
+                        <div class="tier-name">🥈 SILVER</div>
+                        <div class="tier-rate">₹0.12</div>
+                        <div>10+ refs</div>
                     </div>
-                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">
-                        <div>🥇 GOLD (30+)</div>
-                        <div style="color: gold;">₹0.15</div>
+                    <div class="tier-item">
+                        <div class="tier-name">🥇 GOLD</div>
+                        <div class="tier-rate">₹0.15</div>
+                        <div>30+ refs</div>
                     </div>
-                    <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 10px;">
-                        <div>💎 DIAMOND (150+)</div>
-                        <div style="color: gold;">₹0.22</div>
+                    <div class="tier-item">
+                        <div class="tier-name">💎 DIAMOND</div>
+                        <div class="tier-rate">₹0.22</div>
+                        <div>150+ refs</div>
                     </div>
                 </div>
             </div>
             
             <div class="card">
-                <div class="card-title">🏆 MONTHLY LEADERBOARD</div>
+                <div class="card-title">📊 REFERRAL STATS</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="text-align: center;">
+                        <div style="color: #888;">TOTAL</div>
+                        <div style="color: gold; font-size: 28px;" id="totalRefsEarn">0</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="color: #888;">ACTIVE</div>
+                        <div style="color: gold; font-size: 28px;" id="activeRefsEarn">0</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="color: #888;">PENDING</div>
+                        <div style="color: #e74c3c; font-size: 28px;" id="pendingRefsEarn">0</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="color: #888;">MONTHLY</div>
+                        <div style="color: gold; font-size: 28px;" id="monthlyRefsEarn">0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">🏆 LEADERBOARD</div>
                 <div id="leaderboardList"></div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">🎯 MISSIONS</div>
+                <div id="missionsList"></div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">📈 PROGRESS</div>
+                <div style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Next Tier</span>
+                        <span id="nextTierProgress">0/10</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="tierProgress" style="width: 0%"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -766,22 +851,22 @@
                 <div class="wheel-container">
                     <div class="wheel" id="wheel" style="transform: rotate(0deg);"></div>
                     <button class="spin-btn" id="spinBtn" onclick="spinWheel()">
-                        🎰 SPIN ({spins} left)
+                        🎰 SPIN (<span id="spinsLeft">0</span> left)
                     </button>
                 </div>
             </div>
             
             <div class="card">
-                <div class="card-title">💰 PRIZE POOL</div>
+                <div class="card-title">💰 PRIZES</div>
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center;">
-                    <div style="background: #ff6b6b; padding: 10px; border-radius: 15px;">₹0.00</div>
-                    <div style="background: #4ecdc4; padding: 10px; border-radius: 15px;">₹0.05</div>
-                    <div style="background: #ffe66d; padding: 10px; border-radius: 15px;">₹0.10</div>
-                    <div style="background: #ff9f1c; padding: 10px; border-radius: 15px;">₹0.20</div>
-                    <div style="background: #c77dff; padding: 10px; border-radius: 15px;">₹0.50</div>
-                    <div style="background: #ff99c8; padding: 10px; border-radius: 15px;">₹1.00</div>
-                    <div style="background: #6c5ce7; padding: 10px; border-radius: 15px;">₹2.00</div>
-                    <div style="background: #00cec9; padding: 10px; border-radius: 15px;">₹5.00</div>
+                    <div style="background: #ff6b6b; padding: 8px; border-radius: 12px;">₹0</div>
+                    <div style="background: #4ecdc4; padding: 8px; border-radius: 12px;">₹0.05</div>
+                    <div style="background: #ffe66d; padding: 8px; border-radius: 12px;">₹0.10</div>
+                    <div style="background: #ff9f1c; padding: 8px; border-radius: 12px;">₹0.20</div>
+                    <div style="background: #c77dff; padding: 8px; border-radius: 12px;">₹0.50</div>
+                    <div style="background: #ff99c8; padding: 8px; border-radius: 12px;">₹1</div>
+                    <div style="background: #6c5ce7; padding: 8px; border-radius: 12px;">₹2</div>
+                    <div style="background: #00cec9; padding: 8px; border-radius: 12px;">₹5</div>
                 </div>
             </div>
         </div>
@@ -791,7 +876,7 @@
             <button class="btn" onclick="closePage('referral')" style="margin-bottom: 20px;">← BACK</button>
             
             <div class="card">
-                <div class="card-title">🔗 YOUR REFERRAL LINK</div>
+                <div class="card-title">🔗 YOUR LINK</div>
                 <div style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 15px; word-break: break-all; margin-bottom: 15px; font-size: 12px;" id="refLink">
                     Loading...
                 </div>
@@ -799,24 +884,25 @@
             </div>
             
             <div class="card">
-                <div class="card-title">📊 REFERRAL STATS</div>
+                <div class="card-title">👥 REFERRALS</div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div style="text-align: center;">
                         <div style="color: #888;">TOTAL</div>
-                        <div style="color: gold; font-size: 24px;" id="totalRefs">0</div>
+                        <div style="color: gold; font-size: 32px;" id="totalRefs">0</div>
                     </div>
                     <div style="text-align: center;">
                         <div style="color: #888;">ACTIVE</div>
-                        <div style="color: gold; font-size: 24px;" id="activeRefsRef">0</div>
+                        <div style="color: gold; font-size: 32px;" id="activeRefsRef">0</div>
                     </div>
-                    <div style="text-align: center;">
-                        <div style="color: #888;">PENDING</div>
-                        <div style="color: #ff6b6b; font-size: 24px;" id="pendingRefs">0</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="color: #888;">MONTHLY</div>
-                        <div style="color: gold; font-size: 24px;" id="monthlyRefs">0</div>
-                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">📢 SHARE</div>
+                <div class="btn-group">
+                    <button class="btn small" onclick="shareWhatsApp()">📱 WhatsApp</button>
+                    <button class="btn small" onclick="shareTelegram()">✈️ Telegram</button>
+                    <button class="btn small" onclick="shareFacebook()">📘 Facebook</button>
                 </div>
             </div>
             
@@ -824,90 +910,8 @@
                 <div class="card-title">💰 HOW IT WORKS</div>
                 <p>1️⃣ Share your link</p>
                 <p>2️⃣ Friend joins</p>
-                <p>3️⃣ They search in movie group</p>
-                <p style="color: gold;">4️⃣ You earn ₹0.10+ daily!</p>
-                <p style="color: #888; font-size: 12px;">*Only 1 search per day counts</p>
-            </div>
-        </div>
-
-        <!-- DAILY BONUS PAGE -->
-        <div id="pageDaily" class="page" style="display: none;">
-            <button class="btn" onclick="closePage('daily')" style="margin-bottom: 20px;">← BACK</button>
-            
-            <div class="card" style="text-align: center;">
-                <div style="font-size: 60px; margin-bottom: 20px; animation: float 3s infinite;">🎁</div>
-                <div class="card-title">DAILY BONUS</div>
-                <div style="font-size: 32px; color: gold; margin: 20px 0;" id="dailyBonusAmount">₹0.05+</div>
-                <div style="color: #888; margin-bottom: 20px;" id="dailyStreakText">Streak: 0 days</div>
-                
-                <button class="btn primary" onclick="claimDaily()" id="claimDailyBtn">
-                    📅 CLAIM NOW
-                </button>
-            </div>
-            
-            <div class="card">
-                <div class="card-title">🔥 STREAK BONUS</div>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center;">
-                    <div>
-                        <div style="color: gold;">Day 1</div>
-                        <div>₹0.05</div>
-                    </div>
-                    <div>
-                        <div style="color: gold;">Day 2</div>
-                        <div>₹0.07</div>
-                    </div>
-                    <div>
-                        <div style="color: gold;">Day 3+</div>
-                        <div>₹0.05+</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- MISSIONS PAGE -->
-        <div id="pageMissions" class="page" style="display: none;">
-            <button class="btn" onclick="closePage('missions')" style="margin-bottom: 20px;">← BACK</button>
-            
-            <div class="card">
-                <div class="card-title">🎯 TODAY'S MISSIONS</div>
-                
-                <div class="mission-item">
-                    <div>
-                        <div style="font-weight: bold;">🔍 SEARCH 3 TIMES</div>
-                        <div style="color: #888;">Search in movie groups</div>
-                    </div>
-                    <div>
-                        <span class="mission-reward">₹0.15 +1🎰</span>
-                        <span class="mission-status" id="mission1Status">⭕</span>
-                    </div>
-                </div>
-                
-                <div class="mission-item">
-                    <div>
-                        <div style="font-weight: bold;">👥 REFER 2 USERS</div>
-                        <div style="color: #888;">Bring new users</div>
-                    </div>
-                    <div>
-                        <span class="mission-reward">₹0.50 +1🎰</span>
-                        <span class="mission-status" id="mission2Status">⭕</span>
-                    </div>
-                </div>
-                
-                <div class="mission-item">
-                    <div>
-                        <div style="font-weight: bold;">📅 CLAIM DAILY</div>
-                        <div style="color: #888;">Get daily bonus</div>
-                    </div>
-                    <div>
-                        <span class="mission-reward">₹0.10 +1🎰</span>
-                        <span class="mission-status" id="mission3Status">⭕</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card" style="background: rgba(76, 175, 80, 0.1);">
-                <div style="color: #4caf50; font-weight: bold;">💡 TIP</div>
-                <p style="color: #ccc;">Complete all missions to get ₹0.75 + 3 spins daily!</p>
+                <p>3️⃣ They search daily</p>
+                <p style="color: gold;">4️⃣ You earn ₹0.10+ per day!</p>
             </div>
         </div>
 
@@ -917,13 +921,13 @@
             
             <div class="card" style="text-align: center;">
                 <div class="profile-avatar" style="margin: 0 auto 20px; width: 100px; height: 100px; font-size: 50px;" id="profileAvatarLarge">👤</div>
-                <div style="font-size: 24px; font-weight: bold;" id="profileNameLarge">Loading...</div>
+                <div style="font-size: 28px; font-weight: bold;" id="profileNameLarge">Loading...</div>
                 <div style="color: #888; margin: 10px 0;" id="profileIdLarge">ID: 0</div>
-                <div style="color: gold; font-size: 18px;" id="profileTier">Tier 1 - BASIC</div>
+                <div style="color: gold; font-size: 20px;" id="profileTier">Tier 1 - BASIC</div>
             </div>
             
             <div class="card">
-                <div class="card-title">📊 ACCOUNT DETAILS</div>
+                <div class="card-title">📊 STATS</div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div>
                         <div style="color: #888;">Joined</div>
@@ -938,8 +942,47 @@
                         <div style="color: gold;" id="totalSearches">0</div>
                     </div>
                     <div>
-                        <div style="color: #888;">Tier Rate</div>
+                        <div style="color: #888;">Rate</div>
                         <div style="color: gold;" id="tierRate">₹0.10</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">💳 WITHDRAW</div>
+                <button class="btn primary" onclick="openPage('withdraw')">WITHDRAW NOW</button>
+            </div>
+        </div>
+
+        <!-- DAILY BONUS PAGE -->
+        <div id="pageDaily" class="page" style="display: none;">
+            <button class="btn" onclick="closePage('daily')" style="margin-bottom: 20px;">← BACK</button>
+            
+            <div class="card" style="text-align: center;">
+                <div style="font-size: 80px; margin-bottom: 20px;">🎁</div>
+                <div class="card-title">DAILY BONUS</div>
+                <div style="font-size: 48px; color: gold; margin: 20px 0;" id="dailyBonusAmount">₹0.05</div>
+                <div style="color: #888; margin-bottom: 20px;" id="dailyStreakText">Streak: 0 days</div>
+                
+                <button class="btn primary" onclick="claimDaily()" id="claimDailyBtn">
+                    📅 CLAIM NOW
+                </button>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">🔥 STREAK BONUS</div>
+                <div style="display: flex; justify-content: space-around;">
+                    <div style="text-align: center;">
+                        <div style="color: gold;">Day 1</div>
+                        <div>₹0.05</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="color: gold;">Day 2</div>
+                        <div>₹0.07</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="color: gold;">Day 3+</div>
+                        <div>₹0.09</div>
                     </div>
                 </div>
             </div>
@@ -950,8 +993,8 @@
             <button class="btn" onclick="closePage('withdraw')" style="margin-bottom: 20px;">← BACK</button>
             
             <div class="card">
-                <div class="card-title">💰 AVAILABLE BALANCE</div>
-                <div style="font-size: 36px; color: gold; text-align: center;" id="withdrawBalance">₹0.00</div>
+                <div class="card-title">💰 BALANCE</div>
+                <div style="font-size: 48px; color: gold; text-align: center;" id="withdrawBalance">₹0.00</div>
                 <div style="text-align: center; color: #888;">Minimum ₹{{ min_withdrawal }}</div>
             </div>
             
@@ -973,7 +1016,7 @@
                         <button class="btn small method-btn" onclick="selectMethod('bank')">🏦 BANK</button>
                     </div>
                     
-                    <input type="text" id="paymentInput" class="btn" placeholder="UPI ID / Bank Details" style="text-align: left;">
+                    <input type="text" id="paymentInput" placeholder="UPI ID / Bank Details">
                     
                     <button class="btn primary" onclick="savePayment()">💾 SAVE</button>
                 </div>
@@ -982,7 +1025,7 @@
             <div id="withdrawForm" style="display: none;">
                 <div class="card">
                     <div class="card-title">📝 ENTER AMOUNT</div>
-                    <input type="number" id="withdrawAmount" class="btn" placeholder="₹50 or more" min="{{ min_withdrawal }}" step="1" style="text-align: left;">
+                    <input type="number" id="withdrawAmount" placeholder="₹50 or more" min="{{ min_withdrawal }}" step="1">
                     
                     <div class="btn-group">
                         <button class="btn" onclick="cancelWithdraw()">CANCEL</button>
@@ -993,7 +1036,29 @@
         </div>
     </div>
 
-    <!-- NAVIGATION BAR - FIXED -->
+    <!-- HELP MODAL -->
+    <div id="helpModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-title">❓ HELP & SUPPORT</div>
+            <textarea id="issueText" rows="4" style="width: 100%; margin: 20px 0; padding: 15px; border-radius: 20px; background: rgba(255,255,255,0.1); color: white; border: 2px solid gold;" placeholder="Describe your problem..."></textarea>
+            <div class="btn-group">
+                <button class="btn" onclick="closeHelp()">CANCEL</button>
+                <button class="btn primary" onclick="submitIssue()">SEND</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div id="modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle">🎉 CONGRATULATIONS!</div>
+            <div class="prize-amount" id="modalAmount">₹0.00</div>
+            <p id="modalText">You won!</p>
+            <button class="btn primary" onclick="closeModal()">OK</button>
+        </div>
+    </div>
+
+    <!-- NAVIGATION BAR -->
     <div class="nav-bar">
         <div class="nav-item active" onclick="goToHome()">
             <span class="nav-icon">🏠</span>
@@ -1017,21 +1082,17 @@
         </div>
     </div>
 
-    <!-- MODAL -->
-    <div id="modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-title" id="modalTitle">🎉 CONGRATULATIONS!</div>
-            <div class="prize-amount" id="modalAmount">₹0.00</div>
-            <p id="modalText">You won!</p>
-            <button class="btn primary" onclick="closeModal()">OK</button>
-        </div>
-    </div>
-
     <script>
         // Telegram WebApp
         const tg = window.Telegram.WebApp;
         tg.expand();
         tg.ready();
+        
+        // Hide loading after 1 second
+        setTimeout(() => {
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+        }, 1000);
         
         // Global variables
         const userData = {
@@ -1051,8 +1112,7 @@
             channelJoined: false,
             paymentMethod: 'upi',
             paymentDetails: '',
-            totalSearches: 0,
-            searchStreak: 0
+            totalSearches: 0
         };
         
         const minWithdrawal = {{ min_withdrawal }};
@@ -1080,14 +1140,12 @@
                     userData.dailyStreak = data.daily_streak || 0;
                     userData.channelJoined = data.channel_joined || false;
                     userData.totalSearches = data.total_searches || 0;
-                    userData.searchStreak = data.search_streak || 0;
                     
                     updateUI();
                 }
                 
                 loadLeaderboard();
                 loadMissions();
-                loadAds();
                 
             } catch (e) {
                 console.error('Load error:', e);
@@ -1106,15 +1164,17 @@
             if (document.getElementById('totalEarned')) {
                 document.getElementById('totalEarned').innerText = `₹${userData.totalEarned.toFixed(2)}`;
                 document.getElementById('earningRate').innerText = `₹${userData.tierRate}/search`;
+                document.getElementById('tierNameEarn').innerText = userData.tierName;
                 document.getElementById('totalRefsEarn').innerText = userData.totalRefs;
+                document.getElementById('activeRefsEarn').innerText = userData.activeRefs;
+                document.getElementById('pendingRefsEarn').innerText = userData.pendingRefs;
+                document.getElementById('monthlyRefsEarn').innerText = userData.monthlyRefs;
             }
             
             // Referral page
             if (document.getElementById('totalRefs')) {
                 document.getElementById('totalRefs').innerText = userData.totalRefs;
                 document.getElementById('activeRefsRef').innerText = userData.activeRefs;
-                document.getElementById('pendingRefs').innerText = userData.pendingRefs;
-                document.getElementById('monthlyRefs').innerText = userData.monthlyRefs;
             }
             
             // Profile page
@@ -1132,21 +1192,47 @@
                 document.getElementById('dailyStreakText').innerText = `Streak: ${userData.dailyStreak} days`;
             }
             
+            // Spin
+            document.getElementById('spinsLeft').innerText = userData.spins;
+            const spinBtn = document.getElementById('spinBtn');
+            if (spinBtn) {
+                spinBtn.disabled = userData.spins <= 0;
+            }
+            
             // Withdraw page
             if (document.getElementById('withdrawBalance')) {
                 document.getElementById('withdrawBalance').innerText = `₹${userData.balance.toFixed(2)}`;
             }
             
-            // Spin button
-            updateSpinButton();
+            // Progress to next tier
+            updateTierProgress();
         }
 
-        // ====== NAVIGATION - NEW TAB STYLE ======
+        function updateTierProgress() {
+            let nextTierRefs = 0;
+            let nextTierName = '';
+            
+            if (userData.tier === 1) nextTierRefs = 10;
+            else if (userData.tier === 2) nextTierRefs = 30;
+            else if (userData.tier === 3) nextTierRefs = 70;
+            else if (userData.tier === 4) nextTierRefs = 150;
+            else if (userData.tier === 5) nextTierRefs = 300;
+            
+            if (nextTierRefs > 0) {
+                const progress = Math.min(100, (userData.activeRefs / nextTierRefs) * 100);
+                document.getElementById('tierProgress').style.width = progress + '%';
+                document.getElementById('nextTierProgress').innerText = `${userData.activeRefs}/${nextTierRefs}`;
+            } else {
+                document.getElementById('tierProgress').style.width = '100%';
+                document.getElementById('nextTierProgress').innerText = 'MAX';
+            }
+        }
+
+        // ====== NAVIGATION ======
         function goToHome() {
             document.querySelectorAll('[id^="page"]').forEach(p => p.style.display = 'none');
             document.querySelector('.header').style.display = 'block';
             document.querySelector('.main-menu').style.display = 'grid';
-            document.getElementById('adsSection').style.display = userData.ads ? 'block' : 'none';
             
             document.querySelectorAll('.nav-item').forEach((item, idx) => {
                 item.classList.toggle('active', idx === 0);
@@ -1156,30 +1242,23 @@
         }
 
         function openPage(page) {
-            // Hide home elements
             document.querySelector('.header').style.display = 'none';
             document.querySelector('.main-menu').style.display = 'none';
-            document.getElementById('adsSection').style.display = 'none';
             
-            // Hide all pages
             document.querySelectorAll('[id^="page"]').forEach(p => p.style.display = 'none');
             
-            // Show selected page
-            document.getElementById(`page${page.charAt(0).toUpperCase() + page.slice(1)}`).style.display = 'block';
+            const pageId = 'page' + page.charAt(0).toUpperCase() + page.slice(1);
+            document.getElementById(pageId).style.display = 'block';
             
-            // Update nav
-            const navMap = {
-                'earnings': 1,
-                'spin': 2,
-                'referral': 3,
-                'profile': 4
-            };
-            
+            const navMap = { 'earnings': 1, 'spin': 2, 'referral': 3, 'profile': 4, 'withdraw': 4 };
             document.querySelectorAll('.nav-item').forEach((item, idx) => {
                 item.classList.toggle('active', navMap[page] === idx);
             });
             
             currentPage = page;
+            
+            if (page === 'daily') loadDailyData();
+            if (page === 'spin') loadSpinData();
         }
 
         function closePage(page) {
@@ -1202,7 +1281,7 @@
                     html += `
                         <div class="leaderboard-item">
                             <div class="rank ${rankClass}">#${user.rank}</div>
-                            <div class="user-info" style="flex: 1;">
+                            <div style="flex: 1;">
                                 <div style="font-weight: bold;">${user.name}</div>
                                 <div style="color: gold;">👥 ${user.refs} referrals</div>
                             </div>
@@ -1225,53 +1304,14 @@
             }));
         }
 
-        // ====== ADS ======
-        async function loadAds() {
-            try {
-                const response = await fetch('/api/ads');
-                const ads = await response.json();
-                
-                if (ads.length > 0) {
-                    document.getElementById('adsSection').style.display = 'block';
-                    userData.ads = true;
-                    
-                    let html = '';
-                    ads.forEach(ad => {
-                        html += `
-                            <div class="ad-card" onclick="viewAd('${ad.id}', '${ad.link_url}')">
-                                <div class="ad-title">${ad.title}</div>
-                                <div style="color: #888; font-size: 12px; margin-bottom: 5px;">${ad.description}</div>
-                                <div style="color: gold; font-size: 11px;">Click to earn ₹0.001</div>
-                            </div>
-                        `;
-                    });
-                    
-                    document.getElementById('adsContainer').innerHTML = html;
-                }
-            } catch (e) {
-                console.error('Ads error:', e);
-            }
-        }
-
-        function viewAd(adId, linkUrl) {
-            tg.sendData(JSON.stringify({
-                action: 'ad_view',
-                user_id: userData.id,
-                ad_id: adId
-            }));
-            
-            window.open(linkUrl, '_blank');
-            setTimeout(loadData, 1000);
-        }
-
         // ====== CHANNEL JOIN ======
         function joinChannel() {
             if (userData.channelJoined) {
-                showModal('Already Joined', 'You have already joined the channel', 'info');
+                showModal('Already Joined', 'You have already claimed this bonus!', 'info');
                 return;
             }
             
-            window.open('https://t.me/{{ channel }}', '_blank');
+            window.open('{{ channel_link }}', '_blank');
             
             setTimeout(() => {
                 tg.sendData(JSON.stringify({
@@ -1284,16 +1324,6 @@
         }
 
         // ====== SPIN WHEEL ======
-        function updateSpinButton() {
-            const btn = document.getElementById('spinBtn');
-            if (btn) {
-                btn.innerText = userData.spins > 0 
-                    ? `🎰 SPIN (${userData.spins} left)` 
-                    : '❌ NO SPINS LEFT';
-                btn.disabled = userData.spins <= 0;
-            }
-        }
-
         function spinWheel() {
             if (isSpinning || userData.spins <= 0) return;
             
@@ -1319,8 +1349,26 @@
 
         // ====== REFERRAL ======
         function copyRefLink() {
-            navigator.clipboard.writeText(document.getElementById('refLink').innerText);
+            const link = document.getElementById('refLink').innerText;
+            navigator.clipboard.writeText(link);
             tg.showAlert('✅ Link copied!');
+        }
+
+        function shareWhatsApp() {
+            const link = document.getElementById('refLink').innerText;
+            const text = encodeURIComponent(`🎬 Earn money by watching movies!\n\nJoin this bot and get ₹5 welcome bonus!\n\n👉 ${link}`);
+            window.open(`https://wa.me/?text=${text}`, '_blank');
+        }
+
+        function shareTelegram() {
+            const link = document.getElementById('refLink').innerText;
+            const text = encodeURIComponent(`🎬 Earn money by watching movies!\n\nJoin this bot and get ₹5 welcome bonus!\n\n👉 ${link}`);
+            window.open(`https://t.me/share/url?url=${link}&text=${text}`, '_blank');
+        }
+
+        function shareFacebook() {
+            const link = document.getElementById('refLink').innerText;
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`, '_blank');
         }
 
         // ====== PAYMENT ======
@@ -1330,9 +1378,7 @@
             event.target.classList.add('active');
             
             const input = document.getElementById('paymentInput');
-            input.placeholder = method === 'upi' 
-                ? 'Enter UPI ID (e.g., username@oksbi)' 
-                : 'Enter Bank Details (Account, IFSC, Name)';
+            input.placeholder = method === 'upi' ? 'Enter UPI ID' : 'Enter Bank Details (Account, IFSC, Name)';
         }
 
         function savePayment() {
@@ -1396,10 +1442,36 @@
             }));
         }
 
+        // ====== HELP ======
+        function showHelp() {
+            document.getElementById('helpModal').style.display = 'flex';
+        }
+
+        function closeHelp() {
+            document.getElementById('helpModal').style.display = 'none';
+        }
+
+        function submitIssue() {
+            const issue = document.getElementById('issueText').value;
+            if (!issue) {
+                tg.showAlert('❌ Please describe your issue');
+                return;
+            }
+            
+            tg.sendData(JSON.stringify({
+                action: 'report_issue',
+                user_id: userData.id,
+                issue: issue
+            }));
+            
+            closeHelp();
+            tg.showAlert('✅ Report sent to admin!');
+        }
+
         // ====== MODAL ======
         function showModal(title, text, amount = '') {
             document.getElementById('modalTitle').innerText = title;
-            if (amount) {
+            if (amount && amount !== 'info') {
                 document.getElementById('modalAmount').style.display = 'block';
                 document.getElementById('modalAmount').innerText = amount;
                 document.getElementById('modalText').innerText = text;
@@ -1424,12 +1496,11 @@
                 const response = JSON.parse(data);
                 
                 if (response.prize !== undefined) {
-                    // Spin result
                     setTimeout(() => {
                         showModal(
                             response.prize > 0 ? '🎉 YOU WON!' : '😢 TRY AGAIN',
                             response.prize > 0 ? 'Added to balance' : 'Better luck next time',
-                            `₹${response.prize.toFixed(2)}`
+                            response.prize > 0 ? `₹${response.prize.toFixed(2)}` : ''
                         );
                         
                         userData.spins--;
@@ -1438,27 +1509,23 @@
                     }, 3000);
                     
                 } else if (response.bonus !== undefined) {
-                    // Daily bonus
                     showModal(
                         '🎁 DAILY BONUS',
                         `${response.streak} day streak!`,
                         `₹${response.bonus.toFixed(2)}`
                     );
-                    
                     loadData();
                     
                 } else if (response.success !== undefined) {
-                    // Withdrawal
                     if (response.success) {
                         showModal('✅ SUCCESS!', 'Admin will process within 24h', 'Request sent');
                         loadData();
                         goToHome();
                     } else {
-                        tg.showAlert('❌ ' + (response.message || 'Withdrawal failed'));
+                        tg.showAlert('❌ ' + (response.message || 'Failed'));
                     }
                     
                 } else if (response.daily_search !== undefined) {
-                    // Missions update
                     updateMissionsUI(response);
                 }
                 
@@ -1468,9 +1535,25 @@
         });
 
         function updateMissionsUI(missions) {
-            document.getElementById('mission1Status').innerHTML = missions.daily_search?.completed ? '✅' : '⭕';
-            document.getElementById('mission2Status').innerHTML = missions.daily_refer?.completed ? '✅' : '⭕';
-            document.getElementById('mission3Status').innerHTML = missions.daily_bonus?.completed ? '✅' : '⭕';
+            const missionsList = document.getElementById('missionsList');
+            if (!missionsList) return;
+            
+            let html = '';
+            for (let [key, mission] of Object.entries(missions)) {
+                html += `
+                    <div class="mission-item">
+                        <div>
+                            <div style="font-weight: bold;">${mission.icon} ${mission.name}</div>
+                            <div style="color: #888;">${mission.count}/${mission.target}</div>
+                        </div>
+                        <div>
+                            <span class="mission-reward">₹${mission.reward} +${mission.spins}🎰</span>
+                            <span class="mission-status ${mission.completed ? 'completed' : ''}">${mission.completed ? '✅' : '⭕'}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            missionsList.innerHTML = html;
         }
 
         // ====== INITIALIZE ======
@@ -1489,7 +1572,7 @@
             }
             
             // Referral link
-            document.getElementById('refLink').innerText = `https://t.me/${tg.initDataUnsafe.user?.username || 'bot'}/?start=ref_${userData.id}`;
+            document.getElementById('refLink').innerText = `https://t.me/LinkProviderRobot?start=ref_${userData.id}`;
             
             // Load data
             loadData();
