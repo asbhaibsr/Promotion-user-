@@ -127,25 +127,21 @@ def webhook():
         
         update = Update.de_json(update_data, bot_app.bot)
         
-        # ✅ FIX: Proper event loop handling
+        # ✅ CRITICAL FIX: Create new event loop for each request
         try:
-            # Get or create event loop
+            # Try to get existing loop
             try:
                 loop = asyncio.get_event_loop()
+                if loop.is_closed():
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
             except RuntimeError:
+                # No event loop, create new one
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
             
             # Process update
-            if loop.is_running():
-                # If loop is running, create task
-                asyncio.run_coroutine_threadsafe(
-                    bot_app.process_update(update), 
-                    loop
-                )
-            else:
-                # If loop is not running, run until complete
-                loop.run_until_complete(bot_app.process_update(update))
+            loop.run_until_complete(bot_app.process_update(update))
             
         except Exception as e:
             logger.error(f"Error processing update: {e}")
