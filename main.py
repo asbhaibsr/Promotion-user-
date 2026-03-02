@@ -80,7 +80,8 @@ def index():
                 channel_bonus=config.CHANNEL_JOIN_BONUS,
                 movie_group=config.MOVIE_GROUP_LINK,
                 new_group=config.NEW_GROUP_LINK,
-                all_groups=config.ALL_GROUPS_LINK
+                all_groups=config.ALL_GROUPS_LINK,
+                bot_username=config.BOT_USERNAME
             )
         else:
             # New user - create basic context
@@ -106,7 +107,8 @@ def index():
                 channel_bonus=config.CHANNEL_JOIN_BONUS,
                 movie_group=config.MOVIE_GROUP_LINK,
                 new_group=config.NEW_GROUP_LINK,
-                all_groups=config.ALL_GROUPS_LINK
+                all_groups=config.ALL_GROUPS_LINK,
+                bot_username=config.BOT_USERNAME
             )
     except Exception as e:
         logger.error(f"Index route error: {e}")
