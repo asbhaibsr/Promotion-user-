@@ -669,3 +669,19 @@ class Database:
         conn.close()
         
         return True
+    
+    def update_withdrawal_status(self, withdrawal_id, status):
+        """Update withdrawal status"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            UPDATE withdrawals 
+            SET status = ?, processed_date = ?
+            WHERE id = ?
+        ''', (status, datetime.now().isoformat(), withdrawal_id))
+        
+        conn.commit()
+        conn.close()
+        
+        return True
