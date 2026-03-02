@@ -4,6 +4,7 @@ import logging
 import json
 import random
 import traceback
+import asyncio
 from datetime import datetime, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
@@ -30,10 +31,14 @@ class BotHandlers:
                     pass
             
             # Get user photo
-            photos = await user.get_profile_photos(limit=1)
-            photo_url = None
-            if photos and photos.photos:
-                photo_url = photos.photos[0][-1].file_id
+            try:
+                photos = await user.get_profile_photos(limit=1)
+                photo_url = None
+                if photos and photos.photos:
+                    photo_url = photos.photos[0][-1].file_id
+            except Exception as e:
+                logger.error(f"Photo fetch error: {e}")
+                photo_url = None
             
             # Create or get user
             db_user = db.get_user(user.id)
@@ -166,7 +171,7 @@ class BotHandlers:
     
     @staticmethod
     async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle mini app data - COMPLETE FIXED VERSION with proper earning system"""
+        """Handle mini app data - COMPLETE FIXED VERSION"""
         try:
             if not update.effective_message or not update.effective_message.web_app_data:
                 return
@@ -219,6 +224,8 @@ class BotHandlers:
             # ===== SPIN WHEEL - FIXED =====
             elif action == "spin":
                 try:
+                    # ✅ FIX: Add small delay to prevent race conditions
+                    await asyncio.sleep(0.1)
                     result = db.spin_wheel(user_id)
                     if result and "error" not in result:
                         logger.info(f"🎡 User {user_id} won: ₹{result.get('prize', 0)}")
@@ -230,6 +237,8 @@ class BotHandlers:
             # ===== DAILY BONUS - FIXED =====
             elif action == "daily":
                 try:
+                    # ✅ FIX: Add small delay
+                    await asyncio.sleep(0.1)
                     result = db.claim_daily(user_id)
                     if result:
                         logger.info(f"📅 User {user_id} claimed daily: ₹{result['bonus']}")
@@ -269,20 +278,8 @@ class BotHandlers:
                     if success:
                         logger.info(f"💰 User {user_id} requested withdrawal: ₹{amount}")
                         
-                        # Notify admins
-                        for admin_id in Config.ADMIN_IDS:
-                            try:
-                                await context.bot.send_message(
-                                    admin_id,
-                                    f"💰 *New Withdrawal Request!*\n\n"
-                                    f"👤 User: {user_id}\n"
-                                    f"💵 Amount: {format_balance(amount)}\n"
-                                    f"🏦 Method: {method.upper()}\n"
-                                    f"📝 Details: {details}",
-                                    parse_mode='Markdown'
-                                )
-                            except:
-                                pass
+                        # Notify admins asynchronously
+                        asyncio.create_task(notify_admins(context, user_id, amount, method, details))
                     
                     await update.effective_message.reply_text(json.dumps({"success": success, "message": msg}))
                     
@@ -313,6 +310,8 @@ class BotHandlers:
             # ===== CHANNEL JOIN - FIXED =====
             elif action == "channel_join":
                 try:
+                    # ✅ FIX: Add small delay
+                    await asyncio.sleep(0.1)
                     joined = db.mark_channel_joined(user_id, Config.CHANNEL_USERNAME)
                     result = {
                         "success": joined,
@@ -331,6 +330,8 @@ class BotHandlers:
             # ===== MISSIONS - FIXED =====
             elif action == "missions":
                 try:
+                    # ✅ FIX: Add small delay
+                    await asyncio.sleep(0.1)
                     missions = db.get_missions(user_id)
                     await update.effective_message.reply_text(json.dumps(missions))
                 except Exception as e:
@@ -345,23 +346,8 @@ class BotHandlers:
                     # Save to database
                     db.save_report(user_id, issue)
                     
-                    # Send to all admins
-                    user_data = db.get_user(user_id)
-                    user_name = user_data.get("full_name", "Unknown") if user_data else "Unknown"
-                    
-                    for admin_id in Config.ADMIN_IDS:
-                        try:
-                            await context.bot.send_message(
-                                admin_id,
-                                f"⚠️ *NEW USER REPORT!*\n\n"
-                                f"👤 User: {user_name}\n"
-                                f"🆔 ID: {user_id}\n"
-                                f"📝 Issue: {issue}\n"
-                                f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-                                parse_mode='Markdown'
-                            )
-                        except:
-                            pass
+                    # Send to admins asynchronously
+                    asyncio.create_task(notify_admins_report(context, user_id, issue))
                     
                     await update.effective_message.reply_text(json.dumps({"success": True}))
                     logger.info(f"📝 Report from user {user_id}: {issue[:50]}...")
@@ -423,5 +409,41 @@ class BotHandlers:
                     "If problem persists, contact support.",
                     parse_mode='Markdown'
                 )
+        except:
+            pass
+
+# Helper function for admin notifications
+async def notify_admins(context, user_id, amount, method, details):
+    """Notify admins about withdrawal request"""
+    for admin_id in Config.ADMIN_IDS:
+        try:
+            await context.bot.send_message(
+                admin_id,
+                f"💰 *New Withdrawal Request!*\n\n"
+                f"👤 User: {user_id}\n"
+                f"💵 Amount: ₹{amount:.2f}\n"
+                f"🏦 Method: {method.upper()}\n"
+                f"📝 Details: {details}",
+                parse_mode='Markdown'
+            )
+        except:
+            pass
+
+async def notify_admins_report(context, user_id, issue):
+    """Notify admins about report"""
+    user_data = db.get_user(user_id)
+    user_name = user_data.get("full_name", "Unknown") if user_data else "Unknown"
+    
+    for admin_id in Config.ADMIN_IDS:
+        try:
+            await context.bot.send_message(
+                admin_id,
+                f"⚠️ *NEW USER REPORT!*\n\n"
+                f"👤 User: {user_name}\n"
+                f"🆔 ID: {user_id}\n"
+                f"📝 Issue: {issue}\n"
+                f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                parse_mode='Markdown'
+            )
         except:
             pass
