@@ -1,4 +1,4 @@
-# admin.py - Complete Admin Commands
+# admin.py - ULTIMATE FIXED VERSION with Thread Safety
 
 import logging
 import asyncio
@@ -77,11 +77,8 @@ class AdminHandlers:
         
         elif data == "admin_withdrawals":
             await query.answer()
-            # ✅ FIX: Run in thread pool
-            pending = await asyncio.get_event_loop().run_in_executor(
-                None, 
-                lambda: list(db.withdrawals.find({"status": "pending"}).sort("requested", -1).limit(10))
-            )
+            # Use sync operation
+            pending = list(db.withdrawals.find({"status": "pending"}).sort("requested", -1).limit(10))
             
             if not pending:
                 await query.edit_message_text("📝 No pending withdrawals")
@@ -89,9 +86,7 @@ class AdminHandlers:
             
             msg = "📝 *Pending Withdrawals*\n\n"
             for w in pending:
-                user = await asyncio.get_event_loop().run_in_executor(
-                    None, db.get_user, w["user_id"]
-                )
+                user = db.get_user(w["user_id"])
                 name = user.get("full_name", "User") if user else "Deleted"
                 msg += (
                     f"👤 *{name}* (`{w['user_id']}`)\n"
@@ -110,11 +105,8 @@ class AdminHandlers:
         
         elif data == "admin_reports":
             await query.answer()
-            # ✅ FIX: Run in thread pool
-            reports = await asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: list(db.reports.find({"status": "pending"}).sort("timestamp", -1).limit(10))
-            )
+            # Use sync operation
+            reports = list(db.reports.find({"status": "pending"}).sort("timestamp", -1).limit(10))
             
             if not reports:
                 await query.edit_message_text("📝 No pending reports")
@@ -122,9 +114,7 @@ class AdminHandlers:
             
             msg = "📝 *User Reports*\n\n"
             for r in reports:
-                user = await asyncio.get_event_loop().run_in_executor(
-                    None, db.get_user, r["user_id"]
-                )
+                user = db.get_user(r["user_id"])
                 name = user.get("full_name", "User") if user else "Unknown"
                 msg += (
                     f"👤 *{name}* (`{r['user_id']}`)\n"
@@ -273,7 +263,7 @@ class AdminHandlers:
         
         text = update.message.text
         
-        # ✅ FIX: Handle broadcast mode separately
+        # Handle broadcast mode separately
         if context.user_data.get("admin_action") == "broadcast":
             await AdminHandlers.handle_broadcast_message(update, context)
             return
