@@ -40,15 +40,15 @@ class AdminHandlers:
     @staticmethod
     async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
-        await query.answer()
         
         if not is_admin(query.from_user.id):
-            await query.edit_message_text("❌ You are not admin!")
+            await query.answer("❌ You are not admin!", show_alert=True)
             return
         
         data = query.data
         
         if data == "admin_broadcast":
+            await query.answer()
             context.user_data["admin_action"] = "broadcast"
             await query.edit_message_text(
                 "📢 *Broadcast Mode*\n\n"
@@ -58,6 +58,7 @@ class AdminHandlers:
             )
         
         elif data == "admin_global_stats":
+            await query.answer()
             stats = db.get_stats()
             
             msg = (
@@ -75,7 +76,12 @@ class AdminHandlers:
             await query.edit_message_text(msg, parse_mode='Markdown')
         
         elif data == "admin_withdrawals":
-            pending = list(db.withdrawals.find({"status": "pending"}).sort("requested", -1).limit(10))
+            await query.answer()
+            # ✅ FIX: Run in thread pool
+            pending = await asyncio.get_event_loop().run_in_executor(
+                None, 
+                lambda: list(db.withdrawals.find({"status": "pending"}).sort("requested", -1).limit(10))
+            )
             
             if not pending:
                 await query.edit_message_text("📝 No pending withdrawals")
@@ -83,7 +89,9 @@ class AdminHandlers:
             
             msg = "📝 *Pending Withdrawals*\n\n"
             for w in pending:
-                user = db.get_user(w["user_id"])
+                user = await asyncio.get_event_loop().run_in_executor(
+                    None, db.get_user, w["user_id"]
+                )
                 name = user.get("full_name", "User") if user else "Deleted"
                 msg += (
                     f"👤 *{name}* (`{w['user_id']}`)\n"
@@ -101,7 +109,12 @@ class AdminHandlers:
             )
         
         elif data == "admin_reports":
-            reports = list(db.reports.find({"status": "pending"}).sort("timestamp", -1).limit(10))
+            await query.answer()
+            # ✅ FIX: Run in thread pool
+            reports = await asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: list(db.reports.find({"status": "pending"}).sort("timestamp", -1).limit(10))
+            )
             
             if not reports:
                 await query.edit_message_text("📝 No pending reports")
@@ -109,7 +122,9 @@ class AdminHandlers:
             
             msg = "📝 *User Reports*\n\n"
             for r in reports:
-                user = db.get_user(r["user_id"])
+                user = await asyncio.get_event_loop().run_in_executor(
+                    None, db.get_user, r["user_id"]
+                )
                 name = user.get("full_name", "User") if user else "Unknown"
                 msg += (
                     f"👤 *{name}* (`{r['user_id']}`)\n"
@@ -126,6 +141,7 @@ class AdminHandlers:
             )
         
         elif data == "admin_clear_junk":
+            await query.answer()
             count = db.clear_junk_users()
             await query.edit_message_text(
                 f"🗑️ *Clear Junk*\n\n"
@@ -134,6 +150,7 @@ class AdminHandlers:
             )
         
         elif data == "admin_leaderboard":
+            await query.answer()
             top_users = db.process_monthly_leaderboard()
             
             msg = "🏆 *Monthly Leaderboard Processed!*\n\n"
@@ -144,6 +161,7 @@ class AdminHandlers:
             await query.edit_message_text(msg, parse_mode='Markdown')
         
         elif data == "admin_panel":
+            await query.answer()
             keyboard = [
                 [InlineKeyboardButton("📊 Global Stats", callback_data="admin_global_stats")],
                 [InlineKeyboardButton("📢 Broadcast", callback_data="admin_broadcast")],
@@ -162,6 +180,7 @@ class AdminHandlers:
             )
         
         elif data == "admin_close":
+            await query.answer()
             await query.edit_message_text("👋 Admin Panel Closed")
     
     @staticmethod
