@@ -23,6 +23,9 @@ class Handlers:
         if args and args[0].startswith('ref_'):
             try:
                 referrer_id = int(args[0].replace('ref_', ''))
+                # Don't allow self-referral
+                if referrer_id == user.id:
+                    referrer_id = None
             except:
                 pass
         
