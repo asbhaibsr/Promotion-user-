@@ -5,6 +5,7 @@ import asyncio
 import os
 import sys
 import traceback
+import time
 from flask import Flask, render_template, request, jsonify
 from telegram import Update
 from telegram.ext import (
@@ -17,7 +18,6 @@ from handlers import BotHandlers
 from admin import AdminHandlers
 import nest_asyncio
 import threading
-import time
 
 # Fix for event loop
 nest_asyncio.apply()
@@ -127,17 +127,25 @@ def webhook():
         
         update = Update.de_json(update_data, bot_app.bot)
         
-        # Create new event loop for this request
+        # ✅ FIX: Proper event loop handling
         try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+            # Get or create event loop
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
             
             # Process update
-            loop.run_until_complete(bot_app.process_update(update))
-            
-            # Cleanup
-            loop.run_until_complete(asyncio.sleep(0))
-            loop.close()
+            if loop.is_running():
+                # If loop is running, create task
+                asyncio.run_coroutine_threadsafe(
+                    bot_app.process_update(update), 
+                    loop
+                )
+            else:
+                # If loop is not running, run until complete
+                loop.run_until_complete(bot_app.process_update(update))
             
         except Exception as e:
             logger.error(f"Error processing update: {e}")
@@ -170,69 +178,43 @@ async def initialize_bot():
     try:
         logger.info("🚀 Initializing bot...")
         
-        # Build application
+        # Build application with proper settings
         bot_app = Application.builder().token(Config.BOT_TOKEN).build()
         
-        # Register handlers
-        bot_app.add_handler(CommandHandler("start", BotHandlers.start))
-        bot_app.add_handler(CommandHandler("check", BotHandlers.check_command))
-        bot_app.add_handler(CommandHandler("admin", AdminHandlers.admin_panel))
-        bot_app.add_handler(CommandHandler("stats", AdminHandlers.handle_admin_text))
-        bot_app.add_handler(CommandHandler("add", AdminHandlers.handle_admin_text))
-        bot_app.add_handler(CommandHandler("remove", AdminHandlers.handle_admin_text))
-        bot_app.add_handler(CommandHandler("block", AdminHandlers.handle_admin_text))
-        bot_app.add_handler(CommandHandler("unblock", AdminHandlers.handle_admin_text))
-        bot_app.add_handler(CommandHandler("clear", AdminHandlers.handle_admin_text))
-        
-        # Message handlers
-        bot_app.add_handler(MessageHandler(
-            filters.TEXT & ~filters.COMMAND & filters.ChatType.GROUPS, 
-            BotHandlers.group_message
-        ))
-        bot_app.add_handler(MessageHandler(
-            filters.StatusUpdate.WEB_APP_DATA, 
-            BotHandlers.web_app_data
-        ))
-        
-        # Callback handlers
-        bot_app.add_handler(CallbackQueryHandler(AdminHandlers.admin_callback, pattern="^admin_"))
-        
-        # Broadcast handler
-        bot_app.add_handler(MessageHandler(
-            filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE,
-            AdminHandlers.handle_broadcast_message
-        ))
-        
-        # Clear reply handler
-        bot_app.add_handler(MessageHandler(
-            filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE,
-            AdminHandlers.handle_clear_reply
-        ))
-        
-        # Error handler
-        bot_app.add_error_handler(BotHandlers.error_handler)
+        # Register all handlers
+        register_handlers(bot_app)
         
         # Initialize bot
         await bot_app.initialize()
         
-        # Set webhook
+        # Set webhook with retry logic
         webhook_url = f"{Config.WEB_APP_URL}/{Config.BOT_TOKEN}"
+        max_retries = 3
         
-        # Delete old webhook first
-        await bot_app.bot.delete_webhook()
-        
-        # Set new webhook
-        success = await bot_app.bot.set_webhook(
-            url=webhook_url,
-            allowed_updates=["message", "callback_query", "chat_member"],
-            max_connections=40,
-            drop_pending_updates=True
-        )
-        
-        if success:
-            logger.info(f"✅ Webhook set successfully: {webhook_url}")
-        else:
-            logger.error("❌ Failed to set webhook")
+        for attempt in range(max_retries):
+            try:
+                # Delete old webhook first
+                await bot_app.bot.delete_webhook(drop_pending_updates=True)
+                
+                # Set new webhook
+                success = await bot_app.bot.set_webhook(
+                    url=webhook_url,
+                    allowed_updates=["message", "callback_query", "chat_member"],
+                    max_connections=40
+                )
+                
+                if success:
+                    logger.info(f"✅ Webhook set successfully: {webhook_url}")
+                    break
+                else:
+                    logger.error(f"❌ Failed to set webhook (attempt {attempt + 1})")
+                    
+            except Exception as e:
+                logger.error(f"Webhook attempt {attempt + 1} failed: {e}")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(2)
+                else:
+                    raise
         
         bot_initialized = True
         logger.info("✅ Bot initialized successfully!")
@@ -248,6 +230,49 @@ async def initialize_bot():
         traceback.print_exc()
         bot_initialized = False
         raise e
+
+def register_handlers(app):
+    """Register all bot handlers"""
+    # Command handlers
+    app.add_handler(CommandHandler("start", BotHandlers.start))
+    app.add_handler(CommandHandler("check", BotHandlers.check_command))
+    app.add_handler(CommandHandler("admin", AdminHandlers.admin_panel))
+    
+    # Admin commands
+    app.add_handler(CommandHandler("stats", AdminHandlers.handle_admin_text))
+    app.add_handler(CommandHandler("add", AdminHandlers.handle_admin_text))
+    app.add_handler(CommandHandler("remove", AdminHandlers.handle_admin_text))
+    app.add_handler(CommandHandler("block", AdminHandlers.handle_admin_text))
+    app.add_handler(CommandHandler("unblock", AdminHandlers.handle_admin_text))
+    app.add_handler(CommandHandler("clear", AdminHandlers.handle_admin_text))
+    
+    # Message handlers
+    app.add_handler(MessageHandler(
+        filters.TEXT & ~filters.COMMAND & filters.ChatType.GROUPS, 
+        BotHandlers.group_message
+    ))
+    app.add_handler(MessageHandler(
+        filters.StatusUpdate.WEB_APP_DATA, 
+        BotHandlers.web_app_data
+    ))
+    
+    # Callback handlers
+    app.add_handler(CallbackQueryHandler(AdminHandlers.admin_callback, pattern="^admin_"))
+    
+    # Broadcast handler (private chat)
+    app.add_handler(MessageHandler(
+        filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE,
+        AdminHandlers.handle_broadcast_message
+    ))
+    
+    # Clear reply handler
+    app.add_handler(MessageHandler(
+        filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE,
+        AdminHandlers.handle_clear_reply
+    ))
+    
+    # Error handler
+    app.add_error_handler(BotHandlers.error_handler)
 
 def run_bot():
     """Run bot in separate thread"""
