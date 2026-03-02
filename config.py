@@ -1,4 +1,4 @@
-# config.py - Complete Configuration with ADDED FIELDS
+# config.py - Complete Configuration
 
 import os
 from datetime import timedelta
@@ -83,8 +83,8 @@ class Config:
     ADMIN_COMMANDS = ["/admin", "/broadcast", "/stats", "/add", "/remove", "/check", "/clear"]
     
     # === ADD THESE MISSING FIELDS ===
-    ENABLE_ADS = False  # Set to True if you want ads
-    AD_PRICE_PER_VIEW = 0.01  # ₹0.01 per ad view
+    ENABLE_ADS = False
+    AD_PRICE_PER_VIEW = 0.01
     
     # === लॉगिंग ===
     LOG_LEVEL = "INFO"
