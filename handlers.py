@@ -1,4 +1,4 @@
-# handlers.py - Complete Bot Handlers with FIXED Earning System
+# handlers.py - ULTIMATE FIXED VERSION with Thread Safety
 
 import logging
 import json
@@ -30,7 +30,7 @@ class BotHandlers:
                 except:
                     pass
             
-            # Get user photo
+            # Get user photo - with error handling
             try:
                 photos = await user.get_profile_photos(limit=1)
                 photo_url = None
@@ -171,7 +171,7 @@ class BotHandlers:
     
     @staticmethod
     async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle mini app data - COMPLETE FIXED VERSION"""
+        """Handle mini app data - ULTIMATE FIX with sync operations"""
         try:
             if not update.effective_message or not update.effective_message.web_app_data:
                 return
@@ -199,12 +199,13 @@ class BotHandlers:
                 # Create user automatically
                 db.create_user(user_id, "", f"User_{user_id}", None, None)
             
+            # CRITICAL FIX: Use sync operations for database to avoid event loop issues
+            response = None
+            
             # ===== GET USER DATA =====
             if action == "get_data":
                 try:
-                    stats = await asyncio.get_event_loop().run_in_executor(
-                        None, db.get_user_stats, user_id
-                    )
+                    stats = db.get_user_stats(user_id)
                     if stats:
                         stats.update({
                             "movie_group": Config.MOVIE_GROUP_LINK,
@@ -215,41 +216,37 @@ class BotHandlers:
                             "channel_bonus": Config.CHANNEL_BONUS,
                             "min_withdrawal": Config.MIN_WITHDRAWAL
                         })
-                        await update.effective_message.reply_text(json.dumps(stats))
+                        response = json.dumps(stats)
                         logger.info(f"📊 User {user_id} data fetched")
                     else:
-                        await update.effective_message.reply_text(json.dumps({"error": "User not found"}))
+                        response = json.dumps({"error": "User not found"})
                 except Exception as e:
                     logger.error(f"Get data error: {e}")
-                    await update.effective_message.reply_text(json.dumps({"error": str(e)}))
+                    response = json.dumps({"error": str(e)})
             
             # ===== SPIN WHEEL - FIXED =====
             elif action == "spin":
                 try:
-                    result = await asyncio.get_event_loop().run_in_executor(
-                        None, db.spin_wheel, user_id
-                    )
+                    result = db.spin_wheel(user_id)
                     if result and "error" not in result:
                         logger.info(f"🎡 User {user_id} won: ₹{result.get('prize', 0)}")
-                    await update.effective_message.reply_text(json.dumps(result))
+                    response = json.dumps(result)
                 except Exception as e:
                     logger.error(f"Spin error: {e}")
-                    await update.effective_message.reply_text(json.dumps({"error": "Spin failed"}))
+                    response = json.dumps({"error": "Spin failed"})
             
             # ===== DAILY BONUS - FIXED =====
             elif action == "daily":
                 try:
-                    result = await asyncio.get_event_loop().run_in_executor(
-                        None, db.claim_daily, user_id
-                    )
+                    result = db.claim_daily(user_id)
                     if result:
                         logger.info(f"📅 User {user_id} claimed daily: ₹{result['bonus']}")
-                        await update.effective_message.reply_text(json.dumps(result))
+                        response = json.dumps(result)
                     else:
-                        await update.effective_message.reply_text(json.dumps({"error": "Already claimed today"}))
+                        response = json.dumps({"error": "Already claimed today"})
                 except Exception as e:
                     logger.error(f"Daily bonus error: {e}")
-                    await update.effective_message.reply_text(json.dumps({"error": "Failed to claim"}))
+                    response = json.dumps({"error": "Failed to claim"})
             
             # ===== SAVE PAYMENT =====
             elif action == "save_payment":
@@ -257,18 +254,16 @@ class BotHandlers:
                     method = payload.get("method")
                     details = payload.get("details")
                     
-                    await asyncio.get_event_loop().run_in_executor(
-                        None, lambda: db.update_user(user_id, {
-                            "payment_method": method,
-                            "payment_details": details
-                        })
-                    )
+                    db.update_user(user_id, {
+                        "payment_method": method,
+                        "payment_details": details
+                    })
                     
-                    await update.effective_message.reply_text(json.dumps({"success": True}))
+                    response = json.dumps({"success": True})
                     logger.info(f"💳 User {user_id} saved payment details")
                 except Exception as e:
                     logger.error(f"Save payment error: {e}")
-                    await update.effective_message.reply_text(json.dumps({"error": str(e)}))
+                    response = json.dumps({"error": str(e)})
             
             # ===== WITHDRAW - FIXED =====
             elif action == "withdraw":
@@ -277,28 +272,36 @@ class BotHandlers:
                     method = payload.get("method")
                     details = payload.get("details")
                     
-                    success, msg = await asyncio.get_event_loop().run_in_executor(
-                        None, db.create_withdrawal, user_id, amount, method, details
-                    )
+                    success, msg = db.create_withdrawal(user_id, amount, method, details)
                     
                     if success:
                         logger.info(f"💰 User {user_id} requested withdrawal: ₹{amount}")
                         
-                        # Notify admins asynchronously
-                        asyncio.create_task(notify_admins_withdrawal(context, user_id, amount, method, details))
+                        # Notify admins
+                        for admin_id in Config.ADMIN_IDS:
+                            try:
+                                await context.bot.send_message(
+                                    admin_id,
+                                    f"💰 *New Withdrawal Request!*\n\n"
+                                    f"👤 User: `{user_id}`\n"
+                                    f"💵 Amount: ₹{amount:.2f}\n"
+                                    f"🏦 Method: {method.upper()}\n"
+                                    f"📝 Details: {details}",
+                                    parse_mode='Markdown'
+                                )
+                            except:
+                                pass
                     
-                    await update.effective_message.reply_text(json.dumps({"success": success, "message": msg}))
+                    response = json.dumps({"success": success, "message": msg})
                     
                 except Exception as e:
                     logger.error(f"Withdraw error: {e}")
-                    await update.effective_message.reply_text(json.dumps({"success": False, "message": str(e)}))
+                    response = json.dumps({"success": False, "message": str(e)})
             
             # ===== LEADERBOARD =====
             elif action == "leaderboard":
                 try:
-                    lb = await asyncio.get_event_loop().run_in_executor(
-                        None, db.get_current_leaderboard
-                    )
+                    lb = db.get_current_leaderboard()
                     result = []
                     for idx, user_data in enumerate(lb, 1):
                         result.append({
@@ -310,41 +313,37 @@ class BotHandlers:
                             "balance": user_data.get("balance", 0),
                             "active_refs": user_data.get("active_referrals", 0)
                         })
-                    await update.effective_message.reply_text(json.dumps(result))
+                    response = json.dumps(result)
                 except Exception as e:
                     logger.error(f"Leaderboard error: {e}")
-                    await update.effective_message.reply_text(json.dumps([]))
+                    response = json.dumps([])
             
             # ===== CHANNEL JOIN - FIXED =====
             elif action == "channel_join":
                 try:
-                    joined = await asyncio.get_event_loop().run_in_executor(
-                        None, db.mark_channel_joined, user_id, Config.CHANNEL_USERNAME
-                    )
+                    joined = db.mark_channel_joined(user_id, Config.CHANNEL_USERNAME)
                     result = {
                         "success": joined,
                         "bonus": Config.CHANNEL_BONUS if joined else 0,
                         "message": f"You got ₹{Config.CHANNEL_BONUS} bonus!" if joined else "Already claimed"
                     }
-                    await update.effective_message.reply_text(json.dumps(result))
+                    response = json.dumps(result)
                     
                     if joined:
                         logger.info(f"📢 User {user_id} joined channel, got ₹{Config.CHANNEL_BONUS}")
                         
                 except Exception as e:
                     logger.error(f"Channel join error: {e}")
-                    await update.effective_message.reply_text(json.dumps({"success": False, "error": str(e)}))
+                    response = json.dumps({"success": False, "error": str(e)})
             
             # ===== MISSIONS - FIXED =====
             elif action == "missions":
                 try:
-                    missions = await asyncio.get_event_loop().run_in_executor(
-                        None, db.get_missions, user_id
-                    )
-                    await update.effective_message.reply_text(json.dumps(missions))
+                    missions = db.get_missions(user_id)
+                    response = json.dumps(missions)
                 except Exception as e:
                     logger.error(f"Missions error: {e}")
-                    await update.effective_message.reply_text(json.dumps({}))
+                    response = json.dumps({})
             
             # ===== REPORT ISSUE =====
             elif action == "report_issue":
@@ -352,54 +351,31 @@ class BotHandlers:
                     issue = payload.get("issue")
                     
                     # Save to database
-                    await asyncio.get_event_loop().run_in_executor(
-                        None, db.save_report, user_id, issue
-                    )
+                    db.save_report(user_id, issue)
                     
-                    # Send to admins asynchronously
-                    asyncio.create_task(notify_admins_report(context, user_id, issue))
+                    # Send to admins
+                    for admin_id in Config.ADMIN_IDS:
+                        try:
+                            await context.bot.send_message(
+                                admin_id,
+                                f"⚠️ *NEW USER REPORT!*\n\n"
+                                f"👤 User: `{user_id}`\n"
+                                f"📝 Issue: {issue}",
+                                parse_mode='Markdown'
+                            )
+                        except:
+                            pass
                     
-                    await update.effective_message.reply_text(json.dumps({"success": True}))
+                    response = json.dumps({"success": True})
                     logger.info(f"📝 Report from user {user_id}: {issue[:50]}...")
                     
                 except Exception as e:
                     logger.error(f"Report error: {e}")
-                    await update.effective_message.reply_text(json.dumps({"success": False}))
+                    response = json.dumps({"success": False})
             
-            # ===== AD VIEW =====
-            elif action == "ad_view":
-                try:
-                    ad_id = payload.get("ad_id")
-                    if ad_id and Config.ENABLE_ADS:
-                        await asyncio.get_event_loop().run_in_executor(
-                            None, db.record_ad_view, ad_id, user_id
-                        )
-                        await update.effective_message.reply_text(json.dumps({"success": True}))
-                except Exception as e:
-                    logger.error(f"Ad view error: {e}")
-            
-            # ===== GET ADS =====
-            elif action == "get_ads":
-                try:
-                    if Config.ENABLE_ADS:
-                        ads = await asyncio.get_event_loop().run_in_executor(
-                            None, db.get_active_ads
-                        )
-                        result = []
-                        for ad in ads:
-                            result.append({
-                                "id": str(ad["_id"]),
-                                "title": ad["title"],
-                                "description": ad["description"],
-                                "image_url": ad["image_url"],
-                                "link_url": ad["link_url"]
-                            })
-                        await update.effective_message.reply_text(json.dumps(result))
-                    else:
-                        await update.effective_message.reply_text(json.dumps([]))
-                except Exception as e:
-                    logger.error(f"Get ads error: {e}")
-                    await update.effective_message.reply_text(json.dumps([]))
+            # Send response
+            if response:
+                await update.effective_message.reply_text(response)
             
         except Exception as e:
             logger.error(f"WebApp Data Handler Error: {e}")
@@ -411,7 +387,7 @@ class BotHandlers:
     
     @staticmethod
     async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Global error handler - FIXED"""
+        """Global error handler"""
         logger.error(f"Error in update {update}: {context.error}")
         traceback.print_exc()
         
@@ -425,39 +401,3 @@ class BotHandlers:
                 )
         except:
             pass
-
-# Helper functions for admin notifications
-async def notify_admins_withdrawal(context, user_id, amount, method, details):
-    """Notify admins about withdrawal request"""
-    for admin_id in Config.ADMIN_IDS:
-        try:
-            await context.bot.send_message(
-                admin_id,
-                f"💰 *New Withdrawal Request!*\n\n"
-                f"👤 User: `{user_id}`\n"
-                f"💵 Amount: ₹{amount:.2f}\n"
-                f"🏦 Method: {method.upper()}\n"
-                f"📝 Details: {details}",
-                parse_mode='Markdown'
-            )
-        except Exception as e:
-            logger.error(f"Failed to notify admin {admin_id}: {e}")
-
-async def notify_admins_report(context, user_id, issue):
-    """Notify admins about report"""
-    user_data = db.get_user(user_id)
-    user_name = user_data.get("full_name", "Unknown") if user_data else "Unknown"
-    
-    for admin_id in Config.ADMIN_IDS:
-        try:
-            await context.bot.send_message(
-                admin_id,
-                f"⚠️ *NEW USER REPORT!*\n\n"
-                f"👤 User: {user_name}\n"
-                f"🆔 ID: `{user_id}`\n"
-                f"📝 Issue: {issue}\n"
-                f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-                parse_mode='Markdown'
-            )
-        except Exception as e:
-            logger.error(f"Failed to notify admin {admin_id}: {e}")
