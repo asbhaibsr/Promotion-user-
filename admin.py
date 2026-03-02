@@ -254,6 +254,16 @@ class AdminHandlers:
         
         text = update.message.text
         
+        # ✅ FIX: Handle broadcast mode separately
+        if context.user_data.get("admin_action") == "broadcast":
+            await AdminHandlers.handle_broadcast_message(update, context)
+            return
+        
+        # Check if it's a reply for clear command
+        if context.user_data.get("awaiting_clear") and update.message.reply_to_message:
+            await AdminHandlers.handle_clear_reply(update, context)
+            return
+        
         # ===== ADD BALANCE =====
         if text.startswith("/add "):
             parts = text.split()
@@ -350,9 +360,9 @@ class AdminHandlers:
         elif text.startswith("/clear"):
             await update.message.reply_text(
                 "🗑️ *Clear Data*\n\n"
-                "Reply to this message with:\n"
-                "• `all` - Clear ALL data (full reset)\n"
-                "• `earnings` - Clear only earnings & referrals",
+                "Reply to a user message with:\n"
+                "• `all` - Clear ALL data\n"
+                "• `earnings` - Clear only earnings",
                 parse_mode='Markdown'
             )
             context.user_data["awaiting_clear"] = True
