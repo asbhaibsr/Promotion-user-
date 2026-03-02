@@ -1,21 +1,31 @@
 services:
   - type: web
-    name: movie-earning-bot
+    name: filmyfund-bot
     runtime: python
-    region: singapore
-    plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn main:flask_app --workers 1 --threads 4 --timeout 120
+    startCommand: gunicorn main:app & python main.py
     envVars:
       - key: BOT_TOKEN
         sync: false
-      - key: ADMIN_IDS
-        value: "7315805581"
-      - key: MONGO_URI
+      - key: BOT_USERNAME
         sync: false
-      - key: WEB_APP_URL
-        value: https://promotion-user.onrender.com
-      - key: PORT
-        value: 10000
-    healthCheckPath: /health
-    autoDeploy: true
+      - key: ADMIN_IDS
+        sync: false
+      - key: CHANNEL_USERNAME
+        sync: false
+      - key: CHANNEL_LINK
+        sync: false
+      - key: MOVIE_GROUP_LINK
+        sync: false
+      - key: NEW_GROUP_LINK
+        sync: false
+      - key: ALL_GROUPS_LINK
+        sync: false
+      - key: SUPPORT_USERNAME
+        sync: false
+      - key: WEBAPP_URL
+        sync: false
+      - key: WEBHOOK_URL
+        sync: false
+      - key: ENVIRONMENT
+        value: production
