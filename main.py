@@ -1,4 +1,4 @@
-# main.py - Complete Fixed Main File with Flask + Bot
+# main.py - ULTIMATE FIXED VERSION with Thread Pool Executor
 
 import logging
 import asyncio
@@ -6,6 +6,7 @@ import os
 import sys
 import traceback
 import time
+import concurrent.futures
 from flask import Flask, render_template, request, jsonify
 from telegram import Update
 from telegram.ext import (
@@ -17,9 +18,8 @@ from database import db
 from handlers import BotHandlers
 from admin import AdminHandlers
 import nest_asyncio
-import threading
 
-# Fix for event loop
+# CRITICAL FIX: Apply nest_asyncio to allow nested event loops
 nest_asyncio.apply()
 
 # ====== LOGGING ======
@@ -37,6 +37,9 @@ logger = logging.getLogger(__name__)
 flask_app = Flask(__name__)
 bot_app = None
 bot_initialized = False
+
+# Create a thread pool executor for async operations
+executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)
 
 # ====== FLASK ROUTES ======
 @flask_app.route('/')
@@ -91,30 +94,9 @@ def api_leaderboard():
         logger.error(f"API leaderboard error: {e}")
         return jsonify([])
 
-@flask_app.route('/api/ads')
-def api_ads():
-    try:
-        if not Config.ENABLE_ADS:
-            return jsonify([])
-        
-        ads = db.get_active_ads()
-        result = []
-        for ad in ads:
-            result.append({
-                "id": str(ad["_id"]),
-                "title": ad["title"],
-                "description": ad["description"],
-                "image_url": ad["image_url"],
-                "link_url": ad["link_url"]
-            })
-        return jsonify(result)
-    except Exception as e:
-        logger.error(f"API ads error: {e}")
-        return jsonify([])
-
 @flask_app.route(f'/{Config.BOT_TOKEN}', methods=['POST'])
 def webhook():
-    """Telegram Webhook Handler - FIXED VERSION"""
+    """Telegram Webhook Handler - ULTIMATE FIX"""
     global bot_app, bot_initialized
     
     if not bot_initialized or not bot_app:
@@ -127,34 +109,44 @@ def webhook():
         
         update = Update.de_json(update_data, bot_app.bot)
         
-        # ✅ CRITICAL FIX: Create new event loop for each request
-        try:
-            # Try to get existing loop
-            try:
-                loop = asyncio.get_event_loop()
-                if loop.is_closed():
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-            except RuntimeError:
-                # No event loop, create new one
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-            
-            # Process update
-            loop.run_until_complete(bot_app.process_update(update))
-            
-        except Exception as e:
-            logger.error(f"Error processing update: {e}")
-            traceback.print_exc()
-            return jsonify({"error": "Processing error"}), 500
+        # CRITICAL FIX: Use executor to run async function in separate thread
+        future = executor.submit(run_async_task, bot_app.process_update, update)
         
-        logger.info("✅ Update processed successfully")
+        # Wait for result with timeout
+        try:
+            future.result(timeout=30)
+            logger.info("✅ Update processed successfully")
+        except concurrent.futures.TimeoutError:
+            logger.error("❌ Update processing timeout")
+        except Exception as e:
+            logger.error(f"❌ Update processing error: {e}")
+            traceback.print_exc()
+        
         return 'OK', 200
         
     except Exception as e:
         logger.error(f"❌ Webhook error: {e}")
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
+def run_async_task(coro_func, *args):
+    """Run async task in separate event loop"""
+    try:
+        # Create new event loop for this thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        # Run the coroutine
+        result = loop.run_until_complete(coro_func(*args))
+        
+        # Cleanup
+        loop.run_until_complete(asyncio.sleep(0))
+        loop.close()
+        
+        return result
+    except Exception as e:
+        logger.error(f"Async task error: {e}")
+        raise
 
 @flask_app.route('/health')
 def health():
@@ -168,7 +160,7 @@ def health():
 
 # ====== BOT INITIALIZATION ======
 async def initialize_bot():
-    """Initialize bot application - FIXED VERSION"""
+    """Initialize bot application - ULTIMATE FIX"""
     global bot_app, bot_initialized
     
     try:
@@ -272,19 +264,27 @@ def register_handlers(app):
 
 def run_bot():
     """Run bot in separate thread"""
-    asyncio.run(initialize_bot())
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(initialize_bot())
+    except Exception as e:
+        logger.error(f"Bot thread error: {e}")
+    finally:
+        loop.close()
 
 # ====== MAIN ======
 def main():
-    """Main entry point - FIXED VERSION"""
+    """Main entry point - ULTIMATE FIX"""
     logger.info("🚀 Starting application...")
     
     # Initialize bot in background thread
+    import threading
     bot_thread = threading.Thread(target=run_bot, daemon=True)
     bot_thread.start()
     
     # Wait for bot to initialize
-    time.sleep(3)
+    time.sleep(5)
     
     # Start Flask
     logger.info(f"🌐 Flask app starting on port {Config.PORT}")
