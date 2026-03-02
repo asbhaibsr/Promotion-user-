@@ -1,403 +1,478 @@
-# handlers.py - ULTIMATE FIXED VERSION with Thread Safety
-
+# ===== handlers.py =====
 import logging
 import json
-import random
-import traceback
-import asyncio
 from datetime import datetime, timedelta
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import ContextTypes
-from config import Config
-from database import db
-from utils import is_admin, format_balance, check_channel_membership
+from telegram.constants import ParseMode
 
 logger = logging.getLogger(__name__)
 
-class BotHandlers:
+class Handlers:
+    def __init__(self, config, db):
+        self.config = config
+        self.db = db
     
-    @staticmethod
-    async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        try:
-            user = update.effective_user
-            
-            # Check for referral
-            referrer = None
-            if context.args and context.args[0].startswith("ref_"):
-                try:
-                    referrer = int(context.args[0].replace("ref_", ""))
-                    logger.info(f"🔗 Referral: {referrer} -> {user.id}")
-                except:
-                    pass
-            
-            # Get user photo - with error handling
+    async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Start command handler"""
+        user = update.effective_user
+        args = context.args
+        
+        # Check for referral
+        referrer_id = None
+        if args and args[0].startswith('ref_'):
             try:
-                photos = await user.get_profile_photos(limit=1)
-                photo_url = None
-                if photos and photos.photos:
-                    photo_url = photos.photos[0][-1].file_id
-            except Exception as e:
-                logger.error(f"Photo fetch error: {e}")
-                photo_url = None
-            
-            # Create or get user
-            db_user = db.get_user(user.id)
-            if not db_user:
-                db_user = db.create_user(user.id, user.username or "", user.first_name, photo_url, referrer)
-                db.update_balance(user.id, Config.WELCOME_BONUS, "welcome", "Welcome Bonus")
-                
-                await update.message.reply_text(
-                    f"🎉 *WELCOME BONUS!*\n"
-                    f"You got ₹{Config.WELCOME_BONUS}!",
-                    parse_mode='Markdown'
-                )
-            
-            # Get user stats
-            stats = db.get_user_stats(user.id)
-            
-            # Mini App Button
-            keyboard = [[
-                InlineKeyboardButton(
-                    "🚀 OPEN MINI APP 🚀",
-                    web_app={"url": f"{Config.WEB_APP_URL}/?user={user.id}"}
-                )
-            ]]
-            
-            if is_admin(user.id):
-                keyboard.append([
-                    InlineKeyboardButton("👑 ADMIN PANEL", callback_data="admin_panel")
-                ])
-            
-            welcome_msg = (
-                f"✨ *Hello {user.first_name}!* ✨\n\n"
-                f"💰 *Balance:* {format_balance(stats['balance'])}\n"
-                f"🎰 *Spins:* {stats['spins']}\n"
-                f"👑 *Tier:* {stats['tier_name']}\n"
-                f"👥 *Active Referrals:* {stats['active_refs']}\n\n"
-                f"🎯 *Today's Missions*\n"
-                f"• 3 Searches → ₹0.15 + 1 Spin\n"
-                f"• 2 Referrals → ₹0.50 + 1 Spin\n"
-                f"• Daily Bonus → ₹0.10 + 1 Spin\n\n"
-                f"👇 *Open Mini App to Start Earning!*"
-            )
-            
-            await update.message.reply_text(
-                welcome_msg,
-                reply_markup=InlineKeyboardMarkup(keyboard),
-                parse_mode='Markdown'
-            )
-            
-            logger.info(f"✅ User {user.id} started bot")
-            
-        except Exception as e:
-            logger.error(f"Start handler error: {e}")
-            traceback.print_exc()
-            await update.message.reply_text("❌ Technical Error. Please try again later.")
-    
-    @staticmethod
-    async def check_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        try:
-            if not update.message or not update.message.chat:
-                return
-            
-            chat = update.message.chat
-            
-            if chat.type not in ['group', 'supergroup']:
-                await update.message.reply_text("❌ This command only works in groups!")
-                return
-            
-            # Log group activity
-            db.check_group_active(chat.id, chat.title)
-            
-            await update.message.reply_text(
-                "✅ *I am active in this group!*\n\n"
-                "Users can search movies here to activate referrals.",
-                parse_mode='Markdown'
-            )
-            
-            logger.info(f"✅ Check command used in group {chat.id}")
-            
-        except Exception as e:
-            logger.error(f"Check command error: {e}")
-    
-    @staticmethod
-    async def group_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        try:
-            if not update.message or not update.message.text:
-                return
-            
-            user = update.effective_user
-            if not user or user.is_bot:
-                return
-            
-            # Track search in group
-            if len(update.message.text) > 2:
-                logger.info(f"📝 Search: {user.id} -> {update.message.text[:30]}...")
-                
-                # Activate referral if first search
-                referrer = db.track_search(user.id)
-                if referrer:
-                    try:
-                        await context.bot.send_message(
-                            referrer,
-                            f"🎉 *Referral Activated!*\n"
-                            f"{user.first_name} did first search!\n"
-                            f"✅ +1 Spin Added!",
-                            parse_mode='Markdown'
-                        )
-                    except Exception as e:
-                        logger.error(f"Referrer notification failed: {e}")
-                
-                # Process daily payment
-                amount = db.process_daily_referral_payment(user.id)
-                if amount:
-                    ref_doc = db.referrals.find_one({"user": user.id})
-                    if ref_doc:
-                        try:
-                            await context.bot.send_message(
-                                ref_doc["referrer"],
-                                f"💰 *Daily Referral Earnings!*\n"
-                                f"From {user.first_name}: {format_balance(amount)}",
-                                parse_mode='Markdown'
-                            )
-                        except Exception as e:
-                            logger.error(f"Payment notification failed: {e}")
-                
-                # Update mission
-                db.update_mission(user.id, "daily_search")
-                
-        except Exception as e:
-            logger.error(f"Group message error: {e}")
-    
-    @staticmethod
-    async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle mini app data - ULTIMATE FIX with sync operations"""
-        try:
-            if not update.effective_message or not update.effective_message.web_app_data:
-                return
-            
-            data = update.effective_message.web_app_data.data
-            logger.info(f"📱 WebApp Data: {data[:100]}...")
-            
-            try:
-                payload = json.loads(data)
-            except json.JSONDecodeError as e:
-                logger.error(f"JSON Decode Error: {e}")
-                await update.effective_message.reply_text(json.dumps({"error": "Invalid data format"}))
-                return
-            
-            action = payload.get("action")
-            user_id = payload.get("user_id")
-            
-            if not user_id:
-                await update.effective_message.reply_text(json.dumps({"error": "User ID not found"}))
-                return
-            
-            # Check if user exists
-            user = db.get_user(user_id)
-            if not user:
-                # Create user automatically
-                db.create_user(user_id, "", f"User_{user_id}", None, None)
-            
-            # CRITICAL FIX: Use sync operations for database to avoid event loop issues
-            response = None
-            
-            # ===== GET USER DATA =====
-            if action == "get_data":
-                try:
-                    stats = db.get_user_stats(user_id)
-                    if stats:
-                        stats.update({
-                            "movie_group": Config.MOVIE_GROUP_LINK,
-                            "new_group": Config.NEW_MOVIE_GROUP_LINK,
-                            "all_groups": Config.ALL_GROUPS_LINK,
-                            "channel": Config.CHANNEL_USERNAME,
-                            "channel_link": Config.CHANNEL_LINK,
-                            "channel_bonus": Config.CHANNEL_BONUS,
-                            "min_withdrawal": Config.MIN_WITHDRAWAL
-                        })
-                        response = json.dumps(stats)
-                        logger.info(f"📊 User {user_id} data fetched")
-                    else:
-                        response = json.dumps({"error": "User not found"})
-                except Exception as e:
-                    logger.error(f"Get data error: {e}")
-                    response = json.dumps({"error": str(e)})
-            
-            # ===== SPIN WHEEL - FIXED =====
-            elif action == "spin":
-                try:
-                    result = db.spin_wheel(user_id)
-                    if result and "error" not in result:
-                        logger.info(f"🎡 User {user_id} won: ₹{result.get('prize', 0)}")
-                    response = json.dumps(result)
-                except Exception as e:
-                    logger.error(f"Spin error: {e}")
-                    response = json.dumps({"error": "Spin failed"})
-            
-            # ===== DAILY BONUS - FIXED =====
-            elif action == "daily":
-                try:
-                    result = db.claim_daily(user_id)
-                    if result:
-                        logger.info(f"📅 User {user_id} claimed daily: ₹{result['bonus']}")
-                        response = json.dumps(result)
-                    else:
-                        response = json.dumps({"error": "Already claimed today"})
-                except Exception as e:
-                    logger.error(f"Daily bonus error: {e}")
-                    response = json.dumps({"error": "Failed to claim"})
-            
-            # ===== SAVE PAYMENT =====
-            elif action == "save_payment":
-                try:
-                    method = payload.get("method")
-                    details = payload.get("details")
-                    
-                    db.update_user(user_id, {
-                        "payment_method": method,
-                        "payment_details": details
-                    })
-                    
-                    response = json.dumps({"success": True})
-                    logger.info(f"💳 User {user_id} saved payment details")
-                except Exception as e:
-                    logger.error(f"Save payment error: {e}")
-                    response = json.dumps({"error": str(e)})
-            
-            # ===== WITHDRAW - FIXED =====
-            elif action == "withdraw":
-                try:
-                    amount = float(payload.get("amount", 0))
-                    method = payload.get("method")
-                    details = payload.get("details")
-                    
-                    success, msg = db.create_withdrawal(user_id, amount, method, details)
-                    
-                    if success:
-                        logger.info(f"💰 User {user_id} requested withdrawal: ₹{amount}")
-                        
-                        # Notify admins
-                        for admin_id in Config.ADMIN_IDS:
-                            try:
-                                await context.bot.send_message(
-                                    admin_id,
-                                    f"💰 *New Withdrawal Request!*\n\n"
-                                    f"👤 User: `{user_id}`\n"
-                                    f"💵 Amount: ₹{amount:.2f}\n"
-                                    f"🏦 Method: {method.upper()}\n"
-                                    f"📝 Details: {details}",
-                                    parse_mode='Markdown'
-                                )
-                            except:
-                                pass
-                    
-                    response = json.dumps({"success": success, "message": msg})
-                    
-                except Exception as e:
-                    logger.error(f"Withdraw error: {e}")
-                    response = json.dumps({"success": False, "message": str(e)})
-            
-            # ===== LEADERBOARD =====
-            elif action == "leaderboard":
-                try:
-                    lb = db.get_current_leaderboard()
-                    result = []
-                    for idx, user_data in enumerate(lb, 1):
-                        result.append({
-                            "rank": idx,
-                            "user_id": user_data.get("user_id"),
-                            "name": user_data.get("full_name", "User")[:20],
-                            "photo_url": user_data.get("photo_url"),
-                            "refs": user_data.get("monthly_referrals", 0),
-                            "balance": user_data.get("balance", 0),
-                            "active_refs": user_data.get("active_referrals", 0)
-                        })
-                    response = json.dumps(result)
-                except Exception as e:
-                    logger.error(f"Leaderboard error: {e}")
-                    response = json.dumps([])
-            
-            # ===== CHANNEL JOIN - FIXED =====
-            elif action == "channel_join":
-                try:
-                    joined = db.mark_channel_joined(user_id, Config.CHANNEL_USERNAME)
-                    result = {
-                        "success": joined,
-                        "bonus": Config.CHANNEL_BONUS if joined else 0,
-                        "message": f"You got ₹{Config.CHANNEL_BONUS} bonus!" if joined else "Already claimed"
-                    }
-                    response = json.dumps(result)
-                    
-                    if joined:
-                        logger.info(f"📢 User {user_id} joined channel, got ₹{Config.CHANNEL_BONUS}")
-                        
-                except Exception as e:
-                    logger.error(f"Channel join error: {e}")
-                    response = json.dumps({"success": False, "error": str(e)})
-            
-            # ===== MISSIONS - FIXED =====
-            elif action == "missions":
-                try:
-                    missions = db.get_missions(user_id)
-                    response = json.dumps(missions)
-                except Exception as e:
-                    logger.error(f"Missions error: {e}")
-                    response = json.dumps({})
-            
-            # ===== REPORT ISSUE =====
-            elif action == "report_issue":
-                try:
-                    issue = payload.get("issue")
-                    
-                    # Save to database
-                    db.save_report(user_id, issue)
-                    
-                    # Send to admins
-                    for admin_id in Config.ADMIN_IDS:
-                        try:
-                            await context.bot.send_message(
-                                admin_id,
-                                f"⚠️ *NEW USER REPORT!*\n\n"
-                                f"👤 User: `{user_id}`\n"
-                                f"📝 Issue: {issue}",
-                                parse_mode='Markdown'
-                            )
-                        except:
-                            pass
-                    
-                    response = json.dumps({"success": True})
-                    logger.info(f"📝 Report from user {user_id}: {issue[:50]}...")
-                    
-                except Exception as e:
-                    logger.error(f"Report error: {e}")
-                    response = json.dumps({"success": False})
-            
-            # Send response
-            if response:
-                await update.effective_message.reply_text(response)
-            
-        except Exception as e:
-            logger.error(f"WebApp Data Handler Error: {e}")
-            traceback.print_exc()
-            try:
-                await update.effective_message.reply_text(json.dumps({"error": "Internal server error"}))
+                referrer_id = int(args[0].replace('ref_', ''))
             except:
                 pass
-    
-    @staticmethod
-    async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Global error handler"""
-        logger.error(f"Error in update {update}: {context.error}")
-        traceback.print_exc()
         
+        # Register or update user
+        user_data = {
+            'user_id': user.id,
+            'first_name': user.first_name,
+            'username': user.username,
+            'referrer_id': referrer_id
+        }
+        
+        is_new = self.db.add_user(user_data)
+        
+        # Send welcome message
+        welcome_text = (
+            f"🎬 **Welcome to FilmyFund, {user.first_name}!**\n\n"
+            f"💰 **Earn Money Daily**\n"
+            f"• Get ₹{self.config.CHANNEL_JOIN_BONUS} welcome bonus\n"
+            f"• Earn ₹0.10+ per referral every day\n"
+            f"• Spin wheel to win up to ₹5\n"
+            f"• Daily bonuses & rewards\n\n"
+            f"👇 **Click below to open the app!**"
+        )
+        
+        # Create WebApp button
+        keyboard = [[
+            InlineKeyboardButton(
+                "📱 OPEN MINI APP",
+                web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}")
+            )
+        ]]
+        
+        # Add referral bonus message if new
+        if is_new and referrer_id:
+            welcome_text += f"\n\n✅ You were referred by user {referrer_id}!"
+            
+            # Give referrer bonus (if they exist)
+            referrer = self.db.get_user(referrer_id)
+            if referrer:
+                self.db.add_balance(referrer_id, self.config.REFERRAL_BONUS)
+                self.db.add_transaction(referrer_id, 'referral_bonus', self.config.REFERRAL_BONUS, 
+                                       f"Referral bonus for user {user.id}")
+                
+                # Notify referrer
+                try:
+                    await context.bot.send_message(
+                        chat_id=referrer_id,
+                        text=f"🎉 **New Referral!**\n\n"
+                             f"User {user.first_name} joined using your link!\n"
+                             f"💰 You earned ₹{self.config.REFERRAL_BONUS} bonus!"
+                    )
+                except:
+                    pass
+        
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text(
+            welcome_text,
+            reply_markup=reply_markup,
+            parse_mode=ParseMode.MARKDOWN
+        )
+    
+    async def open_app(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Open mini app command"""
+        user = update.effective_user
+        
+        keyboard = [[
+            InlineKeyboardButton(
+                "📱 OPEN MINI APP",
+                web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}")
+            )
+        ]]
+        
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text(
+            "Click below to open the FilmyFund Mini App:",
+            reply_markup=reply_markup
+        )
+    
+    async def handle_webapp_data(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """
+        CRITICAL HANDLER - This processes all actions from the WebApp
+        Without this, buttons won't work!
+        """
         try:
-            if update and update.effective_message:
+            web_app_data = update.effective_message.web_app_data
+            if not web_app_data:
+                return
+            
+            user = update.effective_user
+            data = json.loads(web_app_data.data)
+            action = data.get('action')
+            
+            logger.info(f"WebApp action from user {user.id}: {action}")
+            
+            if action == 'spin':
+                await self.process_spin(update, context, data)
+            
+            elif action == 'daily':
+                await self.process_daily_bonus(update, context, data)
+            
+            elif action == 'channel_join':
+                await self.process_channel_join(update, context, data)
+            
+            elif action == 'save_payment':
+                await self.process_save_payment(update, context, data)
+            
+            elif action == 'withdraw':
+                await self.process_withdraw(update, context, data)
+            
+            elif action == 'report_issue':
+                await self.process_report_issue(update, context, data)
+            
+            elif action == 'missions':
+                await self.process_missions(update, context, data)
+            
+            # Send response back to WebApp
+            response = self.prepare_response(action, data, user.id)
+            if response:
                 await update.effective_message.reply_text(
-                    "❌ *Technical Error*\n"
-                    "Please try again later.\n"
-                    "If problem persists, contact support.",
-                    parse_mode='Markdown'
+                    text=json.dumps(response),
+                    parse_mode=ParseMode.HTML
                 )
-        except:
-            pass
+            
+        except Exception as e:
+            logger.error(f"WebApp data error: {e}")
+            # Send error response
+            await update.effective_message.reply_text(
+                text=json.dumps({'error': str(e), 'success': False})
+            )
+    
+    def prepare_response(self, action, data, user_id):
+        """Prepare response for WebApp based on action"""
+        try:
+            if action == 'spin':
+                result = self.db.process_spin(user_id)
+                if result:
+                    return {
+                        'prize': result['prize'],
+                        'prize_name': result['prize_name'],
+                        'remaining_spins': result['remaining_spins']
+                    }
+            
+            elif action == 'daily':
+                result = self.db.claim_daily_bonus(user_id)
+                if result:
+                    return {
+                        'bonus': result['bonus'],
+                        'streak': result['streak'],
+                        'success': True
+                    }
+            
+            elif action == 'channel_join':
+                # Verify channel join (simplified)
+                user = self.db.get_user(user_id)
+                if user and not user.get('channel_joined'):
+                    self.db.add_balance(user_id, self.config.CHANNEL_JOIN_BONUS)
+                    self.db.update_user(user_id, {'channel_joined': True})
+                    self.db.add_transaction(user_id, 'channel_bonus', 
+                                          self.config.CHANNEL_JOIN_BONUS, 
+                                          "Channel join bonus")
+                    return {
+                        'success': True,
+                        'bonus': self.config.CHANNEL_JOIN_BONUS
+                    }
+                return {'success': False, 'message': 'Already claimed'}
+            
+            elif action == 'withdraw':
+                amount = data.get('amount')
+                method = data.get('method')
+                details = data.get('details')
+                
+                result = self.db.process_withdrawal(user_id, amount, method, details)
+                return result
+            
+            elif action == 'save_payment':
+                method = data.get('method')
+                details = data.get('details')
+                self.db.update_user(user_id, {
+                    'payment_method': method,
+                    'payment_details': details
+                })
+                return {'success': True}
+            
+            elif action == 'report_issue':
+                issue = data.get('issue')
+                self.db.add_issue_report(user_id, issue)
+                # Notify admin
+                self.notify_admin(f"New issue from user {user_id}:\n{issue}")
+                return {'success': True}
+            
+            elif action == 'missions':
+                missions = self.db.get_user_missions(user_id)
+                return missions
+            
+        except Exception as e:
+            logger.error(f"Response preparation error: {e}")
+            return {'success': False, 'error': str(e)}
+        
+        return {'success': True}
+    
+    async def process_spin(self, update, context, data):
+        """Process spin action"""
+        user_id = data.get('user_id')
+        result = self.db.process_spin(user_id)
+        
+        if result:
+            response = {
+                'prize': result['prize'],
+                'prize_name': result['prize_name'],
+                'remaining_spins': result['remaining_spins']
+            }
+            
+            # Send as answer to web app
+            await update.effective_message.reply_text(
+                text=json.dumps(response)
+            )
+    
+    async def process_daily_bonus(self, update, context, data):
+        """Process daily bonus claim"""
+        user_id = data.get('user_id')
+        result = self.db.claim_daily_bonus(user_id)
+        
+        if result:
+            response = {
+                'bonus': result['bonus'],
+                'streak': result['streak'],
+                'success': True
+            }
+            await update.effective_message.reply_text(
+                text=json.dumps(response)
+            )
+    
+    async def process_channel_join(self, update, context, data):
+        """Process channel join bonus"""
+        user_id = data.get('user_id')
+        
+        # In production, verify via Telegram API
+        user = self.db.get_user(user_id)
+        
+        if user and not user.get('channel_joined'):
+            # Add bonus
+            self.db.add_balance(user_id, self.config.CHANNEL_JOIN_BONUS)
+            self.db.update_user(user_id, {'channel_joined': True})
+            self.db.add_transaction(user_id, 'channel_bonus', 
+                                  self.config.CHANNEL_JOIN_BONUS, 
+                                  "Channel join bonus")
+            
+            response = {
+                'success': True,
+                'bonus': self.config.CHANNEL_JOIN_BONUS
+            }
+        else:
+            response = {
+                'success': False,
+                'message': 'Already claimed or invalid'
+            }
+        
+        await update.effective_message.reply_text(
+            text=json.dumps(response)
+        )
+    
+    async def process_save_payment(self, update, context, data):
+        """Save payment details"""
+        user_id = data.get('user_id')
+        method = data.get('method')
+        details = data.get('details')
+        
+        self.db.update_user(user_id, {
+            'payment_method': method,
+            'payment_details': details
+        })
+        
+        await update.effective_message.reply_text(
+            text=json.dumps({'success': True})
+        )
+    
+    async def process_withdraw(self, update, context, data):
+        """Process withdrawal request"""
+        user_id = data.get('user_id')
+        amount = data.get('amount')
+        method = data.get('method')
+        details = data.get('details')
+        
+        result = self.db.process_withdrawal(user_id, amount, method, details)
+        
+        await update.effective_message.reply_text(
+            text=json.dumps(result)
+        )
+    
+    async def process_report_issue(self, update, context, data):
+        """Report issue to admin"""
+        user_id = data.get('user_id')
+        issue = data.get('issue')
+        
+        self.db.add_issue_report(user_id, issue)
+        
+        # Notify admin (in production)
+        await update.effective_message.reply_text(
+            text=json.dumps({'success': True})
+        )
+    
+    async def process_missions(self, update, context, data):
+        """Get user missions"""
+        user_id = data.get('user_id')
+        missions = self.db.get_user_missions(user_id)
+        
+        await update.effective_message.reply_text(
+            text=json.dumps(missions)
+        )
+    
+    def notify_admin(self, message):
+        """Notify admin (simplified)"""
+        logger.info(f"ADMIN NOTIFICATION: {message}")
+    
+    async def check_balance(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Check balance command"""
+        user_id = update.effective_user.id
+        user = self.db.get_user(user_id)
+        
+        if user:
+            text = (
+                f"💰 **Your Balance**\n\n"
+                f"Available: ₹{user.get('balance', 0):.2f}\n"
+                f"Total Earned: ₹{user.get('total_earned', 0):.2f}\n"
+                f"Spins: {user.get('spins', 3)} 🎰\n\n"
+                f"Use /app to open the Mini App!"
+            )
+        else:
+            text = "Please use /start first"
+        
+        await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
+    
+    async def show_referrals(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Show referrals command"""
+        user_id = update.effective_user.id
+        user = self.db.get_user(user_id)
+        
+        if user:
+            ref_link = f"https://t.me/{self.config.BOT_USERNAME}?start=ref_{user_id}"
+            text = (
+                f"👥 **Your Referrals**\n\n"
+                f"Total: {user.get('total_refs', 0)}\n"
+                f"Active: {user.get('active_refs', 0)}\n"
+                f"Monthly: {user.get('monthly_refs', 0)}\n\n"
+                f"🔗 **Your Referral Link:**\n"
+                f"`{ref_link}`\n\n"
+                f"Share this link with friends!"
+            )
+        else:
+            text = "Please use /start first"
+        
+        await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
+    
+    async def daily_bonus_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Daily bonus command"""
+        user_id = update.effective_user.id
+        
+        keyboard = [[
+            InlineKeyboardButton(
+                "🎁 CLAIM DAILY BONUS",
+                web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user_id}")
+            )
+        ]]
+        
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text(
+            "Click below to claim your daily bonus in the Mini App:",
+            reply_markup=reply_markup
+        )
+    
+    async def withdraw_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Withdraw command"""
+        user_id = update.effective_user.id
+        
+        keyboard = [[
+            InlineKeyboardButton(
+                "💳 WITHDRAW EARNINGS",
+                web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user_id}")
+            )
+        ]]
+        
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text(
+            f"Minimum withdrawal: ₹{self.config.MIN_WITHDRAWAL}\n"
+            "Click below to withdraw in the Mini App:",
+            reply_markup=reply_markup
+        )
+    
+    async def help_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Help command"""
+        text = (
+            "❓ **FilmyFund Help**\n\n"
+            "**Commands:**\n"
+            "/start - Start the bot\n"
+            "/app - Open Mini App\n"
+            "/balance - Check balance\n"
+            "/referrals - View referrals\n"
+            "/daily - Daily bonus\n"
+            "/withdraw - Withdraw earnings\n"
+            "/help - This message\n\n"
+            "**How to Earn:**\n"
+            "1️⃣ Join our channel (₹{channel_bonus} bonus)\n"
+            "2️⃣ Refer friends (earn daily)\n"
+            "3️⃣ Spin wheel for prizes\n"
+            "4️⃣ Daily streak bonuses\n\n"
+            "**Support:** @{support_username}"
+        ).format(
+            channel_bonus=self.config.CHANNEL_JOIN_BONUS,
+            support_username=self.config.SUPPORT_USERNAME.replace('@', '')
+        )
+        
+        await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
+    
+    async def handle_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle callback queries"""
+        query = update.callback_query
+        await query.answer()
+        
+        data = query.data
+        
+        if data.startswith('approve_'):
+            # Admin approval
+            withdrawal_id = int(data.replace('approve_', ''))
+            self.db.update_withdrawal_status(withdrawal_id, 'approved')
+            await query.edit_message_text("✅ Withdrawal approved!")
+        
+        elif data.startswith('reject_'):
+            # Admin rejection
+            withdrawal_id = int(data.replace('reject_', ''))
+            self.db.update_withdrawal_status(withdrawal_id, 'rejected')
+            await query.edit_message_text("❌ Withdrawal rejected!")
+    
+    async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle regular messages"""
+        user_id = update.effective_user.id
+        text = update.message.text
+        
+        # Track searches for referral earnings
+        self.db.increment_search_count(user_id)
+        
+        # Check if user is in our database
+        user = self.db.get_user(user_id)
+        
+        if not user:
+            await update.message.reply_text("Please use /start first")
+            return
+        
+        # Simple responses
+        if text.lower() in ['hi', 'hello', 'hey']:
+            await update.message.reply_text(f"Hello {user.get('first_name', 'User')}! Use /app to earn money!")
+        else:
+            # For demo, just acknowledge
+            await update.message.reply_text("Use the Mini App to earn money! Click /app")
