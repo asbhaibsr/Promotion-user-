@@ -16,21 +16,21 @@ class Config:
     ADMIN_IDS = [int(id.strip()) for id in os.getenv('ADMIN_IDS', '123456789').split(',') if id.strip()]
     
     # Channel Configuration
-    CHANNEL_USERNAME = os.getenv('CHANNEL_USERNAME', '@yourchannel')
-    CHANNEL_LINK = os.getenv('CHANNEL_LINK', 'https://t.me/yourchannel')
+    CHANNEL_USERNAME = os.getenv('CHANNEL_USERNAME', '@asbhai_bsr')
+    CHANNEL_LINK = os.getenv('CHANNEL_LINK', 'https://t.me/asbhai_bsr')
     CHANNEL_JOIN_BONUS = float(os.getenv('CHANNEL_JOIN_BONUS', 2.0))
     
     # Group Links
-    MOVIE_GROUP_LINK = os.getenv('MOVIE_GROUP_LINK', 'https://t.me/yourgroup')
-    NEW_GROUP_LINK = os.getenv('NEW_GROUP_LINK', 'https://t.me/yournewgroup')
-    ALL_GROUPS_LINK = os.getenv('ALL_GROUPS_LINK', 'https://t.me/yourallgroups')
+    MOVIE_GROUP_LINK = os.getenv('MOVIE_GROUP_LINK', 'https://t.me/asfilter_bot')
+    NEW_GROUP_LINK = os.getenv('NEW_GROUP_LINK', 'https://t.me/asfilter_group')
+    ALL_GROUPS_LINK = os.getenv('ALL_GROUPS_LINK', 'https://t.me/addlist/6urdhhdLRqhiZmQ1')
     
     # Support
-    SUPPORT_USERNAME = os.getenv('SUPPORT_USERNAME', '@support')
+    SUPPORT_USERNAME = os.getenv('SUPPORT_USERNAME', '@asbhaibsr')
     
     # WebApp URLs
-    WEBAPP_URL = os.getenv('WEBAPP_URL', 'https://your-app.onrender.com')
-    WEBHOOK_URL = os.getenv('WEBHOOK_URL', 'https://your-app.onrender.com')
+    WEBAPP_URL = os.getenv('WEBAPP_URL', 'https://promotion-user.onrender.com')
+    WEBHOOK_URL = os.getenv('WEBHOOK_URL', 'https://promotion-user.onrender.com')
     
     # Database
     DB_PATH = os.getenv('DB_PATH', 'bot_database.sqlite')
