@@ -5,7 +5,7 @@ services:
     region: singapore
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn main:flask_app
+    startCommand: gunicorn main:flask_app --workers 1 --threads 4 --timeout 120
     envVars:
       - key: BOT_TOKEN
         sync: false
@@ -17,4 +17,5 @@ services:
         value: https://promotion-user.onrender.com
       - key: PORT
         value: 10000
+    healthCheckPath: /health
     autoDeploy: true
