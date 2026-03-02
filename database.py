@@ -12,7 +12,15 @@ logger = logging.getLogger(__name__)
 class Database:
     def __init__(self):
         try:
-            self.client = MongoClient(Config.MONGO_URI, serverSelectionTimeoutMS=5000)
+            # ✅ FIX: Add connection pool settings
+            self.client = MongoClient(
+                Config.MONGO_URI, 
+                serverSelectionTimeoutMS=5000,
+                maxPoolSize=50,
+                minPoolSize=10,
+                maxIdleTimeMS=10000,
+                retryWrites=True
+            )
             self.db = self.client.movie_bot_advanced
             self.client.admin.command('ping')
             logger.info("✅ MongoDB Connected")
@@ -178,14 +186,13 @@ class Database:
             
             # Calculate today's earnings
             today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-            today_earnings = sum(
-                t.get("amount", 0) 
-                for t in self.transactions.find({
-                    "user_id": user_id,
-                    "timestamp": {"$gte": today_start},
-                    "amount": {"$gt": 0}
-                })
-            )
+            today_earnings = 0
+            for t in self.transactions.find({
+                "user_id": user_id,
+                "timestamp": {"$gte": today_start},
+                "amount": {"$gt": 0}
+            }):
+                today_earnings += t.get("amount", 0)
             
             return {
                 "user_id": user_id,
@@ -484,7 +491,7 @@ class Database:
                 "prize_name": prize_data["name"],
                 "color": prize_data["color"],
                 "angle": prize_data.get("angle", 0),
-                "remaining_spins": user.get("spins", 0)
+                "remaining_spins": user.get("spins", 0) if user else 0
             }
             
         except Exception as e:
