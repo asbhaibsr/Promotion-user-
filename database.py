@@ -1,618 +1,394 @@
 # ===== database.py =====
-import sqlite3
-import json
 import logging
 from datetime import datetime, timedelta
 import random
+from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure
 
 logger = logging.getLogger(__name__)
 
 class Database:
     def __init__(self, config):
         self.config = config
-        self.db_path = config.DB_PATH
-        self.init_db()
-    
-    def get_connection(self):
-        """Get database connection"""
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
-        return conn
-    
-    def init_db(self):
-        """Initialize database tables"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
         
-        # Users table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                user_id INTEGER PRIMARY KEY,
-                first_name TEXT,
-                username TEXT,
-                referrer_id INTEGER,
-                balance REAL DEFAULT 0,
-                total_earned REAL DEFAULT 0,
-                spins INTEGER DEFAULT 3,
-                tier INTEGER DEFAULT 1,
-                total_refs INTEGER DEFAULT 0,
-                active_refs INTEGER DEFAULT 0,
-                pending_refs INTEGER DEFAULT 0,
-                monthly_refs INTEGER DEFAULT 0,
-                daily_streak INTEGER DEFAULT 0,
-                last_daily TEXT,
-                channel_joined INTEGER DEFAULT 0,
-                payment_method TEXT,
-                payment_details TEXT,
-                total_searches INTEGER DEFAULT 0,
-                join_date TEXT,
-                last_active TEXT,
-                is_admin INTEGER DEFAULT 0,
-                FOREIGN KEY (referrer_id) REFERENCES users (user_id)
-            )
-        ''')
-        
-        # Transactions table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS transactions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                type TEXT,
-                amount REAL,
-                description TEXT,
-                timestamp TEXT,
-                status TEXT DEFAULT 'completed',
-                FOREIGN KEY (user_id) REFERENCES users (user_id)
-            )
-        ''')
-        
-        # Withdrawals table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS withdrawals (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                amount REAL,
-                method TEXT,
-                details TEXT,
-                status TEXT DEFAULT 'pending',
-                request_date TEXT,
-                processed_date TEXT,
-                admin_note TEXT,
-                FOREIGN KEY (user_id) REFERENCES users (user_id)
-            )
-        ''')
-        
-        # Referrals table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS referrals (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                referrer_id INTEGER,
-                referred_id INTEGER UNIQUE,
-                join_date TEXT,
-                last_search TEXT,
-                earnings REAL DEFAULT 0,
-                is_active INTEGER DEFAULT 1,
-                FOREIGN KEY (referrer_id) REFERENCES users (user_id),
-                FOREIGN KEY (referred_id) REFERENCES users (user_id)
-            )
-        ''')
-        
-        # Daily earnings table (for referral commissions)
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS daily_earnings (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                amount REAL,
-                date TEXT,
-                source TEXT,
-                FOREIGN KEY (user_id) REFERENCES users (user_id)
-            )
-        ''')
-        
-        # Issues table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS issues (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                issue TEXT,
-                report_date TEXT,
-                status TEXT DEFAULT 'pending',
-                FOREIGN KEY (user_id) REFERENCES users (user_id)
-            )
-        ''')
-        
-        # Spin history
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS spin_history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                prize REAL,
-                prize_name TEXT,
-                spin_date TEXT,
-                FOREIGN KEY (user_id) REFERENCES users (user_id)
-            )
-        ''')
-        
-        # Config table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS config (
-                key TEXT PRIMARY KEY,
-                value TEXT
-            )
-        ''')
-        
-        conn.commit()
-        conn.close()
-        logger.info("✅ Database initialized")
-    
-    def add_user(self, user_data):
-        """Add new user to database"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        # Check if user exists
-        cursor.execute("SELECT user_id FROM users WHERE user_id = ?", (user_data['user_id'],))
-        existing = cursor.fetchone()
-        
-        if existing:
-            # Update last_active
-            cursor.execute(
-                "UPDATE users SET last_active = ? WHERE user_id = ?",
-                (datetime.now().isoformat(), user_data['user_id'])
-            )
-            conn.commit()
-            conn.close()
-            return False
-        
-        # Add new user
-        now = datetime.now().isoformat()
-        
-        cursor.execute('''
-            INSERT INTO users (
-                user_id, first_name, username, referrer_id, 
-                balance, total_earned, spins, tier,
-                total_refs, active_refs, pending_refs, monthly_refs,
-                daily_streak, last_daily, channel_joined, 
-                total_searches, join_date, last_active, is_admin
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            user_data['user_id'],
-            user_data.get('first_name', ''),
-            user_data.get('username', ''),
-            user_data.get('referrer_id'),
-            5.0,  # Welcome bonus
-            5.0,  # Total earned starts with welcome
-            3,    # Starting spins
-            1,    # Starting tier
-            0, 0, 0, 0,  # ref counts
-            0,  # streak
-            None,  # last daily
-            0,  # channel joined
-            0,  # total searches
-            now,  # join date
-            now,  # last active
-            1 if user_data['user_id'] in self.config.ADMIN_IDS else 0
-        ))
-        
-        # Add transaction for welcome bonus
-        cursor.execute('''
-            INSERT INTO transactions (user_id, type, amount, description, timestamp, status)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (
-            user_data['user_id'],
-            'welcome_bonus',
-            5.0,
-            'Welcome bonus',
-            now,
-            'completed'
-        ))
-        
-        # Handle referral
-        if user_data.get('referrer_id'):
-            # Add to referrals table
-            cursor.execute('''
-                INSERT INTO referrals (referrer_id, referred_id, join_date, is_active)
-                VALUES (?, ?, ?, ?)
-            ''', (
-                user_data['referrer_id'],
-                user_data['user_id'],
-                now,
-                1
-            ))
+        # MongoDB Connection
+        try:
+            self.client = MongoClient(config.MONGODB_URI)
+            self.db = self.client[config.MONGODB_DB]
             
-            # Update referrer counts
-            cursor.execute('''
-                UPDATE users 
-                SET total_refs = total_refs + 1,
-                    pending_refs = pending_refs + 1,
-                    monthly_refs = monthly_refs + 1
-                WHERE user_id = ?
-            ''', (user_data['referrer_id'],))
-        
-        conn.commit()
-        conn.close()
-        return True
+            # Test connection
+            self.client.admin.command('ping')
+            logger.info("✅ MongoDB Connected Successfully!")
+            
+            # Initialize collections
+            self.users = self.db['users']
+            self.transactions = self.db['transactions']
+            self.withdrawals = self.db['withdrawals']
+            self.referrals = self.db['referrals']
+            self.issues = self.db['issues']
+            self.spin_history = self.db['spin_history']
+            
+            # Create indexes
+            self.users.create_index('user_id', unique=True)
+            self.referrals.create_index('referred_id', unique=True)
+            self.transactions.create_index('user_id')
+            self.withdrawals.create_index('user_id')
+            self.withdrawals.create_index('status')
+            
+        except ConnectionFailure as e:
+            logger.error(f"MongoDB Connection Error: {e}")
+            raise e
     
     def get_user(self, user_id):
         """Get user data"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
-        row = cursor.fetchone()
-        
-        conn.close()
-        
-        if row:
-            return dict(row)
-        return None
+        try:
+            user = self.users.find_one({'user_id': user_id})
+            if user:
+                user['_id'] = str(user['_id'])
+            return user
+        except Exception as e:
+            logger.error(f"Error getting user: {e}")
+            return None
+    
+    def add_user(self, user_data):
+        """Add new user"""
+        try:
+            # Check if user exists
+            existing = self.users.find_one({'user_id': user_data['user_id']})
+            if existing:
+                self.users.update_one(
+                    {'user_id': user_data['user_id']},
+                    {'$set': {'last_active': datetime.now().isoformat()}}
+                )
+                return False
+            
+            # Add new user
+            now = datetime.now().isoformat()
+            
+            new_user = {
+                'user_id': user_data['user_id'],
+                'first_name': user_data.get('first_name', ''),
+                'username': user_data.get('username', ''),
+                'referrer_id': user_data.get('referrer_id'),
+                'balance': 5.0,
+                'total_earned': 5.0,
+                'spins': 3,
+                'tier': 1,
+                'total_refs': 0,
+                'active_refs': 0,
+                'pending_refs': 0,
+                'monthly_refs': 0,
+                'daily_streak': 0,
+                'last_daily': None,
+                'channel_joined': False,
+                'payment_method': None,
+                'payment_details': None,
+                'total_searches': 0,
+                'join_date': now,
+                'last_active': now,
+                'is_admin': user_data['user_id'] in self.config.ADMIN_IDS
+            }
+            
+            self.users.insert_one(new_user)
+            
+            self.add_transaction(
+                user_data['user_id'],
+                'welcome_bonus',
+                5.0,
+                'Welcome bonus'
+            )
+            
+            if user_data.get('referrer_id'):
+                self.referrals.insert_one({
+                    'referrer_id': user_data['referrer_id'],
+                    'referred_id': user_data['user_id'],
+                    'join_date': now,
+                    'last_search': None,
+                    'earnings': 0,
+                    'is_active': True
+                })
+                
+                self.users.update_one(
+                    {'user_id': user_data['referrer_id']},
+                    {
+                        '$inc': {
+                            'total_refs': 1,
+                            'pending_refs': 1,
+                            'monthly_refs': 1
+                        }
+                    }
+                )
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error adding user: {e}")
+            return False
     
     def update_user(self, user_id, updates):
         """Update user data"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        set_clause = ', '.join([f"{key} = ?" for key in updates.keys()])
-        values = list(updates.values()) + [user_id]
-        
-        cursor.execute(f"UPDATE users SET {set_clause} WHERE user_id = ?", values)
-        conn.commit()
-        conn.close()
-        
-        return True
+        try:
+            self.users.update_one(
+                {'user_id': user_id},
+                {'$set': updates}
+            )
+            return True
+        except Exception as e:
+            logger.error(f"Error updating user: {e}")
+            return False
     
     def add_balance(self, user_id, amount, description=""):
         """Add balance to user"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            UPDATE users 
-            SET balance = balance + ?,
-                total_earned = total_earned + ?
-            WHERE user_id = ?
-        ''', (amount, amount, user_id))
-        
-        # Add transaction
-        cursor.execute('''
-            INSERT INTO transactions (user_id, type, amount, description, timestamp, status)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (
-            user_id,
-            'credit',
-            amount,
-            description or 'Balance added',
-            datetime.now().isoformat(),
-            'completed'
-        ))
-        
-        conn.commit()
-        conn.close()
-        return True
+        try:
+            self.users.update_one(
+                {'user_id': user_id},
+                {
+                    '$inc': {
+                        'balance': amount,
+                        'total_earned': amount
+                    }
+                }
+            )
+            
+            self.add_transaction(
+                user_id,
+                'credit',
+                amount,
+                description or 'Balance added'
+            )
+            
+            return True
+        except Exception as e:
+            logger.error(f"Error adding balance: {e}")
+            return False
     
     def add_transaction(self, user_id, type_, amount, description=""):
-        """Add transaction record"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            INSERT INTO transactions (user_id, type, amount, description, timestamp, status)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (
-            user_id,
-            type_,
-            amount,
-            description,
-            datetime.now().isoformat(),
-            'completed'
-        ))
-        
-        conn.commit()
-        conn.close()
-        return True
+        """Add transaction"""
+        try:
+            transaction = {
+                'user_id': user_id,
+                'type': type_,
+                'amount': amount,
+                'description': description,
+                'timestamp': datetime.now().isoformat(),
+                'status': 'completed'
+            }
+            self.transactions.insert_one(transaction)
+            return True
+        except Exception as e:
+            logger.error(f"Error adding transaction: {e}")
+            return False
     
     def process_spin(self, user_id):
-        """Process spin and return prize"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        # Check user spins
-        cursor.execute("SELECT spins, balance FROM users WHERE user_id = ?", (user_id,))
-        user = cursor.fetchone()
-        
-        if not user or user['spins'] <= 0:
-            conn.close()
+        """Process spin"""
+        try:
+            user = self.get_user(user_id)
+            if not user or user.get('spins', 0) <= 0:
+                return None
+            
+            prizes = [
+                {'prize': 0, 'name': 'Better luck next time', 'prob': 40},
+                {'prize': 0.05, 'name': '₹0.05', 'prob': 20},
+                {'prize': 0.10, 'name': '₹0.10', 'prob': 15},
+                {'prize': 0.20, 'name': '₹0.20', 'prob': 10},
+                {'prize': 0.50, 'name': '₹0.50', 'prob': 7},
+                {'prize': 1.00, 'name': '₹1.00', 'prob': 5},
+                {'prize': 2.00, 'name': '₹2.00', 'prob': 2},
+                {'prize': 5.00, 'name': '₹5.00 JACKPOT! 🎉', 'prob': 1}
+            ]
+            
+            rand_val = random.randint(1, 100)
+            cumulative = 0
+            selected = prizes[0]
+            
+            for prize in prizes:
+                cumulative += prize['prob']
+                if rand_val <= cumulative:
+                    selected = prize
+                    break
+            
+            self.users.update_one(
+                {'user_id': user_id},
+                {
+                    '$inc': {
+                        'spins': -1,
+                        'balance': selected['prize'],
+                        'total_earned': selected['prize']
+                    }
+                }
+            )
+            
+            self.spin_history.insert_one({
+                'user_id': user_id,
+                'prize': selected['prize'],
+                'prize_name': selected['name'],
+                'spin_date': datetime.now().isoformat()
+            })
+            
+            if selected['prize'] > 0:
+                self.add_transaction(
+                    user_id,
+                    'spin_win',
+                    selected['prize'],
+                    f"Spin win: {selected['name']}"
+                )
+            
+            updated = self.get_user(user_id)
+            
+            return {
+                'prize': selected['prize'],
+                'prize_name': selected['name'],
+                'remaining_spins': updated.get('spins', 0)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error processing spin: {e}")
             return None
-        
-        # Define prizes (probability weighted)
-        prizes = [
-            {'prize': 0, 'name': 'Better luck next time', 'prob': 40},
-            {'prize': 0.05, 'name': '₹0.05', 'prob': 20},
-            {'prize': 0.10, 'name': '₹0.10', 'prob': 15},
-            {'prize': 0.20, 'name': '₹0.20', 'prob': 10},
-            {'prize': 0.50, 'name': '₹0.50', 'prob': 7},
-            {'prize': 1.00, 'name': '₹1.00', 'prob': 5},
-            {'prize': 2.00, 'name': '₹2.00', 'prob': 2},
-            {'prize': 5.00, 'name': '₹5.00 JACKPOT! 🎉', 'prob': 1}
-        ]
-        
-        # Select prize based on probability
-        rand_val = random.randint(1, 100)
-        cumulative = 0
-        selected_prize = prizes[0]  # Default
-        
-        for prize in prizes:
-            cumulative += prize['prob']
-            if rand_val <= cumulative:
-                selected_prize = prize
-                break
-        
-        # Update spins and balance
-        cursor.execute('''
-            UPDATE users 
-            SET spins = spins - 1,
-                balance = balance + ?,
-                total_earned = total_earned + ?
-            WHERE user_id = ?
-        ''', (selected_prize['prize'], selected_prize['prize'], user_id))
-        
-        # Record spin
-        cursor.execute('''
-            INSERT INTO spin_history (user_id, prize, prize_name, spin_date)
-            VALUES (?, ?, ?, ?)
-        ''', (
-            user_id,
-            selected_prize['prize'],
-            selected_prize['name'],
-            datetime.now().isoformat()
-        ))
-        
-        # Add transaction if won
-        if selected_prize['prize'] > 0:
-            cursor.execute('''
-                INSERT INTO transactions (user_id, type, amount, description, timestamp, status)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', (
-                user_id,
-                'spin_win',
-                selected_prize['prize'],
-                f"Spin win: {selected_prize['name']}",
-                datetime.now().isoformat(),
-                'completed'
-            ))
-        
-        # Get remaining spins
-        cursor.execute("SELECT spins FROM users WHERE user_id = ?", (user_id,))
-        remaining = cursor.fetchone()['spins']
-        
-        conn.commit()
-        conn.close()
-        
-        return {
-            'prize': selected_prize['prize'],
-            'prize_name': selected_prize['name'],
-            'remaining_spins': remaining
-        }
     
     def claim_daily_bonus(self, user_id):
         """Claim daily bonus"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("SELECT last_daily, daily_streak FROM users WHERE user_id = ?", (user_id,))
-        user = cursor.fetchone()
-        
-        if not user:
-            conn.close()
-            return None
-        
-        now = datetime.now()
-        today = now.date().isoformat()
-        
-        # Check if already claimed today
-        if user['last_daily'] and user['last_daily'].startswith(today):
-            conn.close()
-            return None
-        
-        # Calculate streak
-        streak = 1
-        if user['last_daily']:
-            last_date = datetime.fromisoformat(user['last_daily']).date()
-            if (now.date() - last_date).days == 1:
-                streak = user['daily_streak'] + 1
-            else:
-                streak = 1
-        else:
+        try:
+            user = self.get_user(user_id)
+            if not user:
+                return None
+            
+            now = datetime.now()
+            today = now.date().isoformat()
+            
+            last_daily = user.get('last_daily')
+            if last_daily and last_daily.startswith(today):
+                return None
+            
             streak = 1
-        
-        # Calculate bonus amount
-        base_bonus = self.config.DAILY_BONUS
-        streak_bonus = min(streak * 0.02, 0.10)  # Max extra ₹0.10
-        total_bonus = base_bonus + streak_bonus
-        
-        # Update user
-        cursor.execute('''
-            UPDATE users 
-            SET balance = balance + ?,
-                total_earned = total_earned + ?,
-                daily_streak = ?,
-                last_daily = ?
-            WHERE user_id = ?
-        ''', (total_bonus, total_bonus, streak, now.isoformat(), user_id))
-        
-        # Add transaction
-        cursor.execute('''
-            INSERT INTO transactions (user_id, type, amount, description, timestamp, status)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (
-            user_id,
-            'daily_bonus',
-            total_bonus,
-            f"Daily bonus (streak: {streak})",
-            now.isoformat(),
-            'completed'
-        ))
-        
-        conn.commit()
-        conn.close()
-        
-        return {
-            'bonus': total_bonus,
-            'streak': streak,
-            'success': True
-        }
+            if last_daily:
+                try:
+                    last_date = datetime.fromisoformat(last_daily).date()
+                    if (now.date() - last_date).days == 1:
+                        streak = user.get('daily_streak', 0) + 1
+                except:
+                    streak = 1
+            
+            base_bonus = self.config.DAILY_BONUS
+            streak_bonus = min(streak * 0.02, 0.10)
+            total_bonus = base_bonus + streak_bonus
+            
+            self.users.update_one(
+                {'user_id': user_id},
+                {
+                    '$inc': {
+                        'balance': total_bonus,
+                        'total_earned': total_bonus
+                    },
+                    '$set': {
+                        'daily_streak': streak,
+                        'last_daily': now.isoformat()
+                    }
+                }
+            )
+            
+            self.add_transaction(
+                user_id,
+                'daily_bonus',
+                total_bonus,
+                f"Daily bonus (streak: {streak})"
+            )
+            
+            return {
+                'bonus': total_bonus,
+                'streak': streak,
+                'success': True
+            }
+            
+        except Exception as e:
+            logger.error(f"Error claiming daily: {e}")
+            return None
     
     def process_withdrawal(self, user_id, amount, method, details):
         """Process withdrawal request"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        # Check user balance
-        cursor.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
-        user = cursor.fetchone()
-        
-        if not user:
-            conn.close()
-            return {'success': False, 'message': 'User not found'}
-        
-        if user['balance'] < amount:
-            conn.close()
-            return {'success': False, 'message': 'Insufficient balance'}
-        
-        if amount < self.config.MIN_WITHDRAWAL:
-            conn.close()
-            return {'success': False, 'message': f'Minimum withdrawal is ₹{self.config.MIN_WITHDRAWAL}'}
-        
-        # Deduct balance
-        cursor.execute('''
-            UPDATE users SET balance = balance - ? WHERE user_id = ?
-        ''', (amount, user_id))
-        
-        # Create withdrawal record
-        now = datetime.now().isoformat()
-        cursor.execute('''
-            INSERT INTO withdrawals (user_id, amount, method, details, status, request_date)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (user_id, amount, method, details, 'pending', now))
-        
-        # Add transaction
-        cursor.execute('''
-            INSERT INTO transactions (user_id, type, amount, description, timestamp, status)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (
-            user_id,
-            'withdrawal_request',
-            -amount,
-            f"Withdrawal request via {method}",
-            now,
-            'pending'
-        ))
-        
-        conn.commit()
-        conn.close()
-        
-        return {'success': True, 'message': 'Withdrawal request submitted'}
+        try:
+            user = self.get_user(user_id)
+            
+            if not user:
+                return {'success': False, 'message': 'User not found'}
+            
+            if user['balance'] < amount:
+                return {'success': False, 'message': 'Insufficient balance'}
+            
+            if amount < self.config.MIN_WITHDRAWAL:
+                return {'success': False, 'message': f'Minimum withdrawal is ₹{self.config.MIN_WITHDRAWAL}'}
+            
+            self.users.update_one(
+                {'user_id': user_id},
+                {'$inc': {'balance': -amount}}
+            )
+            
+            now = datetime.now().isoformat()
+            self.withdrawals.insert_one({
+                'user_id': user_id,
+                'amount': amount,
+                'method': method,
+                'details': details,
+                'status': 'pending',
+                'request_date': now,
+                'processed_date': None,
+                'admin_note': None
+            })
+            
+            self.add_transaction(
+                user_id,
+                'withdrawal_request',
+                -amount,
+                f"Withdrawal request via {method}"
+            )
+            
+            return {'success': True, 'message': 'Withdrawal request submitted'}
+            
+        except Exception as e:
+            logger.error(f"Error processing withdrawal: {e}")
+            return {'success': False, 'message': 'Internal error'}
     
     def increment_search_count(self, user_id):
-        """Increment user's search count and process referral earnings"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            UPDATE users SET total_searches = total_searches + 1,
-                           last_active = ?
-            WHERE user_id = ?
-        ''', (datetime.now().isoformat(), user_id))
-        
-        # Update referral's last search
-        cursor.execute('''
-            UPDATE referrals SET last_search = ? WHERE referred_id = ?
-        ''', (datetime.now().isoformat(), user_id))
-        
-        conn.commit()
-        conn.close()
-    
-    def process_daily_referral_earnings(self):
-        """CRON job: Process daily earnings for referrals"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        today = datetime.now().date().isoformat()
-        
-        # Get all active referrals (users who searched in last 24h)
-        cursor.execute('''
-            SELECT r.referrer_id, r.referred_id, u.tier, u.tier_rate
-            FROM referrals r
-            JOIN users u ON u.user_id = r.referrer_id
-            WHERE r.is_active = 1 AND 
-                  r.last_search IS NOT NULL AND
-                  date(r.last_search) = date('now')
-        ''')
-        
-        earnings_by_referrer = {}
-        
-        for row in cursor.fetchall():
-            referrer_id = row['referrer_id']
-            rate = self.config.get_tier_rate(row['tier'])
-            earnings_by_referrer[referrer_id] = earnings_by_referrer.get(referrer_id, 0) + rate
-        
-        # Apply earnings
-        for referrer_id, amount in earnings_by_referrer.items():
-            cursor.execute('''
-                UPDATE users 
-                SET balance = balance + ?,
-                    total_earned = total_earned + ?
-                WHERE user_id = ?
-            ''', (amount, amount, referrer_id))
+        """Increment user's search count"""
+        try:
+            self.users.update_one(
+                {'user_id': user_id},
+                {
+                    '$inc': {'total_searches': 1},
+                    '$set': {'last_active': datetime.now().isoformat()}
+                }
+            )
             
-            cursor.execute('''
-                INSERT INTO daily_earnings (user_id, amount, date, source)
-                VALUES (?, ?, ?, ?)
-            ''', (referrer_id, amount, today, 'referral_commissions'))
-            
-            cursor.execute('''
-                INSERT INTO transactions (user_id, type, amount, description, timestamp, status)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', (
-                referrer_id,
-                'referral_commission',
-                amount,
-                f'Daily referral earnings for {today}',
-                datetime.now().isoformat(),
-                'completed'
-            ))
-        
-        conn.commit()
-        conn.close()
-        
-        return len(earnings_by_referrer)
+            self.referrals.update_one(
+                {'referred_id': user_id},
+                {'$set': {'last_search': datetime.now().isoformat()}}
+            )
+        except Exception as e:
+            logger.error(f"Error incrementing search: {e}")
     
     def get_leaderboard(self, limit=10):
-        """Get top users by balance"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            SELECT user_id, first_name, balance, total_refs, total_earned
-            FROM users
-            ORDER BY balance DESC
-            LIMIT ?
-        ''', (limit,))
-        
-        rows = cursor.fetchall()
-        conn.close()
-        
-        result = []
-        for i, row in enumerate(rows):
-            user = dict(row)
-            user['rank'] = i + 1
-            user['name'] = user['first_name'][:10]  # Truncate long names
-            result.append(user)
-        
-        return result
+        """Get leaderboard"""
+        try:
+            users = self.users.find(
+                {},
+                {'user_id': 1, 'first_name': 1, 'balance': 1, 'total_refs': 1}
+            ).sort('balance', -1).limit(limit)
+            
+            result = []
+            for i, user in enumerate(users):
+                result.append({
+                    'rank': i + 1,
+                    'name': user.get('first_name', 'User')[:10],
+                    'balance': user.get('balance', 0),
+                    'total_refs': user.get('total_refs', 0)
+                })
+            
+            return result
+        except Exception as e:
+            logger.error(f"Leaderboard error: {e}")
+            return []
     
     def get_user_missions(self, user_id):
-        """Get user missions and progress"""
+        """Get user missions"""
         user = self.get_user(user_id)
         
         if not user:
@@ -635,14 +411,6 @@ class Database:
                 'reward': 1.0,
                 'completed': user.get('total_refs', 0) >= 3
             },
-            'spin_master': {
-                'name': 'Spin Wheel',
-                'icon': '🎡',
-                'count': 0,  # Would need to query spin history
-                'target': 10,
-                'reward': 0.50,
-                'completed': False
-            },
             'streak': {
                 'name': 'Daily Streak',
                 'icon': '🔥',
@@ -657,31 +425,45 @@ class Database:
     
     def add_issue_report(self, user_id, issue):
         """Add issue report"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            INSERT INTO issues (user_id, issue, report_date, status)
-            VALUES (?, ?, ?, ?)
-        ''', (user_id, issue, datetime.now().isoformat(), 'pending'))
-        
-        conn.commit()
-        conn.close()
-        
-        return True
+        try:
+            self.issues.insert_one({
+                'user_id': user_id,
+                'issue': issue,
+                'report_date': datetime.now().isoformat(),
+                'status': 'pending'
+            })
+            return True
+        except Exception as e:
+            logger.error(f"Error adding issue: {e}")
+            return False
     
     def update_withdrawal_status(self, withdrawal_id, status):
         """Update withdrawal status"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            UPDATE withdrawals 
-            SET status = ?, processed_date = ?
-            WHERE id = ?
-        ''', (status, datetime.now().isoformat(), withdrawal_id))
-        
-        conn.commit()
-        conn.close()
-        
-        return True
+        try:
+            from bson.objectid import ObjectId
+            self.withdrawals.update_one(
+                {'_id': ObjectId(withdrawal_id)},
+                {
+                    '$set': {
+                        'status': status,
+                        'processed_date': datetime.now().isoformat()
+                    }
+                }
+            )
+            return True
+        except Exception as e:
+            logger.error(f"Error updating withdrawal: {e}")
+            return False
+    
+    def get_pending_withdrawals(self):
+        """Get pending withdrawals"""
+        try:
+            withdrawals = self.withdrawals.find({'status': 'pending'}).sort('request_date', 1)
+            result = []
+            for w in withdrawals:
+                w['_id'] = str(w['_id'])
+                result.append(w)
+            return result
+        except Exception as e:
+            logger.error(f"Error getting withdrawals: {e}")
+            return []
