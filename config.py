@@ -18,23 +18,23 @@ class Config:
     # Channel Configuration for Join Bonus
     CHANNELS = {
         'main': {
-            'id': os.getenv('CHANNEL_ID', '@your_channel'),
-            'link': os.getenv('CHANNEL_LINK', 'https://t.me/your_channel'),
+            'id': os.getenv('CHANNEL_ID', '-1002283182645'),
+            'link': os.getenv('CHANNEL_LINK', 'https://t.me/asbhai_bsr'),
             'bonus': float(os.getenv('CHANNEL_JOIN_BONUS', 2.0))
         }
     }
     
     # Group Links
-    MOVIE_GROUP_LINK = os.getenv('MOVIE_GROUP_LINK', 'https://t.me/your_group')
-    NEW_GROUP_LINK = os.getenv('NEW_GROUP_LINK', 'https://t.me/your_group2')
-    ALL_GROUPS_LINK = os.getenv('ALL_GROUPS_LINK', 'https://t.me/addlist/xxxx')
+    MOVIE_GROUP_LINK = os.getenv('MOVIE_GROUP_LINK', 'https://t.me/asfilter_Bot')
+    NEW_GROUP_LINK = os.getenv('NEW_GROUP_LINK', 'https://t.me/asfilter_group')
+    ALL_GROUPS_LINK = os.getenv('ALL_GROUPS_LINK', 'https://t.me/addlist/6urdhhdLRqhiZmQ1')
     
     # Support
-    SUPPORT_USERNAME = os.getenv('SUPPORT_USERNAME', '@support')
+    SUPPORT_USERNAME = os.getenv('SUPPORT_USERNAME', '@asbhaibsr')
     
     # WebApp URLs
-    WEBAPP_URL = os.getenv('WEBAPP_URL', 'https://your-app.onrender.com')
-    WEBHOOK_URL = os.getenv('WEBHOOK_URL', 'https://your-app.onrender.com')
+    WEBAPP_URL = os.getenv('WEBAPP_URL', 'https://promotion-user.onrender.com/')
+    WEBHOOK_URL = os.getenv('WEBHOOK_URL', 'https://promotion-user.onrender.com/')
     
     # MongoDB Configuration
     MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb+srv://username:password@cluster.mongodb.net/')
