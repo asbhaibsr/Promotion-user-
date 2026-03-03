@@ -11,7 +11,9 @@ services:
         sync: false
       - key: ADMIN_IDS
         sync: false
-      - key: CHANNEL_USERNAME
+      - key: LOG_CHANNEL_ID
+        sync: false
+      - key: CHANNEL_ID
         sync: false
       - key: CHANNEL_LINK
         sync: false
@@ -22,6 +24,8 @@ services:
       - key: ALL_GROUPS_LINK
         sync: false
       - key: SUPPORT_USERNAME
+        sync: false
+      - key: MONGODB_URI
         sync: false
       - key: WEBAPP_URL
         sync: false
