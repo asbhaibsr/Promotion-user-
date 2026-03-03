@@ -1,5 +1,6 @@
 # ===== admin.py =====
 import logging
+import asyncio
 from datetime import datetime, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
@@ -14,10 +15,8 @@ class AdminHandlers:
         self.handlers = handlers
     
     async def admin_panel(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Admin panel command"""
         user_id = update.effective_user.id
         
-        # Check if user is admin
         if user_id not in self.config.ADMIN_IDS:
             await update.message.reply_text("❌ You are not authorized to use this command.")
             return
@@ -28,50 +27,30 @@ class AdminHandlers:
             "/stats - View bot statistics\n"
             "/broadcast [message] - Send message to all users\n"
             "/addbalance [user_id] [amount] - Add balance to user\n"
-            "/setbonus [amount] - Set daily bonus amount\n"
             "/withdrawals - View pending withdrawals\n"
         )
         
         await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
     
     async def stats(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """View bot statistics"""
         user_id = update.effective_user.id
         
-        # Check if user is admin
         if user_id not in self.config.ADMIN_IDS:
             await update.message.reply_text("❌ You are not authorized to use this command.")
             return
         
-        # Get stats from database
-        conn = self.db.get_connection()
-        cursor = conn.cursor()
-        
-        # Total users
-        cursor.execute("SELECT COUNT(*) FROM users")
-        total_users = cursor.fetchone()[0]
-        
-        # Users joined today
+        total_users = self.db.users.count_documents({})
         today = datetime.now().date().isoformat()
-        cursor.execute("SELECT COUNT(*) FROM users WHERE date(join_date) = ?", (today,))
-        today_users = cursor.fetchone()[0]
+        today_users = self.db.users.count_documents({'join_date': {'$regex': f'^{today}'}})
         
-        # Active users (last 24h)
         yesterday = (datetime.now() - timedelta(days=1)).isoformat()
-        cursor.execute("SELECT COUNT(*) FROM users WHERE last_active > ?", (yesterday,))
-        active_users = cursor.fetchone()[0]
+        active_users = self.db.users.count_documents({'last_active': {'$gt': yesterday}})
         
-        # Total balance
-        cursor.execute("SELECT SUM(balance) FROM users")
-        total_balance = cursor.fetchone()[0] or 0
+        pipeline = [{'$group': {'_id': None, 'total': {'$sum': '$balance'}}}]
+        result = list(self.db.users.aggregate(pipeline))
+        total_balance = result[0]['total'] if result else 0
         
-        # Pending withdrawals
-        cursor.execute("SELECT COUNT(*), SUM(amount) FROM withdrawals WHERE status = 'pending'")
-        pending_count, pending_amount = cursor.fetchone()
-        pending_count = pending_count or 0
-        pending_amount = pending_amount or 0
-        
-        conn.close()
+        pending_count = self.db.withdrawals.count_documents({'status': 'pending'})
         
         text = (
             "📊 **Bot Statistics**\n\n"
@@ -82,38 +61,29 @@ class AdminHandlers:
             f"**Financial:**\n"
             f"• Total balance: ₹{total_balance:.2f}\n"
             f"• Pending withdrawals: {pending_count}\n"
-            f"• Withdrawal amount: ₹{pending_amount:.2f}\n\n"
         )
         
         await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
     
     async def broadcast(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Send message to all users"""
         user_id = update.effective_user.id
         
-        # Check if user is admin
         if user_id not in self.config.ADMIN_IDS:
             await update.message.reply_text("❌ You are not authorized to use this command.")
             return
         
-        # Get message
         if not context.args:
             await update.message.reply_text("Usage: /broadcast [message]")
             return
         
         message = ' '.join(context.args)
         
-        # Get all users
-        conn = self.db.get_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT user_id FROM users")
-        users = cursor.fetchall()
-        conn.close()
+        users = self.db.users.find({}, {'user_id': 1})
         
         sent_count = 0
         failed_count = 0
         
-        status_msg = await update.message.reply_text(f"📢 Broadcasting to {len(users)} users...")
+        status_msg = await update.message.reply_text(f"📢 Broadcasting...")
         
         for user in users:
             try:
@@ -127,7 +97,6 @@ class AdminHandlers:
                 failed_count += 1
                 logger.error(f"Broadcast failed to {user['user_id']}: {e}")
             
-            # Small delay to avoid rate limits
             await asyncio.sleep(0.05)
         
         await status_msg.edit_text(
@@ -137,15 +106,12 @@ class AdminHandlers:
         )
     
     async def add_balance(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Add balance to user"""
         user_id = update.effective_user.id
         
-        # Check if user is admin
         if user_id not in self.config.ADMIN_IDS:
             await update.message.reply_text("❌ You are not authorized to use this command.")
             return
         
-        # Parse arguments
         if len(context.args) < 2:
             await update.message.reply_text("Usage: /addbalance [user_id] [amount]")
             return
@@ -157,16 +123,13 @@ class AdminHandlers:
             await update.message.reply_text("❌ Invalid user_id or amount")
             return
         
-        # Check if user exists
         user = self.db.get_user(target_id)
         if not user:
             await update.message.reply_text(f"❌ User {target_id} not found")
             return
         
-        # Add balance
         self.db.add_balance(target_id, amount, f"Admin added ₹{amount}")
         
-        # Notify user
         try:
             await context.bot.send_message(
                 chat_id=target_id,
@@ -182,58 +145,25 @@ class AdminHandlers:
             f"New balance: ₹{(user['balance'] + amount):.2f}"
         )
     
-    async def set_daily_bonus(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Set daily bonus amount"""
-        user_id = update.effective_user.id
-        
-        # Check if user is admin
-        if user_id not in self.config.ADMIN_IDS:
-            await update.message.reply_text("❌ You are not authorized to use this command.")
-            return
-        
-        if not context.args:
-            await update.message.reply_text(f"Current daily bonus: ₹{self.config.DAILY_BONUS}")
-            return
-        
-        try:
-            new_bonus = float(context.args[0])
-            self.config.DAILY_BONUS = new_bonus
-            await update.message.reply_text(f"✅ Daily bonus set to ₹{new_bonus}")
-        except ValueError:
-            await update.message.reply_text("❌ Invalid amount")
-    
     async def withdrawals(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """View pending withdrawals"""
         user_id = update.effective_user.id
         
-        # Check if user is admin
         if user_id not in self.config.ADMIN_IDS:
             await update.message.reply_text("❌ You are not authorized to use this command.")
             return
         
-        # Get pending withdrawals
-        conn = self.db.get_connection()
-        cursor = conn.cursor()
-        cursor.execute('''
-            SELECT w.*, u.first_name, u.username 
-            FROM withdrawals w
-            JOIN users u ON u.user_id = w.user_id
-            WHERE w.status = 'pending'
-            ORDER BY w.request_date ASC
-            LIMIT 10
-        ''')
-        withdrawals = cursor.fetchall()
-        conn.close()
+        withdrawals = self.db.get_pending_withdrawals()
         
         if not withdrawals:
             await update.message.reply_text("✅ No pending withdrawals")
             return
         
-        for w in withdrawals:
+        for w in withdrawals[:5]:
+            user = self.db.get_user(w['user_id'])
             text = (
                 f"💰 **Withdrawal Request**\n\n"
-                f"ID: `{w['id']}`\n"
-                f"User: {w['first_name']} (@{w['username'] or 'N/A'})\n"
+                f"ID: `{w['_id']}`\n"
+                f"User: {user.get('first_name', 'Unknown')} (@{user.get('username', 'N/A')})\n"
                 f"Amount: ₹{w['amount']:.2f}\n"
                 f"Method: {w['method']}\n"
                 f"Details: {w['details']}\n"
@@ -243,8 +173,8 @@ class AdminHandlers:
             
             keyboard = [
                 [
-                    InlineKeyboardButton("✅ Approve", callback_data=f"approve_{w['id']}"),
-                    InlineKeyboardButton("❌ Reject", callback_data=f"reject_{w['id']}")
+                    InlineKeyboardButton("✅ Approve", callback_data=f"approve_{w['_id']}"),
+                    InlineKeyboardButton("❌ Reject", callback_data=f"reject_{w['_id']}")
                 ]
             ]
             
