@@ -33,8 +33,8 @@ class Config:
     SUPPORT_USERNAME = os.getenv('SUPPORT_USERNAME', '@asbhaibsr')
     
     # WebApp URLs
-    WEBAPP_URL = os.getenv('WEBAPP_URL', 'https://promotion-user.onrender.com/')
-    WEBHOOK_URL = os.getenv('WEBHOOK_URL', 'https://promotion-user.onrender.com/')
+    WEBAPP_URL = os.getenv('WEBAPP_URL', 'https://promotion-user.onrender.com')
+    WEBHOOK_URL = os.getenv('WEBHOOK_URL', 'https://promotion-user.onrender.com')
     
     # MongoDB Configuration
     MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb+srv://username:password@cluster.mongodb.net/')
