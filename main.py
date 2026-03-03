@@ -103,8 +103,8 @@ def leaderboard_api():
         logger.error(f"Leaderboard error: {e}")
         return jsonify([])
 
-# ⚡ FIX: Webhook endpoint - IMPORTANT: Use /webhook not /<token>
-@app.route('/webhook', methods=['POST'])
+# ⚡ FIX: Webhook endpoint
+@app.route(f'/webhook', methods=['POST'])
 def webhook():
     """Telegram webhook endpoint"""
     try:
@@ -129,10 +129,14 @@ def health():
 # ===== TELEGRAM BOT SETUP =====
 async def post_init(application):
     """Setup after initialization"""
-    # ⚡ FIX: Remove double slash
+    # ⚡ FIX: Set webhook to the Flask endpoint
     base_url = config.WEBHOOK_URL.rstrip('/')
     webhook_url = f"{base_url}/webhook"
     
+    # Delete old webhook first
+    await application.bot.delete_webhook(drop_pending_updates=True)
+    
+    # Set new webhook
     await application.bot.set_webhook(url=webhook_url)
     logger.info(f"✅ Webhook set to: {webhook_url}")
     
@@ -180,7 +184,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def run_flask():
     """Run Flask in separate thread"""
-    port = int(os.environ.get('PORT', 10000))
+    port = int(os.environ.get('PORT', 8080))  # Flask on port 8080
     logger.info(f"🚀 Flask server starting on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
 
@@ -262,28 +266,27 @@ def main():
     flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
     
-    # Start scheduled jobs
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.create_task(scheduled_jobs())
+    # ⚡ FIX: Don't run webhook server, just start bot and let Flask handle webhook
+    # We already set webhook in post_init, so just keep the bot running
     
-    # ⚡ FIX: Run with webhook correctly
-    port = int(os.environ.get('PORT', 10000))
+    # Start the bot in polling mode for updates
+    logger.info("🔄 Starting bot in webhook mode (Flask handles the webhook)...")
     
-    if config.ENVIRONMENT == "development":
-        logger.info("🔄 Running in polling mode...")
-        bot_app.run_polling()
-    else:
-        logger.info(f"🔄 Running in webhook mode on port {port}...")
-        # ⚡ FIX: Use run_webhook with correct parameters
-        bot_app.run_webhook(
-            listen="0.0.0.0",
-            port=port,
-            url_path="webhook",  # Just 'webhook' not the token
-            webhook_url=f"{config.WEBHOOK_URL.rstrip('/')}/webhook",
-            secret_token=None,  # No secret token needed
-            drop_pending_updates=True
-        )
+    # Create an event to keep the main thread alive
+    import time
+    try:
+        # Run the bot in the background
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        # Start scheduled jobs
+        loop.create_task(scheduled_jobs())
+        
+        # Keep the main thread alive
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        logger.info("🛑 Bot stopped by user")
 
 if __name__ == '__main__':
     main()
