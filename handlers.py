@@ -87,7 +87,6 @@ class Handlers:
             parse_mode=ParseMode.MARKDOWN
         )
     
-    # ⚡ FIX: Added missing open_app method
     async def open_app(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Open Mini App command handler"""
         user = update.effective_user
@@ -197,7 +196,7 @@ class Handlers:
         user_id = data.get('user_id')
         channel_id = data.get('channel_id', 'main')
         
-        # Verify if user actually joined (can be done via bot)
+        # Verify if user actually joined
         try:
             member = await context.bot.get_chat_member(
                 chat_id=self.config.CHANNELS['main']['id'],
@@ -251,7 +250,7 @@ class Handlers:
         
         self.db.add_issue_report(user_id, issue)
         
-        # Forward to admin (optional)
+        # Forward to admin
         for admin_id in self.config.ADMIN_IDS:
             try:
                 user = self.db.get_user(user_id)
@@ -354,7 +353,6 @@ class Handlers:
         # Check if it's a movie search in group
         if update.effective_chat.type in ['group', 'supergroup']:
             # This is a group message - could be movie search
-            # You can implement keyword detection here
             if any(word in text.lower() for word in ['movie', 'film', 'bollywood', 'hollywood']):
                 self.db.record_search(user_id)
                 await update.message.reply_text("✅ Search recorded! Your referrer will earn today!")
