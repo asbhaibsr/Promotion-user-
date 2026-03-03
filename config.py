@@ -2,17 +2,14 @@
 import os
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
 class Config:
-    """Configuration class for the bot"""
-    
     # Bot Configuration
     BOT_TOKEN = os.getenv('BOT_TOKEN', 'YOUR_BOT_TOKEN_HERE')
     BOT_USERNAME = os.getenv('BOT_USERNAME', 'YOUR_BOT_USERNAME')
     
-    # Admin IDs (comma-separated in env)
+    # Admin IDs
     ADMIN_IDS = [int(id.strip()) for id in os.getenv('ADMIN_IDS', '123456789').split(',') if id.strip()]
     
     # Channel Configuration
@@ -26,14 +23,15 @@ class Config:
     ALL_GROUPS_LINK = os.getenv('ALL_GROUPS_LINK', 'https://t.me/addlist/6urdhhdLRqhiZmQ1')
     
     # Support
-    SUPPORT_USERNAME = os.getenv('SUPPORT_USERNAME', '@asbhaibsr')
+    SUPPORT_USERNAME = os.getenv('SUPPORT_USERNAME', '@support')
     
     # WebApp URLs
-    WEBAPP_URL = os.getenv('WEBAPP_URL', 'https://promotion-user.onrender.com')
-    WEBHOOK_URL = os.getenv('WEBHOOK_URL', 'https://promotion-user.onrender.com')
+    WEBAPP_URL = os.getenv('WEBAPP_URL', 'https://your-app.onrender.com')
+    WEBHOOK_URL = os.getenv('WEBHOOK_URL', 'https://your-app.onrender.com')
     
-    # Database
-    DB_PATH = os.getenv('DB_PATH', 'bot_database.sqlite')
+    # MongoDB Configuration
+    MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb://localhost:27017/')
+    MONGODB_DB = os.getenv('MONGODB_DB', 'filmyfund_bot')
     
     # Bonus Amounts
     REFERRAL_BONUS = float(os.getenv('REFERRAL_BONUS', 5.0))
@@ -54,19 +52,15 @@ class Config:
     ENVIRONMENT = os.getenv('ENVIRONMENT', 'production')
     
     def get_tier_name(self, tier):
-        """Get tier name by tier number"""
         return self.TIERS.get(tier, {}).get('name', 'BASIC')
     
     def get_tier_rate(self, tier):
-        """Get tier rate by tier number"""
         return self.TIERS.get(tier, {}).get('rate', 0.10)
     
     def get_tier_requirements(self, tier):
-        """Get tier requirements"""
         return self.TIERS.get(tier, {}).get('required_refs', 0)
     
     def calculate_tier(self, active_refs):
-        """Calculate user tier based on active referrals"""
         tier = 1
         for t_num, t_config in sorted(self.TIERS.items()):
             if active_refs >= t_config['required_refs']:
