@@ -50,11 +50,8 @@ bot_app = None
 def index():
     """Main WebApp page"""
     try:
-        # Get user_id from query params
         user_id = request.args.get('user_id', 0, type=int)
-        ref_code = request.args.get('start', '')
         
-        # Get user data if exists
         user_data = db.get_user(user_id) if user_id else None
         
         if user_data:
@@ -84,7 +81,6 @@ def index():
                 bot_username=config.BOT_USERNAME
             )
         else:
-            # New user - create basic context
             return render_template(
                 'index.html',
                 user_id=user_id or 0,
@@ -120,6 +116,9 @@ def get_user_api(user_id):
     try:
         user_data = db.get_user(user_id)
         if user_data:
+            # Remove _id for JSON serialization
+            if '_id' in user_data:
+                del user_data['_id']
             return jsonify(user_data)
         return jsonify({'error': 'User not found'}), 404
     except Exception as e:
@@ -156,7 +155,6 @@ async def post_init(application):
     await application.bot.set_webhook(url=f"{config.WEBHOOK_URL}/webhook")
     logger.info(f"✅ Webhook set to: {config.WEBHOOK_URL}/webhook")
     
-    # Set commands
     commands = [
         BotCommand("start", "🚀 Start the bot"),
         BotCommand("app", "📱 Open Mini App"),
@@ -188,11 +186,9 @@ def main():
     """Main function to run both bot and Flask"""
     global bot_app
     
-    # Create bot application
     bot_app = Application.builder().token(config.BOT_TOKEN).build()
     
     # Add handlers
-    # Start command
     bot_app.add_handler(CommandHandler("start", handlers.start))
     bot_app.add_handler(CommandHandler("app", handlers.open_app))
     bot_app.add_handler(CommandHandler("balance", handlers.check_balance))
@@ -201,39 +197,27 @@ def main():
     bot_app.add_handler(CommandHandler("withdraw", handlers.withdraw_cmd))
     bot_app.add_handler(CommandHandler("help", handlers.help_cmd))
     
-    # Callback queries
     bot_app.add_handler(CallbackQueryHandler(handlers.handle_callback))
-    
-    # WebApp data handler - CRITICAL for actions to work!
     bot_app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handlers.handle_webapp_data))
-    
-    # Message handlers
     bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.handle_message))
     
-    # Admin commands
     bot_app.add_handler(CommandHandler("admin", admin.admin_panel))
     bot_app.add_handler(CommandHandler("stats", admin.stats))
     bot_app.add_handler(CommandHandler("broadcast", admin.broadcast))
     bot_app.add_handler(CommandHandler("addbalance", admin.add_balance))
-    bot_app.add_handler(CommandHandler("setbonus", admin.set_daily_bonus))
+    bot_app.add_handler(CommandHandler("withdrawals", admin.withdrawals))
     
-    # Error handler
     bot_app.add_error_handler(error_handler)
-    
-    # Set post init
     bot_app.post_init = post_init
     
-    # Start Flask in a thread
     flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
     
     logger.info("🚀 Bot and Flask server started!")
     
-    # Run bot with polling (for development) or webhook (for production)
     if config.ENVIRONMENT == "development":
         bot_app.run_polling()
     else:
-        # Run bot in webhook mode
         bot_app.run_webhook(
             listen="0.0.0.0",
             port=config.PORT,
