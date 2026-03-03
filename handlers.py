@@ -87,6 +87,24 @@ class Handlers:
             parse_mode=ParseMode.MARKDOWN
         )
     
+    # ⚡ FIX: Added missing open_app method
+    async def open_app(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Open Mini App command handler"""
+        user = update.effective_user
+        
+        keyboard = [[
+            InlineKeyboardButton(
+                "📱 OPEN MINI APP",
+                web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}")
+            )
+        ]]
+        
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text(
+            "Click below to open the FilmyFund Mini App:",
+            reply_markup=reply_markup
+        )
+    
     async def handle_webapp_data(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle all Mini App actions"""
         try:
@@ -146,13 +164,16 @@ class Handlers:
         await update.effective_message.reply_text(text=json.dumps(response))
         
         # Send confirmation message to user
-        await context.bot.send_message(
-            chat_id=user_id,
-            text="✅ **Search Verified!**\n\n"
-                 "Your referrer will now earn daily from your activity!\n"
-                 "Keep searching daily to help them earn more!",
-            parse_mode=ParseMode.MARKDOWN
-        )
+        try:
+            await context.bot.send_message(
+                chat_id=user_id,
+                text="✅ **Search Verified!**\n\n"
+                     "Your referrer will now earn daily from your activity!\n"
+                     "Keep searching daily to help them earn more!",
+                parse_mode=ParseMode.MARKDOWN
+            )
+        except:
+            pass
     
     async def process_daily_bonus(self, update, context, data):
         user_id = data.get('user_id')
