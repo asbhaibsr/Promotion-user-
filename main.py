@@ -14,29 +14,38 @@ import nest_asyncio
 from datetime import datetime
 import json
 
+# Important: Apply nest_asyncio
 nest_asyncio.apply()
 
+# Configure logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
+# Import modules
 from config import Config
 from database import Database
 from handlers import Handlers
 from admin import AdminHandlers
 
+# Initialize components
 config = Config()
 db = Database(config)
 handlers = Handlers(config, db)
 admin = AdminHandlers(config, db, handlers)
 
+# Flask app
 app = Flask(__name__)
+
+# Bot application reference
 bot_app = None
 
+# ===== FLASK ROUTES =====
 @app.route('/')
 def index():
+    """Main WebApp page"""
     try:
         user_id = request.args.get('user_id', 0, type=int)
         user_data = db.get_user(user_id) if user_id else None
@@ -72,6 +81,7 @@ def index():
 
 @app.route('/api/user/<int:user_id>')
 def get_user_api(user_id):
+    """API to get user data"""
     try:
         user_data = db.get_user(user_id)
         if user_data:
@@ -85,6 +95,7 @@ def get_user_api(user_id):
 
 @app.route('/api/leaderboard')
 def leaderboard_api():
+    """API to get leaderboard"""
     try:
         leaderboard = db.get_leaderboard(10)
         return jsonify(leaderboard)
@@ -92,9 +103,14 @@ def leaderboard_api():
         logger.error(f"Leaderboard error: {e}")
         return jsonify([])
 
+# ⚡ FIX: Webhook endpoint - IMPORTANT: Use /webhook not /<token>
 @app.route('/webhook', methods=['POST'])
 def webhook():
+    """Telegram webhook endpoint"""
     try:
+        if bot_app is None:
+            return 'Bot not initialized', 500
+            
         update = Update.de_json(request.get_json(force=True), bot_app.bot)
         asyncio.run_coroutine_threadsafe(
             bot_app.process_update(update),
@@ -107,13 +123,20 @@ def webhook():
 
 @app.route('/health')
 def health():
+    """Health check"""
     return jsonify({'status': 'ok', 'time': datetime.now().isoformat()}), 200
 
+# ===== TELEGRAM BOT SETUP =====
 async def post_init(application):
-    webhook_url = f"{config.WEBHOOK_URL}/webhook"
+    """Setup after initialization"""
+    # ⚡ FIX: Remove double slash
+    base_url = config.WEBHOOK_URL.rstrip('/')
+    webhook_url = f"{base_url}/webhook"
+    
     await application.bot.set_webhook(url=webhook_url)
     logger.info(f"✅ Webhook set to: {webhook_url}")
     
+    # Set commands
     commands = [
         BotCommand("start", "🚀 Start the bot"),
         BotCommand("app", "📱 Open Mini App"),
@@ -123,6 +146,7 @@ async def post_init(application):
     ]
     await application.bot.set_my_commands(commands)
     
+    # Send startup notification
     try:
         await application.bot.send_message(
             chat_id=config.LOG_CHANNEL_ID,
@@ -133,12 +157,13 @@ async def post_init(application):
         logger.error(f"Log channel error: {e}")
 
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Global error handler"""
     logger.error(f"Update {update} caused error {context.error}")
     
     try:
         await context.bot.send_message(
             chat_id=config.LOG_CHANNEL_ID,
-            text=f"❌ **Error Occurred**\n\nError: {str(context.error)[:500]}\nUpdate: {str(update)[:500]}",
+            text=f"❌ **Error Occurred**\n\nError: {str(context.error)[:500]}",
             parse_mode='Markdown'
         )
     except:
@@ -154,15 +179,19 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         pass
 
 def run_flask():
-    port = int(os.environ.get('PORT', 8080))
+    """Run Flask in separate thread"""
+    port = int(os.environ.get('PORT', 10000))
     logger.info(f"🚀 Flask server starting on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
 
 async def scheduled_jobs():
+    """Run scheduled jobs"""
     while True:
         try:
             now = datetime.now()
+            # Check every minute for midnight tasks
             if now.hour == 0 and now.minute == 0:
+                # Process daily earnings
                 count = db.process_daily_referral_earnings()
                 
                 await bot_app.bot.send_message(
@@ -171,7 +200,8 @@ async def scheduled_jobs():
                     parse_mode='Markdown'
                 )
                 
-                if now.weekday() == 0:
+                # Check if it's Monday for weekly leaderboard
+                if now.weekday() == 0:  # Monday
                     rewards = db.reset_weekly_leaderboard()
                     
                     reward_text = "🏆 **Weekly Leaderboard Results**\n\n"
@@ -187,17 +217,19 @@ async def scheduled_jobs():
                         parse_mode='Markdown'
                     )
             
-            await asyncio.sleep(60)
+            await asyncio.sleep(60)  # Check every minute
             
         except Exception as e:
             logger.error(f"Scheduled job error: {e}")
             await asyncio.sleep(60)
 
 def main():
+    """Main function"""
     global bot_app
     
     logger.info("🤖 Starting FilmyFund Bot...")
     
+    # Create application
     bot_app = Application.builder().token(config.BOT_TOKEN).build()
     
     # Add handlers
@@ -235,17 +267,22 @@ def main():
     asyncio.set_event_loop(loop)
     loop.create_task(scheduled_jobs())
     
-    # Run bot
+    # ⚡ FIX: Run with webhook correctly
+    port = int(os.environ.get('PORT', 10000))
+    
     if config.ENVIRONMENT == "development":
         logger.info("🔄 Running in polling mode...")
         bot_app.run_polling()
     else:
-        logger.info(f"🔄 Running in webhook mode...")
+        logger.info(f"🔄 Running in webhook mode on port {port}...")
+        # ⚡ FIX: Use run_webhook with correct parameters
         bot_app.run_webhook(
             listen="0.0.0.0",
-            port=int(os.environ.get('PORT', 8080)),
-            url_path=config.BOT_TOKEN,
-            webhook_url=f"{config.WEBHOOK_URL}/{config.BOT_TOKEN}"
+            port=port,
+            url_path="webhook",  # Just 'webhook' not the token
+            webhook_url=f"{config.WEBHOOK_URL.rstrip('/')}/webhook",
+            secret_token=None,  # No secret token needed
+            drop_pending_updates=True
         )
 
 if __name__ == '__main__':
