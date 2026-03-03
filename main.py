@@ -116,7 +116,6 @@ def get_user_api(user_id):
     try:
         user_data = db.get_user(user_id)
         if user_data:
-            # Remove _id for JSON serialization
             if '_id' in user_data:
                 del user_data['_id']
             return jsonify(user_data)
@@ -149,11 +148,17 @@ def webhook():
         logger.error(f"Webhook error: {e}")
         return 'Error', 500
 
+@app.route('/health')
+def health():
+    """Health check endpoint for Render"""
+    return jsonify({'status': 'ok', 'time': datetime.now().isoformat()}), 200
+
 # ===== TELEGRAM BOT SETUP =====
 async def post_init(application):
     """Setup bot commands after initialization"""
-    await application.bot.set_webhook(url=f"{config.WEBHOOK_URL}/webhook")
-    logger.info(f"✅ Webhook set to: {config.WEBHOOK_URL}/webhook")
+    webhook_url = f"{config.WEBHOOK_URL}/webhook"
+    await application.bot.set_webhook(url=webhook_url)
+    logger.info(f"✅ Webhook set to: {webhook_url}")
     
     commands = [
         BotCommand("start", "🚀 Start the bot"),
@@ -180,11 +185,19 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def run_flask():
     """Run Flask in a separate thread"""
-    app.run(host='0.0.0.0', port=config.PORT, debug=False, use_reloader=False)
+    # CRITICAL FIX: Use PORT from environment (Render sets this automatically)
+    port = int(os.environ.get('PORT', 8080))
+    logger.info(f"🚀 Flask server starting on port {port}")
+    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
 
 def main():
     """Main function to run both bot and Flask"""
     global bot_app
+    
+    logger.info("🤖 Starting FilmyFund Bot...")
+    logger.info(f"📊 Environment: {config.ENVIRONMENT}")
+    logger.info(f"🔗 Webhook URL: {config.WEBHOOK_URL}")
+    logger.info(f"🌐 WebApp URL: {config.WEBAPP_URL}")
     
     bot_app = Application.builder().token(config.BOT_TOKEN).build()
     
@@ -197,30 +210,45 @@ def main():
     bot_app.add_handler(CommandHandler("withdraw", handlers.withdraw_cmd))
     bot_app.add_handler(CommandHandler("help", handlers.help_cmd))
     
+    # Callback queries
     bot_app.add_handler(CallbackQueryHandler(handlers.handle_callback))
+    
+    # WebApp data handler - CRITICAL for actions to work!
     bot_app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handlers.handle_webapp_data))
+    
+    # Message handlers
     bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.handle_message))
     
+    # Admin commands
     bot_app.add_handler(CommandHandler("admin", admin.admin_panel))
     bot_app.add_handler(CommandHandler("stats", admin.stats))
     bot_app.add_handler(CommandHandler("broadcast", admin.broadcast))
     bot_app.add_handler(CommandHandler("addbalance", admin.add_balance))
     bot_app.add_handler(CommandHandler("withdrawals", admin.withdrawals))
     
+    # Error handler
     bot_app.add_error_handler(error_handler)
+    
+    # Set post init
     bot_app.post_init = post_init
     
+    # Start Flask in a thread
     flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
     
-    logger.info("🚀 Bot and Flask server started!")
+    logger.info("✅ Bot and Flask server started!")
+    
+    # Run bot in webhook mode (for production)
+    port = int(os.environ.get('PORT', 8080))
     
     if config.ENVIRONMENT == "development":
+        logger.info("🔄 Running in polling mode...")
         bot_app.run_polling()
     else:
+        logger.info(f"🔄 Running in webhook mode on port {port}...")
         bot_app.run_webhook(
             listen="0.0.0.0",
-            port=config.PORT,
+            port=port,
             url_path=config.BOT_TOKEN,
             webhook_url=f"{config.WEBHOOK_URL}/{config.BOT_TOKEN}"
         )
