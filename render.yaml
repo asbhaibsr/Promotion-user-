@@ -1,9 +1,10 @@
+# ===== render.yml =====
 services:
   - type: web
     name: filmyfund-bot
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn main:app --bind 0.0.0.0:8080 & python main.py
+    startCommand: gunicorn main:app --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 120
     envVars:
       - key: BOT_TOKEN
         sync: false
@@ -33,5 +34,3 @@ services:
         sync: false
       - key: ENVIRONMENT
         value: production
-      - key: PORT  # Render automatically sets this to 8080
-        value: 8080
