@@ -393,6 +393,16 @@
             font-size: 12px;
             font-weight: bold;
         }
+
+        .warning-box {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid #ff4444;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 12px 0;
+            color: #ff8888;
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
@@ -492,41 +502,43 @@
             <div class="back-btn" onclick="closePage()">← BACK</div>
             
             <div class="card">
-                <h3 style="color: #ffd700;">🎬 HOW TO EARN TODAY</h3>
+                <h3 style="color: #ffd700;">🎬 HOW TO EARN</h3>
                 
                 <div style="background: #232a3a; border-radius: 16px; padding: 16px; margin: 16px 0;">
                     <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
                         <div style="background: #ffd700; color: #000; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">1</div>
                         <div><strong>JOIN MOVIE GROUP</strong></div>
                     </div>
-                    <button class="btn btn-primary" onclick="window.open('{{ movie_group }}', '_blank')">🔗 JOIN GROUP</button>
+                    <button class="btn btn-primary" onclick="window.open('{{ movie_group_link }}', '_blank')">🔗 JOIN GROUP</button>
+                    <p style="color: #8e9aaf; font-size: 12px; margin-top: 8px;">Group ID: {{ movie_group_id }}</p>
                 </div>
                 
                 <div style="background: #232a3a; border-radius: 16px; padding: 16px; margin: 16px 0;">
                     <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
                         <div style="background: #ffd700; color: #000; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">2</div>
-                        <div><strong>JOIN CHANNEL (₹{{ channel_bonus }} BONUS)</strong></div>
+                        <div><strong>SEARCH ANY MOVIE</strong></div>
                     </div>
-                    <button class="btn btn-primary" onclick="joinChannel()" id="channelBtn">📢 JOIN CHANNEL</button>
-                    <div id="channelStatus" style="margin-top:8px; font-size:13px;"></div>
+                    <p style="color: #ccc; font-size: 14px;">Just type any movie name in the group</p>
+                    <p style="color: #8e9aaf; font-size: 12px;">✅ Automatic verification - No need to click anything!</p>
                 </div>
                 
                 <div style="background: #232a3a; border-radius: 16px; padding: 16px; margin: 16px 0;">
                     <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
                         <div style="background: #ffd700; color: #000; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">3</div>
-                        <div><strong>SEARCH ANY MOVIE</strong></div>
+                        <div><strong>JOIN CHANNEL (₹{{ channel_bonus }} BONUS)</strong></div>
                     </div>
-                    <p style="color: #ccc; font-size: 14px; margin-bottom: 8px;">Type movie name in group</p>
+                    <button class="btn btn-primary" onclick="joinChannel()" id="channelBtn">📢 JOIN CHANNEL</button>
+                    <div id="channelStatus" style="margin-top:8px; font-size:13px;"></div>
                 </div>
-                
-                <div style="background: #232a3a; border-radius: 16px; padding: 16px; margin: 16px 0;">
-                    <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
-                        <div style="background: #ffd700; color: #000; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">4</div>
-                        <div><strong>VERIFY SEARCH</strong></div>
-                    </div>
-                    <button class="btn btn-primary" onclick="verifySearch()" id="verifyBtn">✅ I SEARCHED</button>
-                    <p style="color: #8e9aaf; font-size: 12px; margin-top: 8px;">Click after searching to activate your referral</p>
-                </div>
+            </div>
+            
+            <div class="warning-box">
+                ⚠️ **IMPORTANT WARNING** ⚠️<br><br>
+                • Go to movie group and search any movie<br>
+                • Bot will automatically detect your search<br>
+                • Fake searches = No withdrawal<br>
+                • Admin checks all withdrawals<br>
+                • If you cheat, your account will be banned
             </div>
             
             <div class="card">
@@ -665,15 +677,9 @@
                 </div>
 
                 <div class="info-text" style="text-align: center; margin-top: 16px;">
-                    ⏰ Withdrawals processed within 24-48 hours
+                    ⏰ Withdrawals processed within 24-48 hours<br>
+                    ⚠️ Fake searches = No withdrawal
                 </div>
-            </div>
-
-            <!-- Saved Payment Methods -->
-            <div class="card">
-                <h3 style="color: #ffd700;">💳 SAVED PAYMENT METHODS</h3>
-                <div id="savedMethods"></div>
-                <div class="info-text" style="text-align: center;">Save your payment details for faster withdrawals</div>
             </div>
         </div>
 
@@ -881,7 +887,7 @@
                 
                 if (nextTierRefs > 0) {
                     const progress = (userData.activeRefs / nextTierRefs) * 100;
-                    document.getElementById('tierProgress').style.width = progress + '%';
+                    document.getElementById('tierProgress').style.width = Math.min(progress, 100) + '%';
                 }
             }
         }
@@ -906,11 +912,6 @@
             document.querySelectorAll('.nav-item').forEach((item, i) => {
                 item.classList.toggle('active', pages[i] === page);
             });
-            
-            // If opening withdraw page, load saved methods
-            if (page === 'withdraw') {
-                loadSavedPaymentMethods();
-            }
         }
 
         function closePage() {
@@ -927,7 +928,7 @@
             // Open channel link
             window.open('{{ channel_link }}', '_blank');
             
-            // Show verification button after 3 seconds
+            // Show verification after 3 seconds
             setTimeout(() => {
                 if (confirm('✅ Did you join the channel? Click OK to claim your ₹{{ channel_bonus }} bonus!')) {
                     verifyChannelJoin();
@@ -943,7 +944,7 @@
             tg.sendData(JSON.stringify({
                 action: 'channel_verified',
                 user_id: userData.id,
-                channel_id: '{{ channel }}'
+                channel_id: '{{ channel_id }}'
             }));
         }
 
@@ -1019,25 +1020,18 @@
             }));
         }
 
-        function loadSavedPaymentMethods() {
-            // Try to get from user data (you'd need to add these fields to userData)
-            const savedMethodsDiv = document.getElementById('savedMethods');
-            if (savedMethodsDiv) {
-                savedMethodsDiv.innerHTML = '<div class="info-text">No saved payment methods</div>';
-            }
-        }
-
         function loadWithdrawalHistory() {
-            // Fetch withdrawal history from server
-            fetch(`/api/user/${userData.id}/withdrawals`)
-                .then(r => r.json())
-                .then(data => {
-                    if (data && data.length > 0) {
-                        withdrawalHistory = data;
-                        displayWithdrawalHistory();
-                    }
-                })
-                .catch(e => console.error('History error:', e));
+            if (userData.id && userData.id !== 0) {
+                fetch(`/api/user/${userData.id}/withdrawals`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data && data.length > 0) {
+                            withdrawalHistory = data;
+                            displayWithdrawalHistory();
+                        }
+                    })
+                    .catch(e => console.error('History error:', e));
+            }
         }
 
         function displayWithdrawalHistory() {
@@ -1071,25 +1065,13 @@
                             <div class="${statusClass}">${statusText}</div>
                         </div>
                         <div style="color: #8e9aaf; font-size: 12px; margin-top: 4px;">
-                            ${w.request_date} via ${w.method}
+                            ${new Date(w.request_date).toLocaleDateString()} via ${w.method}
                         </div>
                     </div>
                 `;
             });
             
             historyDiv.innerHTML = html;
-        }
-
-        // Verify Search
-        function verifySearch() {
-            const btn = document.getElementById('verifyBtn');
-            btn.disabled = true;
-            btn.innerText = '⏳ VERIFYING...';
-            
-            tg.sendData(JSON.stringify({
-                action: 'search_verified',
-                user_id: userData.id
-            }));
         }
 
         // Claim Daily Bonus
@@ -1171,10 +1153,12 @@
 
         // Load Missions
         function loadMissions() {
-            tg.sendData(JSON.stringify({
-                action: 'get_missions',
-                user_id: userData.id
-            }));
+            if (userData.id && userData.id !== 0) {
+                tg.sendData(JSON.stringify({
+                    action: 'get_missions',
+                    user_id: userData.id
+                }));
+            }
         }
 
         // Load Leaderboard
@@ -1219,23 +1203,15 @@
                             updateUI();
                         } else if (response.user_data) {
                             if (response.user_data.channel_joined !== undefined) {
-                                // Channel join success
-                                showResult('✅ CHANNEL BONUS!', `₹${userData.channelBonus} added to your balance!`, `+₹${userData.channelBonus}`);
+                                showResult('✅ CHANNEL BONUS!', `₹${userData.channelBonus} added!`, `+₹${userData.channelBonus}`);
                                 userData.channelJoined = true;
                                 userData.balance = response.user_data.balance;
                                 checkChannelStatus();
-                            } else {
-                                // Search verification success
-                                showResult('✅ VERIFIED!', 'Search recorded! Your referrer will earn today!');
-                                userData.balance = response.user_data.balance;
-                                userData.activeRefs = response.user_data.active_refs;
-                                userData.tier = response.user_data.tier;
                             }
                             updateUI();
                         } else if (response.message) {
                             showResult('✅ SUCCESS!', response.message, '');
                             
-                            // If withdrawal success, update balance
                             if (response.message.includes('withdrawal')) {
                                 const amount = parseFloat(document.getElementById('withdrawAmount')?.value || 0);
                                 if (amount) {
@@ -1243,25 +1219,18 @@
                                 }
                                 updateUI();
                                 
-                                // Reset withdraw form
                                 document.getElementById('withdrawAmount').value = '';
                                 if (document.getElementById('withdrawBtn')) {
                                     document.getElementById('withdrawBtn').disabled = false;
                                     document.getElementById('withdrawBtn').innerText = 'REQUEST WITHDRAWAL';
                                 }
                                 
-                                // Refresh history
                                 loadWithdrawalHistory();
                             }
                         }
                     } else {
                         tg.showAlert(response.message || '❌ Failed');
                         
-                        // Re-enable buttons
-                        if (document.getElementById('verifyBtn')) {
-                            document.getElementById('verifyBtn').disabled = false;
-                            document.getElementById('verifyBtn').innerText = '✅ I SEARCHED';
-                        }
                         if (document.getElementById('dailyBtn')) {
                             document.getElementById('dailyBtn').disabled = false;
                             document.getElementById('dailyBtn').innerText = 'CLAIM NOW';
@@ -1277,7 +1246,6 @@
                     }
                 }
                 
-                // Missions update
                 if (response.mission_1) {
                     updateMissionsUI(response);
                 }
@@ -1304,7 +1272,7 @@
                     html += `
                         <div class="mission-item">
                             <div>
-                                <div>${m.icon} ${m.name}</div>
+                                <div>${m.icon || '🎯'} ${m.name}</div>
                                 <div style="font-size:12px; color:#8e9aaf;">
                                     Ref: ${m.progress.referrals} | 
                                     Search: ${m.progress.searches} | 
@@ -1323,7 +1291,7 @@
         // Initialize
         init();
 
-        // Auto refresh every 30 seconds - FIXED to not call for user_id=0
+        // Auto refresh every 30 seconds
         setInterval(() => {
             if (userData.id && userData.id !== 0) {
                 fetch(`/api/user/${userData.id}`)
