@@ -13,7 +13,7 @@ from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler,
     MessageHandler, filters, ContextTypes
 )
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_file
 import nest_asyncio
 
 # Important: Apply nest_asyncio
@@ -53,7 +53,7 @@ def index():
     """Main WebApp page"""
     try:
         user_id = request.args.get('user_id', 0, type=int)
-        user_data = db.get_user(user_id) if user_id else None
+        user_data = db.get_user(user_id) if user_id and user_id > 0 else None
         
         # Default values if user not found
         if user_data:
@@ -84,6 +84,7 @@ def index():
             channel_link=config.CHANNELS['main']['link'],
             channel_bonus=config.CHANNELS['main']['bonus'],
             movie_group=config.MOVIE_GROUP_LINK,
+            movie_group_id=config.MOVIE_GROUP_ID,
             new_group=config.NEW_GROUP_LINK,
             all_groups=config.ALL_GROUPS_LINK,
             bot_username=config.BOT_USERNAME,
@@ -93,22 +94,43 @@ def index():
         logger.error(f"Index route error: {e}")
         return f"Error: {str(e)}", 500
 
+@app.route('/favicon.ico')
+def favicon():
+    """Fix for favicon 404 error"""
+    return "", 204
+
 @app.route('/api/user/<int:user_id>')
 def get_user_api(user_id):
-    """API to get user data"""
+    """API to get user data - FIXED for user_id=0"""
     try:
+        # Fix for user_id = 0 (guest user)
+        if user_id == 0:
+            return jsonify({
+                'user_id': 0,
+                'first_name': 'Guest',
+                'balance': 0,
+                'total_earned': 0,
+                'tier': 1,
+                'total_refs': 0,
+                'active_refs': 0,
+                'pending_refs': 0,
+                'daily_streak': 0,
+                'channel_joined': False
+            }), 200
+        
         user_data = db.get_user(user_id)
         if user_data:
             # Remove MongoDB _id for JSON serialization
             if '_id' in user_data:
                 del user_data['_id']
             return jsonify(user_data)
-        return jsonify({'error': 'User not found'}), 404
+        
+        # Return 200 with error message instead of 404 to prevent console errors
+        return jsonify({'error': 'User not found', 'user_id': user_id}), 200
     except Exception as e:
         logger.error(f"API error: {e}")
         return jsonify({'error': str(e)}), 500
 
-# ===== NEW ROUTE: Get user withdrawal history =====
 @app.route('/api/user/<int:user_id>/withdrawals')
 def get_user_withdrawals_api(user_id):
     """API to get user withdrawal history"""
@@ -129,10 +151,24 @@ def leaderboard_api():
         logger.error(f"Leaderboard error: {e}")
         return jsonify([])
 
-# ⚡ FIXED: Webhook endpoint - removed bot_app.loop reference
+@app.route('/api/verify/channel/<int:user_id>')
+def verify_channel_join(user_id):
+    """API to check if user joined channel"""
+    try:
+        channel_id = config.CHANNELS['main']['id']
+        # In production, you would verify with Telegram API
+        # For now, return the user's channel_joined status
+        user = db.get_user(user_id)
+        if user:
+            return jsonify({'joined': user.get('channel_joined', False)})
+        return jsonify({'joined': False})
+    except Exception as e:
+        logger.error(f"Channel verify error: {e}")
+        return jsonify({'joined': False})
+
 @app.route(f'/webhook', methods=['POST'])
 def webhook():
-    """Telegram webhook endpoint"""
+    """Telegram webhook endpoint - FIXED"""
     global bot_app
     
     if bot_app is None:
@@ -266,7 +302,7 @@ async def scheduled_jobs():
 
 def run_flask():
     """Run Flask in separate thread"""
-    port = int(os.environ.get('PORT', 8080))
+    port = int(os.environ.get('PORT', 10000))  # FIXED: Changed to 10000 for Render
     logger.info(f"🚀 Flask server starting on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
 
