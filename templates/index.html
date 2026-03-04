@@ -1,3 +1,4 @@
+<!-- ===== templates/index.html ===== -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -172,6 +173,13 @@
             border: none;
         }
 
+        .btn-success {
+            background: #28a745;
+            color: white;
+            font-weight: bold;
+            border: none;
+        }
+
         .nav-bar {
             position: fixed;
             bottom: 0;
@@ -314,6 +322,68 @@
             color: #ffd700;
             font-weight: bold;
         }
+
+        .input-field {
+            width: 100%;
+            background: #232a3a;
+            border: 1px solid #ffd700;
+            color: white;
+            padding: 12px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #f39c12;
+        }
+
+        .withdraw-option {
+            background: #232a3a;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .withdraw-option.selected {
+            border-color: #ffd700;
+            background: #2a3246;
+        }
+
+        .method-icon {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+
+        .info-text {
+            color: #8e9aaf;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        .withdraw-history-item {
+            background: #232a3a;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-left: 4px solid #ffd700;
+        }
+
+        .status-pending {
+            color: #ffc107;
+        }
+
+        .status-approved {
+            color: #28a745;
+        }
+
+        .status-rejected {
+            color: #dc3545;
+        }
     </style>
 </head>
 <body>
@@ -377,9 +447,17 @@
                 <span class="menu-icon">🎯</span>
                 <span class="menu-title">MISSIONS</span>
             </div>
+            <div class="menu-item" onclick="openPage('withdraw')">
+                <span class="menu-icon">💸</span>
+                <span class="menu-title">WITHDRAW</span>
+            </div>
             <div class="menu-item" onclick="openPage('leaderboard')">
                 <span class="menu-icon">🏆</span>
                 <span class="menu-title">LEADERBOARD</span>
+            </div>
+            <div class="menu-item" onclick="openPage('history')">
+                <span class="menu-icon">📜</span>
+                <span class="menu-title">HISTORY</span>
             </div>
         </div>
 
@@ -498,6 +576,100 @@
             </div>
         </div>
 
+        <!-- WITHDRAW PAGE -->
+        <div id="pageWithdraw" class="hidden">
+            <div class="back-btn" onclick="closePage()">← BACK</div>
+            
+            <div class="card">
+                <h3 style="color: #ffd700;">💸 WITHDRAW EARNINGS</h3>
+                
+                <div style="background: #232a3a; border-radius: 16px; padding: 16px; margin-bottom: 16px;">
+                    <div style="color: #8e9aaf; margin-bottom: 4px;">Your Balance</div>
+                    <div style="font-size: 32px; color: #ffd700; font-weight: bold;" id="withdrawBalance">₹0.00</div>
+                    <div style="color: #8e9aaf; font-size: 13px; margin-top: 4px;">Minimum: ₹{{ min_withdrawal }}</div>
+                </div>
+
+                <!-- Amount Input -->
+                <div style="margin-bottom: 16px;">
+                    <label style="color: #8e9aaf; display: block; margin-bottom: 8px;">Enter Amount (₹)</label>
+                    <input type="number" id="withdrawAmount" class="input-field" min="{{ min_withdrawal }}" step="1" placeholder="Enter amount">
+                </div>
+
+                <!-- Payment Method Selection -->
+                <div style="margin-bottom: 16px;">
+                    <label style="color: #8e9aaf; display: block; margin-bottom: 8px;">Select Payment Method</label>
+                    
+                    <div class="withdraw-option" onclick="selectMethod('upi')" id="methodUpi">
+                        <div style="display: flex; align-items: center;">
+                            <span class="method-icon">📱</span>
+                            <div>
+                                <div style="font-weight: bold;">UPI</div>
+                                <div style="color: #8e9aaf; font-size: 12px;">Google Pay, PhonePe, Paytm</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="withdraw-option" onclick="selectMethod('bank')" id="methodBank">
+                        <div style="display: flex; align-items: center;">
+                            <span class="method-icon">🏦</span>
+                            <div>
+                                <div style="font-weight: bold;">Bank Transfer</div>
+                                <div style="color: #8e9aaf; font-size: 12px;">Account Number & IFSC</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Details Input -->
+                <div id="upiInput" style="display: none; margin-bottom: 16px;">
+                    <label style="color: #8e9aaf; display: block; margin-bottom: 8px;">UPI ID</label>
+                    <input type="text" id="upiDetails" class="input-field" placeholder="example@okhdfcbank">
+                    <div class="info-text">Enter your UPI ID (e.g., name@okhdfcbank)</div>
+                </div>
+
+                <div id="bankInput" style="display: none; margin-bottom: 16px;">
+                    <label style="color: #8e9aaf; display: block; margin-bottom: 8px;">Account Number</label>
+                    <input type="text" id="accountNumber" class="input-field" placeholder="Account number">
+                    
+                    <label style="color: #8e9aaf; display: block; margin-bottom: 8px;">IFSC Code</label>
+                    <input type="text" id="ifscCode" class="input-field" placeholder="IFSC code">
+                    
+                    <label style="color: #8e9aaf; display: block; margin-bottom: 8px;">Account Holder Name</label>
+                    <input type="text" id="accountName" class="input-field" placeholder="Name as per bank">
+                    
+                    <div class="info-text">Double-check your bank details before submitting</div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn" style="flex:1" onclick="closePage()">CANCEL</button>
+                    <button class="btn btn-success" style="flex:2" onclick="requestWithdrawal()" id="withdrawBtn">REQUEST WITHDRAWAL</button>
+                </div>
+
+                <div class="info-text" style="text-align: center; margin-top: 16px;">
+                    ⏰ Withdrawals processed within 24-48 hours
+                </div>
+            </div>
+
+            <!-- Saved Payment Methods -->
+            <div class="card">
+                <h3 style="color: #ffd700;">💳 SAVED PAYMENT METHODS</h3>
+                <div id="savedMethods"></div>
+                <div class="info-text" style="text-align: center;">Save your payment details for faster withdrawals</div>
+            </div>
+        </div>
+
+        <!-- WITHDRAWAL HISTORY PAGE -->
+        <div id="pageHistory" class="hidden">
+            <div class="back-btn" onclick="closePage()">← BACK</div>
+            
+            <div class="card">
+                <h3 style="color: #ffd700;">📜 WITHDRAWAL HISTORY</h3>
+                <div id="withdrawalHistory"></div>
+                <div class="info-text" style="text-align: center; margin-top: 16px;" id="noHistoryMsg">No withdrawal history yet</div>
+            </div>
+        </div>
+
         <!-- LEADERBOARD PAGE -->
         <div id="pageLeaderboard" class="hidden">
             <div class="back-btn" onclick="closePage()">← BACK</div>
@@ -573,9 +745,9 @@
             <span class="nav-icon">👥</span>
             <span class="nav-label">REFER</span>
         </div>
-        <div class="nav-item" onclick="openPage('missions')">
-            <span class="nav-icon">🎯</span>
-            <span class="nav-label">MISSIONS</span>
+        <div class="nav-item" onclick="openPage('withdraw')">
+            <span class="nav-icon">💸</span>
+            <span class="nav-label">WITHDRAW</span>
         </div>
         <div class="nav-item" onclick="openPage('leaderboard')">
             <span class="nav-icon">🏆</span>
@@ -606,6 +778,10 @@
             dailyReferralEarning: {{ daily_referral_earning }}
         };
 
+        // Withdrawal state
+        let selectedMethod = null;
+        let withdrawalHistory = [];
+
         // Hide loading
         setTimeout(() => {
             document.getElementById('loadingScreen').style.display = 'none';
@@ -624,9 +800,17 @@
             // Set referral link
             document.getElementById('refLink').innerText = `https://t.me/{{ bot_username }}?start=ref_${userData.id}`;
             
-            // Load missions and leaderboard
+            // Load missions, leaderboard and history
             loadMissions();
             loadLeaderboard();
+            loadWithdrawalHistory();
+            
+            // Check if URL has page parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const page = urlParams.get('page');
+            if (page) {
+                openPage(page);
+            }
         }
 
         function updateUI() {
@@ -636,6 +820,11 @@
             document.getElementById('pendingRefs').innerText = userData.pendingRefs;
             document.getElementById('dailyStreak').innerText = userData.dailyStreak;
             document.getElementById('tierBadge').innerText = userData.tierName;
+            
+            // Withdraw page balance
+            if (document.getElementById('withdrawBalance')) {
+                document.getElementById('withdrawBalance').innerText = `₹${userData.balance.toFixed(2)}`;
+            }
             
             // Daily bonus
             const dailyBonus = 0.05 + (userData.dailyStreak * 0.02);
@@ -679,16 +868,158 @@
 
         function openPage(page) {
             document.querySelectorAll('[id^="page"]').forEach(p => p.classList.add('hidden'));
-            document.getElementById('page' + page.charAt(0).toUpperCase() + page.slice(1)).classList.remove('hidden');
+            const pageId = 'page' + page.charAt(0).toUpperCase() + page.slice(1);
+            const pageElement = document.getElementById(pageId);
+            if (pageElement) {
+                pageElement.classList.remove('hidden');
+            }
             
-            const pages = ['home', 'earn', 'referrals', 'missions', 'leaderboard'];
+            const pages = ['home', 'earn', 'referrals', 'withdraw', 'history', 'missions', 'leaderboard', 'daily'];
             document.querySelectorAll('.nav-item').forEach((item, i) => {
                 item.classList.toggle('active', pages[i] === page);
             });
+            
+            // If opening withdraw page, load saved methods
+            if (page === 'withdraw') {
+                loadSavedPaymentMethods();
+            }
         }
 
         function closePage() {
             goHome();
+        }
+
+        // Withdrawal Functions
+        function selectMethod(method) {
+            selectedMethod = method;
+            
+            // Update UI
+            document.getElementById('methodUpi').classList.remove('selected');
+            document.getElementById('methodBank').classList.remove('selected');
+            
+            if (method === 'upi') {
+                document.getElementById('methodUpi').classList.add('selected');
+                document.getElementById('upiInput').style.display = 'block';
+                document.getElementById('bankInput').style.display = 'none';
+            } else {
+                document.getElementById('methodBank').classList.add('selected');
+                document.getElementById('upiInput').style.display = 'none';
+                document.getElementById('bankInput').style.display = 'block';
+            }
+        }
+
+        function requestWithdrawal() {
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            
+            if (!amount || amount < userData.minWithdrawal) {
+                showResult('❌ ERROR', `Minimum withdrawal is ₹${userData.minWithdrawal}`, '');
+                return;
+            }
+            
+            if (amount > userData.balance) {
+                showResult('❌ ERROR', 'Insufficient balance!', '');
+                return;
+            }
+            
+            if (!selectedMethod) {
+                showResult('❌ ERROR', 'Please select payment method', '');
+                return;
+            }
+            
+            let details = '';
+            if (selectedMethod === 'upi') {
+                const upiId = document.getElementById('upiDetails').value;
+                if (!upiId || !upiId.includes('@')) {
+                    showResult('❌ ERROR', 'Please enter valid UPI ID', '');
+                    return;
+                }
+                details = upiId;
+            } else {
+                const accountNo = document.getElementById('accountNumber').value;
+                const ifsc = document.getElementById('ifscCode').value;
+                const name = document.getElementById('accountName').value;
+                
+                if (!accountNo || !ifsc || !name) {
+                    showResult('❌ ERROR', 'Please fill all bank details', '');
+                    return;
+                }
+                details = `${name}|${accountNo}|${ifsc}`;
+            }
+            
+            // Disable button
+            const btn = document.getElementById('withdrawBtn');
+            btn.disabled = true;
+            btn.innerText = '⏳ PROCESSING...';
+            
+            // Send request
+            tg.sendData(JSON.stringify({
+                action: 'withdraw',
+                user_id: userData.id,
+                amount: amount,
+                method: selectedMethod === 'upi' ? 'UPI' : 'Bank Transfer',
+                details: details
+            }));
+        }
+
+        function loadSavedPaymentMethods() {
+            // Try to get from user data (you'd need to add these fields to userData)
+            const savedMethodsDiv = document.getElementById('savedMethods');
+            if (savedMethodsDiv) {
+                savedMethodsDiv.innerHTML = '<div class="info-text">No saved payment methods</div>';
+            }
+        }
+
+        function loadWithdrawalHistory() {
+            // Fetch withdrawal history from server
+            fetch(`/api/user/${userData.id}/withdrawals`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        withdrawalHistory = data;
+                        displayWithdrawalHistory();
+                    }
+                })
+                .catch(e => console.error('History error:', e));
+        }
+
+        function displayWithdrawalHistory() {
+            const historyDiv = document.getElementById('withdrawalHistory');
+            const noHistoryMsg = document.getElementById('noHistoryMsg');
+            
+            if (withdrawalHistory.length === 0) {
+                if (noHistoryMsg) noHistoryMsg.style.display = 'block';
+                return;
+            }
+            
+            if (noHistoryMsg) noHistoryMsg.style.display = 'none';
+            
+            let html = '';
+            withdrawalHistory.forEach(w => {
+                let statusClass = 'status-pending';
+                let statusText = 'Pending';
+                
+                if (w.status === 'completed') {
+                    statusClass = 'status-approved';
+                    statusText = 'Approved';
+                } else if (w.status === 'rejected') {
+                    statusClass = 'status-rejected';
+                    statusText = 'Rejected';
+                }
+                
+                html += `
+                    <div class="withdraw-history-item">
+                        <div style="display: flex; justify-content: space-between;">
+                            <div style="font-weight: bold;">₹${w.amount}</div>
+                            <div class="${statusClass}">${statusText}</div>
+                        </div>
+                        <div style="color: #8e9aaf; font-size: 12px; margin-top: 4px;">
+                            ${w.request_date} via ${w.method}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            historyDiv.innerHTML = html;
         }
 
         // Verify Search
@@ -835,16 +1166,42 @@
                             userData.activeRefs = response.user_data.active_refs;
                             userData.tier = response.user_data.tier;
                             updateUI();
+                        } else if (response.message) {
+                            showResult('✅ SUCCESS!', response.message, '');
+                            
+                            // If withdrawal success, update balance
+                            if (response.message.includes('withdrawal')) {
+                                userData.balance -= parseFloat(document.getElementById('withdrawAmount')?.value || 0);
+                                updateUI();
+                                
+                                // Reset withdraw form
+                                document.getElementById('withdrawAmount').value = '';
+                                if (document.getElementById('withdrawBtn')) {
+                                    document.getElementById('withdrawBtn').disabled = false;
+                                    document.getElementById('withdrawBtn').innerText = 'REQUEST WITHDRAWAL';
+                                }
+                                
+                                // Refresh history
+                                loadWithdrawalHistory();
+                            }
                         }
                     } else {
                         tg.showAlert(response.message || '❌ Failed');
+                        
+                        // Re-enable buttons
+                        if (document.getElementById('verifyBtn')) {
+                            document.getElementById('verifyBtn').disabled = false;
+                            document.getElementById('verifyBtn').innerText = '✅ I SEARCHED';
+                        }
+                        if (document.getElementById('dailyBtn')) {
+                            document.getElementById('dailyBtn').disabled = false;
+                            document.getElementById('dailyBtn').innerText = 'CLAIM NOW';
+                        }
+                        if (document.getElementById('withdrawBtn')) {
+                            document.getElementById('withdrawBtn').disabled = false;
+                            document.getElementById('withdrawBtn').innerText = 'REQUEST WITHDRAWAL';
+                        }
                     }
-                    
-                    // Re-enable buttons
-                    document.getElementById('verifyBtn').disabled = false;
-                    document.getElementById('verifyBtn').innerText = '✅ I SEARCHED';
-                    document.getElementById('dailyBtn').disabled = false;
-                    document.getElementById('dailyBtn').innerText = 'CLAIM NOW';
                 }
                 
                 // Missions update
@@ -912,4 +1269,4 @@
         }, 30000);
     </script>
 </body>
-</html>
+                </html>
