@@ -104,6 +104,46 @@ class Handlers:
             reply_markup=reply_markup
         )
     
+    async def withdraw_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Withdraw command handler"""
+        user = update.effective_user
+        user_data = self.db.get_user(user.id)
+        
+        if not user_data:
+            await update.message.reply_text("Please use /start first")
+            return
+        
+        balance = user_data.get('balance', 0)
+        min_withdrawal = self.config.MIN_WITHDRAWAL
+        
+        if balance < min_withdrawal:
+            await update.message.reply_text(
+                f"❌ **Insufficient Balance**\n\n"
+                f"Your Balance: ₹{balance:.2f}\n"
+                f"Minimum Withdrawal: ₹{min_withdrawal:.2f}\n\n"
+                f"Earn more to withdraw!",
+                parse_mode=ParseMode.MARKDOWN
+            )
+            return
+        
+        # Open mini app for withdrawal
+        keyboard = [[
+            InlineKeyboardButton(
+                "💸 WITHDRAW NOW",
+                web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}&page=withdraw")
+            )
+        ]]
+        
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text(
+            f"💰 **Withdrawal**\n\n"
+            f"Your Balance: ₹{balance:.2f}\n"
+            f"Minimum: ₹{min_withdrawal:.2f}\n\n"
+            f"Click below to request withdrawal:",
+            reply_markup=reply_markup,
+            parse_mode=ParseMode.MARKDOWN
+        )
+    
     async def handle_webapp_data(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle all Mini App actions"""
         try:
@@ -122,8 +162,6 @@ class Handlers:
                 await self.process_search_verification(update, context, data)
             elif action == 'daily_bonus':
                 await self.process_daily_bonus(update, context, data)
-            elif action == 'channel_join':
-                await self.process_channel_join(update, context, data)
             elif action == 'save_payment':
                 await self.process_save_payment(update, context, data)
             elif action == 'withdraw':
@@ -192,56 +230,57 @@ class Handlers:
         
         await update.effective_message.reply_text(text=json.dumps(response))
     
-    async def process_channel_join(self, update, context, data):
-        user_id = data.get('user_id')
-        channel_id = data.get('channel_id', 'main')
-        
-        # Verify if user actually joined
-        try:
-            member = await context.bot.get_chat_member(
-                chat_id=self.config.CHANNELS['main']['id'],
-                user_id=user_id
-            )
-            
-            if member.status in ['member', 'administrator', 'creator']:
-                result = self.db.mark_channel_join(user_id, channel_id)
-                response = {
-                    'success': True,
-                    'bonus': self.config.CHANNELS['main']['bonus']
-                }
-            else:
-                response = {
-                    'success': False,
-                    'message': 'Please join the channel first'
-                }
-        except Exception as e:
-            logger.error(f"Channel verification error: {e}")
-            response = {
-                'success': False,
-                'message': 'Could not verify. Please try again.'
-            }
-        
-        await update.effective_message.reply_text(text=json.dumps(response))
-    
     async def process_save_payment(self, update, context, data):
+        """Save user payment details"""
         user_id = data.get('user_id')
         method = data.get('method')
         details = data.get('details')
         
-        self.db.update_user(user_id, {
-            'payment_method': method,
-            'payment_details': details
-        })
+        # Update user with payment details
+        self.db.users.update_one(
+            {'user_id': user_id},
+            {'$set': {
+                'payment_method': method,
+                'payment_details': details
+            }}
+        )
         
-        await update.effective_message.reply_text(text=json.dumps({'success': True}))
+        await update.effective_message.reply_text(
+            text=json.dumps({'success': True, 'message': 'Payment details saved!'})
+        )
     
     async def process_withdraw(self, update, context, data):
+        """Process withdrawal request"""
         user_id = data.get('user_id')
         amount = data.get('amount')
         method = data.get('method')
         details = data.get('details')
         
+        # Process withdrawal
         result = self.db.process_withdrawal(user_id, amount, method, details)
+        
+        # If successful, notify admins
+        if result.get('success'):
+            user = self.db.get_user(user_id)
+            user_name = user.get('first_name', 'Unknown')
+            
+            # Send to all admins
+            for admin_id in self.config.ADMIN_IDS:
+                try:
+                    await context.bot.send_message(
+                        chat_id=admin_id,
+                        text=f"💰 **New Withdrawal Request**\n\n"
+                             f"User: {user_name} (ID: {user_id})\n"
+                             f"Amount: ₹{amount}\n"
+                             f"Method: {method}\n"
+                             f"Details: {details}\n"
+                             f"Request ID: {result.get('id', 'N/A')}\n\n"
+                             f"Use /admin to process",
+                        parse_mode=ParseMode.MARKDOWN
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to notify admin {admin_id}: {e}")
+        
         await update.effective_message.reply_text(text=json.dumps(result))
     
     async def process_report_issue(self, update, context, data):
@@ -283,7 +322,7 @@ class Handlers:
                 f"Active Referrals: {user.get('active_refs', 0)}\n"
                 f"Pending: {user.get('pending_refs', 0)}\n"
                 f"Tier: {self.config.get_tier_name(user.get('tier', 1))}\n\n"
-                f"Use /app to open the Mini App!"
+                f"Use /withdraw to request withdrawal"
             )
         else:
             text = "Please use /start first"
@@ -324,6 +363,7 @@ class Handlers:
             "/app - Open Mini App\n"
             "/balance - Check balance\n"
             "/referrals - View referrals\n"
+            "/withdraw - Withdraw earnings\n"
             "/help - This message\n\n"
             "**How to Earn:**\n"
             "1️⃣ **Refer Friends**\n"
@@ -338,9 +378,11 @@ class Handlers:
             "4️⃣ **Weekly Leaderboard**\n"
             "   - Top 3 with 50+ active → ₹200 each\n"
             "   - Rank 4-10 with 25+ active → ₹50 each\n\n"
-            "**Support:** @{support_username}"
-        ).format(
-            support_username=self.config.SUPPORT_USERNAME.replace('@', '')
+            "**Withdrawal:**\n"
+            f"• Minimum: ₹{self.config.MIN_WITHDRAWAL}\n"
+            "• Methods: UPI, Bank Transfer\n"
+            "• Processed within 24-48 hours\n\n"
+            f"**Support:** {self.config.SUPPORT_USERNAME}"
         )
         
         await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
