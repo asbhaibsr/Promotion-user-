@@ -25,7 +25,8 @@ class Config:
     }
     
     # Group Links
-    MOVIE_GROUP_LINK = os.getenv('MOVIE_GROUP_LINK', 'https://t.me/asfilter_Bot')
+    MOVIE_GROUP_LINK = os.getenv('MOVIE_GROUP_LINK', 'https://t.me/asfilter_group')
+    MOVIE_GROUP_ID = os.getenv('MOVIE_GROUP_ID', '-1003193018012')  # Added Movie Group ID
     NEW_GROUP_LINK = os.getenv('NEW_GROUP_LINK', 'https://t.me/asfilter_group')
     ALL_GROUPS_LINK = os.getenv('ALL_GROUPS_LINK', 'https://t.me/addlist/6urdhhdLRqhiZmQ1')
     
@@ -72,7 +73,7 @@ class Config:
     }
     
     # Server
-    PORT = int(os.getenv('PORT', 8080))
+    PORT = int(os.getenv('PORT', 10000))  # FIXED: Changed to 10000 for Render
     ENVIRONMENT = os.getenv('ENVIRONMENT', 'production')
     
     def get_tier_name(self, tier):
