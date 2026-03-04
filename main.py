@@ -2,17 +2,19 @@
 import logging
 import os
 import sys
+import threading
+import asyncio
+import time
+import json
+from datetime import datetime
+
 from telegram import Update, BotCommand
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler,
     MessageHandler, filters, ContextTypes
 )
 from flask import Flask, request, jsonify, render_template
-import threading
-import asyncio
 import nest_asyncio
-from datetime import datetime
-import json
 
 # Important: Apply nest_asyncio
 nest_asyncio.apply()
@@ -42,6 +44,9 @@ app = Flask(__name__)
 # Bot application reference
 bot_app = None
 
+# Global event loop for async tasks
+bot_loop = None
+
 # ===== FLASK ROUTES =====
 @app.route('/')
 def index():
@@ -50,21 +55,30 @@ def index():
         user_id = request.args.get('user_id', 0, type=int)
         user_data = db.get_user(user_id) if user_id else None
         
+        # Default values if user not found
+        if user_data:
+            tier_name = config.get_tier_name(user_data.get('tier', 1))
+            tier_rate = config.get_tier_rate(user_data.get('tier', 1))
+            channel_joined = user_data.get('channel_joined', False)
+        else:
+            tier_name = config.get_tier_name(1)
+            tier_rate = config.get_tier_rate(1)
+            channel_joined = False
+        
         return render_template(
             'index.html',
             user_id=user_id,
             user_name=user_data.get('first_name', 'User') if user_data else 'Guest',
             balance=user_data.get('balance', 0) if user_data else 0,
             total_earned=user_data.get('total_earned', 0) if user_data else 0,
-            spins=user_data.get('spins', 3) if user_data else 3,
             tier=user_data.get('tier', 1) if user_data else 1,
-            tier_name=config.get_tier_name(user_data.get('tier', 1) if user_data else 1),
-            tier_rate=config.get_tier_rate(user_data.get('tier', 1) if user_data else 1),
+            tier_name=tier_name,
+            tier_rate=tier_rate,
             total_refs=user_data.get('total_refs', 0) if user_data else 0,
             active_refs=user_data.get('active_refs', 0) if user_data else 0,
             pending_refs=user_data.get('pending_refs', 0) if user_data else 0,
             daily_streak=user_data.get('daily_streak', 0) if user_data else 0,
-            channel_joined=user_data.get('channel_joined', False) if user_data else False,
+            channel_joined=channel_joined,
             min_withdrawal=config.MIN_WITHDRAWAL,
             channel=config.CHANNELS['main']['id'],
             channel_link=config.CHANNELS['main']['link'],
@@ -85,6 +99,7 @@ def get_user_api(user_id):
     try:
         user_data = db.get_user(user_id)
         if user_data:
+            # Remove MongoDB _id for JSON serialization
             if '_id' in user_data:
                 del user_data['_id']
             return jsonify(user_data)
@@ -92,6 +107,17 @@ def get_user_api(user_id):
     except Exception as e:
         logger.error(f"API error: {e}")
         return jsonify({'error': str(e)}), 500
+
+# ===== NEW ROUTE: Get user withdrawal history =====
+@app.route('/api/user/<int:user_id>/withdrawals')
+def get_user_withdrawals_api(user_id):
+    """API to get user withdrawal history"""
+    try:
+        withdrawals = db.get_user_withdrawals(user_id, 10)
+        return jsonify(withdrawals)
+    except Exception as e:
+        logger.error(f"Withdrawal history error: {e}")
+        return jsonify([])
 
 @app.route('/api/leaderboard')
 def leaderboard_api():
@@ -103,19 +129,31 @@ def leaderboard_api():
         logger.error(f"Leaderboard error: {e}")
         return jsonify([])
 
-# ⚡ FIX: Webhook endpoint
+# ⚡ FIXED: Webhook endpoint - removed bot_app.loop reference
 @app.route(f'/webhook', methods=['POST'])
 def webhook():
     """Telegram webhook endpoint"""
+    global bot_app
+    
+    if bot_app is None:
+        return 'Bot not initialized', 500
+        
     try:
-        if bot_app is None:
-            return 'Bot not initialized', 500
+        # Get update data
+        update_data = request.get_json(force=True)
+        update = Update.de_json(update_data, bot_app.bot)
+        
+        # FIX: Use asyncio.create_task with global loop
+        global bot_loop
+        if bot_loop and bot_loop.is_running():
+            asyncio.run_coroutine_threadsafe(
+                bot_app.process_update(update),
+                bot_loop
+            )
+        else:
+            logger.error("Bot loop not running")
+            return 'Bot loop not running', 500
             
-        update = Update.de_json(request.get_json(force=True), bot_app.bot)
-        asyncio.run_coroutine_threadsafe(
-            bot_app.process_update(update),
-            bot_app.loop
-        )
         return 'OK', 200
     except Exception as e:
         logger.error(f"Webhook error: {e}")
@@ -129,7 +167,7 @@ def health():
 # ===== TELEGRAM BOT SETUP =====
 async def post_init(application):
     """Setup after initialization"""
-    # ⚡ FIX: Set webhook to the Flask endpoint
+    # Set webhook to the Flask endpoint
     base_url = config.WEBHOOK_URL.rstrip('/')
     webhook_url = f"{base_url}/webhook"
     
@@ -146,6 +184,7 @@ async def post_init(application):
         BotCommand("app", "📱 Open Mini App"),
         BotCommand("balance", "💰 Check balance"),
         BotCommand("referrals", "👥 My referrals"),
+        BotCommand("withdraw", "💸 Withdraw earnings"),
         BotCommand("help", "❓ Help & support")
     ]
     await application.bot.set_my_commands(commands)
@@ -182,14 +221,10 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except:
         pass
 
-def run_flask():
-    """Run Flask in separate thread"""
-    port = int(os.environ.get('PORT', 8080))  # Flask on port 8080
-    logger.info(f"🚀 Flask server starting on port {port}")
-    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
-
 async def scheduled_jobs():
     """Run scheduled jobs"""
+    global bot_app
+    
     while True:
         try:
             now = datetime.now()
@@ -198,11 +233,12 @@ async def scheduled_jobs():
                 # Process daily earnings
                 count = db.process_daily_referral_earnings()
                 
-                await bot_app.bot.send_message(
-                    chat_id=config.LOG_CHANNEL_ID,
-                    text=f"📊 **Daily Earnings Processed**\n\nProcessed: {count} referrals\nDate: {now.date().isoformat()}",
-                    parse_mode='Markdown'
-                )
+                if bot_app:
+                    await bot_app.bot.send_message(
+                        chat_id=config.LOG_CHANNEL_ID,
+                        text=f"📊 **Daily Earnings Processed**\n\nProcessed: {count} referrals\nDate: {now.date().isoformat()}",
+                        parse_mode='Markdown'
+                    )
                 
                 # Check if it's Monday for weekly leaderboard
                 if now.weekday() == 0:  # Monday
@@ -215,11 +251,12 @@ async def scheduled_jobs():
                     else:
                         reward_text += "No rewards this week."
                     
-                    await bot_app.bot.send_message(
-                        chat_id=config.LOG_CHANNEL_ID,
-                        text=reward_text,
-                        parse_mode='Markdown'
-                    )
+                    if bot_app:
+                        await bot_app.bot.send_message(
+                            chat_id=config.LOG_CHANNEL_ID,
+                            text=reward_text,
+                            parse_mode='Markdown'
+                        )
             
             await asyncio.sleep(60)  # Check every minute
             
@@ -227,11 +264,19 @@ async def scheduled_jobs():
             logger.error(f"Scheduled job error: {e}")
             await asyncio.sleep(60)
 
-def main():
-    """Main function"""
-    global bot_app
+def run_flask():
+    """Run Flask in separate thread"""
+    port = int(os.environ.get('PORT', 8080))
+    logger.info(f"🚀 Flask server starting on port {port}")
+    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
+
+def run_bot():
+    """Run the bot in its own event loop"""
+    global bot_app, bot_loop
     
-    logger.info("🤖 Starting FilmyFund Bot...")
+    # Create new event loop for this thread
+    bot_loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(bot_loop)
     
     # Create application
     bot_app = Application.builder().token(config.BOT_TOKEN).build()
@@ -241,6 +286,7 @@ def main():
     bot_app.add_handler(CommandHandler("app", handlers.open_app))
     bot_app.add_handler(CommandHandler("balance", handlers.check_balance))
     bot_app.add_handler(CommandHandler("referrals", handlers.show_referrals))
+    bot_app.add_handler(CommandHandler("withdraw", handlers.withdraw_cmd))
     bot_app.add_handler(CommandHandler("help", handlers.help_cmd))
     
     # Admin commands
@@ -259,34 +305,34 @@ def main():
     # Error handler
     bot_app.add_error_handler(error_handler)
     
-    # Post init
-    bot_app.post_init = post_init
+    # Run post init
+    bot_loop.run_until_complete(post_init(bot_app))
     
-    # Start Flask thread
+    # Start scheduled jobs
+    bot_loop.create_task(scheduled_jobs())
+    
+    logger.info("🔄 Bot started in webhook mode")
+    
+    # Keep the bot running
+    bot_loop.run_forever()
+
+def main():
+    """Main function"""
+    logger.info("🤖 Starting FilmyFund Bot...")
+    
+    # Start Flask in a separate thread
     flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
     
-    # ⚡ FIX: Don't run webhook server, just start bot and let Flask handle webhook
-    # We already set webhook in post_init, so just keep the bot running
-    
-    # Start the bot in polling mode for updates
-    logger.info("🔄 Starting bot in webhook mode (Flask handles the webhook)...")
-    
-    # Create an event to keep the main thread alive
-    import time
+    # Run bot in main thread
     try:
-        # Run the bot in the background
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
-        # Start scheduled jobs
-        loop.create_task(scheduled_jobs())
-        
-        # Keep the main thread alive
-        while True:
-            time.sleep(1)
+        run_bot()
     except KeyboardInterrupt:
         logger.info("🛑 Bot stopped by user")
+    finally:
+        # Cleanup
+        if bot_loop:
+            bot_loop.stop()
 
 if __name__ == '__main__':
     main()
