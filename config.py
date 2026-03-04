@@ -6,14 +6,14 @@ load_dotenv()
 
 class Config:
     # Bot Configuration
-    BOT_TOKEN = os.getenv('BOT_TOKEN', 'YOUR_BOT_TOKEN_HERE')
-    BOT_USERNAME = os.getenv('BOT_USERNAME', 'YOUR_BOT_USERNAME')
+    BOT_TOKEN = os.getenv('BOT_TOKEN')
+    BOT_USERNAME = os.getenv('BOT_USERNAME')
     
     # Admin IDs (comma separated)
-    ADMIN_IDS = [int(id.strip()) for id in os.getenv('ADMIN_IDS', '123456789').split(',') if id.strip()]
+    ADMIN_IDS = [int(id.strip()) for id in os.getenv('ADMIN_IDS', '').split(',') if id.strip()]
     
-    # LOG CHANNEL - Bot will send all logs here
-    LOG_CHANNEL_ID = os.getenv('LOG_CHANNEL_ID', '-1001234567890')  # Channel ID for logs
+    # LOG CHANNEL
+    LOG_CHANNEL_ID = os.getenv('LOG_CHANNEL_ID')
     
     # Channel Configuration for Join Bonus
     CHANNELS = {
@@ -24,30 +24,35 @@ class Config:
         }
     }
     
-    # Group Links
+    # Movie Group - IMPORTANT: This is where users search movies
     MOVIE_GROUP_LINK = os.getenv('MOVIE_GROUP_LINK', 'https://t.me/asfilter_group')
-    MOVIE_GROUP_ID = os.getenv('MOVIE_GROUP_ID', '-1003193018012')  # Added Movie Group ID
-    NEW_GROUP_LINK = os.getenv('NEW_GROUP_LINK', 'https://t.me/asfilter_group')
+    MOVIE_GROUP_ID = os.getenv('MOVIE_GROUP_ID', '-1003193018012')  # Your group ID
+    
+    # Other Groups
     ALL_GROUPS_LINK = os.getenv('ALL_GROUPS_LINK', 'https://t.me/addlist/6urdhhdLRqhiZmQ1')
     
     # Support
     SUPPORT_USERNAME = os.getenv('SUPPORT_USERNAME', '@asbhaibsr')
     
     # WebApp URLs
-    WEBAPP_URL = os.getenv('WEBAPP_URL', 'https://promotion-user.onrender.com')
-    WEBHOOK_URL = os.getenv('WEBHOOK_URL', 'https://promotion-user.onrender.com')
+    WEBAPP_URL = os.getenv('WEBAPP_URL')
+    WEBHOOK_URL = os.getenv('WEBHOOK_URL')
     
     # MongoDB Configuration
-    MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb+srv://username:password@cluster.mongodb.net/')
+    MONGODB_URI = os.getenv('MONGODB_URI')
     MONGODB_DB = os.getenv('MONGODB_DB', 'filmyfund_bot')
     
     # Bonus Amounts
-    REFERRAL_BONUS = float(os.getenv('REFERRAL_BONUS', 5.0))  # One-time welcome bonus
-    DAILY_REFERRAL_EARNING = float(os.getenv('DAILY_REFERRAL_EARNING', 0.30))  # Daily per active referral
+    REFERRAL_BONUS = float(os.getenv('REFERRAL_BONUS', 5.0))
+    DAILY_REFERRAL_EARNING = float(os.getenv('DAILY_REFERRAL_EARNING', 0.30))
     DAILY_BONUS = float(os.getenv('DAILY_BONUS', 0.05))
     MIN_WITHDRAWAL = float(os.getenv('MIN_WITHDRAWAL', 50.0))
     
-    # Tier Configuration (Per Search/Referral Earnings)
+    # Anti-Cheat Settings
+    MAX_SEARCHES_PER_DAY = int(os.getenv('MAX_SEARCHES_PER_DAY', 10))
+    MIN_TIME_BETWEEN_SEARCHES = int(os.getenv('MIN_TIME_BETWEEN_SEARCHES', 300))  # 5 minutes
+    
+    # Tier Configuration
     TIERS = {
         1: {'name': '🥉 BASIC', 'rate': 0.30, 'required_refs': 0},
         2: {'name': '🥈 SILVER', 'rate': 0.35, 'required_refs': 10},
@@ -73,7 +78,7 @@ class Config:
     }
     
     # Server
-    PORT = int(os.getenv('PORT', 10000))  # FIXED: Changed to 10000 for Render
+    PORT = int(os.getenv('PORT', 10000))
     ENVIRONMENT = os.getenv('ENVIRONMENT', 'production')
     
     def get_tier_name(self, tier):
