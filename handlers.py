@@ -66,6 +66,14 @@ class Handlers:
             )
         ])
         
+        # Add join channel button for bonus
+        keyboard.append([
+            InlineKeyboardButton(
+                f"📢 JOIN CHANNEL (₹{self.config.CHANNELS['main']['bonus']} BONUS)",
+                url=self.config.CHANNELS['main']['link']
+            )
+        ])
+        
         # If referred, show message
         if is_new and referrer_id:
             welcome_text += f"\n\n✅ You were referred by a friend! Complete first search to activate your referral!"
@@ -160,6 +168,8 @@ class Handlers:
             # Route to appropriate handler
             if action == 'search_verified':
                 await self.process_search_verification(update, context, data)
+            elif action == 'channel_verified':
+                await self.process_channel_verification(update, context, data)
             elif action == 'daily_bonus':
                 await self.process_daily_bonus(update, context, data)
             elif action == 'save_payment':
@@ -211,6 +221,35 @@ class Handlers:
             )
         except:
             pass
+    
+    async def process_channel_verification(self, update, context, data):
+        """Process channel join verification and give bonus"""
+        user_id = data.get('user_id')
+        channel_id = data.get('channel_id')
+        
+        # Check if user has joined the channel (in production, verify with Telegram API)
+        # For now, we'll trust the client and give bonus
+        
+        # Mark channel as joined and give bonus
+        result = self.db.mark_channel_join(user_id, channel_id)
+        
+        if result:
+            user = self.db.get_user(user_id)
+            response = {
+                'success': True,
+                'message': f'Channel joined! ₹{self.config.CHANNELS["main"]["bonus"]} bonus added!',
+                'user_data': {
+                    'balance': user.get('balance', 0),
+                    'channel_joined': True
+                }
+            }
+        else:
+            response = {
+                'success': False,
+                'message': 'Already claimed bonus!'
+            }
+        
+        await update.effective_message.reply_text(text=json.dumps(response))
     
     async def process_daily_bonus(self, update, context, data):
         user_id = data.get('user_id')
@@ -388,16 +427,25 @@ class Handlers:
         await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
     
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle regular messages"""
+        """Handle regular messages - Check for movie searches in group"""
         user_id = update.effective_user.id
         text = update.message.text
         
-        # Check if it's a movie search in group
+        # Check if it's a movie search in the specific group
         if update.effective_chat.type in ['group', 'supergroup']:
-            # This is a group message - could be movie search
-            if any(word in text.lower() for word in ['movie', 'film', 'bollywood', 'hollywood']):
+            # Check if this is the movie group
+            chat_id = str(update.effective_chat.id)
+            
+            # If it's the movie group, record search
+            if chat_id == self.config.MOVIE_GROUP_ID or chat_id.endswith('3193018012'):
+                # This is a movie search
                 self.db.record_search(user_id)
-                await update.message.reply_text("✅ Search recorded! Your referrer will earn today!")
+                await update.message.reply_text(
+                    "✅ **Search Recorded!**\n\n"
+                    "Your referrer will earn today!\n"
+                    "Keep searching daily to help them earn more!",
+                    parse_mode=ParseMode.MARKDOWN
+                )
         
         # Simple response for private chat
         elif update.effective_chat.type == 'private':
