@@ -384,6 +384,15 @@
         .status-rejected {
             color: #dc3545;
         }
+
+        .badge {
+            background: #ffd700;
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -496,6 +505,15 @@
                 <div style="background: #232a3a; border-radius: 16px; padding: 16px; margin: 16px 0;">
                     <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
                         <div style="background: #ffd700; color: #000; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">2</div>
+                        <div><strong>JOIN CHANNEL (₹{{ channel_bonus }} BONUS)</strong></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="joinChannel()" id="channelBtn">📢 JOIN CHANNEL</button>
+                    <div id="channelStatus" style="margin-top:8px; font-size:13px;"></div>
+                </div>
+                
+                <div style="background: #232a3a; border-radius: 16px; padding: 16px; margin: 16px 0;">
+                    <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
+                        <div style="background: #ffd700; color: #000; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">3</div>
                         <div><strong>SEARCH ANY MOVIE</strong></div>
                     </div>
                     <p style="color: #ccc; font-size: 14px; margin-bottom: 8px;">Type movie name in group</p>
@@ -503,7 +521,7 @@
                 
                 <div style="background: #232a3a; border-radius: 16px; padding: 16px; margin: 16px 0;">
                     <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
-                        <div style="background: #ffd700; color: #000; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">3</div>
+                        <div style="background: #ffd700; color: #000; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">4</div>
                         <div><strong>VERIFY SEARCH</strong></div>
                     </div>
                     <button class="btn btn-primary" onclick="verifySearch()" id="verifyBtn">✅ I SEARCHED</button>
@@ -774,6 +792,7 @@
             tierName: '{{ tier_name }}',
             tierRate: {{ tier_rate }},
             channelJoined: {{ 'true' if channel_joined else 'false' }},
+            channelBonus: {{ channel_bonus }},
             minWithdrawal: {{ min_withdrawal }},
             dailyReferralEarning: {{ daily_referral_earning }}
         };
@@ -786,6 +805,7 @@
         setTimeout(() => {
             document.getElementById('loadingScreen').style.display = 'none';
             document.getElementById('app').style.display = 'block';
+            checkChannelStatus();
         }, 500);
 
         // Initialize
@@ -810,6 +830,14 @@
             const page = urlParams.get('page');
             if (page) {
                 openPage(page);
+            }
+        }
+
+        function checkChannelStatus() {
+            if (userData.channelJoined) {
+                document.getElementById('channelStatus').innerHTML = '<span class="badge">✅ CHANNEL JOINED - BONUS CLAIMED</span>';
+                document.getElementById('channelBtn').disabled = true;
+                document.getElementById('channelBtn').innerText = '✅ ALREADY JOINED';
             }
         }
 
@@ -887,6 +915,36 @@
 
         function closePage() {
             goHome();
+        }
+
+        // Channel Join Function
+        function joinChannel() {
+            if (userData.channelJoined) {
+                showResult('ℹ️ INFO', 'You already claimed channel bonus!');
+                return;
+            }
+            
+            // Open channel link
+            window.open('{{ channel_link }}', '_blank');
+            
+            // Show verification button after 3 seconds
+            setTimeout(() => {
+                if (confirm('✅ Did you join the channel? Click OK to claim your ₹{{ channel_bonus }} bonus!')) {
+                    verifyChannelJoin();
+                }
+            }, 3000);
+        }
+
+        function verifyChannelJoin() {
+            const btn = document.getElementById('channelBtn');
+            btn.disabled = true;
+            btn.innerText = '⏳ VERIFYING...';
+            
+            tg.sendData(JSON.stringify({
+                action: 'channel_verified',
+                user_id: userData.id,
+                channel_id: '{{ channel }}'
+            }));
         }
 
         // Withdrawal Functions
@@ -1160,18 +1218,29 @@
                             if (response.streak) userData.dailyStreak = response.streak;
                             updateUI();
                         } else if (response.user_data) {
-                            showResult('✅ VERIFIED!', 'Search recorded! Your referrer will earn today!');
-                            userData.balance = response.user_data.balance;
-                            userData.totalSearches = response.user_data.total_searches;
-                            userData.activeRefs = response.user_data.active_refs;
-                            userData.tier = response.user_data.tier;
+                            if (response.user_data.channel_joined !== undefined) {
+                                // Channel join success
+                                showResult('✅ CHANNEL BONUS!', `₹${userData.channelBonus} added to your balance!`, `+₹${userData.channelBonus}`);
+                                userData.channelJoined = true;
+                                userData.balance = response.user_data.balance;
+                                checkChannelStatus();
+                            } else {
+                                // Search verification success
+                                showResult('✅ VERIFIED!', 'Search recorded! Your referrer will earn today!');
+                                userData.balance = response.user_data.balance;
+                                userData.activeRefs = response.user_data.active_refs;
+                                userData.tier = response.user_data.tier;
+                            }
                             updateUI();
                         } else if (response.message) {
                             showResult('✅ SUCCESS!', response.message, '');
                             
                             // If withdrawal success, update balance
                             if (response.message.includes('withdrawal')) {
-                                userData.balance -= parseFloat(document.getElementById('withdrawAmount')?.value || 0);
+                                const amount = parseFloat(document.getElementById('withdrawAmount')?.value || 0);
+                                if (amount) {
+                                    userData.balance -= amount;
+                                }
                                 updateUI();
                                 
                                 // Reset withdraw form
@@ -1200,6 +1269,10 @@
                         if (document.getElementById('withdrawBtn')) {
                             document.getElementById('withdrawBtn').disabled = false;
                             document.getElementById('withdrawBtn').innerText = 'REQUEST WITHDRAWAL';
+                        }
+                        if (document.getElementById('channelBtn')) {
+                            document.getElementById('channelBtn').disabled = false;
+                            document.getElementById('channelBtn').innerText = '📢 JOIN CHANNEL';
                         }
                     }
                 }
@@ -1250,23 +1323,27 @@
         // Initialize
         init();
 
-        // Auto refresh every 30 seconds
+        // Auto refresh every 30 seconds - FIXED to not call for user_id=0
         setInterval(() => {
-            fetch(`/api/user/${userData.id}`)
-                .then(r => r.json())
-                .then(data => {
-                    if (data && !data.error) {
-                        userData.balance = data.balance || userData.balance;
-                        userData.totalRefs = data.total_refs || userData.totalRefs;
-                        userData.activeRefs = data.active_refs || userData.activeRefs;
-                        userData.pendingRefs = data.pending_refs || userData.pendingRefs;
-                        userData.dailyStreak = data.daily_streak || userData.dailyStreak;
-                        userData.tier = data.tier || userData.tier;
-                        updateUI();
-                    }
-                })
-                .catch(e => console.error(e));
+            if (userData.id && userData.id !== 0) {
+                fetch(`/api/user/${userData.id}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data && !data.error) {
+                            userData.balance = data.balance || userData.balance;
+                            userData.totalRefs = data.total_refs || userData.totalRefs;
+                            userData.activeRefs = data.active_refs || userData.activeRefs;
+                            userData.pendingRefs = data.pending_refs || userData.pendingRefs;
+                            userData.dailyStreak = data.daily_streak || userData.dailyStreak;
+                            userData.tier = data.tier || userData.tier;
+                            userData.channelJoined = data.channel_joined || userData.channelJoined;
+                            updateUI();
+                            checkChannelStatus();
+                        }
+                    })
+                    .catch(e => console.error(e));
+            }
         }, 30000);
     </script>
 </body>
-                </html>
+            </html>
