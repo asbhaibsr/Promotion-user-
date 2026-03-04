@@ -13,7 +13,7 @@ from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler,
     MessageHandler, filters, ContextTypes
 )
-from flask import Flask, request, jsonify, render_template, send_file
+from flask import Flask, request, jsonify, render_template
 import nest_asyncio
 
 # Important: Apply nest_asyncio
@@ -53,40 +53,61 @@ def index():
     """Main WebApp page"""
     try:
         user_id = request.args.get('user_id', 0, type=int)
-        user_data = db.get_user(user_id) if user_id and user_id > 0 else None
         
-        # Default values if user not found
+        # Get user data if valid user_id
+        user_data = None
+        if user_id and user_id > 0:
+            user_data = db.get_user(user_id)
+        
+        # Default values
+        user_name = "Guest"
+        balance = 0
+        total_earned = 0
+        tier = 1
+        tier_name = config.get_tier_name(1)
+        tier_rate = config.get_tier_rate(1)
+        total_refs = 0
+        active_refs = 0
+        pending_refs = 0
+        daily_streak = 0
+        channel_joined = False
+        
+        # Override with actual user data if exists
         if user_data:
-            tier_name = config.get_tier_name(user_data.get('tier', 1))
-            tier_rate = config.get_tier_rate(user_data.get('tier', 1))
+            user_name = user_data.get('first_name', 'User')
+            balance = user_data.get('balance', 0)
+            total_earned = user_data.get('total_earned', 0)
+            tier = user_data.get('tier', 1)
+            tier_name = config.get_tier_name(tier)
+            tier_rate = config.get_tier_rate(tier)
+            total_refs = user_data.get('total_refs', 0)
+            active_refs = user_data.get('active_refs', 0)
+            pending_refs = user_data.get('pending_refs', 0)
+            daily_streak = user_data.get('daily_streak', 0)
             channel_joined = user_data.get('channel_joined', False)
-        else:
-            tier_name = config.get_tier_name(1)
-            tier_rate = config.get_tier_rate(1)
-            channel_joined = False
         
+        # Render template with all variables
         return render_template(
             'index.html',
             user_id=user_id,
-            user_name=user_data.get('first_name', 'User') if user_data else 'Guest',
-            balance=user_data.get('balance', 0) if user_data else 0,
-            total_earned=user_data.get('total_earned', 0) if user_data else 0,
-            tier=user_data.get('tier', 1) if user_data else 1,
+            user_name=user_name,
+            balance=balance,
+            total_earned=total_earned,
+            tier=tier,
             tier_name=tier_name,
             tier_rate=tier_rate,
-            total_refs=user_data.get('total_refs', 0) if user_data else 0,
-            active_refs=user_data.get('active_refs', 0) if user_data else 0,
-            pending_refs=user_data.get('pending_refs', 0) if user_data else 0,
-            daily_streak=user_data.get('daily_streak', 0) if user_data else 0,
+            total_refs=total_refs,
+            active_refs=active_refs,
+            pending_refs=pending_refs,
+            daily_streak=daily_streak,
             channel_joined=channel_joined,
             min_withdrawal=config.MIN_WITHDRAWAL,
-            channel=config.CHANNELS['main']['id'],
+            channel_id=config.CHANNELS['main']['id'],
             channel_link=config.CHANNELS['main']['link'],
             channel_bonus=config.CHANNELS['main']['bonus'],
-            movie_group=config.MOVIE_GROUP_LINK,
+            movie_group_link=config.MOVIE_GROUP_LINK,
             movie_group_id=config.MOVIE_GROUP_ID,
-            new_group=config.NEW_GROUP_LINK,
-            all_groups=config.ALL_GROUPS_LINK,
+            all_groups_link=config.ALL_GROUPS_LINK,
             bot_username=config.BOT_USERNAME,
             daily_referral_earning=config.DAILY_REFERRAL_EARNING
         )
@@ -101,9 +122,9 @@ def favicon():
 
 @app.route('/api/user/<int:user_id>')
 def get_user_api(user_id):
-    """API to get user data - FIXED for user_id=0"""
+    """API to get user data"""
     try:
-        # Fix for user_id = 0 (guest user)
+        # Handle guest user
         if user_id == 0:
             return jsonify({
                 'user_id': 0,
@@ -111,6 +132,7 @@ def get_user_api(user_id):
                 'balance': 0,
                 'total_earned': 0,
                 'tier': 1,
+                'tier_name': '🥉 BASIC',
                 'total_refs': 0,
                 'active_refs': 0,
                 'pending_refs': 0,
@@ -125,8 +147,7 @@ def get_user_api(user_id):
                 del user_data['_id']
             return jsonify(user_data)
         
-        # Return 200 with error message instead of 404 to prevent console errors
-        return jsonify({'error': 'User not found', 'user_id': user_id}), 200
+        return jsonify({'error': 'User not found'}), 404
     except Exception as e:
         logger.error(f"API error: {e}")
         return jsonify({'error': str(e)}), 500
@@ -151,25 +172,10 @@ def leaderboard_api():
         logger.error(f"Leaderboard error: {e}")
         return jsonify([])
 
-@app.route('/api/verify/channel/<int:user_id>')
-def verify_channel_join(user_id):
-    """API to check if user joined channel"""
-    try:
-        channel_id = config.CHANNELS['main']['id']
-        # In production, you would verify with Telegram API
-        # For now, return the user's channel_joined status
-        user = db.get_user(user_id)
-        if user:
-            return jsonify({'joined': user.get('channel_joined', False)})
-        return jsonify({'joined': False})
-    except Exception as e:
-        logger.error(f"Channel verify error: {e}")
-        return jsonify({'joined': False})
-
-@app.route(f'/webhook', methods=['POST'])
+@app.route('/webhook', methods=['POST'])
 def webhook():
-    """Telegram webhook endpoint - FIXED"""
-    global bot_app
+    """Telegram webhook endpoint"""
+    global bot_app, bot_loop
     
     if bot_app is None:
         return 'Bot not initialized', 500
@@ -179,8 +185,7 @@ def webhook():
         update_data = request.get_json(force=True)
         update = Update.de_json(update_data, bot_app.bot)
         
-        # FIX: Use asyncio.create_task with global loop
-        global bot_loop
+        # Process update in bot's event loop
         if bot_loop and bot_loop.is_running():
             asyncio.run_coroutine_threadsafe(
                 bot_app.process_update(update),
@@ -203,16 +208,18 @@ def health():
 # ===== TELEGRAM BOT SETUP =====
 async def post_init(application):
     """Setup after initialization"""
-    # Set webhook to the Flask endpoint
-    base_url = config.WEBHOOK_URL.rstrip('/')
-    webhook_url = f"{base_url}/webhook"
+    # Set webhook
+    webhook_url = f"{config.WEBHOOK_URL}/webhook"
     
     # Delete old webhook first
     await application.bot.delete_webhook(drop_pending_updates=True)
     
     # Set new webhook
-    await application.bot.set_webhook(url=webhook_url)
-    logger.info(f"✅ Webhook set to: {webhook_url}")
+    result = await application.bot.set_webhook(url=webhook_url)
+    if result:
+        logger.info(f"✅ Webhook set to: {webhook_url}")
+    else:
+        logger.error("❌ Failed to set webhook")
     
     # Set commands
     commands = [
@@ -229,7 +236,7 @@ async def post_init(application):
     try:
         await application.bot.send_message(
             chat_id=config.LOG_CHANNEL_ID,
-            text=f"🚀 **Bot Started!**\n\nTime: {datetime.now().isoformat()}\nMode: {config.ENVIRONMENT}",
+            text=f"🚀 **Bot Started!**\n\nTime: {datetime.now().isoformat()}\nMode: Webhook",
             parse_mode='Markdown'
         )
     except Exception as e:
@@ -238,24 +245,6 @@ async def post_init(application):
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Global error handler"""
     logger.error(f"Update {update} caused error {context.error}")
-    
-    try:
-        await context.bot.send_message(
-            chat_id=config.LOG_CHANNEL_ID,
-            text=f"❌ **Error Occurred**\n\nError: {str(context.error)[:500]}",
-            parse_mode='Markdown'
-        )
-    except:
-        pass
-    
-    try:
-        if update and update.effective_chat:
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="❌ An error occurred. Please try again later."
-            )
-    except:
-        pass
 
 async def scheduled_jobs():
     """Run scheduled jobs"""
@@ -272,29 +261,11 @@ async def scheduled_jobs():
                 if bot_app:
                     await bot_app.bot.send_message(
                         chat_id=config.LOG_CHANNEL_ID,
-                        text=f"📊 **Daily Earnings Processed**\n\nProcessed: {count} referrals\nDate: {now.date().isoformat()}",
+                        text=f"📊 **Daily Earnings Processed**\n\nProcessed: {count} referrals",
                         parse_mode='Markdown'
                     )
-                
-                # Check if it's Monday for weekly leaderboard
-                if now.weekday() == 0:  # Monday
-                    rewards = db.reset_weekly_leaderboard()
-                    
-                    reward_text = "🏆 **Weekly Leaderboard Results**\n\n"
-                    if rewards:
-                        for r in rewards:
-                            reward_text += f"• User {r['user_id']}: Rank #{r['rank']} - ₹{r['reward']}\n"
-                    else:
-                        reward_text += "No rewards this week."
-                    
-                    if bot_app:
-                        await bot_app.bot.send_message(
-                            chat_id=config.LOG_CHANNEL_ID,
-                            text=reward_text,
-                            parse_mode='Markdown'
-                        )
             
-            await asyncio.sleep(60)  # Check every minute
+            await asyncio.sleep(60)
             
         except Exception as e:
             logger.error(f"Scheduled job error: {e}")
@@ -302,7 +273,7 @@ async def scheduled_jobs():
 
 def run_flask():
     """Run Flask in separate thread"""
-    port = int(os.environ.get('PORT', 10000))  # FIXED: Changed to 10000 for Render
+    port = int(os.environ.get('PORT', 10000))
     logger.info(f"🚀 Flask server starting on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
 
@@ -366,7 +337,6 @@ def main():
     except KeyboardInterrupt:
         logger.info("🛑 Bot stopped by user")
     finally:
-        # Cleanup
         if bot_loop:
             bot_loop.stop()
 
