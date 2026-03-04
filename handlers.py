@@ -1,7 +1,7 @@
 # ===== handlers.py =====
 import logging
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
@@ -14,6 +14,7 @@ class Handlers:
         self.db = db
     
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Start command handler"""
         user = update.effective_user
         args = context.args
         
@@ -23,7 +24,7 @@ class Handlers:
             try:
                 referrer_id = int(args[0].replace('ref_', ''))
                 if referrer_id == user.id:
-                    referrer_id = None  # Self referral not allowed
+                    referrer_id = None
             except:
                 pass
         
@@ -38,27 +39,26 @@ class Handlers:
         # Add to database
         is_new = self.db.add_user(user_data)
         
-        # Create welcome message with buttons
+        # Create welcome message
         welcome_text = (
             f"🎬 **Welcome to FilmyFund, {user.first_name}!**\n\n"
             f"💰 **Earn Money Daily**\n"
             f"• Refer friends → earn ₹{self.config.DAILY_REFERRAL_EARNING} per active referral daily\n"
-            f"• First search bonus → ₹0.30\n"
+            f"• Join channel → ₹{self.config.CHANNELS['main']['bonus']} bonus\n"
             f"• Daily bonus with streak → up to ₹0.20\n"
-            f"• Complete missions → earn up to ₹25\n"
-            f"• Weekly leaderboard → win ₹200\n\n"
+            f"• Complete missions → earn up to ₹25\n\n"
             f"👇 **Click below to start earning!**"
         )
         
         # Main button to open Mini App
         keyboard = [[
             InlineKeyboardButton(
-                "📱 OPEN MINI APP & EARN",
+                "📱 OPEN MINI APP",
                 web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}")
             )
         ]]
         
-        # Add join group button
+        # Add join movie group button
         keyboard.append([
             InlineKeyboardButton(
                 "🎬 JOIN MOVIE GROUP",
@@ -66,17 +66,13 @@ class Handlers:
             )
         ])
         
-        # Add join channel button for bonus
+        # Add join channel button
         keyboard.append([
             InlineKeyboardButton(
                 f"📢 JOIN CHANNEL (₹{self.config.CHANNELS['main']['bonus']} BONUS)",
                 url=self.config.CHANNELS['main']['link']
             )
         ])
-        
-        # If referred, show message
-        if is_new and referrer_id:
-            welcome_text += f"\n\n✅ You were referred by a friend! Complete first search to activate your referral!"
         
         reply_markup = InlineKeyboardMarkup(keyboard)
         
@@ -87,16 +83,20 @@ class Handlers:
             parse_mode=ParseMode.MARKDOWN
         )
         
-        # Send referral link separately
+        # Send referral link
         ref_link = f"https://t.me/{self.config.BOT_USERNAME}?start=ref_{user.id}"
         await update.message.reply_text(
             f"🔗 **Your Referral Link:**\n`{ref_link}`\n\n"
-            f"Share this link with friends! When they join and search, you'll earn daily!",
+            f"Share this link with friends! When they join and search, you'll earn daily!\n\n"
+            f"⚠️ **Important:**\n"
+            f"• Go to movie group and search any movie\n"
+            f"• Bot will automatically detect your search\n"
+            f"• Fake searches = No withdrawal",
             parse_mode=ParseMode.MARKDOWN
         )
     
     async def open_app(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Open Mini App command handler"""
+        """Open Mini App command"""
         user = update.effective_user
         
         keyboard = [[
@@ -112,48 +112,45 @@ class Handlers:
             reply_markup=reply_markup
         )
     
-    async def withdraw_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Withdraw command handler"""
-        user = update.effective_user
-        user_data = self.db.get_user(user.id)
+    async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle all messages - AUTOMATIC GROUP VERIFICATION"""
+        user_id = update.effective_user.id
+        chat_id = str(update.effective_chat.id)
         
-        if not user_data:
-            await update.message.reply_text("Please use /start first")
-            return
+        # Check if this is the movie group
+        if chat_id == self.config.MOVIE_GROUP_ID or chat_id.endswith('3193018012'):
+            # This is a message in the movie group
+            # Check if it's a movie search (any text message)
+            if update.message.text and len(update.message.text) > 1:
+                # Record the search automatically
+                result = self.db.record_search(user_id)
+                
+                if result:
+                    # Send confirmation
+                    await update.message.reply_text(
+                        "✅ **Search Recorded!**\n\n"
+                        "• Your referrer will earn today\n"
+                        "• Keep searching daily\n"
+                        "• Fake searches = No withdrawal",
+                        parse_mode=ParseMode.MARKDOWN
+                    )
+                    
+                    logger.info(f"✅ Search recorded for user {user_id} in movie group")
         
-        balance = user_data.get('balance', 0)
-        min_withdrawal = self.config.MIN_WITHDRAWAL
-        
-        if balance < min_withdrawal:
-            await update.message.reply_text(
-                f"❌ **Insufficient Balance**\n\n"
-                f"Your Balance: ₹{balance:.2f}\n"
-                f"Minimum Withdrawal: ₹{min_withdrawal:.2f}\n\n"
-                f"Earn more to withdraw!",
-                parse_mode=ParseMode.MARKDOWN
-            )
-            return
-        
-        # Open mini app for withdrawal
-        keyboard = [[
-            InlineKeyboardButton(
-                "💸 WITHDRAW NOW",
-                web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}&page=withdraw")
-            )
-        ]]
-        
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await update.message.reply_text(
-            f"💰 **Withdrawal**\n\n"
-            f"Your Balance: ₹{balance:.2f}\n"
-            f"Minimum: ₹{min_withdrawal:.2f}\n\n"
-            f"Click below to request withdrawal:",
-            reply_markup=reply_markup,
-            parse_mode=ParseMode.MARKDOWN
-        )
+        # Handle private chat messages
+        elif update.effective_chat.type == 'private':
+            text = update.message.text.lower()
+            if text in ['hi', 'hello', 'hey', 'start']:
+                await update.message.reply_text(
+                    "Welcome! Use /start to begin earning!"
+                )
+            else:
+                await update.message.reply_text(
+                    "Use /app to open the Mini App and start earning!"
+                )
     
     async def handle_webapp_data(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle all Mini App actions"""
+        """Handle Mini App actions"""
         try:
             web_app_data = update.effective_message.web_app_data
             if not web_app_data:
@@ -165,10 +162,7 @@ class Handlers:
             
             logger.info(f"📱 WebApp action from {user.id}: {action}")
             
-            # Route to appropriate handler
-            if action == 'search_verified':
-                await self.process_search_verification(update, context, data)
-            elif action == 'channel_verified':
+            if action == 'channel_verified':
                 await self.process_channel_verification(update, context, data)
             elif action == 'daily_bonus':
                 await self.process_daily_bonus(update, context, data)
@@ -187,50 +181,11 @@ class Handlers:
                 text=json.dumps({'error': str(e), 'success': False})
             )
     
-    async def process_search_verification(self, update, context, data):
-        """Process when user verifies they searched in group"""
-        user_id = data.get('user_id')
-        
-        # Record the search
-        self.db.record_search(user_id)
-        
-        # Get updated user data
-        user = self.db.get_user(user_id)
-        
-        response = {
-            'success': True,
-            'message': 'Search verified!',
-            'user_data': {
-                'balance': user.get('balance', 0),
-                'total_searches': user.get('total_searches', 0),
-                'active_refs': user.get('active_refs', 0),
-                'tier': user.get('tier', 1)
-            }
-        }
-        
-        await update.effective_message.reply_text(text=json.dumps(response))
-        
-        # Send confirmation message to user
-        try:
-            await context.bot.send_message(
-                chat_id=user_id,
-                text="✅ **Search Verified!**\n\n"
-                     "Your referrer will now earn daily from your activity!\n"
-                     "Keep searching daily to help them earn more!",
-                parse_mode=ParseMode.MARKDOWN
-            )
-        except:
-            pass
-    
     async def process_channel_verification(self, update, context, data):
-        """Process channel join verification and give bonus"""
+        """Process channel join verification"""
         user_id = data.get('user_id')
         channel_id = data.get('channel_id')
         
-        # Check if user has joined the channel (in production, verify with Telegram API)
-        # For now, we'll trust the client and give bonus
-        
-        # Mark channel as joined and give bonus
         result = self.db.mark_channel_join(user_id, channel_id)
         
         if result:
@@ -252,6 +207,7 @@ class Handlers:
         await update.effective_message.reply_text(text=json.dumps(response))
     
     async def process_daily_bonus(self, update, context, data):
+        """Process daily bonus claim"""
         user_id = data.get('user_id')
         result = self.db.claim_daily_bonus(user_id)
         
@@ -275,7 +231,6 @@ class Handlers:
         method = data.get('method')
         details = data.get('details')
         
-        # Update user with payment details
         self.db.users.update_one(
             {'user_id': user_id},
             {'$set': {
@@ -295,15 +250,13 @@ class Handlers:
         method = data.get('method')
         details = data.get('details')
         
-        # Process withdrawal
         result = self.db.process_withdrawal(user_id, amount, method, details)
         
-        # If successful, notify admins
         if result.get('success'):
             user = self.db.get_user(user_id)
             user_name = user.get('first_name', 'Unknown')
             
-            # Send to all admins
+            # Notify admins
             for admin_id in self.config.ADMIN_IDS:
                 try:
                     await context.bot.send_message(
@@ -313,22 +266,22 @@ class Handlers:
                              f"Amount: ₹{amount}\n"
                              f"Method: {method}\n"
                              f"Details: {details}\n"
-                             f"Request ID: {result.get('id', 'N/A')}\n\n"
-                             f"Use /admin to process",
+                             f"Request ID: {result.get('id', 'N/A')}",
                         parse_mode=ParseMode.MARKDOWN
                     )
-                except Exception as e:
-                    logger.error(f"Failed to notify admin {admin_id}: {e}")
+                except:
+                    pass
         
         await update.effective_message.reply_text(text=json.dumps(result))
     
     async def process_report_issue(self, update, context, data):
+        """Process issue report"""
         user_id = data.get('user_id')
         issue = data.get('issue')
         
         self.db.add_issue_report(user_id, issue)
         
-        # Forward to admin
+        # Notify admins
         for admin_id in self.config.ADMIN_IDS:
             try:
                 user = self.db.get_user(user_id)
@@ -345,11 +298,13 @@ class Handlers:
         await update.effective_message.reply_text(text=json.dumps({'success': True}))
     
     async def process_missions(self, update, context, data):
+        """Get user missions"""
         user_id = data.get('user_id')
         missions = self.db.get_user_missions(user_id)
         await update.effective_message.reply_text(text=json.dumps(missions))
     
     async def check_balance(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Check balance command"""
         user_id = update.effective_user.id
         user = self.db.get_user(user_id)
         
@@ -359,9 +314,7 @@ class Handlers:
                 f"Available: ₹{user.get('balance', 0):.2f}\n"
                 f"Total Earned: ₹{user.get('total_earned', 0):.2f}\n"
                 f"Active Referrals: {user.get('active_refs', 0)}\n"
-                f"Pending: {user.get('pending_refs', 0)}\n"
-                f"Tier: {self.config.get_tier_name(user.get('tier', 1))}\n\n"
-                f"Use /withdraw to request withdrawal"
+                f"Tier: {self.config.get_tier_name(user.get('tier', 1))}"
             )
         else:
             text = "Please use /start first"
@@ -369,34 +322,63 @@ class Handlers:
         await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
     
     async def show_referrals(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Show referrals command"""
         user_id = update.effective_user.id
         user = self.db.get_user(user_id)
         
         if user:
             ref_link = f"https://t.me/{self.config.BOT_USERNAME}?start=ref_{user_id}"
-            
-            # Calculate daily earnings
             daily_earning = user.get('active_refs', 0) * self.config.DAILY_REFERRAL_EARNING
             
             text = (
                 f"👥 **Your Referrals**\n\n"
                 f"Total: {user.get('total_refs', 0)}\n"
-                f"Active: {user.get('active_refs', 0)} (Earning daily)\n"
-                f"Pending: {user.get('pending_refs', 0)} (Need to search)\n\n"
-                f"💰 **Daily Earnings:** ₹{daily_earning:.2f}\n"
-                f"📈 **Tier:** {self.config.get_tier_name(user.get('tier', 1))}\n\n"
-                f"🔗 **Your Referral Link:**\n"
-                f"`{ref_link}`\n\n"
-                f"Share this link! When friends join and search, you'll earn daily!"
+                f"Active: {user.get('active_refs', 0)}\n"
+                f"Pending: {user.get('pending_refs', 0)}\n\n"
+                f"💰 **Daily Earnings:** ₹{daily_earning:.2f}\n\n"
+                f"🔗 **Your Link:**\n`{ref_link}`"
             )
         else:
             text = "Please use /start first"
         
         await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
     
+    async def withdraw_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Withdraw command"""
+        user_id = update.effective_user.id
+        user = self.db.get_user(user_id)
+        
+        if not user:
+            await update.message.reply_text("Please use /start first")
+            return
+        
+        balance = user.get('balance', 0)
+        
+        if balance < self.config.MIN_WITHDRAWAL:
+            await update.message.reply_text(
+                f"❌ Minimum withdrawal is ₹{self.config.MIN_WITHDRAWAL}\n"
+                f"Your balance: ₹{balance:.2f}"
+            )
+            return
+        
+        keyboard = [[
+            InlineKeyboardButton(
+                "💸 WITHDRAW NOW",
+                web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user_id}&page=withdraw")
+            )
+        ]]
+        
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text(
+            f"💰 Your balance: ₹{balance:.2f}\n"
+            f"Click below to withdraw:",
+            reply_markup=reply_markup
+        )
+    
     async def help_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Help command"""
         text = (
-            "❓ **FilmyFund Help**\n\n"
+            "❓ **Help**\n\n"
             "**Commands:**\n"
             "/start - Start the bot\n"
             "/app - Open Mini App\n"
@@ -405,51 +387,15 @@ class Handlers:
             "/withdraw - Withdraw earnings\n"
             "/help - This message\n\n"
             "**How to Earn:**\n"
-            "1️⃣ **Refer Friends**\n"
-            "   - Share your referral link\n"
-            "   - Friend joins → ₹5 welcome bonus (one-time)\n"
-            "   - Friend searches → You earn ₹0.30 daily forever!\n\n"
-            "2️⃣ **Daily Bonus**\n"
-            "   - Claim daily to build streak\n"
-            "   - Higher streak = higher bonus\n\n"
-            "3️⃣ **Complete Missions**\n"
-            "   - Earn extra rewards\n\n"
-            "4️⃣ **Weekly Leaderboard**\n"
-            "   - Top 3 with 50+ active → ₹200 each\n"
-            "   - Rank 4-10 with 25+ active → ₹50 each\n\n"
-            "**Withdrawal:**\n"
-            f"• Minimum: ₹{self.config.MIN_WITHDRAWAL}\n"
-            "• Methods: UPI, Bank Transfer\n"
-            "• Processed within 24-48 hours\n\n"
+            "1️⃣ Join movie group and search movies\n"
+            "2️⃣ Share your referral link\n"
+            "3️⃣ Claim daily bonus\n"
+            "4️⃣ Join channel for bonus\n\n"
+            "⚠️ **Anti-Cheat Warning:**\n"
+            "• Fake searches = No withdrawal\n"
+            "• Admin checks all withdrawals\n"
+            "• Only real searches count\n\n"
             f"**Support:** {self.config.SUPPORT_USERNAME}"
         )
         
         await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
-    
-    async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle regular messages - Check for movie searches in group"""
-        user_id = update.effective_user.id
-        text = update.message.text
-        
-        # Check if it's a movie search in the specific group
-        if update.effective_chat.type in ['group', 'supergroup']:
-            # Check if this is the movie group
-            chat_id = str(update.effective_chat.id)
-            
-            # If it's the movie group, record search
-            if chat_id == self.config.MOVIE_GROUP_ID or chat_id.endswith('3193018012'):
-                # This is a movie search
-                self.db.record_search(user_id)
-                await update.message.reply_text(
-                    "✅ **Search Recorded!**\n\n"
-                    "Your referrer will earn today!\n"
-                    "Keep searching daily to help them earn more!",
-                    parse_mode=ParseMode.MARKDOWN
-                )
-        
-        # Simple response for private chat
-        elif update.effective_chat.type == 'private':
-            if text.lower() in ['hi', 'hello', 'hey']:
-                await update.message.reply_text(f"Hello! Use /app to start earning money!")
-            else:
-                await update.message.reply_text("Use /app to open the Mini App and start earning!")
