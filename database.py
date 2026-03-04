@@ -624,6 +624,24 @@ class Database:
             logger.error(f"Error processing withdrawal: {e}")
             return {'success': False, 'message': 'Internal error'}
     
+    # ===== NEW METHOD: Get user withdrawal history =====
+    def get_user_withdrawals(self, user_id, limit=10):
+        """Get user's withdrawal history"""
+        try:
+            withdrawals = self.withdrawals.find(
+                {'user_id': user_id}
+            ).sort('request_date', -1).limit(limit)
+            
+            result = []
+            for w in withdrawals:
+                w['_id'] = str(w['_id'])
+                result.append(w)
+            
+            return result
+        except Exception as e:
+            logger.error(f"Error getting withdrawals: {e}")
+            return []
+    
     def add_transaction(self, user_id, type_, amount, description=""):
         """Add transaction record"""
         try:
