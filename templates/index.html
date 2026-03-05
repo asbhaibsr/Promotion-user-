@@ -116,7 +116,7 @@
 
         .menu-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 12px;
             margin-bottom: 16px;
         }
@@ -124,7 +124,7 @@
         .menu-item {
             background: #1a1f2f;
             border-radius: 24px;
-            padding: 24px 12px;
+            padding: 20px 8px;
             text-align: center;
             cursor: pointer;
             border: 1px solid #ffd700;
@@ -137,13 +137,13 @@
         }
 
         .menu-icon {
-            font-size: 42px;
+            font-size: 32px;
             margin-bottom: 8px;
             display: block;
         }
 
         .menu-title {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: 600;
             color: #ffd700;
         }
@@ -462,21 +462,21 @@
                 <span class="menu-icon">👥</span>
                 <span class="menu-title">REFER</span>
             </div>
-            <div class="menu-item" onclick="openPage('missions')">
-                <span class="menu-icon">🎯</span>
-                <span class="menu-title">MISSIONS</span>
-            </div>
             <div class="menu-item" onclick="openPage('withdraw')">
                 <span class="menu-icon">💸</span>
                 <span class="menu-title">WITHDRAW</span>
             </div>
             <div class="menu-item" onclick="openPage('leaderboard')">
                 <span class="menu-icon">🏆</span>
-                <span class="menu-title">LEADERBOARD</span>
+                <span class="menu-title">TOP</span>
             </div>
             <div class="menu-item" onclick="openPage('history')">
                 <span class="menu-icon">📜</span>
                 <span class="menu-title">HISTORY</span>
+            </div>
+            <div class="menu-item" onclick="openPage('daily')">
+                <span class="menu-icon">🎁</span>
+                <span class="menu-title">DAILY</span>
             </div>
         </div>
 
@@ -593,16 +593,6 @@
                 <p style="color: #8e9aaf; font-size: 13px; margin-top: 16px;">
                     💡 When friends join and search, you earn ₹{{ daily_referral_earning }} per active referral daily!
                 </p>
-            </div>
-        </div>
-
-        <!-- MISSIONS PAGE -->
-        <div id="pageMissions" class="hidden">
-            <div class="back-btn" onclick="closePage()">← BACK</div>
-            
-            <div class="card">
-                <h3 style="color: #ffd700;">🎯 ACTIVE MISSIONS</h3>
-                <div id="missionsList"></div>
             </div>
         </div>
 
@@ -734,8 +724,7 @@
     <!-- Help Modal -->
     <div id="helpModal" class="modal" style="display: none;">
         <div class="modal-content">
-            <div class="modal-icon">❓</div>
-            <h3 style="color: #ffd700;">HELP & SUPPORT</h3>
+            <h3 style="color: #ffd700;">❓ HELP & SUPPORT</h3>
             <textarea id="issueText" rows="3" placeholder="Describe your problem..." style="width:100%; background:#232a3a; border:1px solid #ffd700; color:white; padding:12px; border-radius:16px; margin:16px 0;"></textarea>
             <div style="display: flex; gap: 8px;">
                 <button class="btn" style="flex:1" onclick="closeHelp()">CANCEL</button>
@@ -747,7 +736,6 @@
     <!-- Result Modal -->
     <div id="resultModal" class="modal" style="display: none;">
         <div class="modal-content">
-            <div class="modal-icon" id="resultIcon">🎉</div>
             <h3 style="color: #ffd700;" id="resultTitle">SUCCESS!</h3>
             <div style="font-size: 48px; color: #ffd700; margin: 16px 0;" id="resultAmount">✅</div>
             <div id="resultText">Completed!</div>
@@ -780,6 +768,7 @@
     </div>
 
     <script>
+        // Telegram WebApp initialization
         const tg = window.Telegram.WebApp;
         tg.expand();
         tg.ready();
@@ -803,35 +792,34 @@
             dailyReferralEarning: {{ daily_referral_earning }}
         };
 
-        // Withdrawal state
+        // State
         let selectedMethod = null;
         let withdrawalHistory = [];
 
-        // Hide loading
+        // Hide loading after initialization
         setTimeout(() => {
             document.getElementById('loadingScreen').style.display = 'none';
             document.getElementById('app').style.display = 'block';
-            checkChannelStatus();
+            init();
         }, 500);
 
         // Initialize
         function init() {
-            // Set user info
-            document.getElementById('userName').innerText = userData.name;
-            document.getElementById('avatar').innerText = userData.name.charAt(0).toUpperCase();
-            
-            // Update stats
             updateUI();
             
             // Set referral link
             document.getElementById('refLink').innerText = `https://t.me/{{ bot_username }}?start=ref_${userData.id}`;
             
-            // Load missions, leaderboard and history
-            loadMissions();
+            // Load leaderboard
             loadLeaderboard();
+            
+            // Load withdrawal history
             loadWithdrawalHistory();
             
-            // Check if URL has page parameter
+            // Check channel status
+            checkChannelStatus();
+            
+            // Check for page parameter
             const urlParams = new URLSearchParams(window.location.search);
             const page = urlParams.get('page');
             if (page) {
@@ -839,15 +827,10 @@
             }
         }
 
-        function checkChannelStatus() {
-            if (userData.channelJoined) {
-                document.getElementById('channelStatus').innerHTML = '<span class="badge">✅ CHANNEL JOINED - BONUS CLAIMED</span>';
-                document.getElementById('channelBtn').disabled = true;
-                document.getElementById('channelBtn').innerText = '✅ ALREADY JOINED';
-            }
-        }
-
         function updateUI() {
+            // Update main stats
+            document.getElementById('userName').innerText = userData.name;
+            document.getElementById('avatar').innerText = userData.name.charAt(0).toUpperCase();
             document.getElementById('balance').innerText = `₹${userData.balance.toFixed(2)}`;
             document.getElementById('totalRefs').innerText = userData.totalRefs;
             document.getElementById('activeRefs').innerText = userData.activeRefs;
@@ -856,8 +839,9 @@
             document.getElementById('tierBadge').innerText = userData.tierName;
             
             // Withdraw page balance
-            if (document.getElementById('withdrawBalance')) {
-                document.getElementById('withdrawBalance').innerText = `₹${userData.balance.toFixed(2)}`;
+            const withdrawBalance = document.getElementById('withdrawBalance');
+            if (withdrawBalance) {
+                withdrawBalance.innerText = `₹${userData.balance.toFixed(2)}`;
             }
             
             // Daily bonus
@@ -872,22 +856,50 @@
             document.getElementById('dailyPotential').innerText = `₹${dailyPotential.toFixed(2)}`;
             
             // Referral page
-            if (document.getElementById('totalRefsPage')) {
-                document.getElementById('totalRefsPage').innerText = userData.totalRefs;
+            const totalRefsPage = document.getElementById('totalRefsPage');
+            if (totalRefsPage) {
+                totalRefsPage.innerText = userData.totalRefs;
                 document.getElementById('activeRefsPage').innerText = userData.activeRefs;
                 document.getElementById('pendingRefsPage').innerText = userData.pendingRefs;
                 document.getElementById('currentTier').innerText = userData.tierName;
                 
                 // Tier progress
                 let nextTierRefs = 0;
-                if (userData.tier === 1) nextTierRefs = 10;
-                else if (userData.tier === 2) nextTierRefs = 30;
-                else if (userData.tier === 3) nextTierRefs = 100;
-                else if (userData.tier === 4) nextTierRefs = 500;
+                let nextTierName = 'MAX';
+                
+                if (userData.tier === 1) {
+                    nextTierRefs = 10;
+                    nextTierName = '🥈 SILVER';
+                } else if (userData.tier === 2) {
+                    nextTierRefs = 30;
+                    nextTierName = '🥇 GOLD';
+                } else if (userData.tier === 3) {
+                    nextTierRefs = 100;
+                    nextTierName = '💎 DIAMOND';
+                } else if (userData.tier === 4) {
+                    nextTierRefs = 500;
+                    nextTierName = '👑 PLATINUM';
+                }
+                
+                document.getElementById('nextTier').innerText = nextTierRefs ? `${nextTierName} (${nextTierRefs})` : 'MAX TIER';
                 
                 if (nextTierRefs > 0) {
                     const progress = (userData.activeRefs / nextTierRefs) * 100;
                     document.getElementById('tierProgress').style.width = Math.min(progress, 100) + '%';
+                }
+            }
+        }
+
+        function checkChannelStatus() {
+            if (userData.channelJoined) {
+                const statusDiv = document.getElementById('channelStatus');
+                if (statusDiv) {
+                    statusDiv.innerHTML = '<span class="badge">✅ CHANNEL JOINED - BONUS CLAIMED</span>';
+                }
+                const btn = document.getElementById('channelBtn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerText = '✅ ALREADY JOINED';
                 }
             }
         }
@@ -908,7 +920,8 @@
                 pageElement.classList.remove('hidden');
             }
             
-            const pages = ['home', 'earn', 'referrals', 'withdraw', 'history', 'missions', 'leaderboard', 'daily'];
+            // Update nav active state
+            const pages = ['home', 'earn', 'referrals', 'withdraw', 'leaderboard'];
             document.querySelectorAll('.nav-item').forEach((item, i) => {
                 item.classList.toggle('active', pages[i] === page);
             });
@@ -918,7 +931,7 @@
             goHome();
         }
 
-        // Channel Join Function
+        // Channel Join
         function joinChannel() {
             if (userData.channelJoined) {
                 showResult('ℹ️ INFO', 'You already claimed channel bonus!');
@@ -928,7 +941,7 @@
             // Open channel link
             window.open('{{ channel_link }}', '_blank');
             
-            // Show verification after 3 seconds
+            // Verify after delay
             setTimeout(() => {
                 if (confirm('✅ Did you join the channel? Click OK to claim your ₹{{ channel_bonus }} bonus!')) {
                     verifyChannelJoin();
@@ -938,8 +951,10 @@
 
         function verifyChannelJoin() {
             const btn = document.getElementById('channelBtn');
-            btn.disabled = true;
-            btn.innerText = '⏳ VERIFYING...';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = '⏳ VERIFYING...';
+            }
             
             tg.sendData(JSON.stringify({
                 action: 'channel_verified',
@@ -948,11 +963,10 @@
             }));
         }
 
-        // Withdrawal Functions
+        // Withdrawal
         function selectMethod(method) {
             selectedMethod = method;
             
-            // Update UI
             document.getElementById('methodUpi').classList.remove('selected');
             document.getElementById('methodBank').classList.remove('selected');
             
@@ -971,17 +985,17 @@
             const amount = parseFloat(document.getElementById('withdrawAmount').value);
             
             if (!amount || amount < userData.minWithdrawal) {
-                showResult('❌ ERROR', `Minimum withdrawal is ₹${userData.minWithdrawal}`, '');
+                showResult('❌ ERROR', `Minimum withdrawal is ₹${userData.minWithdrawal}`);
                 return;
             }
             
             if (amount > userData.balance) {
-                showResult('❌ ERROR', 'Insufficient balance!', '');
+                showResult('❌ ERROR', 'Insufficient balance!');
                 return;
             }
             
             if (!selectedMethod) {
-                showResult('❌ ERROR', 'Please select payment method', '');
+                showResult('❌ ERROR', 'Please select payment method');
                 return;
             }
             
@@ -989,7 +1003,7 @@
             if (selectedMethod === 'upi') {
                 const upiId = document.getElementById('upiDetails').value;
                 if (!upiId || !upiId.includes('@')) {
-                    showResult('❌ ERROR', 'Please enter valid UPI ID', '');
+                    showResult('❌ ERROR', 'Please enter valid UPI ID');
                     return;
                 }
                 details = upiId;
@@ -999,7 +1013,7 @@
                 const name = document.getElementById('accountName').value;
                 
                 if (!accountNo || !ifsc || !name) {
-                    showResult('❌ ERROR', 'Please fill all bank details', '');
+                    showResult('❌ ERROR', 'Please fill all bank details');
                     return;
                 }
                 details = `${name}|${accountNo}|${ifsc}`;
@@ -1007,8 +1021,10 @@
             
             // Disable button
             const btn = document.getElementById('withdrawBtn');
-            btn.disabled = true;
-            btn.innerText = '⏳ PROCESSING...';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = '⏳ PROCESSING...';
+            }
             
             // Send request
             tg.sendData(JSON.stringify({
@@ -1074,11 +1090,13 @@
             historyDiv.innerHTML = html;
         }
 
-        // Claim Daily Bonus
+        // Daily Bonus
         function claimDaily() {
             const btn = document.getElementById('dailyBtn');
-            btn.disabled = true;
-            btn.innerText = '⏳ CLAIMING...';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = '⏳ CLAIMING...';
+            }
             
             tg.sendData(JSON.stringify({
                 action: 'daily_bonus',
@@ -1143,22 +1161,12 @@
             document.getElementById('resultModal').style.display = 'flex';
             
             setTimeout(() => {
-                document.getElementById('resultModal').style.display = 'none';
+                closeResultModal();
             }, 3000);
         }
 
         function closeResultModal() {
             document.getElementById('resultModal').style.display = 'none';
-        }
-
-        // Load Missions
-        function loadMissions() {
-            if (userData.id && userData.id !== 0) {
-                tg.sendData(JSON.stringify({
-                    action: 'get_missions',
-                    user_id: userData.id
-                }));
-            }
         }
 
         // Load Leaderboard
@@ -1185,7 +1193,7 @@
                 
                 document.getElementById('leaderboardList').innerHTML = html || '<div style="color:#888; text-align:center;">No data</div>';
             } catch (e) {
-                console.error(e);
+                console.error('Leaderboard error:', e);
             }
         }
 
@@ -1193,6 +1201,7 @@
         tg.onEvent('webAppData', function(data) {
             try {
                 const response = JSON.parse(data);
+                console.log('WebApp response:', response);
                 
                 if (response.success !== undefined) {
                     if (response.success) {
@@ -1210,7 +1219,7 @@
                             }
                             updateUI();
                         } else if (response.message) {
-                            showResult('✅ SUCCESS!', response.message, '');
+                            showResult('✅ SUCCESS!', response.message);
                             
                             if (response.message.includes('withdrawal')) {
                                 const amount = parseFloat(document.getElementById('withdrawAmount')?.value || 0);
@@ -1219,10 +1228,13 @@
                                 }
                                 updateUI();
                                 
-                                document.getElementById('withdrawAmount').value = '';
-                                if (document.getElementById('withdrawBtn')) {
-                                    document.getElementById('withdrawBtn').disabled = false;
-                                    document.getElementById('withdrawBtn').innerText = 'REQUEST WITHDRAWAL';
+                                const amountInput = document.getElementById('withdrawAmount');
+                                if (amountInput) amountInput.value = '';
+                                
+                                const btn = document.getElementById('withdrawBtn');
+                                if (btn) {
+                                    btn.disabled = false;
+                                    btn.innerText = 'REQUEST WITHDRAWAL';
                                 }
                                 
                                 loadWithdrawalHistory();
@@ -1231,65 +1243,30 @@
                     } else {
                         tg.showAlert(response.message || '❌ Failed');
                         
-                        if (document.getElementById('dailyBtn')) {
-                            document.getElementById('dailyBtn').disabled = false;
-                            document.getElementById('dailyBtn').innerText = 'CLAIM NOW';
+                        // Reset buttons
+                        const dailyBtn = document.getElementById('dailyBtn');
+                        if (dailyBtn) {
+                            dailyBtn.disabled = false;
+                            dailyBtn.innerText = 'CLAIM NOW';
                         }
-                        if (document.getElementById('withdrawBtn')) {
-                            document.getElementById('withdrawBtn').disabled = false;
-                            document.getElementById('withdrawBtn').innerText = 'REQUEST WITHDRAWAL';
+                        
+                        const withdrawBtn = document.getElementById('withdrawBtn');
+                        if (withdrawBtn) {
+                            withdrawBtn.disabled = false;
+                            withdrawBtn.innerText = 'REQUEST WITHDRAWAL';
                         }
-                        if (document.getElementById('channelBtn')) {
-                            document.getElementById('channelBtn').disabled = false;
-                            document.getElementById('channelBtn').innerText = '📢 JOIN CHANNEL';
+                        
+                        const channelBtn = document.getElementById('channelBtn');
+                        if (channelBtn) {
+                            channelBtn.disabled = false;
+                            channelBtn.innerText = '📢 JOIN CHANNEL';
                         }
                     }
                 }
-                
-                if (response.mission_1) {
-                    updateMissionsUI(response);
-                }
-                
             } catch (e) {
-                console.error(e);
+                console.error('WebApp response error:', e);
             }
         });
-
-        function updateMissionsUI(missions) {
-            const list = document.getElementById('missionsList');
-            let html = '';
-            
-            for (let key in missions) {
-                const m = missions[key];
-                if (m.completed) {
-                    html += `
-                        <div class="mission-item">
-                            <div>✅ ${m.name}</div>
-                            <div class="mission-reward">₹${m.reward}</div>
-                        </div>
-                    `;
-                } else if (m.progress) {
-                    html += `
-                        <div class="mission-item">
-                            <div>
-                                <div>${m.icon || '🎯'} ${m.name}</div>
-                                <div style="font-size:12px; color:#8e9aaf;">
-                                    Ref: ${m.progress.referrals} | 
-                                    Search: ${m.progress.searches} | 
-                                    Streak: ${m.progress.streak}
-                                </div>
-                            </div>
-                            <div class="mission-reward">₹${m.reward}</div>
-                        </div>
-                    `;
-                }
-            }
-            
-            list.innerHTML = html || '<div style="color:#888; text-align:center;">No missions available</div>';
-        }
-
-        // Initialize
-        init();
 
         // Auto refresh every 30 seconds
         setInterval(() => {
@@ -1309,9 +1286,9 @@
                             checkChannelStatus();
                         }
                     })
-                    .catch(e => console.error(e));
+                    .catch(e => console.error('Refresh error:', e));
             }
         }, 30000);
     </script>
 </body>
-                                                                   </html>
+    </html>
