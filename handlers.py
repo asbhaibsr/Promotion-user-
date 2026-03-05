@@ -1,8 +1,4 @@
 # ===== handlers.py =====
-"""
-FILMYFUND BOT - COMPLETE HANDLERS FILE
-Saare methods included - 100% working
-"""
 
 import logging
 import json
@@ -454,7 +450,7 @@ class Handlers:
         if not user:
             return {}
         
-        # Simple mission response - you can enhance this
+        # Simple mission response
         missions = {}
         for i in range(1, 6):
             missions[f'mission_{i}'] = {
