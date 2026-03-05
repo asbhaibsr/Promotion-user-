@@ -1,9 +1,4 @@
 # ===== main.py =====
-"""
-FILMYFUND BOT - ULTRA ADVANCED VERSION
-100% Working on Render Free Tier
-Author: AI Advanced Assistant
-"""
 
 import logging
 import os
