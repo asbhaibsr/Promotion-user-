@@ -1,4 +1,5 @@
-# ===== database.py (FIXED COMPLETE) =====
+# ===== database.py (COMPLETE FIXED WITH ALL FIELDS) =====
+
 import logging
 from datetime import datetime, timedelta
 from pymongo import MongoClient, ASCENDING, DESCENDING
@@ -113,7 +114,7 @@ class Database:
             return None
     
     def add_user(self, user_data):
-        """Add new user"""
+        """Add new user - FIXED: Added notify_referrals field"""
         if not self.ensure_connection():
             return False
         
@@ -138,6 +139,7 @@ class Database:
             
             now = datetime.now().isoformat()
             
+            # NEW USER SCHEMA - WITH ALL FIELDS
             new_user = {
                 'user_id': user_id,
                 'first_name': user_data.get('first_name', ''),
@@ -159,12 +161,18 @@ class Database:
                 'is_admin': user_id in self.config.ADMIN_IDS,
                 'suspicious_activity': False,
                 'withdrawal_blocked': False,
-                'warning_count': 0
+                'warning_count': 0,
+                # ADDED: Notification settings
+                'notify_referrals': True,  # Default: ON
+                'notify_earnings': True,    # Default: ON
+                'notify_withdrawals': True,  # Default: ON
+                'dark_mode': False,          # Default: OFF
+                'language': 'en'              # Default: English
             }
             
             self.users.insert_one(new_user)
             
-            # Handle referral - CRITICAL FIX
+            # Handle referral
             if referrer_id and referrer_id != user_id:
                 # Check if referral already exists
                 existing_ref = self.referrals.find_one({
@@ -179,7 +187,8 @@ class Database:
                         'join_date': now,
                         'last_search_date': None,
                         'is_active': False,
-                        'earnings': 0.0
+                        'earnings': 0.0,
+                        'shortlinks_completed': 0  # Track shortlinks
                     })
                     
                     self.users.update_one(
@@ -201,7 +210,7 @@ class Database:
             return False
     
     def record_search(self, user_id):
-        """Record user search - FIXED: Only affects referrer earnings, not user balance"""
+        """Record user search - FIXED: Added shortlink warning in response"""
         if not self.ensure_connection():
             return False
         
@@ -266,12 +275,11 @@ class Database:
                 }
             )
             
-            # CRITICAL FIX: Activate referral for referrer, NOT give money to searcher
+            # Activate referral for referrer
             if was_first_search:
                 self.activate_referral(user_id)
-                # NO BALANCE ADDED FOR FIRST SEARCH - FIXED
             
-            # CRITICAL FIX: Process daily earning for referrer
+            # Process daily earning for referrer
             referral = self.referrals.find_one({'referred_id': user_id})
             if referral and referral.get('is_active'):
                 # Update last search date for this referral
@@ -296,11 +304,17 @@ class Database:
                 self.user_cache.pop(f"user_{referral['referrer_id']}", None)
             
             logger.info(f"✅ Search recorded for user {user_id}")
-            return True
+            
+            # RETURN WITH SHORTLINK WARNING FLAG
+            return {
+                'success': True,
+                'needs_shortlink': True,  # Flag to show shortlink warning
+                'message': 'Search recorded. Remember to complete shortlinks!'
+            }
             
         except Exception as e:
             logger.error(f"Error recording search: {e}")
-            return False
+            return {'success': False, 'message': str(e)}
     
     def activate_referral(self, referred_id):
         """Activate referral when user searches first time"""
@@ -347,8 +361,33 @@ class Database:
             logger.error(f"Error activating referral: {e}")
             return False
     
+    def record_shortlink_completion(self, user_id):
+        """NEW METHOD: Record when user completes a shortlink"""
+        try:
+            user_id = int(user_id)
+            
+            # Update user's shortlink count
+            self.users.update_one(
+                {'user_id': user_id},
+                {'$inc': {'shortlinks_completed': 1}}
+            )
+            
+            # Update referral record
+            referral = self.referrals.find_one({'referred_id': user_id})
+            if referral:
+                self.referrals.update_one(
+                    {'_id': referral['_id']},
+                    {'$inc': {'shortlinks_completed': 1}}
+                )
+            
+            logger.info(f"✅ Shortlink completed by user {user_id}")
+            return True
+        except Exception as e:
+            logger.error(f"Error recording shortlink: {e}")
+            return False
+    
     def process_daily_referral_earnings(self):
-        """Process daily earnings for active referrals - FIXED: Only active referrers get paid"""
+        """Process daily earnings for active referrals"""
         if not self.ensure_connection():
             return 0
         
@@ -406,7 +445,7 @@ class Database:
             return 0
     
     def mark_channel_join(self, user_id, channel_id):
-        """Mark user as joined channel - FIXED: Proper verification"""
+        """Mark user as joined channel"""
         try:
             user_id = int(user_id)
             
@@ -448,7 +487,7 @@ class Database:
             return False
     
     def claim_daily_bonus(self, user_id):
-        """Claim daily bonus with streak - FIXED: Works properly"""
+        """Claim daily bonus with streak"""
         try:
             user_id = int(user_id)
             user = self.get_user(user_id)
@@ -673,8 +712,22 @@ class Database:
             logger.error(f"Error updating tier: {e}")
             return None
     
+    def update_notification_setting(self, user_id, setting, value):
+        """NEW METHOD: Update user notification settings"""
+        try:
+            user_id = int(user_id)
+            self.users.update_one(
+                {'user_id': user_id},
+                {'$set': {f'notify_{setting}': value}}
+            )
+            self.user_cache.pop(f"user_{user_id}", None)
+            return True
+        except Exception as e:
+            logger.error(f"Error updating notification setting: {e}")
+            return False
+    
     def get_leaderboard(self, limit=10):
-        """Get leaderboard - FIXED: Shows only active referrers, not searchers"""
+        """Get leaderboard - Shows only active referrers"""
         try:
             # Get users with active referrals, sorted by active_refs
             users = self.users.find(
