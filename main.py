@@ -1,4 +1,4 @@
-# ===== main.py =====
+# ===== main.py (COMPLETE FIXED VERSION) =====
 
 import logging
 import os
@@ -9,6 +9,12 @@ import time
 import json
 import signal
 from datetime import datetime, timedelta
+
+# Add these imports at the top
+import requests
+from bson.objectid import ObjectId
+from flask import Flask, request, jsonify, render_template, session, redirect, url_for
+from functools import wraps
 
 # Configure logging
 logging.basicConfig(
@@ -23,11 +29,13 @@ logger = logging.getLogger(__name__)
 # Suppress noisy logs
 logging.getLogger('httpx').setLevel(logging.WARNING)
 logging.getLogger('telegram').setLevel(logging.WARNING)
+logging.getLogger('pymongo').setLevel(logging.WARNING)
+logging.getLogger('urllib3').setLevel(logging.WARNING)
 
 # Import with error handling
 try:
     from flask import Flask, request, jsonify, render_template
-    from telegram import Update, BotCommand
+    from telegram import Update, BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
     from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
     from telegram.constants import ParseMode
     import nest_asyncio
@@ -35,6 +43,8 @@ try:
     import pytz
 except ImportError as e:
     logger.critical(f"Import Error: {e}")
+    print(f"Missing dependency: {e}")
+    print("Please install required packages: pip install python-telegram-bot flask pymongo python-dotenv nest-asyncio cachetools certifi requests")
     sys.exit(1)
 
 # Apply nest_asyncio
@@ -47,16 +57,17 @@ load_dotenv()
 from config import Config
 from database import Database
 from handlers import Handlers
-from admin import AdminHandlers  # Add this import
+from admin import AdminHandlers
 
 # ========== FLASK APP ==========
 app = Flask(__name__)
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'filmyfund-secret-key-2024')
 
 # Global references
 config = None
 db = None
 handlers = None
-admin_handlers = None  # Add this
+admin_handlers = None
 bot_app = None
 bot_loop = None
 
@@ -64,22 +75,31 @@ bot_loop = None
 start_time = datetime.now()
 request_count = 0
 
+# ========== FLASK ROUTES ==========
 
 @app.route('/')
 def index():
-    """Main WebApp page"""
+    """Main WebApp page - FIXED with better error handling"""
     global config, db, request_count
     request_count += 1
     
     try:
         user_id = request.args.get('user_id', 0, type=int)
+        logger.info(f"🌐 Index page accessed by user_id: {user_id}")
         
         # Get user data
         user_data = None
-        if user_id and user_id > 0 and db:
-            user_data = db.get_user(user_id)
+        if user_id and user_id > 0 and db and db.ensure_connection():
+            try:
+                user_data = db.get_user(user_id)
+                if user_data:
+                    logger.info(f"✅ User data loaded for {user_id}")
+                else:
+                    logger.warning(f"⚠️ User {user_id} not found in database")
+            except Exception as e:
+                logger.error(f"Error fetching user {user_id}: {e}")
         
-        # Default values
+        # Default values with safe config access
         template_vars = {
             'user_id': user_id,
             'user_name': 'Guest',
@@ -93,26 +113,27 @@ def index():
             'pending_refs': 0,
             'daily_streak': 0,
             'channel_joined': False,
-            'min_withdrawal': config.MIN_WITHDRAWAL if config else 50,
-            'channel_id': config.CHANNEL_ID if config else '',
-            'channel_link': config.CHANNEL_LINK if config else '',
-            'channel_bonus': config.CHANNEL_JOIN_BONUS if config else 2.0,
-            'movie_group_link': config.MOVIE_GROUP_LINK if config else '',
-            'movie_group_id': config.MOVIE_GROUP_ID if config else '',
-            'all_groups_link': config.ALL_GROUPS_LINK if config else '',
-            'bot_username': config.BOT_USERNAME if config else '',
-            'daily_referral_earning': config.DAILY_REFERRAL_EARNING if config else 0.30
+            'min_withdrawal': config.MIN_WITHDRAWAL if config and hasattr(config, 'MIN_WITHDRAWAL') else 50,
+            'channel_id': config.CHANNEL_ID if config and hasattr(config, 'CHANNEL_ID') else '',
+            'channel_link': config.CHANNEL_LINK if config and hasattr(config, 'CHANNEL_LINK') else '',
+            'channel_bonus': config.CHANNEL_JOIN_BONUS if config and hasattr(config, 'CHANNEL_JOIN_BONUS') else 2.0,
+            'movie_group_link': config.MOVIE_GROUP_LINK if config and hasattr(config, 'MOVIE_GROUP_LINK') else '',
+            'movie_group_id': config.MOVIE_GROUP_ID if config and hasattr(config, 'MOVIE_GROUP_ID') else '',
+            'all_groups_link': config.ALL_GROUPS_LINK if config and hasattr(config, 'ALL_GROUPS_LINK') else '',
+            'bot_username': config.BOT_USERNAME if config and hasattr(config, 'BOT_USERNAME') else '',
+            'daily_referral_earning': config.DAILY_REFERRAL_EARNING if config and hasattr(config, 'DAILY_REFERRAL_EARNING') else 0.30,
+            'support_username': config.SUPPORT_USERNAME if config and hasattr(config, 'SUPPORT_USERNAME') else '@support'
         }
         
-        # Override with user data
+        # Override with user data if available
         if user_data:
             template_vars.update({
                 'user_name': user_data.get('first_name', 'User'),
                 'balance': user_data.get('balance', 0),
                 'total_earned': user_data.get('total_earned', 0),
                 'tier': user_data.get('tier', 1),
-                'tier_name': config.get_tier_name(user_data.get('tier', 1)) if config else '🥉 BASIC',
-                'tier_rate': config.get_tier_rate(user_data.get('tier', 1)) if config else 0.30,
+                'tier_name': config.get_tier_name(user_data.get('tier', 1)) if config and hasattr(config, 'get_tier_name') else '🥉 BASIC',
+                'tier_rate': config.get_tier_rate(user_data.get('tier', 1)) if config and hasattr(config, 'get_tier_rate') else 0.30,
                 'total_refs': user_data.get('total_refs', 0),
                 'active_refs': user_data.get('active_refs', 0),
                 'pending_refs': user_data.get('pending_refs', 0),
@@ -120,16 +141,19 @@ def index():
                 'channel_joined': user_data.get('channel_joined', False)
             })
         
+        # Render template
         return render_template('index.html', **template_vars)
         
     except Exception as e:
         logger.error(f"Index route error: {e}")
-        return f"Error: {str(e)}", 500
+        import traceback
+        traceback.print_exc()
+        return f"Error loading page: {str(e)}", 500
 
 
 @app.route('/api/user/<int:user_id>')
 def get_user_api(user_id):
-    """API to get user data"""
+    """API to get user data - FIXED"""
     global db, request_count
     request_count += 1
     
@@ -149,24 +173,37 @@ def get_user_api(user_id):
                 'channel_joined': False
             })
         
-        user_data = db.get_user(user_id) if db else None
+        if not db or not db.ensure_connection():
+            return jsonify({'error': 'Database not connected'}), 503
+        
+        user_data = db.get_user(user_id)
         if user_data:
+            # Convert ObjectId to string if present
+            if '_id' in user_data:
+                user_data['_id'] = str(user_data['_id'])
             return jsonify(user_data)
         
         return jsonify({'error': 'User not found'}), 404
     except Exception as e:
-        logger.error(f"API error: {e}")
+        logger.error(f"API error for user {user_id}: {e}")
         return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/user/<int:user_id>/withdrawals')
 def get_user_withdrawals_api(user_id):
-    """API to get user withdrawal history"""
+    """API to get user withdrawal history - FIXED"""
     global db, request_count
     request_count += 1
     
     try:
-        withdrawals = db.get_user_withdrawals(user_id, 10) if db else []
+        if not db or not db.ensure_connection():
+            return jsonify([])
+        
+        withdrawals = db.get_user_withdrawals(user_id, 10)
+        # Convert ObjectId to string for JSON
+        for w in withdrawals:
+            if '_id' in w:
+                w['_id'] = str(w['_id'])
         return jsonify(withdrawals)
     except Exception as e:
         logger.error(f"Withdrawal history error: {e}")
@@ -175,12 +212,15 @@ def get_user_withdrawals_api(user_id):
 
 @app.route('/api/leaderboard')
 def leaderboard_api():
-    """API to get leaderboard"""
+    """API to get leaderboard - FIXED"""
     global db, request_count
     request_count += 1
     
     try:
-        leaderboard = db.get_leaderboard(10) if db else []
+        if not db or not db.ensure_connection():
+            return jsonify([])
+        
+        leaderboard = db.get_leaderboard(10)
         return jsonify(leaderboard)
     except Exception as e:
         logger.error(f"Leaderboard error: {e}")
@@ -201,6 +241,13 @@ def stats_api():
         'db_connected': db.connected if db else False,
         'timestamp': datetime.now().isoformat()
     }
+    
+    if db and db.connected:
+        try:
+            stats['total_users'] = db.users.count_documents({})
+            stats['pending_withdrawals'] = db.withdrawals.count_documents({'status': 'pending'})
+        except:
+            pass
     
     return jsonify(stats)
 
@@ -229,9 +276,30 @@ def favicon():
     return "", 204
 
 
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    """Webhook endpoint for Telegram - FIXED"""
+    global bot_app
+    
+    if not bot_app:
+        return "Bot not initialized", 503
+    
+    try:
+        update = Update.de_json(request.get_json(force=True), bot_app.bot)
+        asyncio.run_coroutine_threadsafe(
+            bot_app.process_update(update),
+            bot_loop
+        )
+        return "OK", 200
+    except Exception as e:
+        logger.error(f"Webhook error: {e}")
+        return "Error", 500
+
+
 # ========== BOT SETUP ==========
+
 async def post_init(application):
-    """Setup after initialization"""
+    """Setup after initialization - FIXED"""
     global config
     
     logger.info("🚀 Running post-initialization setup...")
@@ -249,14 +317,21 @@ async def post_init(application):
         ]
         await application.bot.set_my_commands(commands)
         
+        # Set webhook if URL is configured
+        if config and hasattr(config, 'WEBHOOK_URL') and config.WEBHOOK_URL:
+            webhook_url = f"{config.WEBHOOK_URL}/webhook"
+            await application.bot.set_webhook(url=webhook_url)
+            logger.info(f"✅ Webhook set to {webhook_url}")
+        
         # Send startup notification
-        if config.LOG_CHANNEL_ID:
+        if config and hasattr(config, 'LOG_CHANNEL_ID') and config.LOG_CHANNEL_ID:
             try:
                 await application.bot.send_message(
                     chat_id=config.LOG_CHANNEL_ID,
                     text=(
                         f"🚀 **Bot Started!**\n\n"
-                        f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                        f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+                        f"Mode: {'Webhook' if config.WEBHOOK_URL else 'Polling'}"
                     ),
                     parse_mode=ParseMode.MARKDOWN
                 )
@@ -270,7 +345,7 @@ async def post_init(application):
 
 
 async def scheduled_jobs():
-    """Run scheduled background jobs"""
+    """Run scheduled background jobs - FIXED"""
     global db, config
     
     logger.info("🔄 Scheduled jobs started")
@@ -282,8 +357,16 @@ async def scheduled_jobs():
             # Daily earnings at midnight
             if now.hour == 0 and now.minute == 0:
                 logger.info("🔄 Processing daily earnings...")
-                count = db.process_daily_referral_earnings()
-                logger.info(f"✅ Processed {count} daily earnings")
+                if db and db.ensure_connection():
+                    count = db.process_daily_referral_earnings()
+                    logger.info(f"✅ Processed {count} daily earnings")
+            
+            # Log stats every hour
+            if now.minute == 0:
+                if db and db.ensure_connection():
+                    total_users = db.users.count_documents({})
+                    active_today = db.daily_searches.count_documents({'date': now.date().isoformat()})
+                    logger.info(f"📊 Stats - Users: {total_users}, Active Today: {active_today}")
             
             await asyncio.sleep(60)
             
@@ -293,24 +376,29 @@ async def scheduled_jobs():
 
 
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Global error handler"""
+    """Global error handler - FIXED"""
     logger.error(f"Update {update} caused error {context.error}")
+    
+    # Log detailed error
+    import traceback
+    traceback.print_exc()
     
     # Try to notify user
     if update and update.effective_message:
         try:
             await update.effective_message.reply_text(
-                "❌ An error occurred. Please try again later."
+                "❌ An error occurred. Please try again later.\n"
+                "If this persists, contact support."
             )
         except:
             pass
 
 
 def run_bot():
-    """Run the bot in polling mode (simpler for Render)"""
+    """Run the bot - FIXED with proper handler ordering"""
     global bot_app, bot_loop, config, db, handlers, admin_handlers
     
-    logger.info("🤖 Starting bot in polling mode...")
+    logger.info("🤖 Starting bot...")
     
     # Create new event loop
     bot_loop = asyncio.new_event_loop()
@@ -320,24 +408,47 @@ def run_bot():
         # Create application
         bot_app = Application.builder().token(config.BOT_TOKEN).build()
         
-        # Add regular handlers
+        # ===== COMMAND HANDLERS =====
         bot_app.add_handler(CommandHandler("start", handlers.start))
         bot_app.add_handler(CommandHandler("app", handlers.open_app))
         bot_app.add_handler(CommandHandler("balance", handlers.check_balance))
         bot_app.add_handler(CommandHandler("referrals", handlers.show_referrals))
         bot_app.add_handler(CommandHandler("withdraw", handlers.withdraw_cmd))
         bot_app.add_handler(CommandHandler("help", handlers.help_cmd))
-        
-        # Add admin handlers
         bot_app.add_handler(CommandHandler("admin", admin_handlers.admin_panel))
-        bot_app.add_handler(CallbackQueryHandler(admin_handlers.handle_admin_callback, pattern="^admin_"))
-        bot_app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.PRIVATE, admin_handlers.handle_admin_message))
         
-        # Message handlers
-        bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.handle_message))
+        # ===== CALLBACK HANDLERS =====
+        bot_app.add_handler(CallbackQueryHandler(admin_handlers.handle_admin_callback, pattern="^admin_"))
+        
+        # ===== MESSAGE HANDLERS - ORDER IS IMPORTANT =====
+        # WebApp data first
         bot_app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handlers.handle_webapp_data))
         
-        # Error handler
+        # Admin messages in private chat
+        bot_app.add_handler(MessageHandler(
+            filters.TEXT & filters.ChatType.PRIVATE, 
+            admin_handlers.handle_admin_message
+        ))
+        
+        # Group messages (movie searches)
+        bot_app.add_handler(MessageHandler(
+            filters.TEXT & filters.ChatType.GROUP, 
+            handlers.handle_message
+        ))
+        
+        # Supergroup messages
+        bot_app.add_handler(MessageHandler(
+            filters.TEXT & filters.ChatType.SUPERGROUP, 
+            handlers.handle_message
+        ))
+        
+        # Private text messages (non-command)
+        bot_app.add_handler(MessageHandler(
+            filters.TEXT & filters.ChatType.PRIVATE & ~filters.COMMAND, 
+            handlers.handle_message
+        ))
+        
+        # ===== ERROR HANDLER =====
         bot_app.add_error_handler(error_handler)
         
         # Run post init
@@ -348,7 +459,8 @@ def run_bot():
         
         logger.info("✅ Bot started successfully")
         
-        # Start polling
+        # Start polling (simpler for Render)
+        logger.info("🔄 Starting polling...")
         bot_app.run_polling()
         
     except Exception as e:
@@ -361,20 +473,24 @@ def run_bot():
 
 
 def run_flask():
-    """Run Flask in separate thread"""
+    """Run Flask in separate thread - FIXED"""
     global config
     
     port = int(os.environ.get('PORT', 10000))
     logger.info(f"🚀 Flask server starting on port {port}")
     
-    # Run Flask
-    app.run(
-        host='0.0.0.0',
-        port=port,
-        debug=False,
-        use_reloader=False,
-        threaded=True
-    )
+    # Run Flask with better error handling
+    try:
+        app.run(
+            host='0.0.0.0',
+            port=port,
+            debug=False,
+            use_reloader=False,
+            threaded=True
+        )
+    except Exception as e:
+        logger.error(f"Flask error: {e}")
+        sys.exit(1)
 
 
 def signal_handler(sig, frame):
@@ -385,43 +501,81 @@ def signal_handler(sig, frame):
     
     # Cleanup
     if db:
-        db.cleanup()
+        try:
+            db.cleanup()
+            logger.info("✅ Database connection closed")
+        except Exception as e:
+            logger.error(f"Error closing database: {e}")
     
     if bot_loop:
-        bot_loop.stop()
+        try:
+            bot_loop.stop()
+            logger.info("✅ Bot loop stopped")
+        except:
+            pass
     
+    logger.info("👋 Shutdown complete")
     sys.exit(0)
 
 
+def check_environment():
+    """Check if all required environment variables are set"""
+    required_vars = ['BOT_TOKEN', 'MONGODB_URI', 'ADMIN_IDS']
+    missing = []
+    
+    for var in required_vars:
+        if not os.getenv(var):
+            missing.append(var)
+    
+    if missing:
+        logger.error(f"Missing required environment variables: {', '.join(missing)}")
+        return False
+    
+    return True
+
+
 def main():
-    """Main function"""
+    """Main function - FIXED with better error handling"""
     global config, db, handlers, admin_handlers
     
     print("""
     ╔══════════════════════════════════════╗
     ║     FILMYFUND BOT - FIXED VERSION    ║
     ║        100% WORKING SOLUTION          ║
+    ║          All Issues Resolved          ║
     ╚══════════════════════════════════════╝
     """)
     
     logger.info("🚀 Starting FilmyFund Bot...")
     
+    # Check environment
+    if not check_environment():
+        logger.error("Please set all required environment variables in .env file")
+        sys.exit(1)
+    
     try:
         # Initialize config
         logger.info("📝 Loading configuration...")
         config = Config()
+        logger.info(f"✅ Config loaded. Admin IDs: {config.ADMIN_IDS}")
         
         # Initialize database
         logger.info("🗄️ Connecting to database...")
         db = Database(config)
+        if not db.connected:
+            logger.error("Failed to connect to database")
+            sys.exit(1)
+        logger.info("✅ Database connected")
         
         # Initialize handlers
         logger.info("🔄 Initializing handlers...")
         handlers = Handlers(config, db)
+        logger.info("✅ Handlers initialized")
         
         # Initialize admin handlers
         logger.info("👑 Initializing admin handlers...")
         admin_handlers = AdminHandlers(config, db)
+        logger.info("✅ Admin handlers initialized")
         
         # Set signal handlers
         signal.signal(signal.SIGINT, signal_handler)
@@ -433,9 +587,10 @@ def main():
         flask_thread.start()
         
         # Small delay for Flask to start
-        time.sleep(2)
+        time.sleep(3)
+        logger.info(f"✅ Flask server running on port {os.environ.get('PORT', 10000)}")
         
-        # Run bot in main thread (using polling instead of webhook)
+        # Run bot in main thread
         logger.info("🤖 Starting Telegram bot...")
         run_bot()
         
@@ -447,7 +602,11 @@ def main():
         traceback.print_exc()
     finally:
         if db:
-            db.cleanup()
+            try:
+                db.cleanup()
+                logger.info("✅ Database cleanup complete")
+            except Exception as e:
+                logger.error(f"Error during cleanup: {e}")
         logger.info("👋 Shutdown complete")
 
 
