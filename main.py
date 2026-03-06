@@ -28,7 +28,7 @@ logging.getLogger('telegram').setLevel(logging.WARNING)
 try:
     from flask import Flask, request, jsonify, render_template
     from telegram import Update, BotCommand
-    from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+    from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
     from telegram.constants import ParseMode
     import nest_asyncio
     from dotenv import load_dotenv
@@ -47,6 +47,7 @@ load_dotenv()
 from config import Config
 from database import Database
 from handlers import Handlers
+from admin import AdminHandlers  # Add this import
 
 # ========== FLASK APP ==========
 app = Flask(__name__)
@@ -55,6 +56,7 @@ app = Flask(__name__)
 config = None
 db = None
 handlers = None
+admin_handlers = None  # Add this
 bot_app = None
 bot_loop = None
 
@@ -242,6 +244,7 @@ async def post_init(application):
             BotCommand("balance", "💰 Check balance"),
             BotCommand("referrals", "👥 My referrals"),
             BotCommand("withdraw", "💸 Withdraw earnings"),
+            BotCommand("admin", "👑 Admin Panel"),
             BotCommand("help", "❓ Help")
         ]
         await application.bot.set_my_commands(commands)
@@ -305,7 +308,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def run_bot():
     """Run the bot in polling mode (simpler for Render)"""
-    global bot_app, bot_loop, config, db, handlers
+    global bot_app, bot_loop, config, db, handlers, admin_handlers
     
     logger.info("🤖 Starting bot in polling mode...")
     
@@ -317,14 +320,18 @@ def run_bot():
         # Create application
         bot_app = Application.builder().token(config.BOT_TOKEN).build()
         
-        # Add handlers
+        # Add regular handlers
         bot_app.add_handler(CommandHandler("start", handlers.start))
         bot_app.add_handler(CommandHandler("app", handlers.open_app))
         bot_app.add_handler(CommandHandler("balance", handlers.check_balance))
         bot_app.add_handler(CommandHandler("referrals", handlers.show_referrals))
         bot_app.add_handler(CommandHandler("withdraw", handlers.withdraw_cmd))
         bot_app.add_handler(CommandHandler("help", handlers.help_cmd))
-        bot_app.add_handler(CommandHandler("admin", handlers.admin_panel))
+        
+        # Add admin handlers
+        bot_app.add_handler(CommandHandler("admin", admin_handlers.admin_panel))
+        bot_app.add_handler(CallbackQueryHandler(admin_handlers.handle_admin_callback, pattern="^admin_"))
+        bot_app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.PRIVATE, admin_handlers.handle_admin_message))
         
         # Message handlers
         bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.handle_message))
@@ -388,7 +395,7 @@ def signal_handler(sig, frame):
 
 def main():
     """Main function"""
-    global config, db, handlers
+    global config, db, handlers, admin_handlers
     
     print("""
     ╔══════════════════════════════════════╗
@@ -411,6 +418,10 @@ def main():
         # Initialize handlers
         logger.info("🔄 Initializing handlers...")
         handlers = Handlers(config, db)
+        
+        # Initialize admin handlers
+        logger.info("👑 Initializing admin handlers...")
+        admin_handlers = AdminHandlers(config, db)
         
         # Set signal handlers
         signal.signal(signal.SIGINT, signal_handler)
