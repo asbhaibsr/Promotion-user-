@@ -1,13 +1,10 @@
-# ===== render.yaml =====
 services:
   - type: web
     name: filmyfund-bot
     runtime: python
     plan: free
-    buildCommand: |
-      pip install --upgrade pip
-      pip install -r requirements.txt
-    startCommand: gunicorn main:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 --log-level info
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn main:app --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 120
     envVars:
       - key: BOT_TOKEN
         sync: false
@@ -15,29 +12,7 @@ services:
         sync: false
       - key: ADMIN_IDS
         sync: false
-      - key: LOG_CHANNEL_ID
-        sync: false
-      - key: CHANNEL_ID
-        sync: false
-      - key: CHANNEL_LINK
-        sync: false
-      - key: CHANNEL_JOIN_BONUS
-        value: 2.0
-      - key: MOVIE_GROUP_LINK
-        sync: false
-      - key: MOVIE_GROUP_ID
-        sync: false
-      - key: ALL_GROUPS_LINK
-        sync: false
-      - key: SUPPORT_USERNAME
-        sync: false
       - key: MONGODB_URI
         sync: false
       - key: WEBAPP_URL
-        sync: false
-      - key: WEBHOOK_URL
-        sync: false
-      - key: ENVIRONMENT
-        value: production
-      - key: PORT
-        value: 10000
+        value: https://your-app.onrender.com
