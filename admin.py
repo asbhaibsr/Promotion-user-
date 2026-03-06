@@ -1,10 +1,11 @@
-# ===== admin.py =====
+# ===== admin.py (FIXED COMPLETE) =====
 import logging
 import asyncio
 from datetime import datetime, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ContextTypes, CallbackQueryHandler, MessageHandler, filters
+from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
+from bson.objectid import ObjectId
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,15 @@ class AdminHandlers:
             await update.message.reply_text("❌ You are not authorized to use this command.")
             return
         
+        # Get quick stats
+        total_users = self.db.users.count_documents({})
+        pending_withdrawals = self.db.withdrawals.count_documents({'status': 'pending'})
+        active_today = self.db.daily_searches.count_documents({'date': datetime.now().date().isoformat()})
+        total_searches = self.db.search_logs.count_documents({})
+        total_balance = self.db.users.aggregate([
+            {'$group': {'_id': None, 'total': {'$sum': '$balance'}}}
+        ]).next().get('total', 0) if self.db.users.count_documents({}) > 0 else 0
+        
         # Create main menu keyboard
         keyboard = [
             [InlineKeyboardButton("📊 USER STATS", callback_data="admin_user_stats")],
@@ -39,19 +49,14 @@ class AdminHandlers:
         
         reply_markup = InlineKeyboardMarkup(keyboard)
         
-        # Get quick stats
-        total_users = self.db.users.count_documents({})
-        pending_withdrawals = self.db.withdrawals.count_documents({'status': 'pending'})
-        active_today = self.db.daily_searches.count_documents({'date': datetime.now().date().isoformat()})
-        total_searches = self.db.search_logs.count_documents({})
-        
         text = (
             "👑 **Admin Panel**\n\n"
             f"📊 **Quick Stats:**\n"
             f"• Total Users: {total_users}\n"
             f"• Active Today: {active_today}\n"
             f"• Pending Withdrawals: {pending_withdrawals}\n"
-            f"• Total Searches: {total_searches}\n\n"
+            f"• Total Searches: {total_searches}\n"
+            f"• Total Balance: ₹{total_balance:.2f}\n\n"
             f"Select an option below:"
         )
         
@@ -60,7 +65,7 @@ class AdminHandlers:
     # ========== CALLBACK HANDLER ==========
     
     async def handle_admin_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle all admin callback queries"""
+        """Handle all admin callback queries - FIXED"""
         query = update.callback_query
         await query.answer()
         
@@ -71,6 +76,8 @@ class AdminHandlers:
         if user_id not in self.config.ADMIN_IDS:
             await query.edit_message_text("❌ Unauthorized")
             return
+        
+        logger.info(f"Admin callback: {data}")
         
         # Route callbacks
         if data == "admin_user_stats":
@@ -132,6 +139,13 @@ class AdminHandlers:
     
     async def user_stats_menu(self, query, context):
         """User statistics menu"""
+        # Get some quick stats
+        total_users = self.db.users.count_documents({})
+        active_today = self.db.daily_searches.count_documents({'date': datetime.now().date().isoformat()})
+        users_with_balance = self.db.users.count_documents({'balance': {'$gt': 0}})
+        total_refs = self.db.referrals.count_documents({})
+        active_refs = self.db.referrals.count_documents({'is_active': True})
+        
         keyboard = [
             [InlineKeyboardButton("🔍 GET USER BY ID", callback_data="admin_search_user")],
             [InlineKeyboardButton("📊 OVERALL STATS", callback_data="admin_overall_stats")],
@@ -139,16 +153,13 @@ class AdminHandlers:
             [InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")]
         ]
         
-        # Get some quick stats
-        total_users = self.db.users.count_documents({})
-        active_today = self.db.daily_searches.count_documents({'date': datetime.now().date().isoformat()})
-        users_with_balance = self.db.users.count_documents({'balance': {'$gt': 0}})
-        
         text = (
             "📊 **User Statistics**\n\n"
             f"• Total Users: {total_users}\n"
             f"• Active Today: {active_today}\n"
-            f"• Users with Balance: {users_with_balance}\n\n"
+            f"• Users with Balance: {users_with_balance}\n"
+            f"• Total Referrals: {total_refs}\n"
+            f"• Active Referrals: {active_refs}\n\n"
             "Choose an option:"
         )
         
@@ -173,7 +184,7 @@ class AdminHandlers:
     # ========== SHOW USER STATS ==========
     
     async def show_user_stats(self, query, context, target_id):
-        """Show detailed stats for a specific user"""
+        """Show detailed stats for a specific user - FIXED"""
         user = self.db.get_user(target_id)
         
         if not user:
@@ -186,16 +197,27 @@ class AdminHandlers:
             return
         
         # Get withdrawal history
-        withdrawals = self.db.get_user_withdrawals(target_id, 3)
+        withdrawals = list(self.db.withdrawals.find(
+            {'user_id': target_id}
+        ).sort('request_date', -1).limit(5))
+        
+        # Get referral info
+        referrals = list(self.db.referrals.find(
+            {'referrer_id': target_id}
+        ).sort('join_date', -1).limit(5))
         
         # Calculate daily earning
         daily_earning = user.get('active_refs', 0) * self.config.DAILY_REFERRAL_EARNING
         
-        # Check if suspicious
+        # Check status
         suspicious = user.get('suspicious_activity', False)
         blocked = user.get('withdrawal_blocked', False)
         
-        status = "✅ Clean" if not suspicious and not blocked else "⚠️ **FLAGGED**" if suspicious else "🔴 **BLOCKED**"
+        status = "✅ Clean" 
+        if blocked:
+            status = "🔴 **BLOCKED**"
+        elif suspicious:
+            status = "⚠️ **FLAGGED**"
         
         text = (
             f"👤 **User Details**\n"
@@ -203,7 +225,8 @@ class AdminHandlers:
             f"**Basic Info:**\n"
             f"ID: `{user['user_id']}`\n"
             f"Name: {user.get('first_name', 'N/A')}\n"
-            f"Username: @{user.get('username', 'N/A')}\n\n"
+            f"Username: @{user.get('username', 'N/A')}\n"
+            f"Joined: {user.get('join_date', 'Unknown')[:10]}\n\n"
             f"💰 **Financial**\n"
             f"Balance: ₹{user.get('balance', 0):.2f}\n"
             f"Total Earned: ₹{user.get('total_earned', 0):.2f}\n\n"
@@ -215,7 +238,6 @@ class AdminHandlers:
             f"📊 **Activity**\n"
             f"Tier: {self.config.get_tier_name(user.get('tier', 1))}\n"
             f"Searches: {user.get('total_searches', 0)}\n"
-            f"Joined: {user.get('join_date', 'Unknown')[:10]}\n"
             f"Last Active: {user.get('last_active', 'Unknown')[:10]}\n\n"
         )
         
@@ -223,7 +245,16 @@ class AdminHandlers:
         if withdrawals:
             text += "📜 **Recent Withdrawals:**\n"
             for w in withdrawals[:3]:
-                text += f"• ₹{w['amount']} - {w['status']} ({w['request_date'][:10]})\n"
+                w_id = str(w['_id'])[-6:]
+                text += f"• ₹{w['amount']} - {w['status']} ({w['request_date'][:10]}) [ID: {w_id}]\n"
+            text += "\n"
+        
+        # Add recent referrals
+        if referrals:
+            text += "👥 **Recent Referrals:**\n"
+            for r in referrals[:3]:
+                status_emoji = "✅" if r.get('is_active') else "⏳"
+                text += f"• {status_emoji} User {r['referred_id']} - {r['join_date'][:10]}\n"
         
         # Create action buttons
         keyboard = [
@@ -243,6 +274,11 @@ class AdminHandlers:
         ]
         
         reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        # Split if too long
+        if len(text) > 4000:
+            text = text[:3500] + "...\n(Truncated)"
+        
         await query.edit_message_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
     
     # ========== BROADCAST ==========
@@ -269,7 +305,7 @@ class AdminHandlers:
     # ========== WITHDRAWALS ==========
     
     async def withdrawals_menu(self, query, context):
-        """Show pending withdrawals"""
+        """Show pending withdrawals - FIXED"""
         withdrawals = list(self.db.withdrawals.find(
             {'status': 'pending'}
         ).sort('request_date', 1).limit(10))
@@ -283,35 +319,21 @@ class AdminHandlers:
             )
             return
         
-        text = f"💰 **Pending Withdrawals** ({len(withdrawals)})\n\n"
-        
-        for w in withdrawals:
-            user = self.db.get_user(w['user_id'])
-            user_name = user.get('first_name', 'Unknown')[:15] if user else 'Unknown'
-            
-            text += (
-                f"ID: `{str(w['_id'])[-8:]}`\n"
-                f"User: {user_name} ({w['user_id']})\n"
-                f"Amount: ₹{w['amount']}\n"
-                f"Method: {w['method']}\n"
-                f"Date: {w['request_date'][:10]}\n"
-                f"[Approve](command: approve_{w['_id']}) | [Reject](command: reject_{w['_id']})\n\n"
-            )
-        
-        # Since markdown links don't work in Telegram, we'll use buttons
-        # We'll show first withdrawal with buttons
+        # Show first withdrawal
         first = withdrawals[0]
-        user_first = self.db.get_user(first['user_id'])
-        user_name_first = user_first.get('first_name', 'Unknown') if user_first else 'Unknown'
+        user = self.db.get_user(first['user_id'])
+        user_name = user.get('first_name', 'Unknown') if user else 'Unknown'
         
         detail_text = (
-            f"💰 **Withdrawal Request**\n\n"
-            f"ID: `{str(first['_id'])[-8:]}`\n"
-            f"User: {user_name_first} (ID: {first['user_id']})\n"
-            f"Amount: ₹{first['amount']:.2f}\n"
-            f"Method: {first['method']}\n"
-            f"Details: {first['details']}\n"
-            f"Date: {first['request_date']}\n\n"
+            f"💰 **Withdrawal Request** ({len(withdrawals)} pending)\n\n"
+            f"**ID:** `{str(first['_id'])[-8:]}`\n"
+            f"**User:** {user_name} (ID: {first['user_id']})\n"
+            f"**Amount:** ₹{first['amount']:.2f}\n"
+            f"**Method:** {first['method']}\n"
+            f"**Details:** `{first['details']}`\n"
+            f"**Date:** {first['request_date'][:16]}\n"
+            f"**Searches:** {first.get('total_searches', 0)}\n"
+            f"**Active Refs:** {first.get('active_refs', 0)}\n\n"
             f"Approve or Reject?"
         )
         
@@ -331,9 +353,8 @@ class AdminHandlers:
             await query.message.reply_text(f"⚠️ {len(withdrawals)-1} more pending withdrawals...")
     
     async def approve_withdrawal(self, query, context, withdrawal_id):
-        """Approve a withdrawal"""
+        """Approve a withdrawal - FIXED"""
         try:
-            from bson.objectid import ObjectId
             withdrawal = self.db.withdrawals.find_one({'_id': ObjectId(withdrawal_id)})
         except:
             withdrawal = None
@@ -354,15 +375,24 @@ class AdminHandlers:
             }
         )
         
+        # Add transaction record
+        self.db.add_transaction(
+            withdrawal['user_id'],
+            'withdrawal_approved',
+            -withdrawal['amount'],
+            f"Withdrawal approved #{withdrawal_id[-8:]}"
+        )
+        
         # Notify user
         try:
             await context.bot.send_message(
                 chat_id=withdrawal['user_id'],
                 text=(
                     f"✅ **Withdrawal Approved!**\n\n"
-                    f"Amount: ₹{withdrawal['amount']}\n"
+                    f"Amount: ₹{withdrawal['amount']:.2f}\n"
                     f"Method: {withdrawal['method']}\n\n"
-                    f"Your withdrawal has been approved and will be processed shortly."
+                    f"Your withdrawal has been approved and will be processed shortly.\n"
+                    f"Thank you for using FilmyFund!"
                 ),
                 parse_mode=ParseMode.MARKDOWN
             )
@@ -370,16 +400,18 @@ class AdminHandlers:
             logger.error(f"Could not notify user: {e}")
         
         await query.edit_message_text(
-            f"✅ Withdrawal ₹{withdrawal['amount']} approved!",
+            f"✅ Withdrawal ₹{withdrawal['amount']:.2f} approved for user {withdrawal['user_id']}!",
             reply_markup=InlineKeyboardMarkup([[
                 InlineKeyboardButton("◀️ BACK TO WITHDRAWALS", callback_data="admin_withdrawals")
             ]])
         )
+        
+        # Log
+        self.db.log_system_event('withdrawal_approved', f"User {withdrawal['user_id']}: ₹{withdrawal['amount']}")
     
     async def reject_withdrawal(self, query, context, withdrawal_id):
-        """Reject a withdrawal"""
+        """Reject a withdrawal - FIXED"""
         try:
-            from bson.objectid import ObjectId
             withdrawal = self.db.withdrawals.find_one({'_id': ObjectId(withdrawal_id)})
         except:
             withdrawal = None
@@ -404,7 +436,7 @@ class AdminHandlers:
         self.db.add_balance(
             withdrawal['user_id'],
             withdrawal['amount'],
-            f"Refund for rejected withdrawal"
+            f"Refund for rejected withdrawal #{withdrawal_id[-8:]}"
         )
         
         # Notify user
@@ -413,8 +445,14 @@ class AdminHandlers:
                 chat_id=withdrawal['user_id'],
                 text=(
                     f"❌ **Withdrawal Rejected**\n\n"
-                    f"Amount: ₹{withdrawal['amount']}\n\n"
-                    f"Your withdrawal request was rejected. Please contact support for more information."
+                    f"Amount: ₹{withdrawal['amount']:.2f}\n"
+                    f"Method: {withdrawal['method']}\n\n"
+                    f"Your withdrawal request was rejected. Possible reasons:\n"
+                    f"• Suspicious activity detected\n"
+                    f"• Invalid payment details\n"
+                    f"• Terms violation\n\n"
+                    f"Amount has been refunded to your balance.\n"
+                    f"Contact support for more information: {self.config.SUPPORT_USERNAME}"
                 ),
                 parse_mode=ParseMode.MARKDOWN
             )
@@ -422,20 +460,23 @@ class AdminHandlers:
             logger.error(f"Could not notify user: {e}")
         
         await query.edit_message_text(
-            f"❌ Withdrawal ₹{withdrawal['amount']} rejected and refunded!",
+            f"❌ Withdrawal ₹{withdrawal['amount']:.2f} rejected and refunded to user {withdrawal['user_id']}!",
             reply_markup=InlineKeyboardMarkup([[
                 InlineKeyboardButton("◀️ BACK TO WITHDRAWALS", callback_data="admin_withdrawals")
             ]])
         )
+        
+        # Log
+        self.db.log_system_event('withdrawal_rejected', f"User {withdrawal['user_id']}: ₹{withdrawal['amount']}")
     
     # ========== LEADERBOARD RESET ==========
     
     async def reset_leaderboard(self, query, context):
-        """Reset weekly leaderboard and give rewards"""
-        # Get top 10 users
+        """Reset weekly leaderboard and give rewards - FIXED: Based on active referrals only"""
+        # Get top users by active referrals
         top_users = list(self.db.users.find(
-            {'weekly_searches': {'$gt': 0}, 'suspicious_activity': False}
-        ).sort('weekly_searches', -1).limit(10))
+            {'active_refs': {'$gt': 0}, 'suspicious_activity': False}
+        ).sort('active_refs', -1).limit(10))
         
         rewards = []
         
@@ -443,8 +484,12 @@ class AdminHandlers:
             rank = i + 1
             reward = 0
             
-            # Calculate reward
-            if rank <= 3 and user.get('active_refs', 0) >= 50:
+            # Calculate reward based on active referrals
+            if rank == 1 and user.get('active_refs', 0) >= 50:
+                reward = 200
+            elif rank == 2 and user.get('active_refs', 0) >= 50:
+                reward = 200
+            elif rank == 3 and user.get('active_refs', 0) >= 50:
                 reward = 200
             elif rank <= 10 and user.get('active_refs', 0) >= 25:
                 reward = 50
@@ -459,24 +504,28 @@ class AdminHandlers:
                     'user_id': user['user_id'],
                     'name': user.get('first_name', 'User'),
                     'rank': rank,
-                    'reward': reward
+                    'reward': reward,
+                    'active_refs': user.get('active_refs', 0)
                 })
         
-        # Reset weekly searches
+        # Reset weekly searches (not needed anymore but keep for compatibility)
         self.db.users.update_many({}, {'$set': {'weekly_searches': 0}})
         
         text = "🏆 **Leaderboard Reset**\n\n"
         if rewards:
             text += "Rewards given:\n"
             for r in rewards:
-                text += f"• {r['name']}: Rank #{r['rank']} - ₹{r['reward']}\n"
+                text += f"• {r['name']}: Rank #{r['rank']} - ₹{r['reward']} ({r['active_refs']} active refs)\n"
         else:
-            text += "No rewards given this week."
+            text += "No rewards given this week. Minimum requirements not met."
         
         keyboard = [[InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await query.edit_message_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
+        
+        # Log
+        self.db.log_system_event('leaderboard_reset', f"Given {len(rewards)} rewards")
     
     # ========== DAILY EARNINGS ==========
     
@@ -504,6 +553,9 @@ class AdminHandlers:
         # Get recent users
         recent_users = list(self.db.users.find().sort('join_date', -1).limit(5))
         
+        # Get recent referrals
+        recent_refs = list(self.db.referrals.find().sort('join_date', -1).limit(5))
+        
         text = "📋 **System Logs**\n\n"
         
         text += "**Recent Transactions:**\n"
@@ -516,14 +568,19 @@ class AdminHandlers:
         
         text += "\n**New Users:**\n"
         for u in recent_users:
-            text += f"• {u['join_date'][:10]}: {u.get('first_name', 'User')}\n"
+            text += f"• {u['join_date'][:10]}: {u.get('first_name', 'User')} (ID: {u['user_id']})\n"
+        
+        text += "\n**New Referrals:**\n"
+        for r in recent_refs:
+            status = "✅" if r.get('is_active') else "⏳"
+            text += f"• {r['join_date'][:10]}: {r['referrer_id']} -> {r['referred_id']} {status}\n"
         
         keyboard = [[InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         # Split if too long
         if len(text) > 4000:
-            text = text[:4000] + "...\n(Truncated)"
+            text = text[:3500] + "...\n(Truncated)"
         
         await query.edit_message_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
     
@@ -567,11 +624,14 @@ class AdminHandlers:
                 InlineKeyboardButton("◀️ BACK", callback_data="admin_user_stats")
             ]])
         )
+        
+        # Log
+        self.db.log_system_event('user_data_cleared', f"User {target_id}")
     
     # ========== BACK TO ADMIN ==========
     
     async def back_to_admin(self, query, context):
-        """Return to main admin panel"""
+        """Return to main admin panel - FIXED"""
         context.user_data['admin_action'] = None
         
         keyboard = [
@@ -590,13 +650,17 @@ class AdminHandlers:
         total_users = self.db.users.count_documents({})
         pending_withdrawals = self.db.withdrawals.count_documents({'status': 'pending'})
         active_today = self.db.daily_searches.count_documents({'date': datetime.now().date().isoformat()})
+        total_balance = self.db.users.aggregate([
+            {'$group': {'_id': None, 'total': {'$sum': '$balance'}}}
+        ]).next().get('total', 0) if self.db.users.count_documents({}) > 0 else 0
         
         text = (
             "👑 **Admin Panel**\n\n"
             f"📊 **Quick Stats:**\n"
             f"• Total Users: {total_users}\n"
             f"• Active Today: {active_today}\n"
-            f"• Pending Withdrawals: {pending_withdrawals}\n\n"
+            f"• Pending Withdrawals: {pending_withdrawals}\n"
+            f"• Total Balance: ₹{total_balance:.2f}\n\n"
             f"Select an option below:"
         )
         
@@ -605,7 +669,7 @@ class AdminHandlers:
     # ========== HANDLE ADMIN MESSAGES ==========
     
     async def handle_admin_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle admin messages (for broadcast, add money, etc.)"""
+        """Handle admin messages (for broadcast, add money, etc.) - FIXED"""
         user_id = update.effective_user.id
         
         # Check if admin
@@ -639,14 +703,14 @@ class AdminHandlers:
     async def process_broadcast(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Process broadcast message"""
         message = update.message
-        users = self.db.users.find({}, {'user_id': 1})
+        users = list(self.db.users.find({}, {'user_id': 1}))
         
         sent = 0
         failed = 0
         
-        status_msg = await update.message.reply_text("📢 Broadcasting...")
+        status_msg = await update.message.reply_text(f"📢 Broadcasting to {len(users)} users...")
         
-        for user in users:
+        for i, user in enumerate(users):
             try:
                 if message.text:
                     await context.bot.send_message(
@@ -677,6 +741,10 @@ class AdminHandlers:
                 failed += 1
                 logger.error(f"Broadcast failed to {user['user_id']}: {e}")
             
+            # Update status every 10 messages
+            if (i + 1) % 10 == 0:
+                await status_msg.edit_text(f"📢 Broadcasting... {i+1}/{len(users)} sent")
+            
             await asyncio.sleep(0.05)  # Avoid flood
         
         await status_msg.edit_text(
@@ -684,6 +752,9 @@ class AdminHandlers:
             f"• Sent: {sent}\n"
             f"• Failed: {failed}"
         )
+        
+        # Log
+        self.db.log_system_event('broadcast', f"Sent to {sent} users, {failed} failed")
         
         context.user_data['admin_action'] = None
     
@@ -696,6 +767,10 @@ class AdminHandlers:
                 await update.message.reply_text("❌ Amount must be positive")
                 return
             
+            if amount > 100000:
+                await update.message.reply_text("❌ Amount too large (max ₹100,000)")
+                return
+            
             # Add balance
             self.db.add_balance(target_id, amount, f"Admin added ₹{amount}")
             
@@ -706,7 +781,8 @@ class AdminHandlers:
                     text=(
                         f"✅ **Money Added by Admin**\n\n"
                         f"Amount: +₹{amount:.2f}\n"
-                        f"Your new balance: ₹{(self.db.get_user(target_id) or {}).get('balance', 0):.2f}"
+                        f"Your new balance: ₹{(self.db.get_user(target_id) or {}).get('balance', 0):.2f}\n\n"
+                        f"Thank you for using FilmyFund!"
                     ),
                     parse_mode=ParseMode.MARKDOWN
                 )
@@ -714,6 +790,9 @@ class AdminHandlers:
                 pass
             
             await update.message.reply_text(f"✅ Added ₹{amount:.2f} to user {target_id}")
+            
+            # Log
+            self.db.log_system_event('admin_add_money', f"User {target_id}: +₹{amount}")
             
             # Show updated user stats
             user = self.db.get_user(target_id)
@@ -732,6 +811,10 @@ class AdminHandlers:
             
             if amount <= 0:
                 await update.message.reply_text("❌ Amount must be positive")
+                return
+            
+            if amount > 100000:
+                await update.message.reply_text("❌ Amount too large (max ₹100,000)")
                 return
             
             user = self.db.get_user(target_id)
@@ -763,7 +846,8 @@ class AdminHandlers:
                     text=(
                         f"⚠️ **Money Deducted by Admin**\n\n"
                         f"Amount: -₹{amount:.2f}\n"
-                        f"Your new balance: ₹{(self.db.get_user(target_id) or {}).get('balance', 0):.2f}"
+                        f"Your new balance: ₹{(self.db.get_user(target_id) or {}).get('balance', 0):.2f}\n\n"
+                        f"Contact support if you have questions: {self.config.SUPPORT_USERNAME}"
                     ),
                     parse_mode=ParseMode.MARKDOWN
                 )
@@ -771,6 +855,9 @@ class AdminHandlers:
                 pass
             
             await update.message.reply_text(f"✅ Removed ₹{amount:.2f} from user {target_id}")
+            
+            # Log
+            self.db.log_system_event('admin_remove_money', f"User {target_id}: -₹{amount}")
             
             # Show updated user stats
             user = self.db.get_user(target_id)
@@ -807,6 +894,11 @@ class AdminHandlers:
         
         daily_earning = user.get('active_refs', 0) * self.config.DAILY_REFERRAL_EARNING
         
+        # Get withdrawal history
+        withdrawals = list(self.db.withdrawals.find(
+            {'user_id': target_id}
+        ).sort('request_date', -1).limit(3))
+        
         text = (
             f"👤 **User Details**\n\n"
             f"ID: `{user['user_id']}`\n"
@@ -827,6 +919,11 @@ class AdminHandlers:
             f"Last Active: {user.get('last_active', 'Unknown')[:10]}"
         )
         
+        if withdrawals:
+            text += "\n\n📜 **Recent Withdrawals:**\n"
+            for w in withdrawals[:3]:
+                text += f"• ₹{w['amount']} - {w['status']} ({w['request_date'][:10]})\n"
+        
         keyboard = [
             [
                 InlineKeyboardButton("➕ ADD MONEY", callback_data=f"add_money_{target_id}"),
@@ -836,4 +933,9 @@ class AdminHandlers:
         ]
         
         reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        # Split if too long
+        if len(text) > 4000:
+            text = text[:3500] + "...\n(Truncated)"
+        
         await update.message.reply_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
