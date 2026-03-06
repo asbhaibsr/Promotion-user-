@@ -16,17 +16,13 @@ class Config:
     LOG_CHANNEL_ID = os.getenv('LOG_CHANNEL_ID')
     
     # Channel Configuration for Join Bonus
-    CHANNELS = {
-        'main': {
-            'id': os.getenv('CHANNEL_ID', '-1002283182645'),
-            'link': os.getenv('CHANNEL_LINK', 'https://t.me/asbhai_bsr'),
-            'bonus': float(os.getenv('CHANNEL_JOIN_BONUS', 2.0))
-        }
-    }
+    CHANNEL_ID = os.getenv('CHANNEL_ID', '-1002283182645')
+    CHANNEL_LINK = os.getenv('CHANNEL_LINK', 'https://t.me/asbhai_bsr')
+    CHANNEL_JOIN_BONUS = float(os.getenv('CHANNEL_JOIN_BONUS', 2.0))
     
     # Movie Group - IMPORTANT: This is where users search movies
     MOVIE_GROUP_LINK = os.getenv('MOVIE_GROUP_LINK', 'https://t.me/asfilter_group')
-    MOVIE_GROUP_ID = os.getenv('MOVIE_GROUP_ID', '-1003193018012')  # Your group ID
+    MOVIE_GROUP_ID = os.getenv('MOVIE_GROUP_ID', '-1003193018012')
     
     # Other Groups
     ALL_GROUPS_LINK = os.getenv('ALL_GROUPS_LINK', 'https://t.me/addlist/6urdhhdLRqhiZmQ1')
@@ -35,22 +31,22 @@ class Config:
     SUPPORT_USERNAME = os.getenv('SUPPORT_USERNAME', '@asbhaibsr')
     
     # WebApp URLs
-    WEBAPP_URL = os.getenv('https://promotion-user.onrender.com')
-    WEBHOOK_URL = os.getenv('https://promotion-user.onrender.com')
+    WEBAPP_URL = os.getenv('WEBAPP_URL')
+    WEBHOOK_URL = os.getenv('WEBHOOK_URL')
     
     # MongoDB Configuration
     MONGODB_URI = os.getenv('MONGODB_URI')
     MONGODB_DB = os.getenv('MONGODB_DB', 'filmyfund_bot')
     
     # Bonus Amounts
-    REFERRAL_BONUS = float(os.getenv('REFERRAL_BONUS', 5.0))
+    REFERRAL_BONUS = float(os.getenv('REFERRAL_BONUS', 0.50))
     DAILY_REFERRAL_EARNING = float(os.getenv('DAILY_REFERRAL_EARNING', 0.30))
     DAILY_BONUS = float(os.getenv('DAILY_BONUS', 0.05))
-    MIN_WITHDRAWAL = float(os.getenv('MIN_WITHDRAWAL', 50.0))
+    MIN_WITHDRAWAL = float(os.getenv('MIN_WITHDRAWAL', 20.0))
     
     # Anti-Cheat Settings
-    MAX_SEARCHES_PER_DAY = int(os.getenv('MAX_SEARCHES_PER_DAY', 10))
-    MIN_TIME_BETWEEN_SEARCHES = int(os.getenv('MIN_TIME_BETWEEN_SEARCHES', 300))  # 5 minutes
+    MAX_SEARCHES_PER_DAY = int(os.getenv('MAX_SEARCHES_PER_DAY', 1))
+    MIN_TIME_BETWEEN_SEARCHES = int(os.getenv('MIN_TIME_BETWEEN_SEARCHES', 300))
     
     # Tier Configuration
     TIERS = {
@@ -59,22 +55,6 @@ class Config:
         3: {'name': '🥇 GOLD', 'rate': 0.40, 'required_refs': 30},
         4: {'name': '💎 DIAMOND', 'rate': 0.50, 'required_refs': 100},
         5: {'name': '👑 PLATINUM', 'rate': 0.75, 'required_refs': 500}
-    }
-    
-    # Missions Configuration
-    MISSIONS = {
-        1: {'name': '🚀 Beginner', 'requirements': {'referrals': 3, 'searches': 5, 'daily_streak': 3}, 'reward': 2.0},
-        2: {'name': '🌟 Active', 'requirements': {'referrals': 10, 'searches': 20, 'daily_streak': 7}, 'reward': 5.0},
-        3: {'name': '💪 Pro', 'requirements': {'referrals': 25, 'searches': 50, 'daily_streak': 15}, 'reward': 12.0},
-        4: {'name': '🏆 Legend', 'requirements': {'referrals': 50, 'searches': 100, 'daily_streak': 30}, 'reward': 25.0}
-    }
-    
-    # Leaderboard Rewards (Weekly)
-    LEADERBOARD_REWARDS = {
-        1: {'rank': 1, 'reward': 200.0, 'required_active': 50},
-        2: {'rank': 2, 'reward': 200.0, 'required_active': 50},
-        3: {'rank': 3, 'reward': 200.0, 'required_active': 50},
-        4: {'rank': '4-10', 'reward': 50.0, 'required_active': 25}
     }
     
     # Server
