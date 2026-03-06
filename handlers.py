@@ -1,4 +1,5 @@
-# ===== handlers.py (FIXED COMPLETE) =====
+# ===== handlers.py (COMPLETE FIXED VERSION) =====
+
 import logging
 import json
 from datetime import datetime
@@ -17,7 +18,7 @@ class Handlers:
     # ========== MAIN COMMANDS ==========
     
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Start command handler - FIXED referral system"""
+        """Start command handler - SIMPLE WELCOME WITH 2 BUTTONS"""
         try:
             user = update.effective_user
             args = context.args
@@ -48,27 +49,41 @@ class Handlers:
             if is_new:
                 if referrer_id:
                     logger.info(f"✅ New user: {user.id} referred by: {referrer_id}")
+                    
+                    # Send notification to referrer
+                    try:
+                        referrer = self.db.get_user(referrer_id)
+                        if referrer:
+                            # Check if notification setting is on (default on)
+                            notify = referrer.get('notify_referrals', True)
+                            if notify:
+                                await context.bot.send_message(
+                                    chat_id=referrer_id,
+                                    text=(
+                                        f"🎉 **New Referral!**\n\n"
+                                        f"{user.first_name} just joined using your link!\n\n"
+                                        f"🔍 Ask them to:\n"
+                                        f"1️⃣ Join movie group\n"
+                                        f"2️⃣ Search any movie\n"
+                                        f"3️⃣ Complete shortlinks\n\n"
+                                        f"You'll earn when they search! 🚀"
+                                    ),
+                                    parse_mode=ParseMode.MARKDOWN
+                                )
+                    except Exception as e:
+                        logger.error(f"Failed to notify referrer: {e}")
                 else:
                     logger.info(f"✅ New user: {user.id} (direct)")
             else:
                 logger.info(f"👋 Returning user: {user.id}")
             
-            # Create welcome message
+            # SIMPLE WELCOME MESSAGE - ONLY 2 LINES
             welcome_text = (
-                f"🎬 **Welcome to FilmyFund, {user.first_name}!**\n\n"
-                f"💰 **How You Earn:**\n"
-                f"• Refer friends → earn ₹{self.config.DAILY_REFERRAL_EARNING} per active referral DAILY\n"
-                f"• When friends search movies, YOU get paid\n"
-                f"• Join channel → ₹{self.config.CHANNEL_JOIN_BONUS} instant bonus\n"
-                f"• Daily bonus with streak → up to ₹0.20\n\n"
-                f"📌 **IMPORTANT:**\n"
-                f"❌ You DON'T earn by searching yourself\n"
-                f"✅ You earn when YOUR REFERRALS search\n"
-                f"🔍 Your referrals must search in the movie group\n\n"
-                f"👇 **Click below to begin!**"
+                f"🎬 **Welcome {user.first_name}!**\n\n"
+                f"👇 Click below to start earning:"
             )
             
-            # Create keyboard
+            # ONLY 2 BUTTONS - Mini App and Movie Group
             keyboard = [
                 [InlineKeyboardButton(
                     "📱 OPEN MINI APP",
@@ -77,35 +92,25 @@ class Handlers:
                 [InlineKeyboardButton(
                     "🎬 JOIN MOVIE GROUP",
                     url=self.config.MOVIE_GROUP_LINK
-                )],
-                [InlineKeyboardButton(
-                    f"📢 JOIN CHANNEL (₹{self.config.CHANNEL_JOIN_BONUS} BONUS)",
-                    url=self.config.CHANNEL_LINK
                 )]
             ]
             
             reply_markup = InlineKeyboardMarkup(keyboard)
             
-            # Send welcome
+            # Send welcome message
             await update.message.reply_text(
                 welcome_text,
                 reply_markup=reply_markup,
                 parse_mode=ParseMode.MARKDOWN
             )
             
-            # Send referral link
+            # Send referral link separately (so it doesn't clutter)
             ref_link = f"https://t.me/{self.config.BOT_USERNAME}?start=ref_{user.id}"
             
             ref_text = (
                 f"🔗 **Your Referral Link:**\n"
                 f"`{ref_link}`\n\n"
-                f"📢 **Share this link with friends!**\n\n"
-                f"⚠️ **Rules:**\n"
-                f"• Friends must join movie group\n"
-                f"• Friends must search movies (any movie name)\n"
-                f"• You earn ₹{self.config.DAILY_REFERRAL_EARNING} daily per active friend\n"
-                f"• Fake searches = No withdrawal for anyone\n"
-                f"• Admin verifies all withdrawals"
+                f"📢 Share this with friends to earn!"
             )
             
             await update.message.reply_text(
@@ -254,11 +259,12 @@ class Handlers:
                 "**How to Earn:**\n"
                 "1️⃣ Share your referral link with friends\n"
                 "2️⃣ Friends join and search movies in group\n"
-                "3️⃣ You earn ₹{self.config.DAILY_REFERRAL_EARNING} per active friend daily\n"
-                "4️⃣ Claim daily bonus for extra earnings\n\n"
+                "3️⃣ Friends must complete shortlinks\n"
+                "4️⃣ You earn ₹0.30 per active friend daily\n\n"
                 "**⚠️ Important Rules:**\n"
                 "• You DON'T earn from your own searches\n"
                 "• You ONLY earn from your referrals' searches\n"
+                "• Referrals MUST complete shortlinks\n"
                 "• Fake searches = No withdrawal (banned)\n"
                 "• Admin checks all withdrawals\n\n"
                 f"**Support:** {self.config.SUPPORT_USERNAME}"
@@ -272,7 +278,7 @@ class Handlers:
     # ========== MESSAGE HANDLER ==========
     
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle all messages - AUTOMATIC GROUP VERIFICATION - FIXED"""
+        """Handle all messages - AUTOMATIC GROUP VERIFICATION"""
         try:
             user = update.effective_user
             chat = update.effective_chat
@@ -304,16 +310,20 @@ class Handlers:
                 result = self.db.record_search(user_id)
                 
                 if result:
-                    # Send private confirmation to the user (searcher)
+                    # Send private confirmation with SHORTLINK WARNING
                     try:
                         await context.bot.send_message(
                             chat_id=user_id,
                             text=(
                                 "✅ **Search Recorded!**\n\n"
-                                f"• Movie: '{message_text[:30]}...'\n"
-                                "• This helps your referrer earn\n"
-                                "• You DON'T earn from your own searches\n"
-                                "• To earn: refer friends using /referrals\n\n"
+                                f"• Movie: '{message_text[:30]}...'\n\n"
+                                "⚠️ **IMPORTANT WARNING:**\n"
+                                "• You MUST complete the shortlinks in group\n"
+                                "• Without shortlinks, your referrer's withdrawals will be blocked\n"
+                                "• And you won't be able to withdraw either!\n\n"
+                                "👉 Go to group and click on any link\n"
+                                "👉 Complete the steps (just wait 5-10 seconds)\n"
+                                "👉 Do this daily to keep earnings active\n\n"
                                 f"📱 Open Mini App: {self.config.WEBAPP_URL}/?user_id={user_id}"
                             ),
                             parse_mode=ParseMode.MARKDOWN
@@ -321,7 +331,7 @@ class Handlers:
                     except Exception as e:
                         logger.error(f"Could not send confirmation to user {user_id}: {e}")
                     
-                    # NO GROUP REPLY - FIXED: No message in group
+                    # NO GROUP REPLY - No message in group
                     logger.info(f"✅ Search recorded for user {user_id} (no group reply)")
                 else:
                     logger.warning(f"❌ Search NOT recorded for user {user_id} (anti-cheat)")
@@ -360,7 +370,7 @@ class Handlers:
     # ========== WEBAPP DATA HANDLER ==========
     
     async def handle_webapp_data(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle Mini App actions - FIXED"""
+        """Handle Mini App actions"""
         try:
             web_app_data = update.effective_message.web_app_data
             if not web_app_data:
@@ -382,6 +392,8 @@ class Handlers:
                 response = await self.process_withdraw(data)
             elif action == 'report_issue':
                 response = await self.process_report_issue(data)
+            elif action == 'toggle_notification':
+                response = await self.process_toggle_notification(data)
             elif action == 'get_missions':
                 response = await self.process_missions(data)
             
@@ -397,7 +409,7 @@ class Handlers:
     # ========== WEBAPP PROCESSORS ==========
     
     async def process_channel_verification(self, data):
-        """Process channel join verification - FIXED"""
+        """Process channel join verification"""
         try:
             user_id = data.get('user_id')
             channel_id = data.get('channel_id')
@@ -427,7 +439,7 @@ class Handlers:
             return {'success': False, 'message': 'Verification failed'}
     
     async def process_daily_bonus(self, data):
-        """Process daily bonus claim - FIXED"""
+        """Process daily bonus claim"""
         try:
             user_id = data.get('user_id')
             result = self.db.claim_daily_bonus(user_id)
@@ -449,7 +461,7 @@ class Handlers:
             return {'success': False, 'message': 'Failed to claim'}
     
     async def process_withdraw(self, data):
-        """Process withdrawal request - FIXED"""
+        """Process withdrawal request"""
         try:
             user_id = data.get('user_id')
             amount = data.get('amount')
@@ -476,10 +488,36 @@ class Handlers:
                 'status': 'pending'
             })
             
+            # Notify admins
+            for admin_id in self.config.ADMIN_IDS:
+                try:
+                    # This would need bot instance - handle separately
+                    pass
+                except:
+                    pass
+            
             return {'success': True, 'message': 'Issue reported. Admin will contact you.'}
         except Exception as e:
             logger.error(f"Report issue error: {e}")
             return {'success': False, 'message': 'Failed to report'}
+    
+    async def process_toggle_notification(self, data):
+        """Toggle notification settings"""
+        try:
+            user_id = data.get('user_id')
+            setting = data.get('setting')
+            value = data.get('value')
+            
+            # Update user settings
+            self.db.users.update_one(
+                {'user_id': user_id},
+                {'$set': {f'notify_{setting}': value}}
+            )
+            
+            return {'success': True, 'message': 'Settings updated'}
+        except Exception as e:
+            logger.error(f"Toggle notification error: {e}")
+            return {'success': False, 'message': 'Failed to update'}
     
     async def process_missions(self, data):
         """Get user missions"""
