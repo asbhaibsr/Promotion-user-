@@ -56,7 +56,7 @@ load_dotenv()
 
 # Import our modules
 from config import Config
-# from database import Database
+from database import Database
 from handlers import Handlers
 from admin import AdminHandlers
 
