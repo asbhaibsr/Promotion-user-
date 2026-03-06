@@ -438,7 +438,16 @@ class Handlers:
         user_id = data.get('user_id')
         issue = data.get('issue')
         
-        self.db.add_issue_report(user_id, issue)
+        # Add issue to database
+        try:
+            self.db.issues.insert_one({
+                'user_id': user_id,
+                'issue': issue,
+                'report_date': datetime.now().isoformat(),
+                'status': 'pending'
+            })
+        except:
+            pass
         
         return {'success': True, 'message': 'Issue reported. Admin will contact you.'}
     
