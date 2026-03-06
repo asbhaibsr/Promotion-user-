@@ -1,4 +1,4 @@
-# ===== database.py (COMPLETE FIXED WITH ALL FIELDS - NO CIRCULAR IMPORT) =====
+# ===== database.py (COMPLETE FIXED - NO ERRORS) =====
 
 import logging
 from datetime import datetime, timedelta
@@ -36,6 +36,8 @@ class Database:
             self.search_logs = self.db['search_logs']
             self.channel_joins = self.db['channel_joins']
             self.system_stats = self.db['system_stats']
+            self.daily_claims = self.db['daily_claims']  # For ads
+            self.ads = self.db['ads']  # For ads management
             
             # Create indexes
             self._create_indexes()
@@ -62,13 +64,16 @@ class Database:
             
             self.daily_searches.create_index([('user_id', ASCENDING), ('date', ASCENDING)], unique=True)
             self.search_logs.create_index([('user_id', ASCENDING), ('timestamp', DESCENDING)])
-            self.search_logs.create_index('timestamp', expireAfterSeconds=2592000)  # 30 days TTL
+            self.search_logs.create_index('timestamp', expireAfterSeconds=2592000)
             
             self.withdrawals.create_index([('user_id', ASCENDING), ('request_date', DESCENDING)])
             self.withdrawals.create_index('status')
             self.withdrawals.create_index('processed_date')
             
             self.channel_joins.create_index([('user_id', ASCENDING), ('channel_id', ASCENDING)], unique=True)
+            
+            # Index for daily claims (ads)
+            self.daily_claims.create_index([('user_id', ASCENDING), ('ad_id', ASCENDING), ('date', ASCENDING)])
             
             logger.info("✅ Database indexes created")
         except Exception as e:
@@ -96,13 +101,11 @@ class Database:
         try:
             user = self.users.find_one({'user_id': int(user_id)})
             if user:
-                # Convert ObjectId to string for JSON
                 if '_id' in user:
                     user['_id'] = str(user['_id'])
                 
                 self.user_cache[cache_key] = user
                 
-                # Update last active
                 self.users.update_one(
                     {'user_id': int(user_id)},
                     {'$set': {'last_active': datetime.now().isoformat()}}
@@ -114,7 +117,7 @@ class Database:
             return None
     
     def add_user(self, user_data):
-        """Add new user - FIXED: Added notify_referrals field"""
+        """Add new user"""
         if not self.ensure_connection():
             return False
         
@@ -126,7 +129,6 @@ class Database:
             
             existing = self.users.find_one({'user_id': user_id})
             if existing:
-                # Update existing
                 self.users.update_one(
                     {'user_id': user_id},
                     {'$set': {
@@ -139,7 +141,6 @@ class Database:
             
             now = datetime.now().isoformat()
             
-            # NEW USER SCHEMA - WITH ALL FIELDS
             new_user = {
                 'user_id': user_id,
                 'first_name': user_data.get('first_name', ''),
@@ -162,19 +163,17 @@ class Database:
                 'suspicious_activity': False,
                 'withdrawal_blocked': False,
                 'warning_count': 0,
-                # ADDED: Notification settings
-                'notify_referrals': True,  # Default: ON
-                'notify_earnings': True,    # Default: ON
-                'notify_withdrawals': True,  # Default: ON
-                'dark_mode': False,          # Default: OFF
-                'language': 'en'              # Default: English
+                'notify_referrals': True,
+                'notify_earnings': True,
+                'notify_withdrawals': True,
+                'dark_mode': False,
+                'language': 'en',
+                'sound_enabled': True
             }
             
             self.users.insert_one(new_user)
             
-            # Handle referral
             if referrer_id and referrer_id != user_id:
-                # Check if referral already exists
                 existing_ref = self.referrals.find_one({
                     'referrer_id': referrer_id,
                     'referred_id': user_id
@@ -188,7 +187,7 @@ class Database:
                         'last_search_date': None,
                         'is_active': False,
                         'earnings': 0.0,
-                        'shortlinks_completed': 0  # Track shortlinks
+                        'shortlinks_completed': 0
                     })
                     
                     self.users.update_one(
@@ -198,7 +197,6 @@ class Database:
                     
                     logger.info(f"✅ Referral recorded: {referrer_id} -> {user_id}")
             
-            # Clear cache
             self.user_cache.pop(f"user_{user_id}", None)
             if referrer_id:
                 self.user_cache.pop(f"user_{referrer_id}", None)
@@ -210,9 +208,9 @@ class Database:
             return False
     
     def record_search(self, user_id):
-        """Record user search - FIXED: Added shortlink warning in response"""
+        """Record user search"""
         if not self.ensure_connection():
-            return False
+            return {'success': False, 'message': 'Database error'}
         
         try:
             user_id = int(user_id)
@@ -221,14 +219,12 @@ class Database:
             
             user = self.get_user(user_id)
             if not user:
-                return False
+                return {'success': False, 'message': 'User not found'}
             
-            # Anti-cheat checks
             if user.get('suspicious_activity') or user.get('withdrawal_blocked'):
                 logger.warning(f"User {user_id} blocked from searches")
-                return False
+                return {'success': False, 'message': 'Account blocked'}
             
-            # Check daily limit
             daily_count = self.daily_searches.count_documents({
                 'user_id': user_id,
                 'date': today
@@ -236,9 +232,8 @@ class Database:
             
             if daily_count >= self.config.MAX_SEARCHES_PER_DAY:
                 logger.warning(f"User {user_id} exceeded daily search limit")
-                return False
+                return {'success': False, 'message': 'Daily limit reached'}
             
-            # Check minimum time between searches (anti-spam)
             last_search = self.search_logs.find_one(
                 {'user_id': user_id},
                 sort=[('timestamp', DESCENDING)]
@@ -248,23 +243,20 @@ class Database:
                 last_time = datetime.fromisoformat(last_search['timestamp'])
                 if (now - last_time).total_seconds() < self.config.MIN_TIME_BETWEEN_SEARCHES:
                     logger.warning(f"User {user_id} searching too fast")
-                    return False
+                    return {'success': False, 'message': 'Please wait before searching again'}
             
-            # Log search
             self.search_logs.insert_one({
                 'user_id': user_id,
                 'timestamp': now.isoformat(),
                 'date': today
             })
             
-            # Update daily search count
             self.daily_searches.update_one(
                 {'user_id': user_id, 'date': today},
                 {'$inc': {'count': 1}},
                 upsert=True
             )
             
-            # Update user stats (but NOT balance)
             was_first_search = (user.get('total_searches', 0) == 0)
             
             self.users.update_one(
@@ -275,40 +267,16 @@ class Database:
                 }
             )
             
-            # Activate referral for referrer
             if was_first_search:
                 self.activate_referral(user_id)
             
-            # Process daily earning for referrer
-            referral = self.referrals.find_one({'referred_id': user_id})
-            if referral and referral.get('is_active'):
-                # Update last search date for this referral
-                self.referrals.update_one(
-                    {'_id': referral['_id']},
-                    {'$set': {'last_search_date': now.isoformat()}}
-                )
-                
-                # Check if this is first search of the day
-                today_search = self.daily_searches.find_one({
-                    'user_id': user_id,
-                    'date': today
-                })
-                
-                if today_search and today_search.get('count', 0) == 1:
-                    # First search today - referrer will get paid at midnight
-                    logger.info(f"Referral {user_id} active today for referrer {referral['referrer_id']}")
-            
-            # Clear cache
             self.user_cache.pop(f"user_{user_id}", None)
-            if referral:
-                self.user_cache.pop(f"user_{referral['referrer_id']}", None)
             
             logger.info(f"✅ Search recorded for user {user_id}")
             
-            # RETURN WITH SHORTLINK WARNING FLAG
             return {
                 'success': True,
-                'needs_shortlink': True,  # Flag to show shortlink warning
+                'needs_shortlink': True,
                 'message': 'Search recorded. Remember to complete shortlinks!'
             }
             
@@ -342,7 +310,6 @@ class Database:
                     {'$inc': {'pending_refs': -1, 'active_refs': 1}}
                 )
                 
-                # Give referral bonus to REFERRER only
                 self.add_balance(
                     referrer_id,
                     self.config.REFERRAL_BONUS,
@@ -351,7 +318,6 @@ class Database:
                 
                 self.update_user_tier(referrer_id)
                 
-                # Clear cache
                 self.user_cache.pop(f"user_{referrer_id}", None)
                 
                 logger.info(f"✅ Referral activated: {referrer_id} -> {referred_id}")
@@ -362,17 +328,15 @@ class Database:
             return False
     
     def record_shortlink_completion(self, user_id):
-        """NEW METHOD: Record when user completes a shortlink"""
+        """Record when user completes a shortlink"""
         try:
             user_id = int(user_id)
             
-            # Update user's shortlink count
             self.users.update_one(
                 {'user_id': user_id},
                 {'$inc': {'shortlinks_completed': 1}}
             )
             
-            # Update referral record
             referral = self.referrals.find_one({'referred_id': user_id})
             if referral:
                 self.referrals.update_one(
@@ -394,7 +358,6 @@ class Database:
         try:
             today = datetime.now().date().isoformat()
             
-            # Get all active referrals
             active_refs = list(self.referrals.find({'is_active': True}))
             
             earnings_count = 0
@@ -403,7 +366,6 @@ class Database:
                     referrer_id = ref['referrer_id']
                     referred_id = ref['referred_id']
                     
-                    # Check if referred user searched today
                     today_search = self.daily_searches.find_one({
                         'user_id': referred_id,
                         'date': today
@@ -412,11 +374,9 @@ class Database:
                     if today_search:
                         referrer = self.get_user(referrer_id)
                         
-                        # Don't pay if referrer is blocked
                         if referrer and not referrer.get('withdrawal_blocked') and not referrer.get('suspicious_activity'):
                             tier_rate = self.config.get_tier_rate(referrer.get('tier', 1))
                             
-                            # Add daily earning to referrer ONLY
                             self.add_balance(
                                 referrer_id,
                                 tier_rate,
@@ -449,7 +409,6 @@ class Database:
         try:
             user_id = int(user_id)
             
-            # Check if already joined
             existing = self.channel_joins.find_one({
                 'user_id': user_id,
                 'channel_id': str(channel_id)
@@ -465,7 +424,6 @@ class Database:
                 'joined_at': datetime.now().isoformat()
             })
             
-            # Add bonus
             self.add_balance(
                 user_id,
                 self.config.CHANNEL_JOIN_BONUS,
@@ -499,12 +457,10 @@ class Database:
             
             last_daily = user.get('last_daily')
             
-            # Check if already claimed today
             if last_daily and last_daily.startswith(today):
                 logger.info(f"User {user_id} already claimed daily today")
                 return None
             
-            # Calculate streak
             streak = 1
             if last_daily:
                 try:
@@ -516,15 +472,12 @@ class Database:
                 except:
                     streak = 1
             
-            # Calculate bonus
             base_bonus = self.config.DAILY_BONUS
             streak_bonus = min(streak * 0.02, 0.15)
             total_bonus = base_bonus + streak_bonus
             
-            # Add balance
             self.add_balance(user_id, total_bonus, f"Daily bonus (streak: {streak})")
             
-            # Update user
             self.users.update_one(
                 {'user_id': user_id},
                 {
@@ -580,22 +533,18 @@ class Database:
             if not user:
                 return {'success': False, 'message': 'User not found'}
             
-            # Anti-cheat checks
             if user.get('suspicious_activity'):
                 return {'success': False, 'message': 'Account under review for suspicious activity'}
             
             if user.get('withdrawal_blocked'):
                 return {'success': False, 'message': 'Withdrawals blocked. Contact support.'}
             
-            # Balance check
             if user['balance'] < amount:
                 return {'success': False, 'message': f'Insufficient balance. You have ₹{user["balance"]:.2f}'}
             
-            # Minimum amount check
             if amount < self.config.MIN_WITHDRAWAL:
                 return {'success': False, 'message': f'Minimum withdrawal is ₹{self.config.MIN_WITHDRAWAL}'}
             
-            # Check for pending withdrawals
             pending = self.withdrawals.find_one({
                 'user_id': user_id,
                 'status': 'pending'
@@ -604,7 +553,6 @@ class Database:
             if pending:
                 return {'success': False, 'message': 'You already have a pending withdrawal request'}
             
-            # Deduct balance
             self.users.update_one(
                 {'user_id': user_id},
                 {'$inc': {'balance': -amount}}
@@ -713,7 +661,7 @@ class Database:
             return None
     
     def update_notification_setting(self, user_id, setting, value):
-        """NEW METHOD: Update user notification settings"""
+        """Update user notification settings"""
         try:
             user_id = int(user_id)
             self.users.update_one(
@@ -727,9 +675,8 @@ class Database:
             return False
     
     def get_leaderboard(self, limit=10):
-        """Get leaderboard - Shows only active referrers"""
+        """Get leaderboard"""
         try:
-            # Get users with active referrals, sorted by active_refs
             users = self.users.find(
                 {
                     'active_refs': {'$gt': 0},
@@ -768,15 +715,24 @@ class Database:
                 }),
                 'pending_withdrawals': self.withdrawals.count_documents({'status': 'pending'}),
                 'total_searches': self.search_logs.count_documents({}),
-                'total_earnings': self.transactions.aggregate([
+                'total_earnings': 0,
+                'total_withdrawn': 0
+            }
+            
+            if self.transactions.count_documents({}) > 0:
+                earnings_result = self.transactions.aggregate([
                     {'$match': {'amount': {'$gt': 0}}},
                     {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
-                ]).next().get('total', 0) if self.transactions.count_documents({}) > 0 else 0,
-                'total_withdrawn': self.transactions.aggregate([
-                    {'$match': {'type': 'withdrawal_request'}},
-                    {'$group': {'_id': None, 'total': {'$sum': {'$abs': '$amount'}}}}
-                ]).next().get('total', 0) if self.transactions.count_documents({'type': 'withdrawal_request'}) > 0 else 0
-            }
+                ]).next()
+                stats['total_earnings'] = earnings_result.get('total', 0)
+            
+            if self.withdrawals.count_documents({'status': 'completed'}) > 0:
+                withdrawn_result = self.withdrawals.aggregate([
+                    {'$match': {'status': 'completed'}},
+                    {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
+                ]).next()
+                stats['total_withdrawn'] = withdrawn_result.get('total', 0)
+            
             return stats
         except Exception as e:
             logger.error(f"Error getting system stats: {e}")
