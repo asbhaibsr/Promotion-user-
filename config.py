@@ -76,10 +76,10 @@ class Config:
         
         # ===== BONUS AMOUNTS =====
         try:
-            self.REFERRAL_BONUS = float(os.getenv('REFERRAL_BONUS', '5.0'))
+            self.REFERRAL_BONUS = float(os.getenv('REFERRAL_BONUS', '0.40'))
         except ValueError:
-            logger.warning("⚠️ Invalid REFERRAL_BONUS, using default 5.0")
-            self.REFERRAL_BONUS = 5.0
+            logger.warning("⚠️ Invalid REFERRAL_BONUS, using default 0.40")
+            self.REFERRAL_BONUS = 0.40
         
         try:
             self.DAILY_REFERRAL_EARNING = float(os.getenv('DAILY_REFERRAL_EARNING', '0.30'))
@@ -94,17 +94,17 @@ class Config:
             self.DAILY_BONUS = 0.05
         
         try:
-            self.MIN_WITHDRAWAL = float(os.getenv('MIN_WITHDRAWAL', '50.0'))
+            self.MIN_WITHDRAWAL = float(os.getenv('MIN_WITHDRAWAL', '20.0'))
         except ValueError:
-            logger.warning("⚠️ Invalid MIN_WITHDRAWAL, using default 50.0")
-            self.MIN_WITHDRAWAL = 50.0
+            logger.warning("⚠️ Invalid MIN_WITHDRAWAL, using default 20.0")
+            self.MIN_WITHDRAWAL = 20.0
         
         # ===== ANTI-CHEAT SETTINGS =====
         try:
-            self.MAX_SEARCHES_PER_DAY = int(os.getenv('MAX_SEARCHES_PER_DAY', '10'))
+            self.MAX_SEARCHES_PER_DAY = int(os.getenv('MAX_SEARCHES_PER_DAY', '1'))
         except ValueError:
-            logger.warning("⚠️ Invalid MAX_SEARCHES_PER_DAY, using default 10")
-            self.MAX_SEARCHES_PER_DAY = 10
+            logger.warning("⚠️ Invalid MAX_SEARCHES_PER_DAY, using default 1")
+            self.MAX_SEARCHES_PER_DAY = 1
         
         try:
             self.MIN_TIME_BETWEEN_SEARCHES = int(os.getenv('MIN_TIME_BETWEEN_SEARCHES', '300'))
@@ -114,10 +114,10 @@ class Config:
         
         # ===== TIER CONFIGURATION =====
         self.TIERS = {
-            1: {'name': '🥉 BASIC', 'rate': 0.30, 'required_refs': 0},
-            2: {'name': '🥈 SILVER', 'rate': 0.35, 'required_refs': 10},
-            3: {'name': '🥇 GOLD', 'rate': 0.40, 'required_refs': 30},
-            4: {'name': '💎 DIAMOND', 'rate': 0.50, 'required_refs': 100},
+            1: {'name': '🥉 BASIC', 'rate': 0.20, 'required_refs': 0},
+            2: {'name': '🥈 SILVER', 'rate': 0.30, 'required_refs': 50},
+            3: {'name': '🥇 GOLD', 'rate': 0.40, 'required_refs': 100},
+            4: {'name': '💎 DIAMOND', 'rate': 0.50, 'required_refs': 200},
             5: {'name': '👑 PLATINUM', 'rate': 0.75, 'required_refs': 500}
         }
         
