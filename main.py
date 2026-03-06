@@ -1,4 +1,4 @@
-# ===== main.py (COMPLETE FIXED VERSION) =====
+# ===== main.py (COMPLETE WITH ALL API ROUTES) =====
 
 import logging
 import os
@@ -294,6 +294,151 @@ def webhook():
     except Exception as e:
         logger.error(f"Webhook error: {e}")
         return "Error", 500
+
+
+# ========== NEW API ROUTES FOR MINI APP ==========
+
+@app.route('/api/claim-daily-bonus', methods=['POST'])
+def claim_daily_bonus_api():
+    """API to claim daily bonus - DIRECT DATABASE UPDATE"""
+    global db
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return jsonify({'success': False, 'message': 'User ID required'}), 400
+        
+        result = db.claim_daily_bonus(user_id)
+        
+        if result and result.get('success'):
+            return jsonify({
+                'success': True,
+                'bonus': result['bonus'],
+                'streak': result['streak']
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Already claimed today or try again'
+            })
+            
+    except Exception as e:
+        logger.error(f"Daily bonus API error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/verify-channel', methods=['POST'])
+def verify_channel_api():
+    """API to verify channel join - DIRECT DATABASE UPDATE"""
+    global db
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        channel_id = data.get('channel_id')
+        
+        if not user_id or not channel_id:
+            return jsonify({'success': False, 'message': 'Missing data'}), 400
+        
+        result = db.mark_channel_join(user_id, channel_id)
+        
+        if result:
+            user = db.get_user(user_id)
+            return jsonify({
+                'success': True,
+                'message': 'Channel bonus claimed',
+                'user_data': {
+                    'balance': user.get('balance', 0),
+                    'channel_joined': True
+                }
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Already claimed or invalid channel'
+            })
+            
+    except Exception as e:
+        logger.error(f"Channel verify API error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/withdraw', methods=['POST'])
+def withdraw_api():
+    """API to process withdrawal - DIRECT DATABASE UPDATE"""
+    global db
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        amount = data.get('amount')
+        method = data.get('method')
+        details = data.get('details')
+        
+        if not all([user_id, amount, method, details]):
+            return jsonify({'success': False, 'message': 'Missing data'}), 400
+        
+        result = db.process_withdrawal(user_id, amount, method, details)
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Withdraw API error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/support', methods=['POST'])
+def support_api():
+    """API to send support message - DIRECT DATABASE INSERT"""
+    global db
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        message = data.get('message')
+        
+        if not user_id or not message:
+            return jsonify({'success': False, 'message': 'Missing data'}), 400
+        
+        # Insert into issues collection
+        db.issues.insert_one({
+            'user_id': int(user_id),
+            'message': message,
+            'timestamp': datetime.now().isoformat(),
+            'status': 'pending',
+            'read': False
+        })
+        
+        # Also try to notify admin via bot
+        if bot_app and config and hasattr(config, 'LOG_CHANNEL_ID') and config.LOG_CHANNEL_ID:
+            try:
+                user = db.get_user(user_id)
+                asyncio.run_coroutine_threadsafe(
+                    bot_app.bot.send_message(
+                        chat_id=config.LOG_CHANNEL_ID,
+                        text=f"📩 **New Support Message**\n\nUser: {user.get('first_name', 'Unknown')} (ID: {user_id})\nMessage: {message}",
+                        parse_mode=ParseMode.MARKDOWN
+                    ),
+                    bot_loop
+                )
+            except Exception as e:
+                logger.error(f"Failed to notify admin: {e}")
+        
+        return jsonify({'success': True, 'message': 'Message sent'})
+        
+    except Exception as e:
+        logger.error(f"Support API error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/today-active')
+def today_active_api():
+    """API to get today's active users"""
+    global db
+    try:
+        today = datetime.now().date().isoformat()
+        active_count = db.daily_searches.count_documents({'date': today})
+        return jsonify({'active_today': active_count})
+    except Exception as e:
+        logger.error(f"Today active API error: {e}")
+        return jsonify({'active_today': 0})
 
 
 # ========== BOT SETUP ==========
