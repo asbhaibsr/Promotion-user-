@@ -8,6 +8,7 @@ import threading
 import time
 import json
 import signal
+import random
 from datetime import datetime, timedelta
 
 # Add these imports at the top
@@ -55,7 +56,7 @@ load_dotenv()
 
 # Import our modules
 from config import Config
-from database import Database
+# from database import Database
 from handlers import Handlers
 from admin import AdminHandlers
 
@@ -170,7 +171,12 @@ def get_user_api(user_id):
                 'active_refs': 0,
                 'pending_refs': 0,
                 'daily_streak': 0,
-                'channel_joined': False
+                'channel_joined': False,
+                'is_admin': False,
+                'dark_mode': False,
+                'notify_referrals': True,
+                'notify_earnings': True,
+                'notify_withdrawals': True
             })
         
         if not db or not db.ensure_connection():
@@ -297,6 +303,274 @@ def webhook():
 
 
 # ========== NEW API ROUTES FOR MINI APP ==========
+
+@app.route('/api/live-activity')
+def live_activity_api():
+    """Get live activity feed from database"""
+    global db
+    try:
+        activities = []
+        
+        # Get recent withdrawals (last 5 completed)
+        if db and db.ensure_connection():
+            withdrawals = list(db.withdrawals.find(
+                {'status': 'completed'}
+            ).sort('processed_date', -1).limit(5))
+            
+            for w in withdrawals:
+                user = db.get_user(w['user_id'])
+                if user:
+                    activities.append({
+                        'type': 'withdraw',
+                        'first_name': user.get('first_name', 'User'),
+                        'amount': w['amount'],
+                        'time': get_time_ago(w.get('processed_date', w.get('request_date'))),
+                        'avatar': user.get('first_name', 'U')[0].upper()
+                    })
+            
+            # Get recent earnings (last 5)
+            earnings = list(db.transactions.find(
+                {'type': 'credit', 'amount': {'$gt': 0}}
+            ).sort('timestamp', -1).limit(5))
+            
+            for e in earnings:
+                user = db.get_user(e['user_id'])
+                if user:
+                    activities.append({
+                        'type': 'earn',
+                        'first_name': user.get('first_name', 'User'),
+                        'amount': e['amount'],
+                        'time': get_time_ago(e['timestamp']),
+                        'avatar': user.get('first_name', 'U')[0].upper()
+                    })
+            
+            # Get recent referrals (last 5)
+            referrals = list(db.referrals.find(
+                {'is_active': True}
+            ).sort('first_search_date', -1).limit(5))
+            
+            for r in referrals:
+                user = db.get_user(r['referred_id'])
+                referrer = db.get_user(r['referrer_id'])
+                if user and referrer:
+                    activities.append({
+                        'type': 'referral',
+                        'first_name': user.get('first_name', 'User'),
+                        'amount': 0,
+                        'time': get_time_ago(r.get('first_search_date', r.get('join_date'))),
+                        'avatar': user.get('first_name', 'U')[0].upper(),
+                        'text': f"{user.get('first_name')} joined via {referrer.get('first_name')}"
+                    })
+        
+        # Shuffle and return top 10
+        random.shuffle(activities)
+        return jsonify(activities[:10])
+        
+    except Exception as e:
+        logger.error(f"Live activity error: {e}")
+        return jsonify([])
+
+
+@app.route('/api/ads')
+def get_ads_api():
+    """Get ads from database"""
+    global db
+    try:
+        # Check if ads collection exists
+        if db and db.ensure_connection():
+            # Check if ads collection exists, if not create it
+            if 'ads' not in db.db.list_collection_names():
+                db.db.create_collection('ads')
+                # Insert default ads
+                db.db.ads.insert_many([
+                    {'id': 1, 'title': 'Install App & Earn', 'reward': 2, 'link': 'https://t.me/+8SdeM5gBihoxZjU1', 'meta': '⏱️ 2 min • 1.2k completed', 'icon': '📱', 'order': 1},
+                    {'id': 2, 'title': 'Watch Video', 'reward': 0.5, 'link': 'https://t.me/+8SdeM5gBihoxZjU1', 'meta': '⏱️ 30 sec • 3.4k completed', 'icon': '🎬', 'order': 2}
+                ])
+            
+            ads = list(db.db.ads.find().sort('order', 1))
+            for ad in ads:
+                ad['_id'] = str(ad['_id'])
+            return jsonify({'ads': ads})
+        else:
+            # Return default ads if database not connected
+            return jsonify({
+                'ads': [
+                    {'id': 1, 'title': 'Install App & Earn', 'reward': 2, 'link': 'https://t.me/+8SdeM5gBihoxZjU1', 'meta': '⏱️ 2 min • 1.2k completed', 'icon': '📱'},
+                    {'id': 2, 'title': 'Watch Video', 'reward': 0.5, 'link': 'https://t.me/+8SdeM5gBihoxZjU1', 'meta': '⏱️ 30 sec • 3.4k completed', 'icon': '🎬'}
+                ]
+            })
+    except Exception as e:
+        logger.error(f"Get ads error: {e}")
+        return jsonify({'ads': []})
+
+
+@app.route('/api/claim-ad', methods=['POST'])
+def claim_ad_api():
+    """Claim ad reward"""
+    global db
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        ad_id = data.get('ad_id')
+        reward = data.get('reward')
+        
+        if not all([user_id, ad_id, reward]):
+            return jsonify({'success': False, 'message': 'Missing data'}), 400
+        
+        # Check if user already claimed this ad today
+        today = datetime.now().date().isoformat()
+        
+        # Check in user's daily claims (you might want to create a claims collection)
+        claims_collection = db.db['daily_claims'] if hasattr(db, 'db') else None
+        
+        if claims_collection:
+            existing = claims_collection.find_one({
+                'user_id': int(user_id),
+                'ad_id': ad_id,
+                'date': today
+            })
+            
+            if existing:
+                return jsonify({'success': False, 'message': 'Already claimed today'})
+        
+        # Add balance
+        success = db.add_balance(user_id, float(reward), f"Ad reward #{ad_id}")
+        
+        if success:
+            # Record claim
+            if claims_collection:
+                claims_collection.insert_one({
+                    'user_id': int(user_id),
+                    'ad_id': ad_id,
+                    'date': today,
+                    'reward': float(reward),
+                    'timestamp': datetime.now().isoformat()
+                })
+            
+            return jsonify({'success': True, 'message': 'Reward added'})
+        else:
+            return jsonify({'success': False, 'message': 'Failed to add reward'})
+            
+    except Exception as e:
+        logger.error(f"Claim ad error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/update-ad', methods=['POST'])
+def update_ad_api():
+    """Update ad (admin only)"""
+    global db
+    try:
+        data = request.get_json()
+        ad_id = data.get('ad_id')
+        title = data.get('title')
+        reward = data.get('reward')
+        link = data.get('link')
+        meta = data.get('meta')
+        
+        # Get admin user_id from request (you should verify this)
+        admin_id = data.get('admin_id')
+        
+        if not admin_id:
+            return jsonify({'success': False, 'message': 'Admin verification required'}), 401
+        
+        # Verify admin
+        admin_user = db.get_user(int(admin_id))
+        if not admin_user or not admin_user.get('is_admin', False):
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+        
+        # Update ad
+        if db and db.ensure_connection():
+            ads_collection = db.db['ads'] if hasattr(db, 'db') else None
+            if ads_collection:
+                ads_collection.update_one(
+                    {'id': int(ad_id)},
+                    {'$set': {
+                        'title': title,
+                        'reward': float(reward),
+                        'link': link,
+                        'meta': meta
+                    }},
+                    upsert=True
+                )
+                logger.info(f"✅ Ad {ad_id} updated by admin {admin_id}")
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        logger.error(f"Update ad error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/update-setting', methods=['POST'])
+def update_setting_api():
+    """Update user settings"""
+    global db
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        setting = data.get('setting')
+        value = data.get('value')
+        
+        if not all([user_id, setting]):
+            return jsonify({'success': False, 'message': 'Missing data'}), 400
+        
+        # Map settings to database fields
+        setting_map = {
+            'dark_mode': 'dark_mode',
+            'sound_enabled': 'sound_enabled',
+            'notifications': 'notify_earnings',
+            'notify_referrals': 'notify_referrals',
+            'notify_earnings': 'notify_earnings',
+            'notify_withdrawals': 'notify_withdrawals'
+        }
+        
+        db_field = setting_map.get(setting)
+        if db_field and db and db.ensure_connection():
+            db.users.update_one(
+                {'user_id': int(user_id)},
+                {'$set': {db_field: value}}
+            )
+            db.user_cache.pop(f"user_{user_id}", None)
+            logger.info(f"✅ Setting {setting} updated for user {user_id}")
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        logger.error(f"Update setting error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/user/<int:user_id>/update', methods=['POST'])
+def update_user_api(user_id):
+    """Update user data"""
+    global db
+    try:
+        data = request.get_json()
+        
+        if not db or not db.ensure_connection():
+            return jsonify({'success': False, 'message': 'Database error'}), 503
+        
+        # Update user in database
+        update_data = {}
+        for key, value in data.items():
+            if key in ['first_name', 'username', 'dark_mode', 'notify_referrals', 'notify_earnings', 'notify_withdrawals', 'sound_enabled']:
+                update_data[key] = value
+        
+        if update_data:
+            db.users.update_one(
+                {'user_id': int(user_id)},
+                {'$set': update_data}
+            )
+            db.user_cache.pop(f"user_{user_id}", None)
+            logger.info(f"✅ User {user_id} updated: {update_data}")
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        logger.error(f"Update user error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 
 @app.route('/api/claim-daily-bonus', methods=['POST'])
 def claim_daily_bonus_api():
@@ -439,6 +713,30 @@ def today_active_api():
     except Exception as e:
         logger.error(f"Today active API error: {e}")
         return jsonify({'active_today': 0})
+
+
+# ========== HELPER FUNCTIONS ==========
+
+def get_time_ago(timestamp_str):
+    """Convert ISO timestamp to 'X min ago' format"""
+    if not timestamp_str:
+        return 'recently'
+    
+    try:
+        timestamp = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+        now = datetime.now()
+        diff = now - timestamp
+        
+        if diff.days > 0:
+            return f"{diff.days}d ago"
+        elif diff.seconds // 3600 > 0:
+            return f"{diff.seconds // 3600}h ago"
+        elif diff.seconds // 60 > 0:
+            return f"{diff.seconds // 60}min ago"
+        else:
+            return "just now"
+    except:
+        return "recently"
 
 
 # ========== BOT SETUP ==========
