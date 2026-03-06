@@ -6,6 +6,7 @@
     <title>Earn App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        /* Your existing CSS remains exactly the same */
         * {
             margin: 0;
             padding: 0;
@@ -14,7 +15,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Light Theme (Default) */
         :root {
             --bg-primary: #ffffff;
             --bg-secondary: #f5f7fa;
@@ -35,7 +35,6 @@
             --bottom-nav-height: 80px;
         }
 
-        /* Dark Theme */
         [data-theme="dark"] {
             --bg-primary: #0f172a;
             --bg-secondary: #1e293b;
@@ -57,7 +56,6 @@
             transition: background 0.3s ease;
         }
 
-        /* ===== TOP ACTION BUTTONS ===== */
         .top-actions {
             position: fixed;
             top: 16px;
@@ -100,14 +98,12 @@
             gap: 12px;
         }
 
-        /* ===== MAIN CONTENT ===== */
         .main-content {
             padding: 20px 16px calc(var(--bottom-nav-height) + 20px);
             max-width: 500px;
             margin: 0 auto;
         }
 
-        /* ===== BALANCE CARD ===== */
         .balance-card {
             background: linear-gradient(145deg, #fbbf24, #f59e0b);
             border-radius: var(--card-radius);
@@ -157,7 +153,6 @@
             font-size: 16px;
         }
 
-        /* ===== PROGRESS BAR ===== */
         .progress-section {
             background: var(--bg-card);
             border-radius: var(--small-radius);
@@ -248,7 +243,6 @@
             cursor: pointer;
         }
 
-        /* ===== ADS SECTION ===== */
         .ads-section {
             margin: 24px 0;
         }
@@ -323,7 +317,6 @@
             font-size: 15px;
         }
 
-        /* ===== LIVE ACTIVITY ===== */
         .live-activity {
             margin: 24px 0;
         }
@@ -398,7 +391,6 @@
             font-size: 16px;
         }
 
-        /* ===== BOTTOM NAVIGATION ===== */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -456,13 +448,11 @@
             color: #fbbf24;
         }
 
-        /* Special profile item */
         .nav-item.profile .nav-icon {
             background: linear-gradient(145deg, #fbbf24, #f59e0b);
             color: #000;
         }
 
-        /* ===== PAGE MODALS ===== */
         .page-modal {
             position: fixed;
             top: 0;
@@ -509,7 +499,6 @@
             color: #fbbf24;
         }
 
-        /* ===== WITHDRAW BUTTON IN HISTORY ===== */
         .withdraw-history-btn {
             background: #fbbf24;
             color: #000;
@@ -524,7 +513,6 @@
             box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
         }
 
-        /* ===== TOAST ===== */
         .toast-message {
             position: fixed;
             bottom: 120px;
@@ -541,7 +529,6 @@
             animation: slideUp 0.3s;
         }
 
-        /* ===== UTILITY CLASSES ===== */
         .yellow-line {
             height: 4px;
             background: #fbbf24;
@@ -550,7 +537,6 @@
             border-radius: 4px;
         }
 
-        /* Admin edit mode */
         .admin-edit-mode .ad-card {
             border: 2px dashed #fbbf24;
             position: relative;
@@ -569,7 +555,6 @@
             font-weight: bold;
         }
 
-        /* Withdraw page styles */
         .method-select {
             background: var(--bg-secondary);
             border-radius: 16px;
@@ -602,6 +587,29 @@
             border-color: #fbbf24;
             outline: none;
         }
+
+        .daily-bonus-btn {
+            background: linear-gradient(145deg, #fbbf24, #f59e0b);
+            border: none;
+            color: #000;
+            padding: 16px;
+            border-radius: 30px;
+            font-weight: 800;
+            font-size: 18px;
+            width: 100%;
+            margin: 20px 0;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .daily-bonus-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -613,7 +621,6 @@
         </div>
         <div class="top-right">
             <div class="top-action-btn" onclick="toggleTheme()" id="themeToggle">🌙</div>
-            <!-- Admin button - only visible to admins -->
             <div class="top-action-btn" id="adminEditBtn" onclick="toggleAdminEdit()" style="display: none;">✏️</div>
         </div>
     </div>
@@ -629,6 +636,11 @@
                 <div>Referrals: <span id="referralCount">0</span></div>
             </div>
         </div>
+
+        <!-- DAILY BONUS BUTTON - NEW -->
+        <button class="daily-bonus-btn" onclick="claimDailyBonus()" id="dailyBonusBtn">
+            <span>🎁</span> Claim Daily Bonus <span id="dailyBonusAmount">+₹0.05</span>
+        </button>
 
         <!-- PROGRESS TO ₹50 -->
         <div class="progress-section">
@@ -879,7 +891,6 @@
         tg.expand();
         tg.ready();
 
-        // User data
         let userData = {
             user_id: 0,
             first_name: 'Guest',
@@ -906,11 +917,7 @@
         let selectedMethod = null;
         let currentEditingAd = null;
 
-        // Ads data (will be loaded from database)
-        let ads = [
-            { id: 1, title: 'Install App & Earn', reward: 2, link: 'https://t.me/+8SdeM5gBihoxZjU1', meta: '⏱️ 2 min • 1.2k completed', icon: '📱' },
-            { id: 2, title: 'Watch Video', reward: 0.5, link: 'https://t.me/+8SdeM5gBihoxZjU1', meta: '⏱️ 30 sec • 3.4k completed', icon: '🎬' }
-        ];
+        let ads = [];
 
         // ========== TELEGRAM INTEGRATION ==========
         function initTelegram() {
@@ -920,10 +927,7 @@
                 userData.first_name = user.first_name || 'User';
                 document.querySelector('.nav-item.profile .nav-label').innerText = userData.first_name.split(' ')[0];
                 
-                // Check if user is admin (you can set admin IDs in your backend)
                 checkAdminStatus(user.id);
-                
-                // Load user data from database
                 loadUserData();
             }
         }
@@ -939,12 +943,16 @@
                 if (data && !data.error) {
                     userData = { ...userData, ...data };
                     
-                    // Apply user's theme preference
                     if (userData.dark_mode && currentTheme === 'light') {
                         toggleTheme();
                     }
                     
                     updateUI();
+                    
+                    // Update daily bonus button based on streak
+                    if (userData.daily_streak > 0) {
+                        document.getElementById('dailyBonusAmount').innerText = `+₹${(0.05 + Math.min(userData.daily_streak * 0.02, 0.15)).toFixed(2)}`;
+                    }
                 }
             } catch (error) {
                 console.error('Error loading user data:', error);
@@ -1105,28 +1113,69 @@
             container.innerHTML = html;
         }
 
+        // ========== DAILY BONUS FUNCTION - NEW ==========
+        async function claimDailyBonus() {
+            if (!userData.user_id) {
+                showToast('❌ Please open via Telegram');
+                return;
+            }
+            
+            const btn = document.getElementById('dailyBonusBtn');
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            
+            try {
+                const response = await fetch('/api/claim-daily-bonus', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ user_id: userData.user_id })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast(`✅ +₹${result.bonus.toFixed(2)} claimed! Streak: ${result.streak}`);
+                    userData.balance += result.bonus;
+                    userData.total_earned += result.bonus;
+                    userData.daily_streak = result.streak;
+                    updateUI();
+                    playSound('earn');
+                    
+                    // Update button text for next day
+                    const nextBonus = 0.05 + Math.min(result.streak * 0.02, 0.15);
+                    document.getElementById('dailyBonusAmount').innerText = `+₹${nextBonus.toFixed(2)}`;
+                } else {
+                    showToast('❌ ' + (result.message || 'Already claimed today'));
+                    // Re-enable after 24 hours? We'll let backend handle it
+                }
+            } catch (error) {
+                showToast('❌ Error claiming bonus');
+            }
+            
+            // Re-enable after 1 second (actual check is on backend)
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }, 1000);
+        }
+
         // ========== UPDATE UI ==========
         function updateUI() {
-            // Update balance
             document.getElementById('balanceAmount').innerText = `₹${userData.balance.toFixed(2)}`;
             document.getElementById('withdrawBalance').innerText = `₹${userData.balance.toFixed(2)}`;
             
-            // Update progress
             const progress = Math.min(userData.balance, 50);
             const progressPercent = (progress / 50) * 100;
             document.getElementById('progressFill').style.width = `${progressPercent}%`;
             document.getElementById('currentProgress').innerText = `₹${progress.toFixed(2)}`;
             
-            // Update offers left
             const offersLeft = Math.max(0, 6 - Math.floor(userData.balance / 2));
             document.getElementById('offersLeft').innerText = offersLeft;
             
-            // Update referral link
-            if (userData.user_id) {
-                document.getElementById('refLink').innerText = `https://t.me/yourbot?start=ref_${userData.user_id}`;
-            }
+            // FIXED: Correct referral link format with bot username
+            const botUsername = 'LinkProviderRobot'; // This should come from config
+            document.getElementById('refLink').innerText = `https://t.me/${botUsername}?start=ref_${userData.user_id}`;
             
-            // Update profile
             document.getElementById('profileName').innerText = userData.first_name;
             document.getElementById('profileAvatar').innerText = userData.first_name.charAt(0).toUpperCase();
             document.getElementById('profileBalance').innerText = `₹${userData.balance.toFixed(2)}`;
@@ -1136,7 +1185,6 @@
             document.getElementById('profilePendingRefs').innerText = userData.pending_refs;
             document.getElementById('profileStreak').innerText = userData.daily_streak;
             
-            // Update tier
             const tierNames = ['🥉 BASIC', '🥈 SILVER', '🥇 GOLD', '💎 DIAMOND'];
             document.getElementById('profileTier').innerText = tierNames[userData.tier - 1] || '🥉 BASIC';
         }
@@ -1150,16 +1198,16 @@
             closeAllModals();
             
             switch(index) {
-                case 0: // Home
+                case 0:
                     break;
-                case 1: // Leaderboard
+                case 1:
                     openModal('leaderboard');
                     loadLeaderboard();
                     break;
-                case 2: // Profile
+                case 2:
                     openModal('profile');
                     break;
-                case 3: // History
+                case 3:
                     openModal('history');
                     loadWithdrawalHistory();
                     break;
@@ -1197,7 +1245,6 @@
                 }
                 currentTheme = 'dark';
                 
-                // Save to database
                 if (userData.user_id) {
                     fetch('/api/update-setting', {
                         method: 'POST',
@@ -1218,7 +1265,6 @@
                 }
                 currentTheme = 'light';
                 
-                // Save to database
                 if (userData.user_id) {
                     fetch('/api/update-setting', {
                         method: 'POST',
@@ -1249,7 +1295,6 @@
             
             if (soundEnabled) playSound('tap');
             
-            // Save to database
             if (userData.user_id) {
                 fetch('/api/update-setting', {
                     method: 'POST',
@@ -1276,7 +1321,6 @@
                 notifyKnob.style.right = 'auto';
             }
             
-            // Save to database
             if (userData.user_id) {
                 fetch('/api/update-setting', {
                     method: 'POST',
@@ -1340,11 +1384,9 @@
             
             playSound('tap');
             
-            // Find ad
             const ad = ads.find(a => a.id === adId);
             if (!ad) return;
             
-            // Admin edit mode - double click to edit
             if (adminEditMode) {
                 currentEditingAd = ad;
                 document.getElementById('editAdTitle').value = ad.title;
@@ -1357,12 +1399,10 @@
             
             showToast('⏱️ Processing... Please wait 3 seconds');
             
-            // Open link
             window.open(ad.link, '_blank');
             
             setTimeout(async () => {
                 try {
-                    // Send to backend to add balance
                     const response = await fetch('/api/claim-ad', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
@@ -1383,7 +1423,6 @@
                         showToast(`✅ +₹${ad.reward} added to balance!`);
                         playSound('earn');
                         
-                        // Reload user data
                         loadUserData();
                     } else {
                         showToast('❌ ' + result.message);
@@ -1420,14 +1459,12 @@
                 return;
             }
             
-            // Update ad
             if (currentEditingAd) {
                 currentEditingAd.title = title;
                 currentEditingAd.reward = reward;
                 currentEditingAd.link = link;
                 currentEditingAd.meta = meta;
                 
-                // Save to database
                 fetch('/api/update-ad', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -1436,7 +1473,8 @@
                         title: title,
                         reward: reward,
                         link: link,
-                        meta: meta
+                        meta: meta,
+                        admin_id: userData.user_id
                     })
                 }).then(() => {
                     renderAds();
@@ -1530,7 +1568,6 @@
                     updateUI();
                     closeModal('withdraw');
                     
-                    // Reload user data and history
                     loadUserData();
                     loadWithdrawalHistory();
                 } else {
@@ -1563,12 +1600,10 @@
 
         // ========== AUTO REFRESH ==========
         function startAutoRefresh() {
-            // Refresh user data every 30 seconds
             setInterval(() => {
                 loadUserData();
             }, 30000);
             
-            // Refresh live activity every 15 seconds
             setInterval(() => {
                 loadLiveActivity();
             }, 15000);
@@ -1581,7 +1616,6 @@
             loadLiveActivity();
             startAutoRefresh();
             
-            // Load saved settings
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme === 'dark') {
                 toggleTheme();
@@ -1594,7 +1628,6 @@
             }
         });
 
-        // Add success sound
         window.playSound = playSound;
     </script>
 </body>
