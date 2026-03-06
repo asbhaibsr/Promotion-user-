@@ -1,4 +1,4 @@
-# ===== admin.py (COMPLETE WITH ALL FEATURES) =====
+# ===== admin.py (COMPLETE FIXED VERSION) =====
 
 import logging
 import asyncio
@@ -32,9 +32,14 @@ class AdminHandlers:
         pending_withdrawals = self.db.withdrawals.count_documents({'status': 'pending'})
         active_today = self.db.daily_searches.count_documents({'date': datetime.now().date().isoformat()})
         total_searches = self.db.search_logs.count_documents({})
-        total_balance = self.db.users.aggregate([
-            {'$group': {'_id': None, 'total': {'$sum': '$balance'}}}
-        ]).next().get('total', 0) if self.db.users.count_documents({}) > 0 else 0
+        
+        # Calculate total balance
+        total_balance = 0
+        if self.db.users.count_documents({}) > 0:
+            result = self.db.users.aggregate([
+                {'$group': {'_id': None, 'total': {'$sum': '$balance'}}}
+            ]).next()
+            total_balance = result.get('total', 0) if result else 0
         
         # Create main menu keyboard
         keyboard = [
@@ -117,62 +122,102 @@ class AdminHandlers:
             
         # ===== USER SPECIFIC ACTIONS =====
         elif data.startswith("user_stats_"):
-            target_id = int(data.replace("user_stats_", ""))
-            await self.show_user_stats(query, context, target_id)
+            try:
+                target_id = int(data.replace("user_stats_", ""))
+                await self.show_user_stats(query, context, target_id)
+            except Exception as e:
+                logger.error(f"Error parsing user_stats callback: {e}")
+                await query.edit_message_text(
+                    "❌ Error loading user details",
+                    reply_markup=InlineKeyboardMarkup([[
+                        InlineKeyboardButton("◀️ BACK", callback_data="admin_user_stats")
+                    ]])
+                )
         
-        # NEW: Money action button
+        # Money action button
         elif data.startswith("money_action_"):
-            target_id = int(data.replace("money_action_", ""))
-            await self.money_action_prompt(query, context, target_id)
+            try:
+                target_id = int(data.replace("money_action_", ""))
+                await self.money_action_prompt(query, context, target_id)
+            except Exception as e:
+                logger.error(f"Error parsing money_action callback: {e}")
         
-        # NEW: Clear data options
+        # Clear data options
         elif data.startswith("clear_data_"):
-            target_id = int(data.replace("clear_data_", ""))
-            await self.clear_data_options(query, context, target_id)
+            try:
+                target_id = int(data.replace("clear_data_", ""))
+                await self.clear_data_options(query, context, target_id)
+            except Exception as e:
+                logger.error(f"Error parsing clear_data callback: {e}")
         
-        # NEW: Confirm clear actions
+        # Confirm clear actions
         elif data == "clear_all_data":
             target_id = context.user_data.get('clearing_user')
             if target_id:
                 context.user_data['clear_type'] = 'all'
                 await self.confirm_clear_data(query, context, target_id)
+            else:
+                await query.edit_message_text("❌ Session expired")
         
         elif data == "clear_earnings_only":
             target_id = context.user_data.get('clearing_user')
             if target_id:
                 context.user_data['clear_type'] = 'earning'
                 await self.confirm_clear_data(query, context, target_id)
+            else:
+                await query.edit_message_text("❌ Session expired")
         
-        # NEW: Final confirmation
+        # Final confirmation
         elif data.startswith("confirm_clear_"):
-            target_id = int(data.replace("confirm_clear_", ""))
-            clear_type = context.user_data.get('clear_type', 'all')
-            await self.clear_user_data(query, context, target_id, clear_type)
+            try:
+                target_id = int(data.replace("confirm_clear_", ""))
+                clear_type = context.user_data.get('clear_type', 'all')
+                await self.clear_user_data(query, context, target_id, clear_type)
+            except Exception as e:
+                logger.error(f"Error parsing confirm_clear callback: {e}")
         
         elif data.startswith("cancel_clear_"):
-            target_id = int(data.replace("cancel_clear_", ""))
-            await self.show_user_stats(query, context, target_id)
+            try:
+                target_id = int(data.replace("cancel_clear_", ""))
+                await self.show_user_stats(query, context, target_id)
+            except Exception as e:
+                logger.error(f"Error parsing cancel_clear callback: {e}")
         
-        # Existing user actions
+        # User management actions
         elif data.startswith("flag_user_"):
-            target_id = int(data.replace("flag_user_", ""))
-            await self.flag_user(query, context, target_id)
+            try:
+                target_id = int(data.replace("flag_user_", ""))
+                await self.flag_user(query, context, target_id)
+            except Exception as e:
+                logger.error(f"Error parsing flag_user callback: {e}")
             
         elif data.startswith("unflag_user_"):
-            target_id = int(data.replace("unflag_user_", ""))
-            await self.unflag_user(query, context, target_id)
+            try:
+                target_id = int(data.replace("unflag_user_", ""))
+                await self.unflag_user(query, context, target_id)
+            except Exception as e:
+                logger.error(f"Error parsing unflag_user callback: {e}")
             
         elif data.startswith("block_withdraw_"):
-            target_id = int(data.replace("block_withdraw_", ""))
-            await self.block_withdrawals(query, context, target_id)
+            try:
+                target_id = int(data.replace("block_withdraw_", ""))
+                await self.block_withdrawals(query, context, target_id)
+            except Exception as e:
+                logger.error(f"Error parsing block_withdraw callback: {e}")
             
         elif data.startswith("unblock_withdraw_"):
-            target_id = int(data.replace("unblock_withdraw_", ""))
-            await self.unblock_withdrawals(query, context, target_id)
+            try:
+                target_id = int(data.replace("unblock_withdraw_", ""))
+                await self.unblock_withdrawals(query, context, target_id)
+            except Exception as e:
+                logger.error(f"Error parsing unblock_withdraw callback: {e}")
             
         elif data.startswith("user_history_"):
-            target_id = int(data.replace("user_history_", ""))
-            await self.show_user_full_history(query, context, target_id)
+            try:
+                target_id = int(data.replace("user_history_", ""))
+                await self.show_user_full_history(query, context, target_id)
+            except Exception as e:
+                logger.error(f"Error parsing user_history callback: {e}")
             
         # ===== WITHDRAWAL ACTIONS =====
         elif data.startswith("approve_"):
@@ -219,18 +264,29 @@ class AdminHandlers:
         # Get comprehensive stats
         total_users = self.db.users.count_documents({})
         active_today = self.db.daily_searches.count_documents({'date': datetime.now().date().isoformat()})
+        
+        # Active this week
+        week_ago = (datetime.now() - timedelta(days=7)).date().isoformat()
         active_week = self.db.daily_searches.distinct('user_id', {
-            'date': {'$gte': (datetime.now() - timedelta(days=7)).date().isoformat()}
+            'date': {'$gte': week_ago}
         })
         
-        total_balance = self.db.users.aggregate([
-            {'$group': {'_id': None, 'total': {'$sum': '$balance'}}}
-        ]).next().get('total', 0) if self.db.users.count_documents({}) > 0 else 0
+        # Total balance
+        total_balance = 0
+        if self.db.users.count_documents({}) > 0:
+            result = self.db.users.aggregate([
+                {'$group': {'_id': None, 'total': {'$sum': '$balance'}}}
+            ]).next()
+            total_balance = result.get('total', 0) if result else 0
         
-        total_withdrawn = self.db.withdrawals.aggregate([
-            {'$match': {'status': 'completed'}},
-            {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
-        ]).next().get('total', 0) if self.db.withdrawals.count_documents({'status': 'completed'}) > 0 else 0
+        # Total withdrawn
+        total_withdrawn = 0
+        if self.db.withdrawals.count_documents({'status': 'completed'}) > 0:
+            result = self.db.withdrawals.aggregate([
+                {'$match': {'status': 'completed'}},
+                {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
+            ]).next()
+            total_withdrawn = result.get('total', 0) if result else 0
         
         text = (
             "📊 **Detailed Statistics**\n\n"
@@ -295,7 +351,7 @@ class AdminHandlers:
         context.user_data['admin_action'] = 'search_user'
         
         keyboard = [[InlineKeyboardButton("◀️ BACK", callback_data="admin_user_stats")]]
-        reply_markup =InlineKeyboardMarkup(keyboard)
+        reply_markup = InlineKeyboardMarkup(keyboard)
         
         await query.edit_message_text(
             "🔍 **Search User**\n\n"
@@ -489,7 +545,74 @@ class AdminHandlers:
             parse_mode=ParseMode.MARKDOWN
         )
     
-    # ========== NEW: PROCESS MONEY ACTION ==========
+    # ========== USER MANAGEMENT FUNCTIONS ==========
+    
+    async def flag_user(self, query, context, target_id):
+        """Flag user for suspicious activity"""
+        self.db.users.update_one(
+            {'user_id': target_id},
+            {'$set': {'suspicious_activity': True}}
+        )
+        self.db.user_cache.pop(f"user_{target_id}", None)
+        await query.answer("✅ User flagged")
+        await self.show_user_stats(query, context, target_id)
+    
+    async def unflag_user(self, query, context, target_id):
+        """Remove flag from user"""
+        self.db.users.update_one(
+            {'user_id': target_id},
+            {'$set': {'suspicious_activity': False}}
+        )
+        self.db.user_cache.pop(f"user_{target_id}", None)
+        await query.answer("✅ User unflagged")
+        await self.show_user_stats(query, context, target_id)
+    
+    async def block_withdrawals(self, query, context, target_id):
+        """Block user from withdrawing"""
+        self.db.users.update_one(
+            {'user_id': target_id},
+            {'$set': {'withdrawal_blocked': True}}
+        )
+        self.db.user_cache.pop(f"user_{target_id}", None)
+        await query.answer("🔴 Withdrawals blocked")
+        await self.show_user_stats(query, context, target_id)
+    
+    async def unblock_withdrawals(self, query, context, target_id):
+        """Unblock user withdrawals"""
+        self.db.users.update_one(
+            {'user_id': target_id},
+            {'$set': {'withdrawal_blocked': False}}
+        )
+        self.db.user_cache.pop(f"user_{target_id}", None)
+        await query.answer("🟢 Withdrawals unblocked")
+        await self.show_user_stats(query, context, target_id)
+    
+    async def show_user_full_history(self, query, context, target_id):
+        """Show complete user history"""
+        # Get all transactions
+        transactions = list(self.db.transactions.find(
+            {'user_id': target_id}
+        ).sort('timestamp', -1).limit(20))
+        
+        # Get all withdrawals
+        withdrawals = list(self.db.withdrawals.find(
+            {'user_id': target_id}
+        ).sort('request_date', -1).limit(20))
+        
+        text = f"📜 **Full History for User {target_id}**\n\n"
+        
+        text += "**Recent Transactions:**\n"
+        for t in transactions[:10]:
+            text += f"• {t['timestamp'][:10]}: {t['type']} - ₹{t['amount']}\n"
+        
+        text += "\n**All Withdrawals:**\n"
+        for w in withdrawals[:10]:
+            text += f"• {w['request_date'][:10]}: ₹{w['amount']} - {w['status']}\n"
+        
+        keyboard = [[InlineKeyboardButton("◀️ BACK", callback_data=f"user_stats_{target_id}")]]
+        await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
+    
+    # ========== PROCESS MONEY ACTION ==========
     
     async def process_money_action(self, update: Update, context: ContextTypes.DEFAULT_TYPE, target_id):
         """Process money addition/removal from message"""
@@ -592,7 +715,7 @@ class AdminHandlers:
             logger.error(f"Money action error: {e}")
             await update.message.reply_text(f"❌ Error: {str(e)}")
     
-    # ========== NEW: CLEAR USER DATA ==========
+    # ========== CLEAR USER DATA ==========
     
     async def clear_user_data(self, query, context, target_id, clear_type='all'):
         """Clear user data based on type"""
@@ -648,68 +771,62 @@ class AdminHandlers:
         context.user_data['clear_type'] = None
         context.user_data['clearing_user'] = None
     
-    # ===== USER MANAGEMENT FUNCTIONS =====
+    # ========== CLEAR DATA FROM MESSAGE ==========
     
-    async def flag_user(self, query, context, target_id):
-        """Flag user for suspicious activity"""
-        self.db.users.update_one(
-            {'user_id': target_id},
-            {'$set': {'suspicious_activity': True}}
-        )
-        await query.edit_message_text(f"⚠️ User {target_id} has been FLAGGED")
-        await self.show_user_stats(query, context, target_id)
-    
-    async def unflag_user(self, query, context, target_id):
-        """Remove flag from user"""
-        self.db.users.update_one(
-            {'user_id': target_id},
-            {'$set': {'suspicious_activity': False}}
-        )
-        await query.edit_message_text(f"✅ User {target_id} has been UNFLAGGED")
-        await self.show_user_stats(query, context, target_id)
-    
-    async def block_withdrawals(self, query, context, target_id):
-        """Block user from withdrawing"""
-        self.db.users.update_one(
-            {'user_id': target_id},
-            {'$set': {'withdrawal_blocked': True}}
-        )
-        await query.edit_message_text(f"🔴 User {target_id} withdrawals BLOCKED")
-        await self.show_user_stats(query, context, target_id)
-    
-    async def unblock_withdrawals(self, query, context, target_id):
-        """Unblock user withdrawals"""
-        self.db.users.update_one(
-            {'user_id': target_id},
-            {'$set': {'withdrawal_blocked': False}}
-        )
-        await query.edit_message_text(f"🟢 User {target_id} withdrawals UNBLOCKED")
-        await self.show_user_stats(query, context, target_id)
-    
-    async def show_user_full_history(self, query, context, target_id):
-        """Show complete user history"""
-        # Get all transactions
-        transactions = list(self.db.transactions.find(
-            {'user_id': target_id}
-        ).sort('timestamp', -1).limit(20))
+    async def clear_user_data_from_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE, target_id, clear_type):
+        """Clear user data when confirmed via message"""
+        try:
+            if clear_type == 'all':
+                # Delete ALL user data
+                self.db.users.delete_one({'user_id': target_id})
+                self.db.transactions.delete_many({'user_id': target_id})
+                self.db.withdrawals.delete_many({'user_id': target_id})
+                self.db.referrals.delete_many({'$or': [
+                    {'referrer_id': target_id},
+                    {'referred_id': target_id}
+                ]})
+                self.db.daily_searches.delete_many({'user_id': target_id})
+                self.db.search_logs.delete_many({'user_id': target_id})
+                
+                message = f"✅ **All data cleared** for user `{target_id}`"
+                
+            elif clear_type == 'earning':
+                # Clear ONLY earnings/balance
+                self.db.users.update_one(
+                    {'user_id': target_id},
+                    {'$set': {
+                        'balance': 0,
+                        'total_earned': 0
+                    }}
+                )
+                
+                # Delete transactions
+                self.db.transactions.delete_many({'user_id': target_id})
+                
+                message = f"✅ **Earnings cleared** for user `{target_id}`\nBalance reset to ₹0"
+            
+            # Clear cache
+            self.db.user_cache.pop(f"user_{target_id}", None)
+            
+            # Log event
+            self.db.log_system_event('user_data_cleared', f"User {target_id} - Type: {clear_type}")
+            
+            await update.message.reply_text(
+                message,
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=InlineKeyboardMarkup([[
+                    InlineKeyboardButton("◀️ BACK TO ADMIN", callback_data="admin_user_stats")
+                ]])
+            )
+            
+        except Exception as e:
+            logger.error(f"Clear data error: {e}")
+            await update.message.reply_text(f"❌ Error clearing data: {str(e)}")
         
-        # Get all withdrawals
-        withdrawals = list(self.db.withdrawals.find(
-            {'user_id': target_id}
-        ).sort('request_date', -1).limit(20))
-        
-        text = f"📜 **Full History for User {target_id}**\n\n"
-        
-        text += "**Recent Transactions:**\n"
-        for t in transactions[:10]:
-            text += f"• {t['timestamp'][:10]}: {t['type']} - ₹{t['amount']}\n"
-        
-        text += "\n**All Withdrawals:**\n"
-        for w in withdrawals[:10]:
-            text += f"• {w['request_date'][:10]}: ₹{w['amount']} - {w['status']}\n"
-        
-        keyboard = [[InlineKeyboardButton("◀️ BACK", callback_data=f"user_stats_{target_id}")]]
-        await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
+        # Clear action
+        context.user_data['admin_action'] = None
+        context.user_data['clear_type'] = None
+        context.user_data['clearing_user'] = None
     
     # ========== BROADCAST ==========
     
@@ -731,6 +848,68 @@ class AdminHandlers:
             reply_markup=reply_markup,
             parse_mode=ParseMode.MARKDOWN
         )
+    
+    # ========== PROCESS BROADCAST ==========
+    
+    async def process_broadcast(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Process broadcast message"""
+        message = update.message
+        users = list(self.db.users.find({}, {'user_id': 1}))
+        
+        sent = 0
+        failed = 0
+        
+        status_msg = await update.message.reply_text(f"📢 Broadcasting to {len(users)} users...")
+        
+        for user in users:
+            try:
+                if message.text:
+                    await context.bot.send_message(
+                        chat_id=user['user_id'],
+                        text=message.text
+                    )
+                elif message.photo:
+                    await context.bot.send_photo(
+                        chat_id=user['user_id'],
+                        photo=message.photo[-1].file_id,
+                        caption=message.caption
+                    )
+                sent += 1
+            except Exception as e:
+                failed += 1
+                logger.error(f"Broadcast failed: {e}")
+            
+            await asyncio.sleep(0.05)
+        
+        await status_msg.edit_text(f"✅ Broadcast: {sent} sent, {failed} failed")
+        context.user_data['admin_action'] = None
+        self.db.log_system_event('broadcast', f"Sent to {sent} users")
+    
+    # ========== PROCESS SEARCH USER ==========
+    
+    async def process_search_user(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Process user search"""
+        try:
+            target_id = int(update.message.text.strip())
+            user = self.db.get_user(target_id)
+            
+            if user:
+                # Create inline keyboard to view details
+                keyboard = [[InlineKeyboardButton("👤 VIEW DETAILS", callback_data=f"user_stats_{target_id}")]]
+                await update.message.reply_text(
+                    f"✅ User {target_id} found! Click below to view details.",
+                    reply_markup=InlineKeyboardMarkup(keyboard)
+                )
+            else:
+                await update.message.reply_text(f"❌ User {target_id} not found")
+                
+        except ValueError:
+            await update.message.reply_text("❌ Invalid user ID. Please enter a numeric ID.")
+        except Exception as e:
+            logger.error(f"Search user error: {e}")
+            await update.message.reply_text(f"❌ Error: {str(e)}")
+        
+        context.user_data['admin_action'] = None
     
     # ========== WITHDRAWALS ==========
     
@@ -1022,148 +1201,36 @@ class AdminHandlers:
         if action == 'broadcast':
             await self.process_broadcast(update, context)
         
-        # ===== NEW: Handle money actions =====
+        # Handle money actions
         elif action.startswith('money_'):
-            target_id = int(action.replace('money_', ''))
-            await self.process_money_action(update, context, target_id)
+            try:
+                target_id = int(action.replace('money_', ''))
+                await self.process_money_action(update, context, target_id)
+            except Exception as e:
+                logger.error(f"Money action error: {e}")
+                await update.message.reply_text("❌ Error processing money action")
         
-        # ===== NEW: Handle clear data confirmation via message =====
+        # Handle clear data confirmation via message
         elif action.startswith('confirm_clear_'):
-            target_id = int(action.replace('confirm_clear_', ''))
-            clear_text = update.message.text.strip().lower()
-            
-            if clear_text == 'all type':
-                await self.clear_user_data_from_message(update, context, target_id, 'all')
-            elif clear_text == 'earning':
-                await self.clear_user_data_from_message(update, context, target_id, 'earning')
-            else:
-                await update.message.reply_text(
-                    "❌ **Invalid Option**\n\nPlease type:\n• `all type` - Delete all data\n• `earning` - Clear only earnings",
-                    parse_mode=ParseMode.MARKDOWN,
-                    reply_markup=InlineKeyboardMarkup([[
-                        InlineKeyboardButton("◀️ BACK TO USER", callback_data=f"user_stats_{target_id}")
-                    ]])
-                )
+            try:
+                target_id = int(action.replace('confirm_clear_', ''))
+                clear_text = update.message.text.strip().lower()
+                
+                if clear_text == 'all type':
+                    await self.clear_user_data_from_message(update, context, target_id, 'all')
+                elif clear_text == 'earning':
+                    await self.clear_user_data_from_message(update, context, target_id, 'earning')
+                else:
+                    await update.message.reply_text(
+                        "❌ **Invalid Option**\n\nPlease type:\n• `all type` - Delete all data\n• `earning` - Clear only earnings",
+                        parse_mode=ParseMode.MARKDOWN,
+                        reply_markup=InlineKeyboardMarkup([[
+                            InlineKeyboardButton("◀️ BACK TO USER", callback_data=f"user_stats_{target_id}")
+                        ]])
+                    )
+            except Exception as e:
+                logger.error(f"Clear data error: {e}")
         
         # Handle search user
         elif action == 'search_user':
             await self.process_search_user(update, context)
-    
-    # ========== NEW: CLEAR DATA FROM MESSAGE ==========
-    
-    async def clear_user_data_from_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE, target_id, clear_type):
-        """Clear user data when confirmed via message"""
-        try:
-            if clear_type == 'all':
-                # Delete ALL user data
-                self.db.users.delete_one({'user_id': target_id})
-                self.db.transactions.delete_many({'user_id': target_id})
-                self.db.withdrawals.delete_many({'user_id': target_id})
-                self.db.referrals.delete_many({'$or': [
-                    {'referrer_id': target_id},
-                    {'referred_id': target_id}
-                ]})
-                self.db.daily_searches.delete_many({'user_id': target_id})
-                self.db.search_logs.delete_many({'user_id': target_id})
-                
-                message = f"✅ **All data cleared** for user `{target_id}`"
-                
-            elif clear_type == 'earning':
-                # Clear ONLY earnings/balance
-                self.db.users.update_one(
-                    {'user_id': target_id},
-                    {'$set': {
-                        'balance': 0,
-                        'total_earned': 0
-                    }}
-                )
-                
-                # Delete transactions
-                self.db.transactions.delete_many({'user_id': target_id})
-                
-                message = f"✅ **Earnings cleared** for user `{target_id}`\nBalance reset to ₹0"
-            
-            # Clear cache
-            self.db.user_cache.pop(f"user_{target_id}", None)
-            
-            # Log event
-            self.db.log_system_event('user_data_cleared', f"User {target_id} - Type: {clear_type}")
-            
-            await update.message.reply_text(
-                message,
-                parse_mode=ParseMode.MARKDOWN,
-                reply_markup=InlineKeyboardMarkup([[
-                    InlineKeyboardButton("◀️ BACK TO ADMIN", callback_data="admin_user_stats")
-                ]])
-            )
-            
-        except Exception as e:
-            logger.error(f"Clear data error: {e}")
-            await update.message.reply_text(f"❌ Error clearing data: {str(e)}")
-        
-        # Clear action
-        context.user_data['admin_action'] = None
-        context.user_data['clear_type'] = None
-        context.user_data['clearing_user'] = None
-    
-    # ========== PROCESS BROADCAST ==========
-    
-    async def process_broadcast(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Process broadcast message"""
-        message = update.message
-        users = list(self.db.users.find({}, {'user_id': 1}))
-        
-        sent = 0
-        failed = 0
-        
-        status_msg = await update.message.reply_text(f"📢 Broadcasting to {len(users)} users...")
-        
-        for user in users:
-            try:
-                if message.text:
-                    await context.bot.send_message(
-                        chat_id=user['user_id'],
-                        text=message.text
-                    )
-                elif message.photo:
-                    await context.bot.send_photo(
-                        chat_id=user['user_id'],
-                        photo=message.photo[-1].file_id,
-                        caption=message.caption
-                    )
-                sent += 1
-            except Exception as e:
-                failed += 1
-                logger.error(f"Broadcast failed: {e}")
-            
-            await asyncio.sleep(0.05)
-        
-        await status_msg.edit_text(f"✅ Broadcast: {sent} sent, {failed} failed")
-        context.user_data['admin_action'] = None
-        self.db.log_system_event('broadcast', f"Sent to {sent} users")
-    
-    # ========== PROCESS SEARCH USER ==========
-    
-    async def process_search_user(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Process user search"""
-        try:
-            target_id = int(update.message.text.strip())
-            user = self.db.get_user(target_id)
-            
-            if user:
-                # Create inline keyboard to view details
-                keyboard = [[InlineKeyboardButton("👤 VIEW DETAILS", callback_data=f"user_stats_{target_id}")]]
-                await update.message.reply_text(
-                    f"✅ User {target_id} found! Click below to view details.",
-                    reply_markup=InlineKeyboardMarkup(keyboard)
-                )
-            else:
-                await update.message.reply_text(f"❌ User {target_id} not found")
-                
-        except ValueError:
-            await update.message.reply_text("❌ Invalid user ID. Please enter a numeric ID.")
-        except Exception as e:
-            logger.error(f"Search user error: {e}")
-            await update.message.reply_text(f"❌ Error: {str(e)}")
-        
-        context.user_data['admin_action'] = None
