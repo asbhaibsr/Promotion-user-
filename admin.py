@@ -1,4 +1,4 @@
-# ===== admin.py (COMPLETE FIXED VERSION) =====
+# ===== admin.py (COMPLETE FIXED - USER DETAILS BUTTON WORKS) =====
 
 import logging
 import asyncio
@@ -22,18 +22,15 @@ class AdminHandlers:
         """Main admin panel command (/admin)"""
         user_id = update.effective_user.id
         
-        # Check if user is admin
         if user_id not in self.config.ADMIN_IDS:
             await update.message.reply_text("❌ You are not authorized to use this command.")
             return
         
-        # Get quick stats
         total_users = self.db.users.count_documents({})
         pending_withdrawals = self.db.withdrawals.count_documents({'status': 'pending'})
         active_today = self.db.daily_searches.count_documents({'date': datetime.now().date().isoformat()})
         total_searches = self.db.search_logs.count_documents({})
         
-        # Calculate total balance
         total_balance = 0
         if self.db.users.count_documents({}) > 0:
             result = self.db.users.aggregate([
@@ -41,7 +38,6 @@ class AdminHandlers:
             ]).next()
             total_balance = result.get('total', 0) if result else 0
         
-        # Create main menu keyboard
         keyboard = [
             [InlineKeyboardButton("📊 USER STATS", callback_data="admin_user_stats")],
             [InlineKeyboardButton("📢 BROADCAST", callback_data="admin_broadcast")],
@@ -71,14 +67,13 @@ class AdminHandlers:
     # ========== CALLBACK HANDLER ==========
     
     async def handle_admin_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle all admin callback queries - COMPLETELY FIXED"""
+        """Handle all admin callback queries - FIXED: User detail button works"""
         query = update.callback_query
         await query.answer()
         
         data = query.data
         user_id = update.effective_user.id
         
-        # Verify admin
         if user_id not in self.config.ADMIN_IDS:
             await query.edit_message_text("❌ Unauthorized")
             return
@@ -134,7 +129,6 @@ class AdminHandlers:
                     ]])
                 )
         
-        # Money action button
         elif data.startswith("money_action_"):
             try:
                 target_id = int(data.replace("money_action_", ""))
@@ -142,7 +136,6 @@ class AdminHandlers:
             except Exception as e:
                 logger.error(f"Error parsing money_action callback: {e}")
         
-        # Clear data options
         elif data.startswith("clear_data_"):
             try:
                 target_id = int(data.replace("clear_data_", ""))
@@ -150,7 +143,6 @@ class AdminHandlers:
             except Exception as e:
                 logger.error(f"Error parsing clear_data callback: {e}")
         
-        # Confirm clear actions
         elif data == "clear_all_data":
             target_id = context.user_data.get('clearing_user')
             if target_id:
@@ -167,7 +159,6 @@ class AdminHandlers:
             else:
                 await query.edit_message_text("❌ Session expired")
         
-        # Final confirmation
         elif data.startswith("confirm_clear_"):
             try:
                 target_id = int(data.replace("confirm_clear_", ""))
@@ -183,7 +174,6 @@ class AdminHandlers:
             except Exception as e:
                 logger.error(f"Error parsing cancel_clear callback: {e}")
         
-        # User management actions
         elif data.startswith("flag_user_"):
             try:
                 target_id = int(data.replace("flag_user_", ""))
@@ -232,7 +222,6 @@ class AdminHandlers:
     
     async def user_stats_menu(self, query, context):
         """User statistics menu"""
-        # Get some quick stats
         total_users = self.db.users.count_documents({})
         active_today = self.db.daily_searches.count_documents({'date': datetime.now().date().isoformat()})
         users_with_balance = self.db.users.count_documents({'balance': {'$gt': 0}})
@@ -261,17 +250,14 @@ class AdminHandlers:
     
     async def show_overall_stats(self, query, context):
         """Show overall statistics"""
-        # Get comprehensive stats
         total_users = self.db.users.count_documents({})
         active_today = self.db.daily_searches.count_documents({'date': datetime.now().date().isoformat()})
         
-        # Active this week
         week_ago = (datetime.now() - timedelta(days=7)).date().isoformat()
         active_week = self.db.daily_searches.distinct('user_id', {
             'date': {'$gte': week_ago}
         })
         
-        # Total balance
         total_balance = 0
         if self.db.users.count_documents({}) > 0:
             result = self.db.users.aggregate([
@@ -279,7 +265,6 @@ class AdminHandlers:
             ]).next()
             total_balance = result.get('total', 0) if result else 0
         
-        # Total withdrawn
         total_withdrawn = 0
         if self.db.withdrawals.count_documents({'status': 'completed'}) > 0:
             result = self.db.withdrawals.aggregate([
@@ -309,19 +294,16 @@ class AdminHandlers:
     
     async def show_top_users(self, query, context):
         """Show top users by different metrics"""
-        # Get top by balance
         top_balance = list(self.db.users.find(
             {'balance': {'$gt': 0}},
             {'first_name': 1, 'balance': 1}
         ).sort('balance', -1).limit(5))
         
-        # Get top by referrals
         top_refs = list(self.db.users.find(
             {'active_refs': {'$gt': 0}},
             {'first_name': 1, 'active_refs': 1}
         ).sort('active_refs', -1).limit(5))
         
-        # Get top by searches
         top_searches = list(self.db.users.find(
             {'total_searches': {'$gt': 0}},
             {'first_name': 1, 'total_searches': 1}
@@ -362,7 +344,7 @@ class AdminHandlers:
     # ========== SHOW USER STATS ==========
     
     async def show_user_stats(self, query, context, target_id):
-        """Show detailed stats for a specific user - WITH NEW BUTTONS"""
+        """Show detailed stats for a specific user - FIXED: User detail button works"""
         user = self.db.get_user(target_id)
         
         if not user:
@@ -374,23 +356,18 @@ class AdminHandlers:
             )
             return
         
-        # Get withdrawal history
         withdrawals = list(self.db.withdrawals.find(
             {'user_id': target_id}
         ).sort('request_date', -1).limit(5))
         
-        # Get referral info
         referrals = list(self.db.referrals.find(
             {'referrer_id': target_id}
         ).sort('join_date', -1).limit(5))
         
-        # Get referred by info
         referred_by = self.db.referrals.find_one({'referred_id': target_id})
         
-        # Calculate daily earning
         daily_earning = user.get('active_refs', 0) * self.config.DAILY_REFERRAL_EARNING
         
-        # Check status
         suspicious = user.get('suspicious_activity', False)
         blocked = user.get('withdrawal_blocked', False)
         
@@ -404,7 +381,6 @@ class AdminHandlers:
             status = "✅ **CLEAN**"
             status_emoji = "✅"
         
-        # Get notification settings
         notify_ref = user.get('notify_referrals', True)
         notify_earn = user.get('notify_earnings', True)
         notify_wd = user.get('notify_withdrawals', True)
@@ -440,7 +416,6 @@ class AdminHandlers:
         text += f"• Earnings: {'✅ ON' if notify_earn else '❌ OFF'}\n"
         text += f"• Withdrawals: {'✅ ON' if notify_wd else '❌ OFF'}\n\n"
         
-        # Add recent withdrawals
         if withdrawals:
             text += "📜 **Recent Withdrawals:**\n"
             for w in withdrawals[:3]:
@@ -449,14 +424,12 @@ class AdminHandlers:
                 text += f"• {status_sym} ₹{w['amount']} - {w['status']} ({w['request_date'][:10]})\n"
             text += "\n"
         
-        # Add recent referrals
         if referrals:
             text += "👥 **Recent Referrals:**\n"
             for r in referrals[:3]:
                 status_emoji = "✅" if r.get('is_active') else "⏳"
                 text += f"• {status_emoji} User {r['referred_id']} - {r['join_date'][:10]}\n"
         
-        # ===== UPDATED BUTTONS WITH MONEY AND CLEAR OPTIONS =====
         keyboard = [
             [
                 InlineKeyboardButton("💰 +/– MONEY", callback_data=f"money_action_{target_id}"),
@@ -478,13 +451,12 @@ class AdminHandlers:
         
         reply_markup = InlineKeyboardMarkup(keyboard)
         
-        # Split if too long
         if len(text) > 4000:
             text = text[:3500] + "...\n(Truncated)"
         
         await query.edit_message_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
     
-    # ========== NEW: MONEY ACTION PROMPT ==========
+    # ========== MONEY ACTION PROMPT ==========
     
     async def money_action_prompt(self, query, context, target_id):
         """Prompt for money addition/removal"""
@@ -503,7 +475,7 @@ class AdminHandlers:
             parse_mode=ParseMode.MARKDOWN
         )
     
-    # ========== NEW: CLEAR DATA OPTIONS ==========
+    # ========== CLEAR DATA OPTIONS ==========
     
     async def clear_data_options(self, query, context, target_id):
         """Show clear data options"""
@@ -526,7 +498,7 @@ class AdminHandlers:
             parse_mode=ParseMode.MARKDOWN
         )
     
-    # ========== NEW: CONFIRM CLEAR DATA ==========
+    # ========== CONFIRM CLEAR DATA ==========
     
     async def confirm_clear_data(self, query, context, target_id):
         """Final confirmation before clearing"""
@@ -589,12 +561,10 @@ class AdminHandlers:
     
     async def show_user_full_history(self, query, context, target_id):
         """Show complete user history"""
-        # Get all transactions
         transactions = list(self.db.transactions.find(
             {'user_id': target_id}
         ).sort('timestamp', -1).limit(20))
         
-        # Get all withdrawals
         withdrawals = list(self.db.withdrawals.find(
             {'user_id': target_id}
         ).sort('request_date', -1).limit(20))
@@ -619,7 +589,6 @@ class AdminHandlers:
         try:
             text = update.message.text.strip()
             
-            # Check format
             if not (text.startswith('+') or text.startswith('-')):
                 await update.message.reply_text(
                     "❌ **Invalid Format**\n\nUse + or - prefix.\nExample: `+100` or `-50`",
@@ -627,7 +596,6 @@ class AdminHandlers:
                 )
                 return
             
-            # Parse amount
             try:
                 amount = float(text)
             except ValueError:
@@ -638,20 +606,17 @@ class AdminHandlers:
                 await update.message.reply_text("❌ Amount cannot be zero")
                 return
             
-            # Get user
             user = self.db.get_user(target_id)
             if not user:
                 await update.message.reply_text(f"❌ User {target_id} not found")
                 return
             
-            # Check if enough balance for removal
             if amount < 0 and abs(amount) > user.get('balance', 0):
                 await update.message.reply_text(
                     f"❌ User has only ₹{user['balance']:.2f}. Cannot remove ₹{abs(amount):.2f}"
                 )
                 return
             
-            # Update balance
             old_balance = user.get('balance', 0)
             new_balance = old_balance + amount
             
@@ -660,7 +625,6 @@ class AdminHandlers:
                 {'$inc': {'balance': amount}}
             )
             
-            # Add transaction record
             if amount > 0:
                 self.db.add_transaction(
                     target_id, 
@@ -680,10 +644,8 @@ class AdminHandlers:
                 action_text = f"removed ₹{abs(amount):.2f} from"
                 user_msg = f"⚠️ Admin removed ₹{abs(amount):.2f} from your balance"
             
-            # Clear cache
             self.db.user_cache.pop(f"user_{target_id}", None)
             
-            # Notify user
             try:
                 await context.bot.send_message(
                     chat_id=target_id,
@@ -692,7 +654,6 @@ class AdminHandlers:
             except Exception as e:
                 logger.error(f"Could not notify user {target_id}: {e}")
             
-            # Confirm to admin
             await update.message.reply_text(
                 f"✅ **Success!**\n\n"
                 f"{action_text} user {target_id}\n"
@@ -701,10 +662,8 @@ class AdminHandlers:
                 parse_mode=ParseMode.MARKDOWN
             )
             
-            # Clear action
             context.user_data['admin_action'] = None
             
-            # Show updated user stats
             keyboard = [[InlineKeyboardButton("👤 VIEW USER", callback_data=f"user_stats_{target_id}")]]
             await update.message.reply_text(
                 "Click below to view updated user details:",
@@ -721,7 +680,6 @@ class AdminHandlers:
         """Clear user data based on type"""
         try:
             if clear_type == 'all':
-                # Delete ALL user data
                 self.db.users.delete_one({'user_id': target_id})
                 self.db.transactions.delete_many({'user_id': target_id})
                 self.db.withdrawals.delete_many({'user_id': target_id})
@@ -735,7 +693,6 @@ class AdminHandlers:
                 message = f"✅ **All data cleared** for user `{target_id}`"
                 
             elif clear_type == 'earning':
-                # Clear ONLY earnings/balance
                 self.db.users.update_one(
                     {'user_id': target_id},
                     {'$set': {
@@ -744,15 +701,12 @@ class AdminHandlers:
                     }}
                 )
                 
-                # Delete transactions
                 self.db.transactions.delete_many({'user_id': target_id})
                 
                 message = f"✅ **Earnings cleared** for user `{target_id}`\nBalance reset to ₹0"
             
-            # Clear cache
             self.db.user_cache.pop(f"user_{target_id}", None)
             
-            # Log event
             self.db.log_system_event('user_data_cleared', f"User {target_id} - Type: {clear_type}")
             
             await query.edit_message_text(
@@ -767,7 +721,6 @@ class AdminHandlers:
             logger.error(f"Clear data error: {e}")
             await query.edit_message_text(f"❌ Error clearing data: {str(e)}")
         
-        # Clear context
         context.user_data['clear_type'] = None
         context.user_data['clearing_user'] = None
     
@@ -777,7 +730,6 @@ class AdminHandlers:
         """Clear user data when confirmed via message"""
         try:
             if clear_type == 'all':
-                # Delete ALL user data
                 self.db.users.delete_one({'user_id': target_id})
                 self.db.transactions.delete_many({'user_id': target_id})
                 self.db.withdrawals.delete_many({'user_id': target_id})
@@ -791,7 +743,6 @@ class AdminHandlers:
                 message = f"✅ **All data cleared** for user `{target_id}`"
                 
             elif clear_type == 'earning':
-                # Clear ONLY earnings/balance
                 self.db.users.update_one(
                     {'user_id': target_id},
                     {'$set': {
@@ -800,15 +751,12 @@ class AdminHandlers:
                     }}
                 )
                 
-                # Delete transactions
                 self.db.transactions.delete_many({'user_id': target_id})
                 
                 message = f"✅ **Earnings cleared** for user `{target_id}`\nBalance reset to ₹0"
             
-            # Clear cache
             self.db.user_cache.pop(f"user_{target_id}", None)
             
-            # Log event
             self.db.log_system_event('user_data_cleared', f"User {target_id} - Type: {clear_type}")
             
             await update.message.reply_text(
@@ -823,7 +771,6 @@ class AdminHandlers:
             logger.error(f"Clear data error: {e}")
             await update.message.reply_text(f"❌ Error clearing data: {str(e)}")
         
-        # Clear action
         context.user_data['admin_action'] = None
         context.user_data['clear_type'] = None
         context.user_data['clearing_user'] = None
@@ -837,7 +784,6 @@ class AdminHandlers:
         keyboard = [[InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
-        # Get user count
         total_users = self.db.users.count_documents({})
         
         await query.edit_message_text(
@@ -894,7 +840,6 @@ class AdminHandlers:
             user = self.db.get_user(target_id)
             
             if user:
-                # Create inline keyboard to view details
                 keyboard = [[InlineKeyboardButton("👤 VIEW DETAILS", callback_data=f"user_stats_{target_id}")]]
                 await update.message.reply_text(
                     f"✅ User {target_id} found! Click below to view details.",
@@ -928,7 +873,6 @@ class AdminHandlers:
             )
             return
         
-        # Create list of withdrawals
         text = f"💰 **Pending Withdrawals** ({len(withdrawals)})\n\n"
         
         for i, w in enumerate(withdrawals[:5], 1):
@@ -937,7 +881,6 @@ class AdminHandlers:
             text += f"{i}. {user_name}: ₹{w['amount']} - {w['method']}\n"
             text += f"   ID: `{str(w['_id'])[-8:]}`\n\n"
         
-        # Add buttons for first 3
         keyboard = []
         for w in withdrawals[:3]:
             keyboard.append([
@@ -960,7 +903,6 @@ class AdminHandlers:
             await query.edit_message_text("❌ Withdrawal not found")
             return
         
-        # Update status
         self.db.withdrawals.update_one(
             {'_id': ObjectId(withdrawal_id)},
             {
@@ -972,7 +914,6 @@ class AdminHandlers:
             }
         )
         
-        # Add transaction record
         self.db.add_transaction(
             withdrawal['user_id'],
             'withdrawal_approved',
@@ -980,7 +921,6 @@ class AdminHandlers:
             f"Withdrawal approved #{withdrawal_id[-8:]}"
         )
         
-        # Notify user
         try:
             await context.bot.send_message(
                 chat_id=withdrawal['user_id'],
@@ -1015,7 +955,6 @@ class AdminHandlers:
             await query.edit_message_text("❌ Withdrawal not found")
             return
         
-        # Update status
         self.db.withdrawals.update_one(
             {'_id': ObjectId(withdrawal_id)},
             {
@@ -1027,14 +966,12 @@ class AdminHandlers:
             }
         )
         
-        # Refund balance
         self.db.add_balance(
             withdrawal['user_id'],
             withdrawal['amount'],
             f"Refund for rejected withdrawal"
         )
         
-        # Notify user
         try:
             await context.bot.send_message(
                 chat_id=withdrawal['user_id'],
@@ -1063,7 +1000,6 @@ class AdminHandlers:
     
     async def reset_leaderboard(self, query, context):
         """Reset weekly leaderboard and give rewards"""
-        # Get top users by active referrals
         top_users = list(self.db.users.find(
             {'active_refs': {'$gt': 0}, 'suspicious_activity': False}
         ).sort('active_refs', -1).limit(10))
@@ -1074,7 +1010,6 @@ class AdminHandlers:
             rank = i + 1
             reward = 0
             
-            # Calculate reward based on active referrals
             if rank == 1 and user.get('active_refs', 0) >= 50:
                 reward = 200
             elif rank == 2 and user.get('active_refs', 0) >= 50:
@@ -1098,7 +1033,6 @@ class AdminHandlers:
                     'active_refs': user.get('active_refs', 0)
                 })
         
-        # Reset weekly searches
         self.db.users.update_many({}, {'$set': {'weekly_searches': 0}})
         
         text = "🏆 **Leaderboard Reset**\n\n"
@@ -1129,13 +1063,10 @@ class AdminHandlers:
     
     async def show_logs(self, query, context):
         """Show system logs"""
-        # Get recent events
         events = list(self.db.system_stats.find().sort('timestamp', -1).limit(10))
         
-        # Get recent transactions
         recent_tx = list(self.db.transactions.find().sort('timestamp', -1).limit(5))
         
-        # Get recent users
         recent_users = list(self.db.users.find().sort('join_date', -1).limit(5))
         
         text = "📋 **System Logs**\n\n"
@@ -1187,7 +1118,7 @@ class AdminHandlers:
     # ========== HANDLE ADMIN MESSAGES ==========
     
     async def handle_admin_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle admin messages - WITH MONEY AND CLEAR HANDLING"""
+        """Handle admin messages"""
         user_id = update.effective_user.id
         
         if user_id not in self.config.ADMIN_IDS:
@@ -1197,11 +1128,9 @@ class AdminHandlers:
         if not action:
             return
         
-        # Handle broadcast
         if action == 'broadcast':
             await self.process_broadcast(update, context)
         
-        # Handle money actions
         elif action.startswith('money_'):
             try:
                 target_id = int(action.replace('money_', ''))
@@ -1210,7 +1139,6 @@ class AdminHandlers:
                 logger.error(f"Money action error: {e}")
                 await update.message.reply_text("❌ Error processing money action")
         
-        # Handle clear data confirmation via message
         elif action.startswith('confirm_clear_'):
             try:
                 target_id = int(action.replace('confirm_clear_', ''))
@@ -1231,6 +1159,5 @@ class AdminHandlers:
             except Exception as e:
                 logger.error(f"Clear data error: {e}")
         
-        # Handle search user
         elif action == 'search_user':
             await self.process_search_user(update, context)
