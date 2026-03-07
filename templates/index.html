@@ -6,6 +6,7 @@
     <title>🎮 GameZone - Play & Earn</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        /* (SAME CSS AS BEFORE - No changes needed) */
         * {
             margin: 0;
             padding: 0;
@@ -1865,21 +1866,21 @@
         tg.expand();
         tg.ready();
 
-        // Bot username - FIXED
+        // Bot username
         const BOT_USERNAME = 'LinkProviderRobot';
         
-        // App State
+        // App State - Default values (will be replaced by API data)
         let userData = {
             user_id: null,
             first_name: 'Guest',
-            balance: 1250.50,
-            total_earned: 3450.75,
-            tier: 2,
-            total_refs: 12,
-            active_refs: 8,
-            pending_refs: 4,
-            daily_streak: 3,
-            today_earned: 45.50,
+            balance: 0,
+            total_earned: 0,
+            tier: 1,
+            total_refs: 0,
+            active_refs: 0,
+            pending_refs: 0,
+            daily_streak: 0,
+            today_earned: 0,
             is_admin: false,
             games_won: 0
         };
@@ -1890,25 +1891,19 @@
         let selectedMethod = null;
         
         // Daily Bonus
-        let claimedDates = JSON.parse(localStorage.getItem('claimedDates')) || [];
-        let userStreak = parseInt(localStorage.getItem('userStreak')) || 0;
-        let lastClaimDate = localStorage.getItem('lastClaimDate') || null;
+        let claimedDates = [];
+        let userStreak = 0;
+        let lastClaimDate = null;
         
         // Missions
         let missions = {
-            mission1: { progress: 7, completed: false, total: 10 },
-            mission2: { progress: 3, completed: false, total: 5 }
+            mission1: { progress: 0, completed: false, total: 10 },
+            mission2: { progress: 0, completed: false, total: 5 }
         };
 
-        // Admin Ads
-        let adminAds = JSON.parse(localStorage.getItem('adminAds')) || [
-            { id: 1, title: 'Install App', reward: 2.5, link: 'https://t.me/', meta: '⏱️ 2 min', icon: '📱' },
-            { id: 2, title: 'Watch Video', reward: 1.0, link: 'https://t.me/', meta: '⏱️ 30 sec', icon: '🎬' },
-            { id: 3, title: 'Telegram Channel', reward: 1.5, link: 'https://t.me/', meta: '⏱️ 1 min', icon: '📢' }
-        ];
-
-        // User Ads
-        let userAds = JSON.parse(localStorage.getItem('userAds')) || [];
+        // Ads
+        let adminAds = [];
+        let userAds = [];
 
         // Promotion daily limit
         let lastPromoDate = localStorage.getItem('lastPromoDate') || null;
@@ -1952,6 +1947,252 @@
         // Audio
         let audioCtx = null;
 
+        // ========== API CALLS ==========
+        async function loadUserData() {
+            const userId = tg.initDataUnsafe?.user?.id;
+            if (!userId) {
+                console.log('No Telegram user ID');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/user/${userId}`);
+                if (!response.ok) throw new Error('Failed to fetch user data');
+                
+                const data = await response.json();
+                if (data && !data.error) {
+                    userData = { ...userData, ...data };
+                    userData.user_id = userId;
+                    userData.first_name = tg.initDataUnsafe.user.first_name || userData.first_name;
+                    
+                    // Check if admin
+                    if (userData.is_admin) {
+                        document.getElementById('adminEditBtn').style.display = 'flex';
+                        document.getElementById('adminPromoBadge').style.display = 'inline-block';
+                    }
+                    
+                    updateUI();
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                showToast('⚠️ Could not load user data');
+            }
+        }
+
+        async function loadBonusDays() {
+            const userId = userData.user_id;
+            if (!userId) return;
+
+            try {
+                const response = await fetch(`/api/user/${userId}/bonus-days`);
+                if (!response.ok) throw new Error('Failed to load bonus days');
+                
+                const data = await response.json();
+                claimedDates = data.claimed_days || [];
+                
+                // Load streak from user data or local
+                userStreak = userData.daily_streak || 0;
+                checkBonusAvailability();
+            } catch (error) {
+                console.error('Error loading bonus days:', error);
+            }
+        }
+
+        async function loadMissions() {
+            const userId = userData.user_id;
+            if (!userId) return;
+
+            try {
+                const response = await fetch(`/api/user/${userId}/missions`);
+                if (!response.ok) throw new Error('Failed to load missions');
+                
+                const data = await response.json();
+                if (data.mission1) missions.mission1 = data.mission1;
+                if (data.mission2) missions.mission2 = data.mission2;
+                
+                updateMissionsUI();
+            } catch (error) {
+                console.error('Error loading missions:', error);
+            }
+        }
+
+        async function loadAds() {
+            try {
+                const response = await fetch('/api/ads');
+                if (!response.ok) throw new Error('Failed to load ads');
+                
+                const data = await response.json();
+                adminAds = data.ads || [];
+                renderAds();
+            } catch (error) {
+                console.error('Error loading ads:', error);
+                // Fallback to default ads
+                adminAds = [
+                    { id: 1, title: 'Install App', reward: 2.5, link: 'https://t.me/', meta: '⏱️ 2 min', icon: '📱' },
+                    { id: 2, title: 'Watch Video', reward: 1.0, link: 'https://t.me/', meta: '⏱️ 30 sec', icon: '🎬' },
+                    { id: 3, title: 'Telegram Channel', reward: 1.5, link: 'https://t.me/', meta: '⏱️ 1 min', icon: '📢' }
+                ];
+                renderAds();
+            }
+        }
+
+        async function loadLiveActivity() {
+            try {
+                const response = await fetch('/api/live-activity');
+                if (!response.ok) throw new Error('Failed to load live activity');
+                
+                const activities = await response.json();
+                updateTickerWithData(activities);
+            } catch (error) {
+                console.error('Error loading live activity:', error);
+                updateTickerWithData([]);
+            }
+        }
+
+        async function loadLeaderboardData() {
+            try {
+                const response = await fetch('/api/leaderboard');
+                if (!response.ok) throw new Error('Failed to load leaderboard');
+                
+                const leaders = await response.json();
+                renderLeaderboard(leaders);
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+                renderLeaderboard([]);
+            }
+        }
+
+        async function loadWithdrawalHistory() {
+            const userId = userData.user_id;
+            if (!userId) return;
+
+            try {
+                const response = await fetch(`/api/user/${userId}/withdrawals`);
+                if (!response.ok) throw new Error('Failed to load withdrawal history');
+                
+                const history = await response.json();
+                renderWithdrawalHistory(history);
+            } catch (error) {
+                console.error('Error loading withdrawal history:', error);
+                renderWithdrawalHistory([]);
+            }
+        }
+
+        // ========== API POST REQUESTS ==========
+        async function claimBonusAPI(date) {
+            const userId = userData.user_id;
+            if (!userId) return { success: false };
+
+            try {
+                const response = await fetch('/api/claim-day-bonus', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, date: date })
+                });
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error claiming bonus:', error);
+                return { success: false, message: 'Network error' };
+            }
+        }
+
+        async function updateMissionAPI(type, count = 1) {
+            const userId = userData.user_id;
+            if (!userId) return null;
+
+            try {
+                const response = await fetch('/api/update-mission', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, mission_type: type, count: count })
+                });
+                
+                const data = await response.json();
+                if (data.success && data.missions) {
+                    missions.mission1 = data.missions.mission1;
+                    missions.mission2 = data.missions.mission2;
+                    updateMissionsUI();
+                }
+                return data;
+            } catch (error) {
+                console.error('Error updating mission:', error);
+                return null;
+            }
+        }
+
+        async function claimMissionRewardAPI() {
+            const userId = userData.user_id;
+            if (!userId) return { success: false };
+
+            try {
+                const response = await fetch('/api/claim-mission-reward', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId })
+                });
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error claiming mission reward:', error);
+                return { success: false, message: 'Network error' };
+            }
+        }
+
+        async function claimAdAPI(adId, reward) {
+            const userId = userData.user_id;
+            if (!userId) return { success: false };
+
+            try {
+                const response = await fetch('/api/claim-ad', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, ad_id: adId, reward: reward })
+                });
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error claiming ad:', error);
+                return { success: false, message: 'Network error' };
+            }
+        }
+
+        async function sendSupportAPI(message) {
+            const userId = userData.user_id;
+            if (!userId) return { success: false };
+
+            try {
+                const response = await fetch('/api/support', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, message: message })
+                });
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error sending support message:', error);
+                return { success: false, message: 'Network error' };
+            }
+        }
+
+        async function processWithdrawalAPI(amount, method, details) {
+            const userId = userData.user_id;
+            if (!userId) return { success: false };
+
+            try {
+                const response = await fetch('/api/withdraw', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, amount: amount, method: method, details: details })
+                });
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error processing withdrawal:', error);
+                return { success: false, message: 'Network error' };
+            }
+        }
+
         // ========== HELPER FUNCTIONS ==========
         function saveGameState() {
             localStorage.setItem('gameState_' + TODAY, JSON.stringify(gameState));
@@ -1992,7 +2233,7 @@
             setTimeout(() => t.style.display = 'none', 2500);
         }
 
-        // ========== REFERRAL LINK - FIXED ==========
+        // ========== REFERRAL LINK ==========
         function getReferralLink() {
             const userId = tg.initDataUnsafe?.user?.id || userData.user_id || '123456';
             return `https://t.me/${BOT_USERNAME}?start=ref_${userId}`;
@@ -2026,7 +2267,7 @@
             playSound('tap');
         }
 
-        // ========== DAILY BONUS (GIFT POPUP) ==========
+        // ========== DAILY BONUS ==========
         function checkBonusAvailability() {
             const today = new Date().toISOString().split('T')[0];
             const isClaimed = claimedDates.includes(today);
@@ -2071,7 +2312,7 @@
             }
         }
 
-        function claimDailyBonus() {
+        async function claimDailyBonus() {
             const today = new Date().toISOString().split('T')[0];
             
             if (claimedDates.includes(today)) {
@@ -2082,62 +2323,43 @@
             
             playSound('tap');
             
-            const baseBonus = 0.05;
-            const streakBonus = Math.min(userStreak * 0.02, 0.15);
-            const bonusAmount = baseBonus + streakBonus;
+            const result = await claimBonusAPI(today);
             
-            userData.balance += bonusAmount;
-            userData.total_earned += bonusAmount;
-            userData.today_earned += bonusAmount;
-            
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            const yStr = yesterday.toISOString().split('T')[0];
-            
-            if (claimedDates.includes(yStr)) {
-                userStreak++;
+            if (result.success) {
+                const bonusAmount = result.bonus;
+                const newStreak = result.streak;
+                
+                userData.balance += bonusAmount;
+                userData.total_earned += bonusAmount;
+                userData.today_earned += bonusAmount;
+                userStreak = newStreak;
+                
+                claimedDates.push(today);
+                lastClaimDate = today;
+                
+                updateUI();
+                checkBonusAvailability();
+                await updateMissionAPI('bonus');
+                
+                showToast(`🎉 +₹${bonusAmount.toFixed(2)} claimed! Streak: ${userStreak}`);
+                playSound('earn');
+                
+                setTimeout(() => {
+                    closeBonusModal();
+                    showToast('🎊 Congratulations! Kal phir aana!');
+                }, 1000);
             } else {
-                userStreak = 1;
+                showToast('❌ ' + (result.message || 'Failed to claim bonus'));
             }
-            
-            claimedDates.push(today);
-            lastClaimDate = today;
-            
-            localStorage.setItem('claimedDates', JSON.stringify(claimedDates));
-            localStorage.setItem('userStreak', userStreak.toString());
-            localStorage.setItem('lastClaimDate', lastClaimDate);
-            
-            updateUI();
-            checkBonusAvailability();
-            updateMissionProgress('bonus');
-            
-            showToast(`🎉 +₹${bonusAmount.toFixed(2)} claimed! Streak: ${userStreak}`);
-            playSound('earn');
-            
-            // Show congratulations
-            setTimeout(() => {
-                closeBonusModal();
-                showToast('🎊 Congratulations! Kal phir aana!');
-            }, 1000);
         }
 
         // ========== MISSIONS ==========
-        function updateMissionProgress(type) {
-            if (type === 'bonus') {
-                missions.mission2.progress = Math.min(missions.mission2.progress + 1, missions.mission2.total);
-                if (missions.mission2.progress >= missions.mission2.total) {
-                    missions.mission2.completed = true;
-                }
-            }
-            updateMissionsUI();
-        }
-
         function updateMissionsUI() {
             document.getElementById('mission1Bar').style.width = `${(missions.mission1.progress / missions.mission1.total) * 100}%`;
-            document.getElementById('mission1Status').innerText = `${missions.mission1.progress}/10`;
+            document.getElementById('mission1Status').innerText = `${missions.mission1.progress}/${missions.mission1.total}`;
             
             document.getElementById('mission2Bar').style.width = `${(missions.mission2.progress / missions.mission2.total) * 100}%`;
-            document.getElementById('mission2Status').innerText = `${missions.mission2.progress}/5`;
+            document.getElementById('mission2Status').innerText = `${missions.mission2.progress}/${missions.mission2.total}`;
             
             let completed = (missions.mission1.completed ? 1 : 0) + (missions.mission2.completed ? 1 : 0);
             document.getElementById('completedMissions').innerText = completed;
@@ -2146,28 +2368,34 @@
             document.getElementById('claimMissionBtn').style.display = completed === 2 ? 'block' : 'none';
         }
 
-        function claimMissionReward() {
+        async function claimMissionReward() {
             if (!missions.mission1.completed || !missions.mission2.completed) {
                 showToast('❌ Complete both missions first!');
                 return;
             }
             
-            userData.balance += 5;
-            userData.total_earned += 5;
+            const result = await claimMissionRewardAPI();
             
-            missions = {
-                mission1: { progress: 0, completed: false, total: 10 },
-                mission2: { progress: 0, completed: false, total: 5 }
-            };
-            
-            updateUI();
-            updateMissionsUI();
-            closeModal('missions');
-            showToast('✅ ₹5 claimed!');
-            playSound('earn');
+            if (result.success) {
+                userData.balance += 5;
+                userData.total_earned += 5;
+                
+                missions = {
+                    mission1: { progress: 0, completed: false, total: 10 },
+                    mission2: { progress: 0, completed: false, total: 5 }
+                };
+                
+                updateUI();
+                updateMissionsUI();
+                closeModal('missions');
+                showToast('✅ ₹5 claimed!');
+                playSound('earn');
+            } else {
+                showToast('❌ ' + (result.message || 'Failed to claim reward'));
+            }
         }
 
-        // ========== ADS MANAGEMENT ==========
+        // ========== ADS ==========
         function renderAds() {
             let html = '';
             
@@ -2204,7 +2432,7 @@
             document.getElementById('adsContainer').innerHTML = html || '<div style="text-align:center;padding:20px;">No offers yet</div>';
         }
 
-        function handleAdClick(adId) {
+        async function handleAdClick(adId) {
             if (adminEditMode) return;
             
             playSound('tap');
@@ -2214,13 +2442,18 @@
             showToast('⏱️ Processing...');
             window.open(ad.link, '_blank');
             
-            setTimeout(() => {
+            const result = await claimAdAPI(adId, ad.reward);
+            
+            if (result.success) {
                 userData.balance += ad.reward;
                 userData.today_earned += ad.reward;
                 updateUI();
                 showToast(`✅ +₹${ad.reward} earned!`);
                 playSound('earn');
-            }, 2000);
+                await updateMissionAPI('ad');
+            } else {
+                showToast('❌ ' + (result.message || 'Already claimed today'));
+            }
         }
 
         function openUserAd(link) {
@@ -2241,33 +2474,61 @@
             openModal('editAd');
         }
 
-        function saveAdEdit() {
+        async function saveAdEdit() {
             const id = parseInt(document.getElementById('editAdId').value);
-            const idx = adminAds.findIndex(a => a.id === id);
+            const title = document.getElementById('editAdTitle').value;
+            const reward = parseFloat(document.getElementById('editAdReward').value);
+            const link = document.getElementById('editAdLink').value;
+            const meta = document.getElementById('editAdMeta').value;
+            const icon = document.getElementById('editAdIcon').value;
             
-            if (idx !== -1) {
-                adminAds[idx] = {
-                    id,
-                    title: document.getElementById('editAdTitle').value,
-                    reward: parseFloat(document.getElementById('editAdReward').value),
-                    link: document.getElementById('editAdLink').value,
-                    meta: document.getElementById('editAdMeta').value,
-                    icon: document.getElementById('editAdIcon').value
-                };
+            try {
+                const response = await fetch('/api/update-ad', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ad_id: id,
+                        title: title,
+                        reward: reward,
+                        link: link,
+                        meta: meta,
+                        icon: icon,
+                        admin_id: userData.user_id
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showToast('✅ Ad updated!');
+                    loadAds(); // Reload ads
+                    closeModal('editAd');
+                } else {
+                    showToast('❌ ' + (result.message || 'Failed to update'));
+                }
+            } catch (error) {
+                showToast('❌ Network error');
             }
-            
-            localStorage.setItem('adminAds', JSON.stringify(adminAds));
-            renderAds();
-            closeModal('editAd');
-            showToast('✅ Updated!');
         }
 
-        function deleteAd(id) {
-            if (confirm('Delete this offer?')) {
-                adminAds = adminAds.filter(a => a.id !== id);
-                localStorage.setItem('adminAds', JSON.stringify(adminAds));
-                renderAds();
-                showToast('✅ Deleted');
+        async function deleteAd(id) {
+            if (!confirm('Delete this offer?')) return;
+            
+            try {
+                const response = await fetch('/api/delete-ad', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ad_id: id, admin_id: userData.user_id })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showToast('✅ Ad deleted');
+                    loadAds(); // Reload ads
+                } else {
+                    showToast('❌ ' + (result.message || 'Failed to delete'));
+                }
+            } catch (error) {
+                showToast('❌ Network error');
             }
         }
 
@@ -2304,8 +2565,10 @@
                 return;
             }
             
+            // Deduct balance locally
             userData.balance -= 50;
             
+            // Add to userAds (in real app, would be saved to database)
             userAds.push({
                 id: Date.now(),
                 title: title,
@@ -2339,7 +2602,7 @@
             openModal('adminAddAd');
         }
 
-        function saveAdminAd() {
+        async function saveAdminAd() {
             const title = document.getElementById('adminAdTitle').value;
             const reward = parseFloat(document.getElementById('adminAdReward').value);
             const link = document.getElementById('adminAdLink').value;
@@ -2362,7 +2625,7 @@
                 icon
             });
             
-            localStorage.setItem('adminAds', JSON.stringify(adminAds));
+            // In real app, would save to database via API
             renderAds();
             closeModal('adminAddAd');
             showToast('✅ Ad added!');
@@ -2901,29 +3164,46 @@
         }
 
         // ========== TICKER ==========
-        function updateTicker() {
-            const activities = [
-                { name: 'Raj', action: 'withdraw', amount: 120 },
-                { name: 'Priya', action: 'bonus', amount: 50 },
-                { name: 'Amit', action: 'join' },
-                { name: 'Neha', action: 'withdraw', amount: 75 },
-                { name: 'Vikram', action: 'bonus', amount: 25 },
-                { name: 'Anita', action: 'win', amount: 8 },
-                { name: 'Rohit', action: 'spin', amount: 5 }
-            ];
+        function updateTickerWithData(activities) {
+            if (!activities || activities.length === 0) {
+                const fallback = [
+                    { name: 'Raj', action: 'withdraw', amount: 120 },
+                    { name: 'Priya', action: 'bonus', amount: 50 },
+                    { name: 'Amit', action: 'join' }
+                ];
+                
+                let html = '';
+                for (let i = 0; i < 3; i++) {
+                    fallback.forEach(a => {
+                        let text = a.action === 'withdraw' ? `💰 ${a.name} withdrew ₹${a.amount}` :
+                                   a.action === 'bonus' ? `🎁 ${a.name} claimed ₹${a.amount}` :
+                                   `🎉 ${a.name} joined`;
+                        html += `<span>${text} • <i>${Math.floor(Math.random()*59)+1}s ago</i></span>`;
+                    });
+                }
+                document.getElementById('tickerContent').innerHTML = html;
+                return;
+            }
             
             let html = '';
-            for (let i = 0; i < 3; i++) {
-                activities.forEach(a => {
-                    let text = a.action === 'withdraw' ? `💰 ${a.name} withdrew ₹${a.amount}` :
-                               a.action === 'bonus' ? `🎁 ${a.name} claimed ₹${a.amount}` :
-                               a.action === 'win' ? `🎮 ${a.name} won ₹${a.amount}` :
-                               a.action === 'spin' ? `🎰 ${a.name} earned ₹${a.amount}` :
-                               `🎉 ${a.name} joined`;
-                    html += `<span>${text} • <i>${Math.floor(Math.random()*59)+1}s ago</i></span>`;
+            for (let i = 0; i < 2; i++) {
+                activities.slice(0, 8).forEach(act => {
+                    let text = '';
+                    if (act.type === 'join') text = `🎉 ${act.user_name} joined`;
+                    else if (act.type === 'withdraw') text = `💰 ${act.user_name} withdrew ₹${act.amount}`;
+                    else if (act.type === 'bonus') text = `🎁 ${act.user_name} claimed ₹${act.amount}`;
+                    else if (act.type === 'mission') text = `🏆 ${act.user_name} completed missions`;
+                    else if (act.type === 'referral') text = `👥 ${act.user_name} got referral`;
+                    else text = `${act.user_name} was active`;
+                    
+                    html += `<span>${text} • <i>${act.time || 'just now'}</i></span>`;
                 });
             }
             document.getElementById('tickerContent').innerHTML = html;
+        }
+
+        function updateTicker() {
+            loadLiveActivity();
         }
 
         // ========== UI UPDATE ==========
@@ -2968,12 +3248,6 @@
             document.getElementById('coinPlaysLeft').innerText = `${gameState.coinLeft} flips`;
             document.getElementById('scratchPlaysLeft').innerText = `${gameState.scratchLeft} cards`;
             document.getElementById('dailyGameLimit').innerText = DAILY_GAME_LIMIT - gameState.todayGameEarned;
-            
-            // Admin badge
-            if (userData.is_admin) {
-                document.getElementById('adminEditBtn').style.display = 'flex';
-                document.getElementById('adminPromoBadge').style.display = 'inline-block';
-            }
         }
 
         // ========== TAB SWITCHING ==========
@@ -2992,12 +3266,12 @@
                 document.getElementById('gamesContent').style.display = 'block';
             } else if (index === 1) {
                 openModal('leaderboard');
-                loadLeaderboard();
+                loadLeaderboardData();
             } else if (index === 2) {
                 openModal('profile');
             } else if (index === 3) {
                 openModal('history');
-                loadHistory();
+                loadWithdrawalHistory();
             }
         }
 
@@ -3007,8 +3281,8 @@
             document.getElementById(id + 'Modal').classList.add('active');
             if (id === 'profile') updateUI();
             if (id === 'missions') updateMissionsUI();
-            if (id === 'leaderboard') loadLeaderboard();
-            if (id === 'history') loadHistory();
+            if (id === 'leaderboard') loadLeaderboardData();
+            if (id === 'history') loadWithdrawalHistory();
         }
 
         function closeModal(id) {
@@ -3050,14 +3324,11 @@
         }
 
         // ========== LEADERBOARD ==========
-        function loadLeaderboard() {
-            const leaders = [
-                { name: 'Raj Sharma', refs: 245 },
-                { name: 'Priya Singh', refs: 189 },
-                { name: 'Amit Kumar', refs: 156 },
-                { name: 'Neha Gupta', refs: 98 },
-                { name: 'Vikram Patel', refs: 87 }
-            ];
+        function renderLeaderboard(leaders) {
+            if (!leaders || leaders.length === 0) {
+                document.getElementById('leaderboardContainer').innerHTML = '<div style="text-align:center;padding:20px;">No data yet</div>';
+                return;
+            }
             
             let html = '';
             leaders.forEach((user, i) => {
@@ -3067,7 +3338,7 @@
                             ${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i+1}
                         </div>
                         <div style="flex:1;font-weight:600;">${user.name}</div>
-                        <div style="color:#f59e0b;font-weight:700;">${user.refs}</div>
+                        <div style="color:#f59e0b;font-weight:700;">${user.active_refs || user.referrals || 0}</div>
                     </div>
                 `;
             });
@@ -3075,12 +3346,11 @@
         }
 
         // ========== HISTORY ==========
-        function loadHistory() {
-            const history = [
-                { amount: 100, status: 'completed', date: '2024-03-15', method: 'UPI' },
-                { amount: 50, status: 'pending', date: '2024-03-14', method: 'Bank' },
-                { amount: 200, status: 'completed', date: '2024-03-10', method: 'UPI' }
-            ];
+        function renderWithdrawalHistory(history) {
+            if (!history || history.length === 0) {
+                document.getElementById('withdrawalHistoryContainer').innerHTML = '<div style="text-align:center;padding:20px;">No history</div>';
+                return;
+            }
             
             let html = '';
             history.forEach(h => {
@@ -3088,16 +3358,16 @@
                     <div style="background:var(--bg-secondary);padding:15px;margin:10px 0;border-radius:20px;">
                         <div style="display:flex;justify-content:space-between;">
                             <span style="font-weight:700;">₹${h.amount}</span>
-                            <span style="color:${h.status === 'completed' ? '#10b981' : '#f59e0b'};">${h.status}</span>
+                            <span style="color:${h.status === 'completed' ? '#10b981' : h.status === 'pending' ? '#f59e0b' : '#ef4444'};">${h.status}</span>
                         </div>
                         <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);">
-                            <span>${h.date}</span>
-                            <span>${h.method}</span>
+                            <span>${h.request_date ? new Date(h.request_date).toLocaleDateString() : h.date || ''}</span>
+                            <span>${h.method || 'UPI'}</span>
                         </div>
                     </div>
                 `;
             });
-            document.getElementById('withdrawalHistoryContainer').innerHTML = html || '<div style="text-align:center;">No history</div>';
+            document.getElementById('withdrawalHistoryContainer').innerHTML = html;
         }
 
         // ========== WITHDRAWAL ==========
@@ -3115,7 +3385,7 @@
             playSound('tap');
         }
 
-        function processWithdrawal() {
+        async function processWithdrawal() {
             const amount = parseFloat(document.getElementById('withdrawAmount').value);
             
             if (!amount || amount < 40) {
@@ -3133,63 +3403,85 @@
                 return;
             }
             
-            if (selectedMethod === 'upi' && !document.getElementById('upiId').value) {
-                showToast('❌ UPI ID enter karo');
-                return;
+            let details = '';
+            if (selectedMethod === 'upi') {
+                const upi = document.getElementById('upiId').value;
+                if (!upi) {
+                    showToast('❌ UPI ID enter karo');
+                    return;
+                }
+                details = upi;
+            } else {
+                const acc = document.getElementById('accountNo').value;
+                const ifsc = document.getElementById('ifsc').value;
+                const name = document.getElementById('accountName').value;
+                if (!acc || !ifsc || !name) {
+                    showToast('❌ Bank details bharo');
+                    return;
+                }
+                details = `${name}|${acc}|${ifsc}`;
             }
             
-            if (selectedMethod === 'bank' && (!document.getElementById('accountNo').value || !document.getElementById('ifsc').value || !document.getElementById('accountName').value)) {
-                showToast('❌ Bank details bharo');
-                return;
-            }
+            const result = await processWithdrawalAPI(amount, selectedMethod === 'upi' ? 'UPI' : 'Bank', details);
             
-            userData.balance -= amount;
-            updateUI();
-            closeModal('withdraw');
-            showToast('✅ Withdrawal requested!');
-            playSound('earn');
+            if (result.success) {
+                userData.balance -= amount;
+                updateUI();
+                closeModal('withdraw');
+                showToast('✅ Withdrawal requested!');
+                playSound('earn');
+            } else {
+                showToast('❌ ' + (result.message || 'Failed to process withdrawal'));
+            }
         }
 
         // ========== SUPPORT ==========
-        function sendSupportMessage() {
+        async function sendSupportMessage() {
             const msg = document.getElementById('supportMessage').value.trim();
             if (!msg || msg.length < 10) {
-                showToast('❌ Message too short');
+                showToast('❌ Message too short (min 10 chars)');
                 return;
             }
             
-            window.open('https://t.me/asbhiabsr', '_blank');
-            showToast('✅ Message sent!');
-            document.getElementById('supportMessage').value = '';
-            closeModal('support');
+            const result = await sendSupportAPI(msg);
+            
+            if (result.success) {
+                showToast('✅ Message sent! Support will contact you.');
+                document.getElementById('supportMessage').value = '';
+                closeModal('support');
+            } else {
+                showToast('❌ ' + (result.message || 'Failed to send'));
+            }
         }
 
         // ========== INIT ==========
-        document.addEventListener('DOMContentLoaded', () => {
+        async function initApp() {
             if (tg.initDataUnsafe?.user) {
                 userData.first_name = tg.initDataUnsafe.user.first_name || 'User';
                 userData.user_id = tg.initDataUnsafe.user.id;
                 
-                // Set your admin ID here
-                if (userData.user_id === 123456789) { // Replace with your admin ID
-                    userData.is_admin = true;
-                }
+                document.querySelector('.nav-item.profile .nav-label').innerText = userData.first_name.split(' ')[0];
+                
+                // Load all data from APIs
+                await loadUserData();
+                await loadBonusDays();
+                await loadMissions();
+                await loadAds();
+                await loadLiveActivity();
             }
-            
-            document.querySelector('.nav-item.profile .nav-label').innerText = userData.first_name.split(' ')[0];
             
             document.getElementById('homeContent').style.display = 'block';
             document.getElementById('gamesContent').style.display = 'none';
             
             updateUI();
-            updateTicker();
-            renderAds();
-            updateMissionsUI();
-            checkBonusAvailability();
             drawSpinWheel(0);
             
-            setInterval(updateTicker, 30000);
-        });
+            // Auto refresh
+            setInterval(loadLiveActivity, 30000);
+            setInterval(loadUserData, 60000); // Refresh user data every minute
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
 
         // Expose functions
         window.playSound = playSound;
