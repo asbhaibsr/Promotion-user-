@@ -283,6 +283,11 @@ def live_activity_api():
             return jsonify([])
         
         activities = db.get_live_activity(20)
+        
+        for act in activities:
+            if 'user_id' not in act:
+                act['user_id'] = 0
+        
         return jsonify(activities)
         
     except Exception as e:
@@ -437,7 +442,6 @@ def update_ad_api():
         success = db.update_ad(ad_id, title, reward, link, meta, icon)
         
         if success:
-            # Reset claims for this ad so users can claim again
             db.reset_ad_claims(ad_id)
             return jsonify({'success': True})
         else:
@@ -445,6 +449,34 @@ def update_ad_api():
         
     except Exception as e:
         logger.error(f"Update ad error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/delete-ad', methods=['POST'])
+def delete_ad_api():
+    """Delete an ad (admin only)"""
+    global db
+    try:
+        data = request.get_json()
+        ad_id = data.get('ad_id')
+        admin_id = data.get('admin_id')
+        
+        if not admin_id:
+            return jsonify({'success': False, 'message': 'Admin verification required'}), 401
+        
+        admin_user = db.get_user(int(admin_id))
+        if not admin_user or not admin_user.get('is_admin', False):
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+        
+        success = db.delete_ad(ad_id)
+        
+        if success:
+            return jsonify({'success': True, 'message': 'Ad deleted'})
+        else:
+            return jsonify({'success': False, 'message': 'Ad not found'})
+        
+    except Exception as e:
+        logger.error(f"Delete ad error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
@@ -539,7 +571,6 @@ def support_api():
         msg_id = db.add_support_message(user_id, message)
         
         if msg_id:
-            # Notify admins
             if bot_app and config:
                 for admin_id in config.ADMIN_IDS:
                     try:
@@ -885,7 +916,7 @@ def main():
         logger.info("✅ Handlers initialized")
         
         logger.info("👑 Initializing admin handlers...")
-        admin_handlers = AdminHandlers(config, db, None)  # bot will be set later
+        admin_handlers = AdminHandlers(config, db, None)
         logger.info("✅ Admin handlers initialized")
         
         signal.signal(signal.SIGINT, signal_handler)
@@ -898,8 +929,7 @@ def main():
         time.sleep(3)
         logger.info(f"✅ Flask server running on port {os.environ.get('PORT', 10000)}")
         
-        # Set bot reference in admin_handlers
-        admin_handlers.bot = handlers.bot = None  # Will be set when bot_app is created
+        admin_handlers.bot = handlers.bot = None
         
         logger.info("🤖 Starting Telegram bot...")
         run_bot()
