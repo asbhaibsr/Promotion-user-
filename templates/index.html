@@ -6,7 +6,6 @@
     <title>Earn App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* Your existing CSS remains exactly the same */
         * {
             margin: 0;
             padding: 0;
@@ -153,170 +152,7 @@
             font-size: 16px;
         }
 
-        .progress-section {
-            background: var(--bg-card);
-            border-radius: var(--small-radius);
-            padding: 20px;
-            margin: 24px 0;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow);
-        }
-
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .progress-title {
-            font-weight: 700;
-            color: var(--text-primary);
-            font-size: 16px;
-        }
-
-        .progress-target {
-            background: #fbbf24;
-            color: #000;
-            padding: 6px 12px;
-            border-radius: 30px;
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .progress-bar-bg {
-            height: 14px;
-            background: var(--bg-secondary);
-            border-radius: 20px;
-            margin: 16px 0 12px;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #fbbf24, #f59e0b);
-            border-radius: 20px;
-            width: 0%;
-            transition: width 0.5s ease;
-        }
-
-        .progress-stats {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-
-        .progress-stats strong {
-            color: #fbbf24;
-            font-size: 16px;
-        }
-
-        .ref-link-box {
-            margin-top: 16px;
-            display: flex;
-            align-items: center;
-            background: var(--bg-secondary);
-            border-radius: 40px;
-            padding: 8px 16px;
-            border: 1px dashed #fbbf24;
-        }
-
-        .ref-link-box span {
-            flex: 1;
-            font-size: 13px;
-            color: var(--text-primary);
-            font-family: monospace;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .ref-link-box button {
-            background: #fbbf24;
-            border: none;
-            color: #000;
-            padding: 8px 16px;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 13px;
-            cursor: pointer;
-        }
-
-        .ads-section {
-            margin: 24px 0;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .section-header h3 {
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        .section-header small {
-            color: #fbbf24;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .ad-card {
-            background: var(--bg-card);
-            border-radius: 20px;
-            padding: 18px;
-            margin: 12px 0;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .ad-card:active {
-            transform: scale(0.99);
-        }
-
-        .ad-icon {
-            width: 50px;
-            height: 50px;
-            background: rgba(251, 191, 36, 0.1);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-        }
-
-        .ad-info {
-            flex: 1;
-        }
-
-        .ad-title {
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .ad-meta {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .ad-reward {
-            background: #fbbf24;
-            color: #000;
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 15px;
-        }
-
+        /* LIVE ACTIVITY SECTION */
         .live-activity {
             margin: 24px 0;
         }
@@ -391,6 +227,279 @@
             font-size: 16px;
         }
 
+        /* MISSION CARD */
+        .mission-card {
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            margin: 20px 0;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .mission-card::before {
+            content: '🎯';
+            position: absolute;
+            right: -20px;
+            bottom: -20px;
+            font-size: 100px;
+            opacity: 0.1;
+        }
+
+        .mission-title {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .mission-progress {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0 5px;
+            font-size: 14px;
+        }
+
+        .mission-bar {
+            height: 8px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+
+        .mission-fill {
+            height: 100%;
+            background: white;
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .mission-reward {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 5px;
+            margin-top: 10px;
+            font-weight: 700;
+        }
+
+        /* SECTION HEADER WITH + ICON */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0 15px;
+        }
+
+        .section-header h3 {
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .add-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--bg-card);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+
+        .add-icon:active {
+            transform: scale(0.92);
+        }
+
+        /* CALENDAR STYLES */
+        .calendar-section {
+            background: var(--bg-card);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-month {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 15px;
+        }
+
+        .calendar-nav span {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .calendar-day.today {
+            border: 2px solid #fbbf24;
+        }
+
+        .calendar-day.claimed {
+            background: #10b981;
+            color: white;
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .calendar-day.available {
+            background: #fbbf24;
+            color: #000;
+            font-weight: 700;
+            animation: pulse 2s infinite;
+        }
+
+        .calendar-day.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .bonus-amount {
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        /* ADS STYLES */
+        .ad-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 18px;
+            margin: 12px 0;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .ad-card.admin-mode {
+            border: 2px dashed #fbbf24;
+        }
+
+        .ad-card.admin-mode::after {
+            content: '✏️ EDIT';
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            background: #fbbf24;
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .ad-card.claimed {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .ad-card.claimed::before {
+            content: '✅ CLAIMED';
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background: #10b981;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .ad-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(251, 191, 36, 0.1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .ad-info {
+            flex: 1;
+        }
+
+        .ad-title {
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .ad-meta {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .ad-reward {
+            background: #fbbf24;
+            color: #000;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        /* BOTTOM NAV */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -448,11 +557,7 @@
             color: #fbbf24;
         }
 
-        .nav-item.profile .nav-icon {
-            background: linear-gradient(145deg, #fbbf24, #f59e0b);
-            color: #000;
-        }
-
+        /* MODALS */
         .page-modal {
             position: fixed;
             top: 0;
@@ -499,7 +604,69 @@
             color: #fbbf24;
         }
 
-        .withdraw-history-btn {
+        /* MISSION MODAL */
+        .mission-item {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 16px;
+            margin: 10px 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .mission-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .mission-name {
+            font-weight: 700;
+        }
+
+        .mission-status {
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-completed {
+            background: #10b981;
+            color: white;
+        }
+
+        .status-pending {
+            background: #fbbf24;
+            color: #000;
+        }
+
+        /* SUPPORT MODAL */
+        .support-form {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .support-textarea {
+            width: 100%;
+            height: 150px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border: 2px solid transparent;
+            border-radius: 16px;
+            color: var(--text-primary);
+            margin: 8px 0;
+            font-size: 16px;
+            resize: none;
+        }
+
+        .support-textarea:focus {
+            border-color: #fbbf24;
+            outline: none;
+        }
+
+        .support-btn {
             background: #fbbf24;
             color: #000;
             border: none;
@@ -510,9 +677,9 @@
             width: 100%;
             margin: 20px 0;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
         }
 
+        /* TOAST */
         .toast-message {
             position: fixed;
             bottom: 120px;
@@ -529,49 +696,7 @@
             animation: slideUp 0.3s;
         }
 
-        .yellow-line {
-            height: 4px;
-            background: #fbbf24;
-            width: 100%;
-            margin: 20px 0;
-            border-radius: 4px;
-        }
-
-        .admin-edit-mode .ad-card {
-            border: 2px dashed #fbbf24;
-            position: relative;
-        }
-
-        .admin-edit-mode .ad-card::after {
-            content: '✏️ Click to Edit';
-            position: absolute;
-            top: -10px;
-            right: 10px;
-            background: #fbbf24;
-            color: #000;
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: bold;
-        }
-
-        .method-select {
-            background: var(--bg-secondary);
-            border-radius: 16px;
-            padding: 16px;
-            margin: 8px 0;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border: 2px solid transparent;
-        }
-
-        .method-select.selected {
-            border-color: #fbbf24;
-            background: rgba(251, 191, 36, 0.1);
-        }
-
+        /* EDIT MODAL */
         .input-field {
             width: 100%;
             padding: 16px;
@@ -588,10 +713,10 @@
             outline: none;
         }
 
-        .daily-bonus-btn {
-            background: linear-gradient(145deg, #fbbf24, #f59e0b);
-            border: none;
+        .save-btn {
+            background: #fbbf24;
             color: #000;
+            border: none;
             padding: 16px;
             border-radius: 30px;
             font-weight: 800;
@@ -599,16 +724,36 @@
             width: 100%;
             margin: 20px 0;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
         }
 
-        .daily-bonus-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .cancel-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 30px;
+            font-weight: 800;
+            font-size: 18px;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        /* METHOD SELECT */
+        .method-select {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 16px;
+            margin: 8px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 2px solid transparent;
+        }
+
+        .method-select.selected {
+            border-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.1);
         }
     </style>
 </head>
@@ -617,7 +762,7 @@
     <div class="top-actions">
         <div class="top-left">
             <div class="top-action-btn" onclick="openModal('settings')">⚙️</div>
-            <div class="top-action-btn" onclick="openModal('help')">❓</div>
+            <div class="top-action-btn" onclick="openModal('support')">📩</div>
         </div>
         <div class="top-right">
             <div class="top-action-btn" onclick="toggleTheme()" id="themeToggle">🌙</div>
@@ -637,51 +782,63 @@
             </div>
         </div>
 
-        <!-- DAILY BONUS BUTTON - NEW -->
-        <button class="daily-bonus-btn" onclick="claimDailyBonus()" id="dailyBonusBtn">
-            <span>🎁</span> Claim Daily Bonus <span id="dailyBonusAmount">+₹0.05</span>
-        </button>
-
-        <!-- PROGRESS TO ₹50 -->
-        <div class="progress-section">
-            <div class="progress-header">
-                <span class="progress-title">🎯 ₹50 Bonus Progress</span>
-                <span class="progress-target">₹50</span>
-            </div>
-            <div class="progress-bar-bg">
-                <div class="progress-bar-fill" id="progressFill" style="width: 0%;"></div>
-            </div>
-            <div class="progress-stats">
-                <span><strong id="currentProgress">₹0</strong> / ₹50</span>
-                <span><strong id="offersLeft">6</strong> offers left</span>
-            </div>
-            <div class="ref-link-box">
-                <span id="refLink">Loading...</span>
-                <button onclick="copyRefLink()">Copy</button>
-            </div>
-        </div>
-
-        <!-- ADS SECTION -->
-        <div class="ads-section">
-            <div class="section-header">
-                <h3>💰 Sponsored Offers</h3>
-                <small onclick="contactAdmin()">Place Ad +</small>
-            </div>
-
-            <div id="adsContainer">
-                <!-- Ads will be loaded dynamically -->
-            </div>
-        </div>
-
-        <!-- LIVE ACTIVITY -->
+        <!-- LIVE ACTIVITY SECTION -->
         <div class="live-activity">
             <div class="live-header">
                 <span class="live-dot"></span>
-                <h3>Live Activity</h3>
+                <h3>🔥 Live Activity</h3>
             </div>
             <div id="activityContainer">
-                <!-- Dynamic activity items will be inserted here -->
+                <div class="activity-item">
+                    <div class="activity-avatar">👤</div>
+                    <div class="activity-content">
+                        <div class="activity-user">Loading activities...</div>
+                        <div class="activity-time">just now</div>
+                    </div>
+                </div>
             </div>
+        </div>
+
+        <!-- MISSION CARD -->
+        <div class="mission-card" onclick="openModal('missions')">
+            <div class="mission-title">🎯 Daily Missions</div>
+            <div class="mission-progress">
+                <span>Complete to earn ₹5!</span>
+                <span><span id="completedMissions">0</span>/<span id="totalMissions">2</span></span>
+            </div>
+            <div class="mission-bar">
+                <div class="mission-fill" id="missionProgressFill" style="width: 0%;"></div>
+            </div>
+            <div class="mission-reward">
+                <span>🏆</span> ₹5 Daily Reward
+            </div>
+        </div>
+
+        <!-- CALENDAR SECTION -->
+        <div class="calendar-section">
+            <div class="calendar-header">
+                <div class="calendar-month" id="currentMonth">March 2026</div>
+                <div class="calendar-nav">
+                    <span onclick="changeMonth(-1)">←</span>
+                    <span onclick="changeMonth(1)">→</span>
+                </div>
+            </div>
+            <div class="weekdays">
+                <div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div><div>S</div>
+            </div>
+            <div class="calendar-days" id="calendarDays">
+                <!-- Calendar days will be loaded dynamically -->
+            </div>
+        </div>
+
+        <!-- SPONSORED OFFERS SECTION -->
+        <div class="section-header">
+            <h3>💰 Sponsored Offers</h3>
+            <div class="add-icon" onclick="addNewAd()" id="addAdBtn" style="display: none;">+</div>
+        </div>
+
+        <div id="adsContainer">
+            <!-- Ads will be loaded dynamically -->
         </div>
     </div>
 
@@ -737,16 +894,76 @@
         </div>
     </div>
 
-    <!-- HELP MODAL -->
-    <div id="helpModal" class="page-modal">
+    <!-- SUPPORT MODAL (NEW) -->
+    <div id="supportModal" class="page-modal">
         <div class="modal-header">
-            <div class="modal-back" onclick="closeModal('help')">←</div>
-            <div class="modal-title">Help & Support</div>
+            <div class="modal-back" onclick="closeModal('support')">←</div>
+            <div class="modal-title">Contact Support</div>
         </div>
-        <div style="background: var(--bg-card); border-radius: 24px; padding: 20px;">
-            <p style="margin-bottom: 15px;">📢 Need assistance? Contact our admin:</p>
-            <a href="https://t.me/asbhaibsr" style="display: block; background: #fbbf24; color: #000; text-align: center; padding: 16px; border-radius: 30px; font-weight: 700; text-decoration: none;">@asbhaibsr on Telegram</a>
+        
+        <div class="support-form">
+            <p style="margin-bottom: 15px; color: var(--text-secondary);">
+                📩 Having issues? Send us a message and we'll get back to you soon!
+            </p>
+            
+            <textarea id="supportMessage" class="support-textarea" placeholder="Type your message here..."></textarea>
+            
+            <button class="support-btn" onclick="sendSupportMessage()">SEND MESSAGE</button>
+            
+            <div style="margin-top: 20px; padding: 15px; background: var(--bg-secondary); border-radius: 16px;">
+                <p style="font-weight: 600; margin-bottom: 10px;">📋 Common Issues:</p>
+                <ul style="padding-left: 20px; color: var(--text-secondary);">
+                    <li>Withdrawal not received</li>
+                    <li>Referral not activating</li>
+                    <li>Daily bonus not working</li>
+                    <li>Account related issues</li>
+                </ul>
+            </div>
         </div>
+    </div>
+
+    <!-- MISSIONS MODAL -->
+    <div id="missionsModal" class="page-modal">
+        <div class="modal-header">
+            <div class="modal-back" onclick="closeModal('missions')">←</div>
+            <div class="modal-title">Daily Missions</div>
+        </div>
+        
+        <div style="background: var(--bg-card); border-radius: 24px; padding: 20px; margin-bottom: 20px; text-align: center;">
+            <div style="font-size: 40px; margin-bottom: 10px;">🎯</div>
+            <div style="font-size: 20px; font-weight: 700;">Complete Both Missions</div>
+            <div style="color: #fbbf24; font-size: 24px; font-weight: 800; margin: 10px 0;">₹5 REWARD</div>
+        </div>
+
+        <div class="mission-item" id="mission1">
+            <div class="mission-header">
+                <span class="mission-name">📢 Refer 10 Active Users Today</span>
+                <span class="mission-status status-pending" id="mission1Status">Pending</span>
+            </div>
+            <div class="mission-progress">
+                <span>Progress</span>
+                <span><span id="mission1Progress">0</span>/10</span>
+            </div>
+            <div class="mission-bar">
+                <div class="mission-fill" id="mission1Bar" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <div class="mission-item" id="mission2">
+            <div class="mission-header">
+                <span class="mission-name">📅 Claim 5 Days Daily Bonus</span>
+                <span class="mission-status status-pending" id="mission2Status">Pending</span>
+            </div>
+            <div class="mission-progress">
+                <span>Progress</span>
+                <span><span id="mission2Progress">0</span>/5</span>
+            </div>
+            <div class="mission-bar">
+                <div class="mission-fill" id="mission2Bar" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <button class="save-btn" id="claimMissionBtn" onclick="claimMissionReward()" style="display: none;">CLAIM ₹5 REWARD</button>
     </div>
 
     <!-- LEADERBOARD MODAL -->
@@ -807,7 +1024,7 @@
             </div>
         </div>
 
-        <button class="withdraw-history-btn" onclick="openWithdrawPage()">💰 Withdraw Now</button>
+        <button class="save-btn" onclick="openWithdrawPage()">💰 Withdraw Now</button>
     </div>
 
     <!-- HISTORY MODAL -->
@@ -817,7 +1034,7 @@
             <div class="modal-title">Withdraw History</div>
         </div>
         
-        <button class="withdraw-history-btn" onclick="openWithdrawPage()">💰 Withdraw Now</button>
+        <button class="save-btn" onclick="openWithdrawPage()">💰 Withdraw Now</button>
 
         <div style="background: var(--bg-card); border-radius: 24px; padding: 20px;" id="withdrawalHistoryContainer">
             <!-- History will be loaded dynamically -->
@@ -860,11 +1077,11 @@
                 <input type="text" id="accountName" class="input-field" placeholder="Account Holder Name">
             </div>
 
-            <button class="withdraw-history-btn" onclick="processWithdrawal()" style="margin-top: 20px;">REQUEST WITHDRAWAL</button>
+            <button class="save-btn" onclick="processWithdrawal()" style="margin-top: 20px;">REQUEST WITHDRAWAL</button>
         </div>
     </div>
 
-    <!-- ADMIN EDIT MODAL -->
+    <!-- ADMIN EDIT AD MODAL -->
     <div id="adminEditModal" class="page-modal">
         <div class="modal-header">
             <div class="modal-back" onclick="closeModal('adminEdit')">←</div>
@@ -872,13 +1089,15 @@
         </div>
 
         <div style="background: var(--bg-card); border-radius: 24px; padding: 20px;">
+            <input type="text" id="editAdId" class="input-field" placeholder="Ad ID" readonly>
             <input type="text" id="editAdTitle" class="input-field" placeholder="Ad Title">
             <input type="text" id="editAdReward" class="input-field" placeholder="Reward Amount (₹)">
             <input type="text" id="editAdLink" class="input-field" placeholder="Link URL">
             <input type="text" id="editAdMeta" class="input-field" placeholder="Meta Info (e.g., ⏱️ 2 min)">
+            <input type="text" id="editAdIcon" class="input-field" placeholder="Icon (e.g., 📱)">
             
-            <button class="withdraw-history-btn" onclick="saveAdEdit()" style="margin-top: 20px;">SAVE CHANGES</button>
-            <button class="withdraw-history-btn" onclick="closeModal('adminEdit')" style="background: #ef4444; margin-top: 10px;">CANCEL</button>
+            <button class="save-btn" onclick="saveAdEdit()" style="margin-top: 20px;">SAVE CHANGES</button>
+            <button class="cancel-btn" onclick="closeModal('adminEdit')">CANCEL</button>
         </div>
     </div>
 
@@ -904,10 +1123,7 @@
             daily_streak: 0,
             channel_joined: false,
             is_admin: false,
-            dark_mode: false,
-            notify_referrals: true,
-            notify_earnings: true,
-            notify_withdrawals: true
+            dark_mode: false
         };
 
         let currentTheme = 'light';
@@ -916,8 +1132,20 @@
         let adminEditMode = false;
         let selectedMethod = null;
         let currentEditingAd = null;
-
         let ads = [];
+        
+        // Calendar variables
+        let currentDate = new Date();
+        let currentMonth = currentDate.getMonth();
+        let currentYear = currentDate.getFullYear();
+        let claimedDays = [];
+        let userStreak = 0;
+        
+        // Mission variables
+        let missions = {
+            mission1: { completed: false, progress: 0, total: 10 },
+            mission2: { completed: false, progress: 0, total: 5 }
+        };
 
         // ========== TELEGRAM INTEGRATION ==========
         function initTelegram() {
@@ -929,6 +1157,9 @@
                 
                 checkAdminStatus(user.id);
                 loadUserData();
+                loadCalendarData();
+                loadMissionsData();
+                loadLiveActivity();
             }
         }
 
@@ -948,11 +1179,7 @@
                     }
                     
                     updateUI();
-                    
-                    // Update daily bonus button based on streak
-                    if (userData.daily_streak > 0) {
-                        document.getElementById('dailyBonusAmount').innerText = `+₹${(0.05 + Math.min(userData.daily_streak * 0.02, 0.15)).toFixed(2)}`;
-                    }
+                    userStreak = userData.daily_streak || 0;
                 }
             } catch (error) {
                 console.error('Error loading user data:', error);
@@ -966,13 +1193,14 @@
                 if (data && data.is_admin) {
                     userData.is_admin = true;
                     document.getElementById('adminEditBtn').style.display = 'flex';
+                    document.getElementById('addAdBtn').style.display = 'flex';
                 }
             } catch (error) {
                 console.error('Error checking admin status:', error);
             }
         }
 
-        // ========== LIVE ACTIVITY FROM DATABASE ==========
+        // ========== LIVE ACTIVITY ==========
         async function loadLiveActivity() {
             try {
                 const response = await fetch('/api/live-activity');
@@ -980,104 +1208,337 @@
                 
                 const container = document.getElementById('activityContainer');
                 if (!container) return;
-
+                
+                if (activities.length === 0) {
+                    container.innerHTML = '<div class="activity-item"><div class="activity-avatar">👤</div><div class="activity-content"><div class="activity-user">No recent activity</div><div class="activity-time">just now</div></div></div>';
+                    return;
+                }
+                
                 let html = '';
                 activities.forEach(act => {
+                    let displayText = act.description || '';
+                    if (!displayText) {
+                        if (act.type === 'join') displayText = `${act.user_name} joined the bot`;
+                        else if (act.type === 'withdraw') displayText = `${act.user_name} withdrew ₹${act.amount}`;
+                        else if (act.type === 'bonus') displayText = `${act.user_name} claimed ₹${act.amount} bonus`;
+                        else if (act.type === 'mission') displayText = `${act.user_name} completed missions`;
+                        else if (act.type === 'referral') displayText = `${act.user_name} got a new referral`;
+                        else if (act.type === 'support') displayText = `${act.user_name} sent support message`;
+                        else displayText = `${act.user_name} was active`;
+                    }
+                    
                     html += `
                         <div class="activity-item">
-                            <div class="activity-avatar">${act.avatar || act.first_name?.charAt(0) || '👤'}</div>
+                            <div class="activity-avatar">${act.avatar || '👤'}</div>
                             <div class="activity-content">
-                                <div class="activity-user">${act.first_name || 'User'}</div>
-                                <div class="activity-time">${act.time || 'just now'}</div>
+                                <div class="activity-user">${displayText}</div>
+                                <div class="activity-time">${act.time}</div>
                             </div>
-                            <div class="activity-amount" style="color: ${act.type === 'withdraw' ? '#10b981' : '#fbbf24'}">
-                                ${act.type === 'withdraw' ? '-' : '+'}₹${act.amount}
-                            </div>
+                            ${act.amount > 0 ? `<div class="activity-amount" style="color: #10b981;">+₹${act.amount}</div>` : ''}
                         </div>
                     `;
                 });
                 
-                container.innerHTML = html || '<div style="text-align: center; padding: 20px;">No recent activity</div>';
+                container.innerHTML = html;
+                
             } catch (error) {
                 console.error('Error loading live activity:', error);
             }
         }
 
-        // ========== LOAD LEADERBOARD ==========
-        async function loadLeaderboard() {
+        // ========== CALENDAR FUNCTIONS ==========
+        
+        async function loadCalendarData() {
             try {
-                const response = await fetch('/api/leaderboard');
-                const leaders = await response.json();
-                
-                const container = document.getElementById('leaderboardContainer');
-                if (!container) return;
-
-                let html = '';
-                const medals = ['🥇', '🥈', '🥉'];
-                
-                leaders.forEach((user, index) => {
-                    html += `
-                        <div style="display: flex; align-items: center; padding: 15px; margin: 8px 0; background: var(--bg-secondary); border-radius: 16px;">
-                            <div style="width: 40px; height: 40px; background: #fbbf24; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 15px; color: #000;">
-                                ${index < 3 ? medals[index] : index + 1}
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600;">${user.name}</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">Tier ${user.tier}</div>
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="color: #fbbf24; font-weight: 700;">${user.active_refs}</div>
-                                <div style="font-size: 11px; color: var(--text-secondary);">referrals</div>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                container.innerHTML = html || '<div style="text-align: center; padding: 20px;">No data available</div>';
+                const response = await fetch(`/api/user/${userData.user_id}/bonus-days`);
+                const data = await response.json();
+                if (data && data.claimed_days) {
+                    claimedDays = data.claimed_days;
+                }
+                renderCalendar();
             } catch (error) {
-                console.error('Error loading leaderboard:', error);
+                console.error('Error loading calendar:', error);
+                renderCalendar();
             }
         }
 
-        // ========== LOAD WITHDRAWAL HISTORY ==========
-        async function loadWithdrawalHistory() {
-            if (!userData.user_id) return;
+        function renderCalendar() {
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            document.getElementById('currentMonth').innerHTML = `${monthNames[currentMonth]} ${currentYear}`;
+            
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            
+            let startDay = firstDay.getDay();
+            startDay = startDay === 0 ? 6 : startDay - 1;
+            
+            const totalDays = lastDay.getDate();
+            
+            let calendarHTML = '';
+            
+            for (let i = 0; i < startDay; i++) {
+                calendarHTML += '<div class="calendar-day disabled"></div>';
+            }
+            
+            const today = new Date();
+            const todayDate = today.getDate();
+            const todayMonth = today.getMonth();
+            const todayYear = today.getFullYear();
+            
+            for (let day = 1; day <= totalDays; day++) {
+                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isToday = (day === todayDate && currentMonth === todayMonth && currentYear === todayYear);
+                const isClaimed = claimedDays.includes(dateStr);
+                
+                const baseBonus = 0.05;
+                const streakBonus = Math.min(userStreak * 0.02, 0.15);
+                const bonusAmount = baseBonus + streakBonus;
+                
+                const canClaim = !isClaimed && (day <= todayDate || currentYear < todayYear || (currentYear === todayYear && currentMonth < todayMonth));
+                
+                let dayClass = 'calendar-day';
+                if (isToday) dayClass += ' today';
+                if (isClaimed) dayClass += ' claimed';
+                else if (canClaim) dayClass += ' available';
+                else dayClass += ' disabled';
+                
+                calendarHTML += `
+                    <div class="${dayClass}" onclick="${canClaim ? `claimDayBonus('${dateStr}')` : ''}">
+                        <div>${day}</div>
+                        <div class="bonus-amount">₹${bonusAmount.toFixed(2)}</div>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('calendarDays').innerHTML = calendarHTML;
+        }
+
+        function changeMonth(delta) {
+            currentMonth += delta;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            } else if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        }
+
+        async function claimDayBonus(dateStr) {
+            if (!userData.user_id) {
+                showToast('❌ Please open via Telegram');
+                return;
+            }
             
             try {
-                const response = await fetch(`/api/user/${userData.user_id}/withdrawals`);
-                const withdrawals = await response.json();
+                const response = await fetch('/api/claim-day-bonus', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        user_id: userData.user_id,
+                        date: dateStr
+                    })
+                });
                 
-                const container = document.getElementById('withdrawalHistoryContainer');
-                if (!container) return;
-
-                let html = '';
-                if (withdrawals.length === 0) {
-                    html = '<div style="text-align: center; padding: 20px;">No withdrawal history</div>';
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast(`✅ +₹${result.bonus.toFixed(2)} claimed!`);
+                    
+                    userData.balance += result.bonus;
+                    userData.total_earned += result.bonus;
+                    userData.daily_streak = result.streak;
+                    userStreak = result.streak;
+                    
+                    claimedDays.push(dateStr);
+                    
+                    updateUI();
+                    renderCalendar();
+                    
+                    await updateMissionProgress('bonus', 1);
+                    
+                    playSound('earn');
                 } else {
-                    withdrawals.forEach(w => {
-                        const statusColor = w.status === 'completed' ? '#10b981' : w.status === 'rejected' ? '#ef4444' : '#fbbf24';
-                        html += `
-                            <div style="background: var(--bg-secondary); border-radius: 16px; padding: 15px; margin: 10px 0;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                                    <span style="font-weight: 700;">₹${w.amount}</span>
-                                    <span style="color: ${statusColor};">${w.status}</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary);">
-                                    <span>${new Date(w.request_date).toLocaleDateString()}</span>
-                                    <span>${w.method}</span>
-                                </div>
-                            </div>
-                        `;
-                    });
+                    showToast('❌ ' + (result.message || 'Cannot claim this day'));
                 }
-                
-                container.innerHTML = html;
             } catch (error) {
-                console.error('Error loading withdrawal history:', error);
+                showToast('❌ Error claiming bonus');
             }
         }
 
-        // ========== LOAD ADS ==========
+        // ========== MISSIONS FUNCTIONS ==========
+        
+        async function loadMissionsData() {
+            try {
+                const response = await fetch(`/api/user/${userData.user_id}/missions`);
+                const data = await response.json();
+                if (data) {
+                    missions.mission1 = data.mission1 || { progress: 0, completed: false, total: 10 };
+                    missions.mission2 = data.mission2 || { progress: 0, completed: false, total: 5 };
+                }
+                updateMissionsUI();
+            } catch (error) {
+                console.error('Error loading missions:', error);
+            }
+        }
+
+        async function updateMissionProgress(type, count) {
+            try {
+                const response = await fetch('/api/update-mission', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        user_id: userData.user_id,
+                        mission_type: type,
+                        count: count
+                    })
+                });
+                
+                const result = await response.json();
+                if (result) {
+                    missions.mission1 = result.missions?.mission1 || missions.mission1;
+                    missions.mission2 = result.missions?.mission2 || missions.mission2;
+                    updateMissionsUI();
+                }
+            } catch (error) {
+                console.error('Error updating mission:', error);
+            }
+        }
+
+        function updateMissionsUI() {
+            if (missions.mission1) {
+                document.getElementById('mission1Progress').innerText = missions.mission1.progress;
+                document.getElementById('mission1Bar').style.width = `${(missions.mission1.progress / missions.mission1.total) * 100}%`;
+                
+                const statusEl = document.getElementById('mission1Status');
+                if (missions.mission1.completed) {
+                    statusEl.innerText = 'Completed';
+                    statusEl.className = 'mission-status status-completed';
+                } else {
+                    statusEl.innerText = 'Pending';
+                    statusEl.className = 'mission-status status-pending';
+                }
+            }
+            
+            if (missions.mission2) {
+                document.getElementById('mission2Progress').innerText = missions.mission2.progress;
+                document.getElementById('mission2Bar').style.width = `${(missions.mission2.progress / missions.mission2.total) * 100}%`;
+                
+                const statusEl = document.getElementById('mission2Status');
+                if (missions.mission2.completed) {
+                    statusEl.innerText = 'Completed';
+                    statusEl.className = 'mission-status status-completed';
+                } else {
+                    statusEl.innerText = 'Pending';
+                    statusEl.className = 'mission-status status-pending';
+                }
+            }
+            
+            let completed = 0;
+            if (missions.mission1?.completed) completed++;
+            if (missions.mission2?.completed) completed++;
+            
+            document.getElementById('completedMissions').innerText = completed;
+            document.getElementById('totalMissions').innerText = '2';
+            document.getElementById('missionProgressFill').style.width = `${(completed / 2) * 100}%`;
+            
+            if (completed === 2) {
+                document.getElementById('claimMissionBtn').style.display = 'block';
+            } else {
+                document.getElementById('claimMissionBtn').style.display = 'none';
+            }
+        }
+
+        async function claimMissionReward() {
+            if (!missions.mission1.completed || !missions.mission2.completed) {
+                showToast('❌ Complete both missions first!');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/claim-mission-reward', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ user_id: userData.user_id })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('✅ ₹5 mission reward claimed!');
+                    
+                    missions.mission1.completed = false;
+                    missions.mission1.progress = 0;
+                    missions.mission2.completed = false;
+                    missions.mission2.progress = 0;
+                    
+                    userData.balance += 5;
+                    userData.total_earned += 5;
+                    
+                    updateUI();
+                    updateMissionsUI();
+                    closeModal('missions');
+                    
+                    playSound('earn');
+                } else {
+                    showToast('❌ ' + result.message);
+                }
+            } catch (error) {
+                showToast('❌ Error claiming reward');
+            }
+        }
+
+        // ========== SUPPORT FUNCTIONS ==========
+        
+        async function sendSupportMessage() {
+            const message = document.getElementById('supportMessage').value.trim();
+            
+            if (!message) {
+                showToast('❌ Please type a message');
+                return;
+            }
+            
+            if (message.length < 10) {
+                showToast('❌ Message too short (min 10 characters)');
+                return;
+            }
+            
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = 'Sending...';
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/support', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        user_id: userData.user_id,
+                        message: message
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('✅ Message sent to support!');
+                    document.getElementById('supportMessage').value = '';
+                    closeModal('support');
+                    playSound('success');
+                } else {
+                    showToast('❌ ' + (result.message || 'Failed to send'));
+                }
+            } catch (error) {
+                showToast('❌ Error sending message');
+            }
+            
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+
+        // ========== SPONSORED OFFERS ==========
+        
         async function loadAds() {
             try {
                 const response = await fetch('/api/ads');
@@ -1092,14 +1553,33 @@
             renderAds();
         }
 
-        function renderAds() {
+        async function loadUserClaimedAds() {
+            try {
+                const response = await fetch(`/api/user/${userData.user_id}/claimed-ads`);
+                const data = await response.json();
+                return data.claimed_ads || [];
+            } catch (error) {
+                return [];
+            }
+        }
+
+        async function renderAds() {
             const container = document.getElementById('adsContainer');
             if (!container) return;
-
+            
+            const claimedAds = await loadUserClaimedAds();
+            const today = new Date().toISOString().split('T')[0];
+            const todayClaimed = claimedAds
+                .filter(c => c.date === today)
+                .map(c => c.ad_id);
+            
             let html = '';
             ads.forEach(ad => {
+                const isClaimedToday = todayClaimed.includes(ad.id);
+                const adClass = `ad-card ${adminEditMode ? 'admin-mode' : ''} ${isClaimedToday ? 'claimed' : ''}`;
+                
                 html += `
-                    <div class="ad-card" onclick="claimAd(${ad.id})" data-ad-id="${ad.id}">
+                    <div class="${adClass}" onclick="${isClaimedToday ? '' : `handleAdClick(${ad.id})`}" data-ad-id="${ad.id}">
                         <div class="ad-icon">${ad.icon || '💰'}</div>
                         <div class="ad-info">
                             <div class="ad-title">${ad.title}</div>
@@ -1113,68 +1593,152 @@
             container.innerHTML = html;
         }
 
-        // ========== DAILY BONUS FUNCTION - NEW ==========
-        async function claimDailyBonus() {
+        async function handleAdClick(adId) {
+            if (adminEditMode && userData.is_admin) {
+                const ad = ads.find(a => a.id === adId);
+                if (ad) {
+                    currentEditingAd = ad;
+                    document.getElementById('editAdId').value = ad.id;
+                    document.getElementById('editAdTitle').value = ad.title;
+                    document.getElementById('editAdReward').value = ad.reward;
+                    document.getElementById('editAdLink').value = ad.link;
+                    document.getElementById('editAdMeta').value = ad.meta;
+                    document.getElementById('editAdIcon').value = ad.icon || '💰';
+                    openModal('adminEdit');
+                }
+                return;
+            }
+            
+            await claimAd(adId);
+        }
+
+        async function claimAd(adId) {
             if (!userData.user_id) {
                 showToast('❌ Please open via Telegram');
                 return;
             }
             
-            const btn = document.getElementById('dailyBonusBtn');
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
+            playSound('tap');
+            
+            const ad = ads.find(a => a.id === adId);
+            if (!ad) return;
+            
+            showToast('⏱️ Processing... Please wait 3 seconds');
+            
+            window.open(ad.link, '_blank');
+            
+            setTimeout(async () => {
+                try {
+                    const response = await fetch('/api/claim-ad', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            user_id: userData.user_id,
+                            ad_id: adId,
+                            reward: ad.reward
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        userData.balance += ad.reward;
+                        userData.total_earned += ad.reward;
+                        
+                        updateUI();
+                        showToast(`✅ +₹${ad.reward} added to balance!`);
+                        playSound('earn');
+                        
+                        renderAds();
+                        await updateMissionProgress('ad', 1);
+                    } else {
+                        showToast('❌ ' + (result.message || 'Already claimed today'));
+                    }
+                } catch (error) {
+                    showToast('❌ Error claiming reward');
+                }
+            }, 3000);
+        }
+
+        function addNewAd() {
+            if (!userData.is_admin) return;
+            
+            currentEditingAd = {
+                id: ads.length + 1,
+                title: 'New Offer',
+                reward: 1.0,
+                link: 'https://t.me/',
+                meta: '⏱️ New offer',
+                icon: '💰'
+            };
+            
+            document.getElementById('editAdId').value = currentEditingAd.id;
+            document.getElementById('editAdTitle').value = currentEditingAd.title;
+            document.getElementById('editAdReward').value = currentEditingAd.reward;
+            document.getElementById('editAdLink').value = currentEditingAd.link;
+            document.getElementById('editAdMeta').value = currentEditingAd.meta;
+            document.getElementById('editAdIcon').value = currentEditingAd.icon;
+            
+            openModal('adminEdit');
+        }
+
+        async function saveAdEdit() {
+            const id = parseInt(document.getElementById('editAdId').value);
+            const title = document.getElementById('editAdTitle').value;
+            const reward = parseFloat(document.getElementById('editAdReward').value);
+            const link = document.getElementById('editAdLink').value;
+            const meta = document.getElementById('editAdMeta').value;
+            const icon = document.getElementById('editAdIcon').value;
+            
+            if (!title || !reward || !link || !meta) {
+                showToast('❌ Please fill all fields');
+                return;
+            }
             
             try {
-                const response = await fetch('/api/claim-daily-bonus', {
+                const response = await fetch('/api/update-ad', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ user_id: userData.user_id })
+                    body: JSON.stringify({
+                        ad_id: id,
+                        title: title,
+                        reward: reward,
+                        link: link,
+                        meta: meta,
+                        icon: icon,
+                        admin_id: userData.user_id
+                    })
                 });
                 
                 const result = await response.json();
                 
                 if (result.success) {
-                    showToast(`✅ +₹${result.bonus.toFixed(2)} claimed! Streak: ${result.streak}`);
-                    userData.balance += result.bonus;
-                    userData.total_earned += result.bonus;
-                    userData.daily_streak = result.streak;
-                    updateUI();
-                    playSound('earn');
+                    showToast('✅ Ad updated successfully!');
                     
-                    // Update button text for next day
-                    const nextBonus = 0.05 + Math.min(result.streak * 0.02, 0.15);
-                    document.getElementById('dailyBonusAmount').innerText = `+₹${nextBonus.toFixed(2)}`;
+                    await fetch('/api/reset-ad-claims', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            ad_id: id,
+                            admin_id: userData.user_id
+                        })
+                    });
+                    
+                    closeModal('adminEdit');
+                    loadAds();
                 } else {
-                    showToast('❌ ' + (result.message || 'Already claimed today'));
-                    // Re-enable after 24 hours? We'll let backend handle it
+                    showToast('❌ Failed to update ad');
                 }
             } catch (error) {
-                showToast('❌ Error claiming bonus');
+                showToast('❌ Error saving ad');
             }
-            
-            // Re-enable after 1 second (actual check is on backend)
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.style.opacity = '1';
-            }, 1000);
         }
 
         // ========== UPDATE UI ==========
         function updateUI() {
             document.getElementById('balanceAmount').innerText = `₹${userData.balance.toFixed(2)}`;
             document.getElementById('withdrawBalance').innerText = `₹${userData.balance.toFixed(2)}`;
-            
-            const progress = Math.min(userData.balance, 50);
-            const progressPercent = (progress / 50) * 100;
-            document.getElementById('progressFill').style.width = `${progressPercent}%`;
-            document.getElementById('currentProgress').innerText = `₹${progress.toFixed(2)}`;
-            
-            const offersLeft = Math.max(0, 6 - Math.floor(userData.balance / 2));
-            document.getElementById('offersLeft').innerText = offersLeft;
-            
-            // FIXED: Correct referral link format with bot username
-            const botUsername = 'LinkProviderRobot'; // This should come from config
-            document.getElementById('refLink').innerText = `https://t.me/${botUsername}?start=ref_${userData.user_id}`;
+            document.getElementById('referralCount').innerText = userData.active_refs || 0;
             
             document.getElementById('profileName').innerText = userData.first_name;
             document.getElementById('profileAvatar').innerText = userData.first_name.charAt(0).toUpperCase();
@@ -1218,7 +1782,13 @@
         function openModal(modalId) {
             closeAllModals();
             const modal = document.getElementById(modalId + 'Modal');
-            if (modal) modal.classList.add('active');
+            if (modal) {
+                modal.classList.add('active');
+                
+                if (modalId === 'missions') {
+                    updateMissionsUI();
+                }
+            }
         }
 
         function closeModal(modalId) {
@@ -1244,18 +1814,6 @@
                     themeKnob.style.right = 'auto';
                 }
                 currentTheme = 'dark';
-                
-                if (userData.user_id) {
-                    fetch('/api/update-setting', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            user_id: userData.user_id,
-                            setting: 'dark_mode',
-                            value: true
-                        })
-                    });
-                }
             } else {
                 html.setAttribute('data-theme', 'light');
                 themeToggle.innerText = '🌙';
@@ -1264,23 +1822,10 @@
                     themeKnob.style.right = 'auto';
                 }
                 currentTheme = 'light';
-                
-                if (userData.user_id) {
-                    fetch('/api/update-setting', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            user_id: userData.user_id,
-                            setting: 'dark_mode',
-                            value: false
-                        })
-                    });
-                }
             }
             playSound('tap');
         }
 
-        // ========== SOUND TOGGLE ==========
         function toggleSound() {
             soundEnabled = !soundEnabled;
             const soundKnob = document.getElementById('soundToggleKnob');
@@ -1294,21 +1839,8 @@
             }
             
             if (soundEnabled) playSound('tap');
-            
-            if (userData.user_id) {
-                fetch('/api/update-setting', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        user_id: userData.user_id,
-                        setting: 'sound_enabled',
-                        value: soundEnabled
-                    })
-                });
-            }
         }
 
-        // ========== NOTIFICATIONS TOGGLE ==========
         function toggleNotifications() {
             notificationsEnabled = !notificationsEnabled;
             const notifyKnob = document.getElementById('notifyToggleKnob');
@@ -1320,21 +1852,8 @@
                 notifyKnob.style.left = '2px';
                 notifyKnob.style.right = 'auto';
             }
-            
-            if (userData.user_id) {
-                fetch('/api/update-setting', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        user_id: userData.user_id,
-                        setting: 'notifications',
-                        value: notificationsEnabled
-                    })
-                });
-            }
         }
 
-        // ========== SOUND SYSTEM ==========
         function playSound(type) {
             if (!soundEnabled) return;
             
@@ -1353,134 +1872,101 @@
                     gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
                     oscillator.start();
                     oscillator.stop(audioCtx.currentTime + 0.05);
-                } else if (type === 'success') {
-                    oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
-                    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                    oscillator.start();
-                    oscillator.stop(audioCtx.currentTime + 0.1);
                 } else if (type === 'earn') {
                     oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
                     gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
                     oscillator.start();
                     oscillator.stop(audioCtx.currentTime + 0.15);
+                } else if (type === 'success') {
+                    oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+                    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    oscillator.start();
+                    oscillator.stop(audioCtx.currentTime + 0.1);
                 }
             } catch (e) {}
         }
 
-        // ========== COPY REFERRAL LINK ==========
-        function copyRefLink() {
-            const link = document.getElementById('refLink').innerText;
-            navigator.clipboard.writeText(link);
-            showToast('✅ Referral link copied!');
-            playSound('tap');
-        }
-
-        // ========== CLAIM AD ==========
-        async function claimAd(adId) {
-            if (!userData.user_id) {
-                showToast('❌ Please open via Telegram');
-                return;
-            }
-            
-            playSound('tap');
-            
-            const ad = ads.find(a => a.id === adId);
-            if (!ad) return;
-            
-            if (adminEditMode) {
-                currentEditingAd = ad;
-                document.getElementById('editAdTitle').value = ad.title;
-                document.getElementById('editAdReward').value = ad.reward;
-                document.getElementById('editAdLink').value = ad.link;
-                document.getElementById('editAdMeta').value = ad.meta;
-                openModal('adminEdit');
-                return;
-            }
-            
-            showToast('⏱️ Processing... Please wait 3 seconds');
-            
-            window.open(ad.link, '_blank');
-            
-            setTimeout(async () => {
-                try {
-                    const response = await fetch('/api/claim-ad', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            user_id: userData.user_id,
-                            ad_id: adId,
-                            reward: ad.reward
-                        })
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        userData.balance += ad.reward;
-                        userData.total_earned += ad.reward;
-                        
-                        updateUI();
-                        showToast(`✅ +₹${ad.reward} added to balance!`);
-                        playSound('earn');
-                        
-                        loadUserData();
-                    } else {
-                        showToast('❌ ' + result.message);
-                    }
-                } catch (error) {
-                    showToast('❌ Error claiming reward');
-                }
-            }, 3000);
-        }
-
-        // ========== ADMIN EDIT FUNCTIONS ==========
+        // ========== ADMIN EDIT MODE ==========
         function toggleAdminEdit() {
             adminEditMode = !adminEditMode;
-            const body = document.body;
+            renderAds();
             
             if (adminEditMode) {
-                body.classList.add('admin-edit-mode');
-                showToast('✏️ Admin Edit Mode: Double click ads to edit');
-            } else {
-                body.classList.remove('admin-edit-mode');
+                showToast('✏️ Admin Edit Mode: Click on any ad to edit');
             }
-            
-            playSound('tap');
         }
 
-        function saveAdEdit() {
-            const title = document.getElementById('editAdTitle').value;
-            const reward = parseFloat(document.getElementById('editAdReward').value);
-            const link = document.getElementById('editAdLink').value;
-            const meta = document.getElementById('editAdMeta').value;
-            
-            if (!title || !reward || !link || !meta) {
-                showToast('❌ Please fill all fields');
-                return;
-            }
-            
-            if (currentEditingAd) {
-                currentEditingAd.title = title;
-                currentEditingAd.reward = reward;
-                currentEditingAd.link = link;
-                currentEditingAd.meta = meta;
+        // ========== LEADERBOARD ==========
+        async function loadLeaderboard() {
+            try {
+                const response = await fetch('/api/leaderboard');
+                const leaders = await response.json();
                 
-                fetch('/api/update-ad', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        ad_id: currentEditingAd.id,
-                        title: title,
-                        reward: reward,
-                        link: link,
-                        meta: meta,
-                        admin_id: userData.user_id
-                    })
-                }).then(() => {
-                    renderAds();
-                    closeModal('adminEdit');
-                    showToast('✅ Ad updated successfully');
+                const container = document.getElementById('leaderboardContainer');
+                if (!container) return;
+
+                let html = '';
+                const medals = ['🥇', '🥈', '🥉'];
+                
+                leaders.forEach((user, index) => {
+                    html += `
+                        <div style="display: flex; align-items: center; padding: 15px; margin: 8px 0; background: var(--bg-secondary); border-radius: 16px;">
+                            <div style="width: 40px; height: 40px; background: #fbbf24; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 15px; color: #000;">
+                                ${index < 3 ? medals[index] : index + 1}
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600;">${user.name}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">Tier ${user.tier}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="color: #fbbf24; font-weight: 700;">${user.active_refs}</div>
+                                <div style="font-size: 11px; color: var(--text-secondary);">referrals</div>
+                            </div>
+                        </div>
+                    `;
                 });
+                
+                container.innerHTML = html || '<div style="text-align: center; padding: 20px;">No data available</div>';
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+            }
+        }
+
+        // ========== WITHDRAWAL HISTORY ==========
+        async function loadWithdrawalHistory() {
+            if (!userData.user_id) return;
+            
+            try {
+                const response = await fetch(`/api/user/${userData.user_id}/withdrawals`);
+                const withdrawals = await response.json();
+                
+                const container = document.getElementById('withdrawalHistoryContainer');
+                if (!container) return;
+
+                let html = '';
+                if (withdrawals.length === 0) {
+                    html = '<div style="text-align: center; padding: 20px;">No withdrawal history</div>';
+                } else {
+                    withdrawals.forEach(w => {
+                        const statusColor = w.status === 'completed' ? '#10b981' : w.status === 'rejected' ? '#ef4444' : '#fbbf24';
+                        html += `
+                            <div style="background: var(--bg-secondary); border-radius: 16px; padding: 15px; margin: 10px 0;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span style="font-weight: 700;">₹${w.amount}</span>
+                                    <span style="color: ${statusColor};">${w.status}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary);">
+                                    <span>${new Date(w.request_date).toLocaleDateString()}</span>
+                                    <span>${w.method}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading withdrawal history:', error);
             }
         }
 
@@ -1581,12 +2067,6 @@
             btn.disabled = false;
         }
 
-        // ========== CONTACT ADMIN ==========
-        function contactAdmin() {
-            playSound('tap');
-            window.open('https://t.me/asbhaibsr', '_blank');
-        }
-
         // ========== SHOW TOAST ==========
         function showToast(message) {
             const toast = document.getElementById('toast');
@@ -1602,18 +2082,14 @@
         function startAutoRefresh() {
             setInterval(() => {
                 loadUserData();
-            }, 30000);
-            
-            setInterval(() => {
                 loadLiveActivity();
-            }, 15000);
+            }, 30000);
         }
 
         // ========== INITIALIZE ==========
         document.addEventListener('DOMContentLoaded', () => {
             initTelegram();
             loadAds();
-            loadLiveActivity();
             startAutoRefresh();
             
             const savedTheme = localStorage.getItem('theme');
@@ -1631,4 +2107,4 @@
         window.playSound = playSound;
     </script>
 </body>
-    </html>
+</html>
