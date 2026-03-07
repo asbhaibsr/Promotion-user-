@@ -1,4 +1,4 @@
-# ===== handlers.py (COMPLETE FIXED - DAILY BONUS ADDED, CORRECT REF LINK) =====
+# ===== handlers.py (FINAL - WITH SUPPORT MESSAGES + LIVE ACTIVITY) =====
 
 import logging
 import json
@@ -18,7 +18,7 @@ class Handlers:
     # ========== MAIN COMMANDS ==========
     
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Start command handler - FIXED: Correct referral link format"""
+        """Start command handler - WITH LIVE ACTIVITY + LOG CHANNEL"""
         try:
             user = update.effective_user
             args = context.args
@@ -43,6 +43,53 @@ class Handlers:
             is_new = self.db.add_user(user_data)
             
             if is_new:
+                # ADD TO LIVE ACTIVITY
+                self.db.add_live_activity(
+                    'join',
+                    user.id,
+                    0,
+                    f"Joined the bot"
+                )
+                
+                # LOG CHANNEL NOTIFICATION
+                if self.config.LOG_CHANNEL_ID:
+                    try:
+                        log_text = (
+                            f"👤 **NEW USER JOINED**\n\n"
+                            f"**Name:** {user.first_name}\n"
+                            f"**User ID:** `{user.id}`\n"
+                            f"**Username:** @{user.username if user.username else 'N/A'}\n"
+                            f"**Referred by:** {referrer_id if referrer_id else 'Direct'}\n"
+                            f"**Time:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                        )
+                        
+                        await context.bot.send_message(
+                            chat_id=self.config.LOG_CHANNEL_ID,
+                            text=log_text,
+                            parse_mode=ParseMode.MARKDOWN
+                        )
+                    except Exception as e:
+                        logger.error(f"Log channel error: {e}")
+                
+                # OWNER PM NOTIFICATION
+                keyboard = [[InlineKeyboardButton("👤 VIEW USER", callback_data=f"user_details_{user.id}")]]
+                
+                for admin_id in self.config.ADMIN_IDS:
+                    try:
+                        await context.bot.send_message(
+                            chat_id=admin_id,
+                            text=(
+                                f"👤 **New User Joined!**\n\n"
+                                f"Name: {user.first_name}\n"
+                                f"ID: `{user.id}`\n"
+                                f"Referred by: {referrer_id if referrer_id else 'Direct'}"
+                            ),
+                            reply_markup=InlineKeyboardMarkup(keyboard),
+                            parse_mode=ParseMode.MARKDOWN
+                        )
+                    except:
+                        pass
+                
                 if referrer_id:
                     logger.info(f"✅ New user: {user.id} referred by: {referrer_id}")
                     
@@ -56,11 +103,7 @@ class Handlers:
                                     text=(
                                         f"🎉 **New Referral!**\n\n"
                                         f"{user.first_name} just joined using your link!\n\n"
-                                        f"🔍 Ask them to:\n"
-                                        f"1️⃣ Join movie group\n"
-                                        f"2️⃣ Search any movie\n"
-                                        f"3️⃣ Complete shortlinks\n\n"
-                                        f"You'll earn when they search! 🚀"
+                                        f"🔍 Ask them to search any movie in group to activate referral!"
                                     ),
                                     parse_mode=ParseMode.MARKDOWN
                                 )
@@ -95,7 +138,6 @@ class Handlers:
                 parse_mode=ParseMode.MARKDOWN
             )
             
-            # FIXED: Correct referral link format with your bot username
             ref_link = f"https://t.me/{self.config.BOT_USERNAME}?start=ref_{user.id}"
             
             ref_text = (
@@ -168,7 +210,6 @@ class Handlers:
             user = self.db.get_user(user_id)
             
             if user:
-                # FIXED: Correct referral link format
                 ref_link = f"https://t.me/{self.config.BOT_USERNAME}?start=ref_{user_id}"
                 daily_earning = user.get('active_refs', 0) * self.config.DAILY_REFERRAL_EARNING
                 
@@ -249,12 +290,10 @@ class Handlers:
                 "**How to Earn:**\n"
                 "1️⃣ Share your referral link with friends\n"
                 "2️⃣ Friends join and search movies in group\n"
-                "3️⃣ Friends must complete shortlinks\n"
-                "4️⃣ You earn ₹0.30 per active friend daily\n\n"
+                "3️⃣ You earn ₹0.30 per active friend daily\n\n"
                 "**⚠️ Important Rules:**\n"
                 "• You DON'T earn from your own searches\n"
                 "• You ONLY earn from your referrals' searches\n"
-                "• Referrals MUST complete shortlinks\n"
                 "• Fake searches = No withdrawal (banned)\n"
                 "• Admin checks all withdrawals\n\n"
                 f"**Support:** {self.config.SUPPORT_USERNAME}"
@@ -302,13 +341,6 @@ class Handlers:
                             text=(
                                 "✅ **Search Recorded!**\n\n"
                                 f"• Movie: '{message_text[:30]}...'\n\n"
-                                "⚠️ **IMPORTANT WARNING:**\n"
-                                "• You MUST complete the shortlinks in group\n"
-                                "• Without shortlinks, your referrer's withdrawals will be blocked\n"
-                                "• And you won't be able to withdraw either!\n\n"
-                                "👉 Go to group and click on any link\n"
-                                "👉 Complete the steps (just wait 5-10 seconds)\n"
-                                "👉 Do this daily to keep earnings active\n\n"
                                 f"📱 Open Mini App: {self.config.WEBAPP_URL}/?user_id={user_id}"
                             ),
                             parse_mode=ParseMode.MARKDOWN
@@ -372,8 +404,8 @@ class Handlers:
                 response = await self.process_daily_bonus(data)
             elif action == 'withdraw':
                 response = await self.process_withdraw(data)
-            elif action == 'report_issue':
-                response = await self.process_report_issue(data)
+            elif action == 'support':
+                response = await self.process_support_message(data)
             elif action == 'toggle_notification':
                 response = await self.process_toggle_notification(data)
             elif action == 'get_missions':
@@ -423,7 +455,7 @@ class Handlers:
         """Process daily bonus claim"""
         try:
             user_id = data.get('user_id')
-            result = self.db.claim_daily_bonus(user_id)
+            result = self.db.claim_day_bonus(user_id, data.get('date', datetime.now().date().isoformat()))
             
             if result and result.get('success'):
                 return {
@@ -455,23 +487,43 @@ class Handlers:
             logger.error(f"Withdrawal error: {e}")
             return {'success': False, 'message': 'Withdrawal failed'}
     
-    async def process_report_issue(self, data):
-        """Process issue report"""
+    async def process_support_message(self, data):
+        """Process support message"""
         try:
             user_id = data.get('user_id')
-            issue = data.get('issue')
+            message = data.get('message')
             
-            self.db.issues.insert_one({
-                'user_id': user_id,
-                'issue': issue,
-                'report_date': datetime.now().isoformat(),
-                'status': 'pending'
-            })
+            if not user_id or not message:
+                return {'success': False, 'message': 'Missing data'}
             
-            return {'success': True, 'message': 'Issue reported. Admin will contact you.'}
+            msg_id = self.db.add_support_message(user_id, message)
+            
+            if msg_id:
+                # Notify admins
+                for admin_id in self.config.ADMIN_IDS:
+                    try:
+                        keyboard = [[InlineKeyboardButton("📩 VIEW MESSAGE", callback_data=f"view_support_{msg_id}")]]
+                        
+                        await self.bot.send_message(
+                            chat_id=admin_id,
+                            text=(
+                                f"📩 **New Support Message**\n\n"
+                                f"User ID: `{user_id}`\n"
+                                f"Message: {message[:100]}...\n\n"
+                                f"Click below to reply:"
+                            ),
+                            reply_markup=InlineKeyboardMarkup(keyboard)
+                        )
+                    except:
+                        pass
+                
+                return {'success': True, 'message': 'Message sent to support'}
+            else:
+                return {'success': False, 'message': 'Failed to send message'}
+                
         except Exception as e:
-            logger.error(f"Report issue error: {e}")
-            return {'success': False, 'message': 'Failed to report'}
+            logger.error(f"Support message error: {e}")
+            return {'success': False, 'message': str(e)}
     
     async def process_toggle_notification(self, data):
         """Toggle notification settings"""
@@ -480,10 +532,7 @@ class Handlers:
             setting = data.get('setting')
             value = data.get('value')
             
-            self.db.users.update_one(
-                {'user_id': user_id},
-                {'$set': {f'notify_{setting}': value}}
-            )
+            self.db.update_notification_setting(user_id, setting, value)
             
             return {'success': True, 'message': 'Settings updated'}
         except Exception as e:
@@ -494,53 +543,16 @@ class Handlers:
         """Get user missions"""
         try:
             user_id = data.get('user_id')
-            user = self.db.get_user(user_id)
+            missions = self.db.get_user_missions(user_id)
             
-            if not user:
+            if not missions:
                 return {}
-            
-            missions = {
-                'mission_1': {
-                    'name': 'Make 1 Active Referral',
-                    'completed': user.get('active_refs', 0) >= 1,
-                    'progress': min(user.get('active_refs', 0), 1),
-                    'total': 1,
-                    'reward': 5.0
-                },
-                'mission_2': {
-                    'name': 'Make 5 Active Referrals',
-                    'completed': user.get('active_refs', 0) >= 5,
-                    'progress': min(user.get('active_refs', 0), 5),
-                    'total': 5,
-                    'reward': 25.0
-                },
-                'mission_3': {
-                    'name': 'Reach Silver Tier',
-                    'completed': user.get('active_refs', 0) >= 10,
-                    'progress': min(user.get('active_refs', 0), 10),
-                    'total': 10,
-                    'reward': 50.0
-                },
-                'mission_4': {
-                    'name': 'Reach Gold Tier',
-                    'completed': user.get('active_refs', 0) >= 30,
-                    'progress': min(user.get('active_refs', 0), 30),
-                    'total': 30,
-                    'reward': 100.0
-                },
-                'mission_5': {
-                    'name': 'Reach Diamond Tier',
-                    'completed': user.get('active_refs', 0) >= 100,
-                    'progress': min(user.get('active_refs', 0), 100),
-                    'total': 100,
-                    'reward': 500.0
-                }
-            }
             
             return {
                 'success': True,
-                'missions': missions,
-                'total_completed': sum(1 for m in missions.values() if m['completed'])
+                'mission1': missions.get('mission1', {}),
+                'mission2': missions.get('mission2', {}),
+                'reward_claimed': missions.get('reward_claimed', False)
             }
         except Exception as e:
             logger.error(f"Missions error: {e}")
