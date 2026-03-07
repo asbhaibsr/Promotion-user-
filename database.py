@@ -1,4 +1,4 @@
-# ===== database.py (FIXED - WITH USER ID IN LIVE ACTIVITY) =====
+# ===== database.py (FINAL - WITH ALL FIXES) =====
 
 import logging
 from datetime import datetime, timedelta
@@ -196,11 +196,10 @@ class Database:
                     else:
                         display_text = f"was active"
                 
-                # IMPORTANT: Include user_id in response
                 result.append({
                     'type': act.get('type', 'activity'),
                     'user_name': act.get('user_name', 'User'),
-                    'user_id': act.get('user_id', 0),  # CRITICAL: Add user_id here
+                    'user_id': act.get('user_id', 0),
                     'amount': act.get('amount', 0),
                     'time': time_ago,
                     'avatar': emoji,
@@ -213,274 +212,74 @@ class Database:
             logger.error(f"Error getting live activity: {e}")
             return []
     
-    # ========== DAILY BONUS (CALENDAR) - FIXED DATE VALIDATION ==========
+    # ========== SUPPORT MESSAGES ==========
     
-    def claim_day_bonus(self, user_id, date_str):
-        """Claim bonus for specific day (calendar)"""
+    def add_support_message(self, user_id, message):
+        """Add support message from user"""
         try:
-            user_id = int(user_id)
             user = self.get_user(user_id)
-            if not user:
-                return None
             
-            # Parse the date
-            try:
-                claim_date = datetime.fromisoformat(date_str).date()
-            except:
-                logger.error(f"Invalid date format: {date_str}")
-                return None
-            
-            today = datetime.now().date()
-            
-            # IMPORTANT FIX: Only allow claiming today's date
-            if claim_date != today:
-                logger.info(f"User {user_id} tried to claim {date_str} but today is {today}")
-                return None
-            
-            # Check if already claimed
-            existing = self.daily_bonus.find_one({
-                'user_id': user_id,
-                'date': date_str
-            })
-            
-            if existing:
-                logger.info(f"User {user_id} already claimed bonus for {date_str}")
-                return None
-            
-            # Calculate bonus (increases with streak)
-            streak = user.get('daily_streak', 0)
-            base_bonus = self.config.DAILY_BONUS
-            streak_bonus = min(streak * 0.02, 0.15)
-            total_bonus = base_bonus + streak_bonus
-            
-            # Add balance
-            self.add_balance(user_id, total_bonus, f"Daily bonus for {date_str}")
-            
-            # Record claim
-            self.daily_bonus.insert_one({
-                'user_id': user_id,
-                'date': date_str,
-                'bonus': total_bonus,
-                'timestamp': datetime.now().isoformat()
-            })
-            
-            # Update streak
-            new_streak = streak + 1
-            self.users.update_one(
-                {'user_id': user_id},
-                {
-                    '$set': {
-                        'daily_streak': new_streak,
-                        'last_daily': date_str
-                    }
-                }
-            )
-            
-            # Add live activity
-            self.add_live_activity(
-                'bonus',
-                user_id,
-                total_bonus,
-                f"claimed daily bonus (streak: {new_streak})"
-            )
-            
-            self.user_cache.pop(f"user_{user_id}", None)
-            
-            logger.info(f"✅ Day bonus claimed: User {user_id} for {date_str} - ₹{total_bonus}")
-            
-            return {
-                'bonus': total_bonus,
-                'streak': new_streak,
-                'success': True
+            support_msg = {
+                'user_id': int(user_id),
+                'user_name': user.get('first_name', 'User') if user else 'User',
+                'message': message,
+                'timestamp': datetime.now().isoformat(),
+                'status': 'pending',
+                'read': False,
+                'admin_reply': None,
+                'reply_date': None
             }
             
+            result = self.issues.insert_one(support_msg)
+            
+            self.add_live_activity('support', user_id, 0, "sent support message")
+            
+            logger.info(f"📩 Support message from user {user_id}")
+            return str(result.inserted_id)
+            
         except Exception as e:
-            logger.error(f"Error claiming day bonus: {e}")
+            logger.error(f"Error adding support message: {e}")
             return None
     
-    # ========== ADS MANAGEMENT - FIXED DELETE FUNCTION ==========
-    
-    def get_all_ads(self):
-        """Get all ads"""
+    def get_pending_support_messages(self, limit=20):
+        """Get pending support messages for admin"""
         try:
-            ads = list(self.ads.find().sort('order', 1))
-            for ad in ads:
-                ad['_id'] = str(ad['_id'])
-            return ads
+            messages = list(self.issues.find(
+                {'status': 'pending'}
+            ).sort('timestamp', -1).limit(limit))
+            
+            for msg in messages:
+                msg['_id'] = str(msg['_id'])
+            
+            return messages
         except Exception as e:
-            logger.error(f"Error getting ads: {e}")
+            logger.error(f"Error getting support messages: {e}")
             return []
     
-    def get_ad(self, ad_id):
-        """Get single ad by ID"""
+    def mark_support_replied(self, message_id, admin_id, reply_text):
+        """Mark support message as replied"""
         try:
-            ad = self.ads.find_one({'id': int(ad_id)})
-            if ad:
-                ad['_id'] = str(ad['_id'])
-            return ad
-        except Exception as e:
-            logger.error(f"Error getting ad: {e}")
-            return None
-    
-    def update_ad(self, ad_id, title, reward, link, meta, icon=None):
-        """Update an ad"""
-        try:
-            update_data = {
-                'title': title,
-                'reward': float(reward),
-                'link': link,
-                'meta': meta
-            }
-            if icon:
-                update_data['icon'] = icon
+            from bson.objectid import ObjectId
             
-            self.ads.update_one(
-                {'id': int(ad_id)},
-                {'$set': update_data},
-                upsert=True
+            self.issues.update_one(
+                {'_id': ObjectId(message_id)},
+                {'$set': {
+                    'status': 'replied',
+                    'admin_id': int(admin_id),
+                    'admin_reply': reply_text,
+                    'reply_date': datetime.now().isoformat(),
+                    'read': True
+                }}
             )
             
-            logger.info(f"✅ Ad {ad_id} updated")
-            return True
-        except Exception as e:
-            logger.error(f"Error updating ad: {e}")
-            return False
-    
-    def delete_ad(self, ad_id):
-        """Delete an ad"""
-        try:
-            result = self.ads.delete_one({'id': int(ad_id)})
-            if result.deleted_count > 0:
-                # Also delete all claims for this ad
-                self.daily_claims.delete_many({'ad_id': ad_id})
-                logger.info(f"✅ Ad {ad_id} deleted")
-                return True
-            return False
-        except Exception as e:
-            logger.error(f"Error deleting ad: {e}")
-            return False
-    
-    def get_user_claimed_ads(self, user_id, date=None):
-        """Get ads claimed by user on specific date"""
-        try:
-            user_id = int(user_id)
-            if not date:
-                date = datetime.now().date().isoformat()
-            
-            claims = list(self.daily_claims.find(
-                {'user_id': user_id, 'date': date},
-                {'ad_id': 1, '_id': 0}
-            ))
-            
-            return [c['ad_id'] for c in claims]
-        except Exception as e:
-            logger.error(f"Error getting claimed ads: {e}")
-            return []
-    
-    def claim_ad(self, user_id, ad_id, reward):
-        """Record ad claim"""
-        try:
-            user_id = int(user_id)
-            today = datetime.now().date().isoformat()
-            
-            # Check if already claimed today
-            existing = self.daily_claims.find_one({
-                'user_id': user_id,
-                'ad_id': ad_id,
-                'date': today
-            })
-            
-            if existing:
-                return False
-            
-            # Add balance
-            self.add_balance(user_id, float(reward), f"Ad reward #{ad_id}")
-            
-            # Record claim
-            self.daily_claims.insert_one({
-                'user_id': user_id,
-                'ad_id': ad_id,
-                'date': today,
-                'reward': float(reward),
-                'timestamp': datetime.now().isoformat()
-            })
-            
-            # Add live activity
-            self.add_live_activity(
-                'bonus',
-                user_id,
-                reward,
-                f"claimed ad reward ₹{reward}"
-            )
-            
-            logger.info(f"✅ Ad {ad_id} claimed by user {user_id}")
+            logger.info(f"✅ Support message {message_id} replied by admin {admin_id}")
             return True
             
         except Exception as e:
-            logger.error(f"Error claiming ad: {e}")
+            logger.error(f"Error marking support replied: {e}")
             return False
     
-    def reset_ad_claims(self, ad_id):
-        """Reset all claims for an ad (when admin edits)"""
-        try:
-            self.daily_claims.delete_many({'ad_id': ad_id})
-            logger.info(f"✅ Ad {ad_id} claims reset")
-            return True
-        except Exception as e:
-            logger.error(f"Error resetting ad claims: {e}")
-            return False
-    
-    # ========== BLOCKED USERS CLEANUP - FIXED WITH PROGRESS ==========
-    
-    def remove_blocked_users(self, user_ids, callback=None):
-        """Remove multiple users from database with progress tracking"""
-        try:
-            deleted_count = 0
-            failed_count = 0
-            total = len(user_ids)
-            
-            for i, user_id in enumerate(user_ids):
-                try:
-                    user_id = int(user_id)
-                    
-                    # Delete all user data
-                    self.users.delete_one({'user_id': user_id})
-                    self.transactions.delete_many({'user_id': user_id})
-                    self.withdrawals.delete_many({'user_id': user_id})
-                    self.referrals.delete_many({
-                        '$or': [
-                            {'referrer_id': user_id},
-                            {'referred_id': user_id}
-                        ]
-                    })
-                    self.daily_searches.delete_many({'user_id': user_id})
-                    self.search_logs.delete_many({'user_id': user_id})
-                    self.daily_bonus.delete_many({'user_id': user_id})
-                    self.missions.delete_many({'user_id': user_id})
-                    self.daily_claims.delete_many({'user_id': user_id})
-                    self.issues.delete_many({'user_id': user_id})
-                    self.live_activity.delete_many({'user_id': user_id})
-                    
-                    self.user_cache.pop(f"user_{user_id}", None)
-                    deleted_count += 1
-                    
-                except Exception as e:
-                    failed_count += 1
-                    logger.error(f"Error deleting user {user_id}: {e}")
-                
-                # Call progress callback if provided
-                if callback and i % 10 == 0:
-                    callback(i+1, total)
-            
-            logger.info(f"🧹 Removed {deleted_count} blocked users, failed {failed_count}")
-            return deleted_count, failed_count
-            
-        except Exception as e:
-            logger.error(f"Error removing blocked users: {e}")
-            return 0, len(user_ids)
-    
-    # ========== REST OF THE METHODS (unchanged) ==========
-    # [Keep all your existing methods here - get_user, add_user, record_search, etc.]
+    # ========== USER MANAGEMENT ==========
     
     def get_user(self, user_id):
         """Get user with caching"""
@@ -596,6 +395,8 @@ class Database:
             logger.error(f"Error adding user: {e}")
             return False
     
+    # ========== SEARCH RECORDING ==========
+    
     def record_search(self, user_id):
         """Record user search"""
         if not self.ensure_connection():
@@ -708,7 +509,6 @@ class Database:
                 
                 self.user_cache.pop(f"user_{referrer_id}", None)
                 
-                # Add live activity
                 referrer = self.get_user(referrer_id)
                 if referrer:
                     self.add_live_activity(
@@ -724,6 +524,8 @@ class Database:
         except Exception as e:
             logger.error(f"Error activating referral: {e}")
             return False
+    
+    # ========== DAILY REFERRAL EARNINGS ==========
     
     def process_daily_referral_earnings(self):
         """Process daily earnings for active referrals"""
@@ -779,6 +581,8 @@ class Database:
             logger.error(f"Error processing daily earnings: {e}")
             return 0
     
+    # ========== CHANNEL JOIN ==========
+    
     def mark_channel_join(self, user_id, channel_id):
         """Mark user as joined channel"""
         try:
@@ -826,6 +630,83 @@ class Database:
             logger.error(f"Error marking channel join: {e}")
             return False
     
+    # ========== DAILY BONUS (CALENDAR) ==========
+    
+    def claim_day_bonus(self, user_id, date_str):
+        """Claim bonus for specific day (calendar)"""
+        try:
+            user_id = int(user_id)
+            user = self.get_user(user_id)
+            if not user:
+                return None
+            
+            try:
+                claim_date = datetime.fromisoformat(date_str).date()
+            except:
+                logger.error(f"Invalid date format: {date_str}")
+                return None
+            
+            today = datetime.now().date()
+            
+            if claim_date != today:
+                logger.info(f"User {user_id} tried to claim {date_str} but today is {today}")
+                return None
+            
+            existing = self.daily_bonus.find_one({
+                'user_id': user_id,
+                'date': date_str
+            })
+            
+            if existing:
+                logger.info(f"User {user_id} already claimed bonus for {date_str}")
+                return None
+            
+            streak = user.get('daily_streak', 0)
+            base_bonus = self.config.DAILY_BONUS
+            streak_bonus = min(streak * 0.02, 0.15)
+            total_bonus = base_bonus + streak_bonus
+            
+            self.add_balance(user_id, total_bonus, f"Daily bonus for {date_str}")
+            
+            self.daily_bonus.insert_one({
+                'user_id': user_id,
+                'date': date_str,
+                'bonus': total_bonus,
+                'timestamp': datetime.now().isoformat()
+            })
+            
+            new_streak = streak + 1
+            self.users.update_one(
+                {'user_id': user_id},
+                {
+                    '$set': {
+                        'daily_streak': new_streak,
+                        'last_daily': date_str
+                    }
+                }
+            )
+            
+            self.add_live_activity(
+                'bonus',
+                user_id,
+                total_bonus,
+                f"claimed daily bonus (streak: {new_streak})"
+            )
+            
+            self.user_cache.pop(f"user_{user_id}", None)
+            
+            logger.info(f"✅ Day bonus claimed: User {user_id} for {date_str} - ₹{total_bonus}")
+            
+            return {
+                'bonus': total_bonus,
+                'streak': new_streak,
+                'success': True
+            }
+            
+        except Exception as e:
+            logger.error(f"Error claiming day bonus: {e}")
+            return None
+    
     def get_user_bonus_days(self, user_id):
         """Get all claimed bonus days for user"""
         try:
@@ -839,6 +720,8 @@ class Database:
         except Exception as e:
             logger.error(f"Error getting bonus days: {e}")
             return []
+    
+    # ========== MISSIONS ==========
     
     def get_user_missions(self, user_id):
         """Get user's missions for today"""
@@ -854,7 +737,6 @@ class Database:
             if not mission_data:
                 user = self.get_user(user_id)
                 
-                # Count bonus days claimed in last 5 days
                 five_days_ago = (datetime.now() - timedelta(days=5)).date().isoformat()
                 bonus_count = self.daily_bonus.count_documents({
                     'user_id': user_id,
@@ -975,6 +857,135 @@ class Database:
             logger.error(f"Error claiming mission reward: {e}")
             return {'success': False, 'message': str(e)}
     
+    # ========== ADS MANAGEMENT ==========
+    
+    def get_all_ads(self):
+        """Get all ads"""
+        try:
+            ads = list(self.ads.find().sort('order', 1))
+            for ad in ads:
+                ad['_id'] = str(ad['_id'])
+            return ads
+        except Exception as e:
+            logger.error(f"Error getting ads: {e}")
+            return []
+    
+    def get_ad(self, ad_id):
+        """Get single ad by ID"""
+        try:
+            ad = self.ads.find_one({'id': int(ad_id)})
+            if ad:
+                ad['_id'] = str(ad['_id'])
+            return ad
+        except Exception as e:
+            logger.error(f"Error getting ad: {e}")
+            return None
+    
+    def update_ad(self, ad_id, title, reward, link, meta, icon=None):
+        """Update an ad"""
+        try:
+            update_data = {
+                'title': title,
+                'reward': float(reward),
+                'link': link,
+                'meta': meta
+            }
+            if icon:
+                update_data['icon'] = icon
+            
+            self.ads.update_one(
+                {'id': int(ad_id)},
+                {'$set': update_data},
+                upsert=True
+            )
+            
+            logger.info(f"✅ Ad {ad_id} updated")
+            return True
+        except Exception as e:
+            logger.error(f"Error updating ad: {e}")
+            return False
+    
+    def delete_ad(self, ad_id):
+        """Delete an ad"""
+        try:
+            result = self.ads.delete_one({'id': int(ad_id)})
+            if result.deleted_count > 0:
+                self.daily_claims.delete_many({'ad_id': ad_id})
+                logger.info(f"✅ Ad {ad_id} deleted")
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"Error deleting ad: {e}")
+            return False
+    
+    def get_user_claimed_ads(self, user_id, date=None):
+        """Get ads claimed by user on specific date"""
+        try:
+            user_id = int(user_id)
+            if not date:
+                date = datetime.now().date().isoformat()
+            
+            claims = list(self.daily_claims.find(
+                {'user_id': user_id, 'date': date},
+                {'ad_id': 1, '_id': 0}
+            ))
+            
+            return [c['ad_id'] for c in claims]
+        except Exception as e:
+            logger.error(f"Error getting claimed ads: {e}")
+            return []
+    
+    def claim_ad(self, user_id, ad_id, reward):
+        """Record ad claim"""
+        try:
+            user_id = int(user_id)
+            today = datetime.now().date().isoformat()
+            
+            existing = self.daily_claims.find_one({
+                'user_id': user_id,
+                'ad_id': ad_id,
+                'date': today
+            })
+            
+            if existing:
+                return False
+            
+            self.add_balance(user_id, float(reward), f"Ad reward #{ad_id}")
+            
+            self.daily_claims.insert_one({
+                'user_id': user_id,
+                'ad_id': ad_id,
+                'date': today,
+                'reward': float(reward),
+                'timestamp': datetime.now().isoformat()
+            })
+            
+            self.add_live_activity(
+                'bonus',
+                user_id,
+                reward,
+                f"claimed ad reward ₹{reward}"
+            )
+            
+            logger.info(f"✅ Ad {ad_id} claimed by user {user_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error claiming ad: {e}")
+            return False
+    
+    def reset_ad_claims(self, ad_id):
+        """Reset all claims for an ad (when admin edits)"""
+        try:
+            self.daily_claims.delete_many({'ad_id': ad_id})
+            logger.info(f"✅ Ad {ad_id} claims reset")
+            return True
+        except Exception as e:
+            logger.error(f"Error resetting ad claims: {e}")
+            return False
+    
+    # ========== BALANCE MANAGEMENT ==========
+    
     def add_balance(self, user_id, amount, description=""):
         """Add balance to user"""
         try:
@@ -997,6 +1008,8 @@ class Database:
         except Exception as e:
             logger.error(f"Error adding balance: {e}")
             return False
+    
+    # ========== WITHDRAWAL ==========
     
     def process_withdrawal(self, user_id, amount, method, details):
         """Process withdrawal request"""
@@ -1189,6 +1202,8 @@ class Database:
             logger.error(f"Error rejecting withdrawal: {e}")
             return False
     
+    # ========== TRANSACTIONS ==========
+    
     def add_transaction(self, user_id, type_, amount, description=""):
         """Add transaction record"""
         try:
@@ -1206,6 +1221,8 @@ class Database:
         except Exception as e:
             logger.error(f"Error adding transaction: {e}")
             return False
+    
+    # ========== TIER MANAGEMENT ==========
     
     def update_user_tier(self, user_id):
         """Update user tier based on active referrals"""
@@ -1234,6 +1251,8 @@ class Database:
             logger.error(f"Error updating tier: {e}")
             return None
     
+    # ========== NOTIFICATION SETTINGS ==========
+    
     def update_notification_setting(self, user_id, setting, value):
         """Update user notification settings"""
         try:
@@ -1247,6 +1266,8 @@ class Database:
         except Exception as e:
             logger.error(f"Error updating notification setting: {e}")
             return False
+    
+    # ========== LEADERBOARD ==========
     
     def get_leaderboard(self, limit=10):
         """Get leaderboard"""
@@ -1279,70 +1300,54 @@ class Database:
             logger.error(f"Leaderboard error: {e}")
             return []
     
-    def add_support_message(self, user_id, message):
-        """Add support message from user"""
-        try:
-            user = self.get_user(user_id)
-            
-            support_msg = {
-                'user_id': int(user_id),
-                'user_name': user.get('first_name', 'User') if user else 'User',
-                'message': message,
-                'timestamp': datetime.now().isoformat(),
-                'status': 'pending',
-                'read': False,
-                'admin_reply': None,
-                'reply_date': None
-            }
-            
-            result = self.issues.insert_one(support_msg)
-            
-            self.add_live_activity('support', user_id, 0, "sent support message")
-            
-            logger.info(f"📩 Support message from user {user_id}")
-            return str(result.inserted_id)
-            
-        except Exception as e:
-            logger.error(f"Error adding support message: {e}")
-            return None
+    # ========== BLOCKED USERS CLEANUP ==========
     
-    def get_pending_support_messages(self, limit=20):
-        """Get pending support messages for admin"""
+    def remove_blocked_users(self, user_ids, progress_callback=None):
+        """Remove multiple users from database with progress tracking"""
         try:
-            messages = list(self.issues.find(
-                {'status': 'pending'}
-            ).sort('timestamp', -1).limit(limit))
+            deleted_count = 0
+            failed_count = 0
+            total = len(user_ids)
             
-            for msg in messages:
-                msg['_id'] = str(msg['_id'])
+            for i, user_id in enumerate(user_ids):
+                try:
+                    user_id = int(user_id)
+                    
+                    self.users.delete_one({'user_id': user_id})
+                    self.transactions.delete_many({'user_id': user_id})
+                    self.withdrawals.delete_many({'user_id': user_id})
+                    self.referrals.delete_many({
+                        '$or': [
+                            {'referrer_id': user_id},
+                            {'referred_id': user_id}
+                        ]
+                    })
+                    self.daily_searches.delete_many({'user_id': user_id})
+                    self.search_logs.delete_many({'user_id': user_id})
+                    self.daily_bonus.delete_many({'user_id': user_id})
+                    self.missions.delete_many({'user_id': user_id})
+                    self.daily_claims.delete_many({'user_id': user_id})
+                    self.issues.delete_many({'user_id': user_id})
+                    self.live_activity.delete_many({'user_id': user_id})
+                    
+                    self.user_cache.pop(f"user_{user_id}", None)
+                    deleted_count += 1
+                    
+                except Exception as e:
+                    failed_count += 1
+                    logger.error(f"Error deleting user {user_id}: {e}")
+                
+                if progress_callback and (i+1) % 10 == 0:
+                    progress_callback(i+1, total)
             
-            return messages
+            logger.info(f"🧹 Removed {deleted_count} blocked users, failed {failed_count}")
+            return deleted_count, failed_count
+            
         except Exception as e:
-            logger.error(f"Error getting support messages: {e}")
-            return []
+            logger.error(f"Error removing blocked users: {e}")
+            return 0, len(user_ids)
     
-    def mark_support_replied(self, message_id, admin_id, reply_text):
-        """Mark support message as replied"""
-        try:
-            from bson.objectid import ObjectId
-            
-            self.issues.update_one(
-                {'_id': ObjectId(message_id)},
-                {'$set': {
-                    'status': 'replied',
-                    'admin_id': int(admin_id),
-                    'admin_reply': reply_text,
-                    'reply_date': datetime.now().isoformat(),
-                    'read': True
-                }}
-            )
-            
-            logger.info(f"✅ Support message {message_id} replied by admin {admin_id}")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Error marking support replied: {e}")
-            return False
+    # ========== SYSTEM STATS ==========
     
     def log_system_event(self, event_type, description):
         """Log system events"""
@@ -1368,6 +1373,8 @@ class Database:
         except Exception as e:
             logger.error(f"Error getting system stats: {e}")
             return {}
+    
+    # ========== CLEANUP ==========
     
     def cleanup(self):
         """Cleanup database connections"""
