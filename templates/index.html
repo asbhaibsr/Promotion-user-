@@ -152,7 +152,53 @@
             font-size: 16px;
         }
 
-        /* LIVE ACTIVITY SECTION */
+        /* TICKER STYLES */
+        .ticker-container {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            padding: 10px 16px;
+            margin: 10px 0 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .ticker-wrap {
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .ticker-move {
+            display: inline-block;
+            animation: ticker 30s linear infinite;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .ticker-move span {
+            margin-right: 40px;
+            display: inline-block;
+        }
+
+        .ticker-move span i {
+            font-style: normal;
+            color: #fbbf24;
+            font-weight: 600;
+        }
+
+        @keyframes ticker {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .ticker-container:hover .ticker-move {
+            animation-play-state: paused;
+        }
+
+        /* LIVE ACTIVITY */
         .live-activity {
             margin: 24px 0;
         }
@@ -212,8 +258,21 @@
         }
 
         .activity-user {
-            font-weight: 700;
+            font-weight: 500;
             margin-bottom: 2px;
+            line-height: 1.4;
+        }
+
+        .clickable-user {
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .clickable-user:hover {
+            text-decoration: underline;
+            color: #fbbf24;
         }
 
         .activity-time {
@@ -463,6 +522,31 @@
             border-radius: 20px;
             font-size: 10px;
             font-weight: bold;
+        }
+
+        .ad-delete-btn {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            width: 30px;
+            height: 30px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .ad-delete-btn:hover {
+            background: #dc2626;
+            transform: scale(1.1);
         }
 
         .ad-icon {
@@ -782,6 +866,15 @@
             </div>
         </div>
 
+        <!-- SCROLLING TICKER -->
+        <div class="ticker-container">
+            <div class="ticker-wrap">
+                <div class="ticker-move" id="tickerContent">
+                    Loading activities...
+                </div>
+            </div>
+        </div>
+
         <!-- LIVE ACTIVITY SECTION -->
         <div class="live-activity">
             <div class="live-header">
@@ -894,7 +987,7 @@
         </div>
     </div>
 
-    <!-- SUPPORT MODAL (NEW) -->
+    <!-- SUPPORT MODAL -->
     <div id="supportModal" class="page-modal">
         <div class="modal-header">
             <div class="modal-back" onclick="closeModal('support')">←</div>
@@ -1160,6 +1253,7 @@
                 loadCalendarData();
                 loadMissionsData();
                 loadLiveActivity();
+                updateTicker();
             }
         }
 
@@ -1218,20 +1312,26 @@
                 activities.forEach(act => {
                     let displayText = act.description || '';
                     if (!displayText) {
-                        if (act.type === 'join') displayText = `${act.user_name} joined the bot`;
-                        else if (act.type === 'withdraw') displayText = `${act.user_name} withdrew ₹${act.amount}`;
-                        else if (act.type === 'bonus') displayText = `${act.user_name} claimed ₹${act.amount} bonus`;
-                        else if (act.type === 'mission') displayText = `${act.user_name} completed missions`;
-                        else if (act.type === 'referral') displayText = `${act.user_name} got a new referral`;
-                        else if (act.type === 'support') displayText = `${act.user_name} sent support message`;
-                        else displayText = `${act.user_name} was active`;
+                        if (act.type === 'join') displayText = `joined the bot`;
+                        else if (act.type === 'withdraw') displayText = `withdrew ₹${act.amount}`;
+                        else if (act.type === 'bonus') displayText = `claimed ₹${act.amount} bonus`;
+                        else if (act.type === 'mission') displayText = `completed missions`;
+                        else if (act.type === 'referral') displayText = `got a new referral`;
+                        else if (act.type === 'support') displayText = `sent support message`;
+                        else displayText = `was active`;
                     }
+                    
+                    // Create clickable user name link
+                    const userLink = act.user_id ? `tg://user?id=${act.user_id}` : '#';
                     
                     html += `
                         <div class="activity-item">
                             <div class="activity-avatar">${act.avatar || '👤'}</div>
                             <div class="activity-content">
-                                <div class="activity-user">${displayText}</div>
+                                <div class="activity-user">
+                                    <a href="${userLink}" class="clickable-user" target="_blank">${act.user_name}</a>
+                                    ${displayText}
+                                </div>
                                 <div class="activity-time">${act.time}</div>
                             </div>
                             ${act.amount > 0 ? `<div class="activity-amount" style="color: #10b981;">+₹${act.amount}</div>` : ''}
@@ -1243,6 +1343,39 @@
                 
             } catch (error) {
                 console.error('Error loading live activity:', error);
+            }
+        }
+
+        // ========== TICKER FUNCTION ==========
+        async function updateTicker() {
+            try {
+                const response = await fetch('/api/live-activity');
+                const activities = await response.json();
+                
+                if (activities.length === 0) {
+                    document.getElementById('tickerContent').innerHTML = '<span>No recent activity</span>';
+                    return;
+                }
+                
+                let tickerHtml = '';
+                // Duplicate for seamless scrolling
+                for (let i = 0; i < 2; i++) {
+                    activities.slice(0, 10).forEach(act => {
+                        let text = '';
+                        if (act.type === 'join') text = `🎉 ${act.user_name} joined`;
+                        else if (act.type === 'withdraw') text = `💰 ${act.user_name} withdrew ₹${act.amount}`;
+                        else if (act.type === 'bonus') text = `🎁 ${act.user_name} claimed ₹${act.amount}`;
+                        else if (act.type === 'mission') text = `🏆 ${act.user_name} completed missions`;
+                        else if (act.type === 'referral') text = `👥 ${act.user_name} got referral`;
+                        else text = `${act.user_name} was active`;
+                        
+                        tickerHtml += `<span>${text} • <i>${act.time}</i></span>`;
+                    });
+                }
+                
+                document.getElementById('tickerContent').innerHTML = tickerHtml;
+            } catch (error) {
+                console.error('Ticker error:', error);
             }
         }
 
@@ -1294,7 +1427,8 @@
                 const streakBonus = Math.min(userStreak * 0.02, 0.15);
                 const bonusAmount = baseBonus + streakBonus;
                 
-                const canClaim = !isClaimed && (day <= todayDate || currentYear < todayYear || (currentYear === todayYear && currentMonth < todayMonth));
+                // FIX: Only today is available for claiming
+                const canClaim = !isClaimed && isToday;
                 
                 let dayClass = 'calendar-day';
                 if (isToday) dayClass += ' today';
@@ -1328,6 +1462,12 @@
         async function claimDayBonus(dateStr) {
             if (!userData.user_id) {
                 showToast('❌ Please open via Telegram');
+                return;
+            }
+            
+            const today = new Date().toISOString().split('T')[0];
+            if (dateStr !== today) {
+                showToast('❌ You can only claim today\'s bonus!');
                 return;
             }
             
@@ -1578,8 +1718,13 @@
                 const isClaimedToday = todayClaimed.includes(ad.id);
                 const adClass = `ad-card ${adminEditMode ? 'admin-mode' : ''} ${isClaimedToday ? 'claimed' : ''}`;
                 
+                // Add delete button in admin mode
+                const deleteBtn = adminEditMode ? 
+                    `<div class="ad-delete-btn" onclick="event.stopPropagation(); deleteAd(${ad.id})">✕</div>` : '';
+                
                 html += `
                     <div class="${adClass}" onclick="${isClaimedToday ? '' : `handleAdClick(${ad.id})`}" data-ad-id="${ad.id}">
+                        ${deleteBtn}
                         <div class="ad-icon">${ad.icon || '💰'}</div>
                         <div class="ad-info">
                             <div class="ad-title">${ad.title}</div>
@@ -1731,6 +1876,32 @@
                 }
             } catch (error) {
                 showToast('❌ Error saving ad');
+            }
+        }
+
+        async function deleteAd(adId) {
+            if (!confirm('Are you sure you want to delete this ad?')) return;
+            
+            try {
+                const response = await fetch('/api/delete-ad', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        ad_id: adId,
+                        admin_id: userData.user_id
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('✅ Ad deleted successfully!');
+                    loadAds();
+                } else {
+                    showToast('❌ ' + (result.message || 'Failed to delete'));
+                }
+            } catch (error) {
+                showToast('❌ Error deleting ad');
             }
         }
 
@@ -1892,7 +2063,7 @@
             renderAds();
             
             if (adminEditMode) {
-                showToast('✏️ Admin Edit Mode: Click on any ad to edit');
+                showToast('✏️ Admin Edit Mode: Click on any ad to edit or delete');
             }
         }
 
@@ -2083,6 +2254,7 @@
             setInterval(() => {
                 loadUserData();
                 loadLiveActivity();
+                updateTicker();
             }, 30000);
         }
 
