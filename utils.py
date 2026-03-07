@@ -1,4 +1,4 @@
-# ===== utils.py (COMPLETE FIXED VERSION) =====
+# ===== utils.py (FINAL - SIRF REQUIRED FEATURES) =====
 
 import logging
 import random
@@ -13,15 +13,6 @@ class Utils:
         self.config = config
         self.db = db
         logger.info("✅ Utils initialized")
-    
-    def generate_referral_code(self, user_id):
-        """Generate a unique referral code for user"""
-        try:
-            random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-            return f"{user_id}{random_str}"
-        except Exception as e:
-            logger.error(f"Error generating referral code: {e}")
-            return f"REF{user_id}"
     
     def validate_upi_id(self, upi_id):
         """Validate UPI ID format"""
@@ -40,9 +31,9 @@ class Utils:
         try:
             if not details:
                 return False
-            # Split by pipe or space
-            parts = details.replace('|', ' ').split()
-            return len(parts) >= 3
+            # Split by pipe
+            parts = details.split('|')
+            return len(parts) >= 3 and all(parts)
         except Exception as e:
             logger.error(f"Error validating bank details: {e}")
             return False
@@ -61,7 +52,6 @@ class Utils:
             return "Never"
         
         try:
-            # Handle string timestamp
             if isinstance(timestamp, str):
                 dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
             else:
@@ -70,25 +60,17 @@ class Utils:
             now = datetime.now()
             diff = now - dt
             
-            if diff.days > 365:
-                years = diff.days // 365
-                return f"{years} year{'s' if years > 1 else ''} ago"
-            elif diff.days > 30:
-                months = diff.days // 30
-                return f"{months} month{'s' if months > 1 else ''} ago"
-            elif diff.days > 0:
-                return f"{diff.days} day{'s' if diff.days > 1 else ''} ago"
+            if diff.days > 0:
+                return f"{diff.days}d ago"
             elif diff.seconds > 3600:
-                hours = diff.seconds // 3600
-                return f"{hours} hour{'s' if hours > 1 else ''} ago"
+                return f"{diff.seconds // 3600}h ago"
             elif diff.seconds > 60:
-                minutes = diff.seconds // 60
-                return f"{minutes} minute{'s' if minutes > 1 else ''} ago"
+                return f"{diff.seconds // 60}min ago"
             else:
-                return "Just now"
+                return "just now"
         except Exception as e:
             logger.error(f"Error parsing time: {e}")
-            return "Unknown"
+            return "recently"
     
     def calculate_tier_progress(self, user):
         """Calculate progress to next tier"""
@@ -99,13 +81,12 @@ class Utils:
             current_tier = user.get('tier', 1)
             active_refs = user.get('active_refs', 0)
             
-            # Check if max tier
             max_tier = max(self.config.TIERS.keys())
             if current_tier >= max_tier:
                 return 100, "MAX TIER"
             
             next_tier = current_tier + 1
-            required = self.config.get_tier_requirements(next_tier)
+            required = self.config.TIERS[next_tier]['required_refs']
             
             if required == 0:
                 return 100, "MAX"
@@ -121,11 +102,11 @@ class Utils:
         """Calculate daily bonus based on streak"""
         try:
             base = self.config.DAILY_BONUS
-            bonus = min(streak * 0.02, 0.15)  # Max 15% bonus
+            bonus = min(streak * 0.02, 0.15)
             return base + bonus
         except Exception as e:
             logger.error(f"Error calculating bonus: {e}")
-            return self.config.DAILY_BONUS if hasattr(self.config, 'DAILY_BONUS') else 0.05
+            return 0.05
     
     def is_valid_amount(self, amount):
         """Check if amount is valid for withdrawal"""
@@ -151,25 +132,6 @@ class Utils:
             logger.error(f"Error sanitizing text: {e}")
             return str(text)
     
-    def get_prize_emoji(self, amount):
-        """Get emoji based on prize amount"""
-        try:
-            amount = float(amount)
-            if amount >= 5:
-                return "🏆 JACKPOT!"
-            elif amount >= 2:
-                return "🎊 BIG WIN!"
-            elif amount >= 1:
-                return "🎉 GREAT!"
-            elif amount >= 0.5:
-                return "🎈 GOOD!"
-            elif amount > 0:
-                return "✨ NICE!"
-            else:
-                return "😢 TRY AGAIN"
-        except:
-            return "💰"
-    
     def get_tier_emoji(self, tier):
         """Get emoji for tier"""
         try:
@@ -183,8 +145,6 @@ class Utils:
             return emojis.get(int(tier), "🎯")
         except:
             return "🎯"
-    
-    # ===== ADDITIONAL HELPER METHODS =====
     
     def format_currency(self, amount):
         """Format amount as currency string"""
@@ -217,7 +177,6 @@ class Utils:
     def get_user_rank(self, user_id):
         """Get user's rank in leaderboard"""
         try:
-            # Get all users sorted by active_refs
             users = list(self.db.users.find(
                 {'suspicious_activity': False},
                 {'user_id': 1, 'active_refs': 1}
@@ -230,47 +189,6 @@ class Utils:
         except Exception as e:
             logger.error(f"Error getting user rank: {e}")
             return 0
-    
-    def get_referral_tree(self, user_id, depth=3):
-        """Get referral tree for user (for admin)"""
-        try:
-            tree = []
-            current_level = [user_id]
-            
-            for level in range(depth):
-                next_level = []
-                level_data = []
-                
-                for uid in current_level:
-                    referrals = list(self.db.referrals.find(
-                        {'referrer_id': int(uid)},
-                        {'referred_id': 1}
-                    ).limit(5))
-                    
-                    for ref in referrals:
-                        ref_user = self.db.get_user(ref['referred_id'])
-                        if ref_user:
-                            level_data.append({
-                                'user_id': ref['referred_id'],
-                                'name': ref_user.get('first_name', 'User'),
-                                'active': ref_user.get('active_refs', 0) > 0
-                            })
-                            next_level.append(ref['referred_id'])
-                
-                if level_data:
-                    tree.append({
-                        'level': level + 1,
-                        'users': level_data
-                    })
-                
-                current_level = next_level
-                if not current_level:
-                    break
-            
-            return tree
-        except Exception as e:
-            logger.error(f"Error getting referral tree: {e}")
-            return []
     
     def parse_command(self, text):
         """Parse command and arguments"""
@@ -287,10 +205,9 @@ class Utils:
             logger.error(f"Error parsing command: {e}")
             return None, []
     
-    def is_suspicious_activity(self, user_id, ip_address=None, user_agent=None):
+    def is_suspicious_activity(self, user_id):
         """Check for suspicious activity patterns"""
         try:
-            # Get recent searches
             recent = list(self.db.search_logs.find(
                 {'user_id': int(user_id)}
             ).sort('timestamp', -1).limit(10))
@@ -298,14 +215,12 @@ class Utils:
             if len(recent) < 5:
                 return False
             
-            # Check for rapid searches
             timestamps = [datetime.fromisoformat(r['timestamp']) for r in recent]
             time_diffs = [(timestamps[i] - timestamps[i+1]).total_seconds() 
                          for i in range(len(timestamps)-1)]
             
             avg_time = sum(time_diffs) / len(time_diffs)
             
-            # If average time between searches is less than 30 seconds
             if avg_time < 30:
                 logger.warning(f"Suspicious activity: User {user_id} searching too fast")
                 return True
@@ -315,32 +230,6 @@ class Utils:
         except Exception as e:
             logger.error(f"Error checking suspicious activity: {e}")
             return False
-    
-    def log_user_action(self, user_id, action, details=None):
-        """Log user action for audit"""
-        try:
-            log_entry = {
-                'user_id': int(user_id),
-                'action': action,
-                'details': details,
-                'timestamp': datetime.now().isoformat()
-            }
-            
-            # You can add this to a separate collection if needed
-            # self.db.user_logs.insert_one(log_entry)
-            
-            logger.info(f"User {user_id} action: {action} - {details}")
-        except Exception as e:
-            logger.error(f"Error logging user action: {e}")
-    
-    def generate_withdrawal_id(self):
-        """Generate unique withdrawal ID"""
-        try:
-            timestamp = datetime.now().strftime('%y%m%d%H%M%S')
-            random_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
-            return f"WD{timestamp}{random_part}"
-        except:
-            return f"WD{random.randint(10000, 99999)}"
     
     def calculate_referral_earnings(self, user_id, days=30):
         """Calculate total earnings from referrals in last X days"""
