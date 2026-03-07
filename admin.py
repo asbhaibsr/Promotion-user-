@@ -1,4 +1,4 @@
-# ===== admin.py (FINAL - WITH SUPPORT MESSAGES + 3 BUTTONS) =====
+# ===== admin.py (FIXED - CLEAR JUNK + AD DELETE) =====
 
 import logging
 import asyncio
@@ -285,16 +285,13 @@ class AdminHandlers:
         try:
             reply_text = update.message.text.strip()
             
-            # Get the message
             msg = self.db.issues.find_one({'_id': ObjectId(msg_id)})
             if not msg:
                 await update.message.reply_text("❌ Message not found")
                 return
             
-            # Mark as replied
             self.db.mark_support_replied(msg_id, update.effective_user.id, reply_text)
             
-            # Send reply to user
             try:
                 keyboard = [[InlineKeyboardButton("📩 Open Support", callback_data="contact_support")]]
                 
@@ -316,7 +313,6 @@ class AdminHandlers:
                 logger.error(f"Could not send reply to user: {e}")
                 await update.message.reply_text("⚠️ Reply saved but could not send to user (user may have blocked bot)")
             
-            # Send to log channel
             if self.config.LOG_CHANNEL_ID:
                 try:
                     await context.bot.send_message(
@@ -370,7 +366,7 @@ class AdminHandlers:
         
         status_msg = await update.message.reply_text(f"📢 Broadcasting to {len(users)} users...")
         
-        for user in users:
+        for i, user in enumerate(users):
             try:
                 if message.text:
                     await context.bot.send_message(
@@ -390,6 +386,11 @@ class AdminHandlers:
                         caption=message.caption
                     )
                 sent += 1
+                
+                # Update progress every 100 users
+                if (i+1) % 100 == 0:
+                    await status_msg.edit_text(f"📢 Progress: {i+1}/{len(users)} users...")
+                    
                 await asyncio.sleep(0.05)
             except Exception as e:
                 failed += 1
@@ -398,10 +399,8 @@ class AdminHandlers:
                     logger.info(f"User {user['user_id']} blocked/deleted bot")
                 logger.error(f"Broadcast failed: {e}")
         
-        # Store blocked users
         context.user_data['last_broadcast_blocked'] = blocked_users
         
-        # Send completion message with CLEAR JUNK button
         keyboard = [[InlineKeyboardButton("🧹 CLEAR JUNK", callback_data="admin_clear_junk")]]
         
         await status_msg.edit_text(
@@ -417,8 +416,10 @@ class AdminHandlers:
         context.user_data['admin_action'] = None
         self.db.log_system_event('broadcast', f"Sent to {sent} users, {len(blocked_users)} blocked")
     
+    # ========== CLEAR JUNK USERS - FIXED WITH PROGRESS ==========
+    
     async def clear_junk_users(self, query, context):
-        """Remove blocked/deleted users from database"""
+        """Remove blocked/deleted users from database with progress"""
         blocked_users = context.user_data.get('last_broadcast_blocked', [])
         
         if not blocked_users:
@@ -430,18 +431,36 @@ class AdminHandlers:
             )
             return
         
-        deleted_count = self.db.remove_blocked_users(blocked_users)
+        # Initial status
+        await query.edit_message_text(f"🧹 Cleaning up {len(blocked_users)} users... Please wait.")
         
+        # Progress callback
+        async def update_progress(current, total):
+            if current % 10 == 0 or current == total:
+                try:
+                    await query.edit_message_text(f"🧹 Progress: {current}/{total} users processed...")
+                except:
+                    pass
+        
+        # Perform cleanup with progress tracking
+        deleted_count, failed_count = self.db.remove_blocked_users(
+            blocked_users, 
+            lambda c, t: asyncio.create_task(update_progress(c, t))
+        )
+        
+        # Final message
         await query.edit_message_text(
             f"🧹 **Cleanup Completed!**\n\n"
-            f"✅ Removed {deleted_count} blocked/deleted users from database.",
+            f"✅ Removed: {deleted_count}\n"
+            f"❌ Failed: {failed_count}\n\n"
+            f"Total: {len(blocked_users)} users processed.",
             reply_markup=InlineKeyboardMarkup([[
                 InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")
             ]])
         )
         
         context.user_data['last_broadcast_blocked'] = []
-        self.db.log_system_event('cleanup', f"Removed {deleted_count} junk users")
+        self.db.log_system_event('cleanup', f"Removed {deleted_count} junk users, failed {failed_count}")
     
     # ========== WITHDRAWALS WITH 3 BUTTONS ==========
     
@@ -531,18 +550,15 @@ class AdminHandlers:
             await query.edit_message_text("❌ Withdrawal not found")
             return
         
-        # Update withdrawal status
         success = self.db.approve_withdrawal(withdrawal_id, query.from_user.id)
         
         if not success:
             await query.edit_message_text("❌ Failed to approve withdrawal")
             return
         
-        # Get user data
         user = self.db.get_user(withdrawal['user_id'])
         user_name = user.get('first_name', 'Unknown') if user else 'Unknown'
         
-        # Notify user
         try:
             await context.bot.send_message(
                 chat_id=withdrawal['user_id'],
@@ -557,7 +573,6 @@ class AdminHandlers:
         except Exception as e:
             logger.error(f"Could not notify user: {e}")
         
-        # LOG CHANNEL NOTIFICATION
         if self.config.LOG_CHANNEL_ID:
             try:
                 log_text = (
@@ -577,7 +592,6 @@ class AdminHandlers:
             except Exception as e:
                 logger.error(f"Log channel error: {e}")
         
-        # OWNER PM WITH 3 BUTTONS
         keyboard = [
             [
                 InlineKeyboardButton("👤 VIEW USER", callback_data=f"user_details_{withdrawal['user_id']}"),
@@ -594,7 +608,6 @@ class AdminHandlers:
             f"✅ **Approved by Admin**"
         )
         
-        # Send to ALL ADMINS
         for admin_id in self.config.ADMIN_IDS:
             try:
                 await context.bot.send_message(
@@ -626,18 +639,15 @@ class AdminHandlers:
             await query.edit_message_text("❌ Withdrawal not found")
             return
         
-        # Update withdrawal status
         success = self.db.reject_withdrawal(withdrawal_id, query.from_user.id)
         
         if not success:
             await query.edit_message_text("❌ Failed to reject withdrawal")
             return
         
-        # Get user data
         user = self.db.get_user(withdrawal['user_id'])
         user_name = user.get('first_name', 'Unknown') if user else 'Unknown'
         
-        # Notify user
         try:
             await context.bot.send_message(
                 chat_id=withdrawal['user_id'],
@@ -653,7 +663,6 @@ class AdminHandlers:
         except Exception as e:
             logger.error(f"Could not notify user: {e}")
         
-        # LOG CHANNEL NOTIFICATION
         if self.config.LOG_CHANNEL_ID:
             try:
                 log_text = (
@@ -673,7 +682,6 @@ class AdminHandlers:
             except Exception as e:
                 logger.error(f"Log channel error: {e}")
         
-        # OWNER PM WITH 3 BUTTONS
         keyboard = [
             [
                 InlineKeyboardButton("👤 VIEW USER", callback_data=f"user_details_{withdrawal['user_id']}"),
@@ -691,7 +699,6 @@ class AdminHandlers:
             f"Amount refunded to user."
         )
         
-        # Send to ALL ADMINS
         for admin_id in self.config.ADMIN_IDS:
             try:
                 await context.bot.send_message(
