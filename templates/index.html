@@ -6,7 +6,7 @@
     <title>🎮 GameZone - Play & Earn</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* (SAME CSS AS BEFORE - No changes needed) */
+        /* SAME CSS AS BEFORE - Keep your existing CSS */
         * {
             margin: 0;
             padding: 0;
@@ -52,7 +52,6 @@
             overflow-x: hidden;
         }
 
-        /* TOP ACTIONS */
         .top-actions {
             position: fixed;
             top: 12px;
@@ -86,7 +85,6 @@
             transform: scale(0.92);
         }
 
-        /* GIFT ICON - POPUP */
         .gift-popup {
             position: fixed;
             bottom: 100px;
@@ -132,7 +130,6 @@
             border: 2px solid white;
         }
 
-        /* MAIN CONTENT */
         .main-content {
             padding: 20px 16px calc(var(--bottom-nav-height) + 20px);
             max-width: 500px;
@@ -146,7 +143,6 @@
             display: none;
         }
 
-        /* BALANCE CARD */
         .balance-card {
             background: linear-gradient(135deg, #f59e0b, #fbbf24);
             border-radius: var(--card-radius);
@@ -197,7 +193,6 @@
             margin-left: 5px;
         }
 
-        /* TICKER */
         .ticker-container {
             width: 100%;
             background: var(--bg-card);
@@ -243,7 +238,6 @@
             100% { transform: translateX(-50%); }
         }
 
-        /* REFERRAL CARD */
         .referral-card {
             background: linear-gradient(135deg, #3b82f6, #2563eb);
             border-radius: var(--card-radius);
@@ -329,7 +323,6 @@
             color: #2563eb;
         }
 
-        /* MISSION CARD */
         .mission-card {
             background: linear-gradient(135deg, #f59e0b, #fbbf24);
             border-radius: var(--card-radius);
@@ -367,7 +360,6 @@
             transition: width 0.4s;
         }
 
-        /* DAILY BONUS MODAL */
         .bonus-modal {
             position: fixed;
             top: 0;
@@ -461,7 +453,6 @@
             cursor: pointer;
         }
 
-        /* SECTION HEADER */
         .section-header {
             display: flex;
             justify-content: space-between;
@@ -515,7 +506,6 @@
             margin-left: 10px;
         }
 
-        /* AD CARDS */
         .ad-card {
             background: var(--bg-card);
             border-radius: 24px;
@@ -614,7 +604,6 @@
             font-size: 14px;
         }
 
-        /* BOTTOM NAV */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -674,7 +663,6 @@
             color: #f59e0b;
         }
 
-        /* PAGE MODALS */
         .page-modal {
             position: fixed;
             top: 0;
@@ -804,7 +792,6 @@
             font-weight: 600;
         }
 
-        /* GAMES SECTION */
         .games-hero {
             background: linear-gradient(135deg, var(--game-purple), var(--game-purple-light));
             border-radius: var(--card-radius);
@@ -944,7 +931,6 @@
             margin-top: 3px;
         }
 
-        /* SPIN WHEEL */
         .spin-container {
             text-align: center;
             padding: 10px 0;
@@ -1869,13 +1855,14 @@
         // Bot username
         const BOT_USERNAME = 'LinkProviderRobot';
         
-        // App State - Default values (will be replaced by API data)
+        // App State - REAL DATA FROM DATABASE
         let userData = {
             user_id: null,
             first_name: 'Guest',
             balance: 0,
             total_earned: 0,
             tier: 1,
+            tier_name: '🥉 BASIC',
             total_refs: 0,
             active_refs: 0,
             pending_refs: 0,
@@ -1893,7 +1880,6 @@
         // Daily Bonus
         let claimedDates = [];
         let userStreak = 0;
-        let lastClaimDate = null;
         
         // Missions
         let missions = {
@@ -1903,7 +1889,7 @@
 
         // Ads
         let adminAds = [];
-        let userAds = [];
+        let userAds = JSON.parse(localStorage.getItem('userAds')) || [];
 
         // Promotion daily limit
         let lastPromoDate = localStorage.getItem('lastPromoDate') || null;
@@ -1947,7 +1933,8 @@
         // Audio
         let audioCtx = null;
 
-        // ========== API CALLS ==========
+        // ========== API CALLS - REAL DATA FROM BACKEND ==========
+        
         async function loadUserData() {
             const userId = tg.initDataUnsafe?.user?.id;
             if (!userId) {
@@ -1961,9 +1948,16 @@
                 
                 const data = await response.json();
                 if (data && !data.error) {
-                    userData = { ...userData, ...data };
-                    userData.user_id = userId;
-                    userData.first_name = tg.initDataUnsafe.user.first_name || userData.first_name;
+                    // Update userData with real values from database
+                    userData = {
+                        ...userData,
+                        ...data,
+                        user_id: userId,
+                        first_name: tg.initDataUnsafe.user.first_name || data.first_name || 'User'
+                    };
+                    
+                    // Update streak
+                    userStreak = userData.daily_streak || 0;
                     
                     // Check if admin
                     if (userData.is_admin) {
@@ -1971,6 +1965,7 @@
                         document.getElementById('adminPromoBadge').style.display = 'inline-block';
                     }
                     
+                    console.log('✅ User data loaded:', userData);
                     updateUI();
                 }
             } catch (error) {
@@ -1989,10 +1984,8 @@
                 
                 const data = await response.json();
                 claimedDates = data.claimed_days || [];
-                
-                // Load streak from user data or local
-                userStreak = userData.daily_streak || 0;
                 checkBonusAvailability();
+                
             } catch (error) {
                 console.error('Error loading bonus days:', error);
             }
@@ -2011,6 +2004,7 @@
                 if (data.mission2) missions.mission2 = data.mission2;
                 
                 updateMissionsUI();
+                
             } catch (error) {
                 console.error('Error loading missions:', error);
             }
@@ -2024,6 +2018,7 @@
                 const data = await response.json();
                 adminAds = data.ads || [];
                 renderAds();
+                
             } catch (error) {
                 console.error('Error loading ads:', error);
                 // Fallback to default ads
@@ -2043,6 +2038,7 @@
                 
                 const activities = await response.json();
                 updateTickerWithData(activities);
+                
             } catch (error) {
                 console.error('Error loading live activity:', error);
                 updateTickerWithData([]);
@@ -2056,6 +2052,7 @@
                 
                 const leaders = await response.json();
                 renderLeaderboard(leaders);
+                
             } catch (error) {
                 console.error('Error loading leaderboard:', error);
                 renderLeaderboard([]);
@@ -2072,6 +2069,7 @@
                 
                 const history = await response.json();
                 renderWithdrawalHistory(history);
+                
             } catch (error) {
                 console.error('Error loading withdrawal history:', error);
                 renderWithdrawalHistory([]);
@@ -2079,6 +2077,7 @@
         }
 
         // ========== API POST REQUESTS ==========
+        
         async function claimBonusAPI(date) {
             const userId = userData.user_id;
             if (!userId) return { success: false };
@@ -2091,6 +2090,7 @@
                 });
                 
                 return await response.json();
+                
             } catch (error) {
                 console.error('Error claiming bonus:', error);
                 return { success: false, message: 'Network error' };
@@ -2115,6 +2115,7 @@
                     updateMissionsUI();
                 }
                 return data;
+                
             } catch (error) {
                 console.error('Error updating mission:', error);
                 return null;
@@ -2133,6 +2134,7 @@
                 });
                 
                 return await response.json();
+                
             } catch (error) {
                 console.error('Error claiming mission reward:', error);
                 return { success: false, message: 'Network error' };
@@ -2151,6 +2153,7 @@
                 });
                 
                 return await response.json();
+                
             } catch (error) {
                 console.error('Error claiming ad:', error);
                 return { success: false, message: 'Network error' };
@@ -2169,6 +2172,7 @@
                 });
                 
                 return await response.json();
+                
             } catch (error) {
                 console.error('Error sending support message:', error);
                 return { success: false, message: 'Network error' };
@@ -2183,10 +2187,16 @@
                 const response = await fetch('/api/withdraw', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: userId, amount: amount, method: method, details: details })
+                    body: JSON.stringify({ 
+                        user_id: userId, 
+                        amount: amount, 
+                        method: method, 
+                        details: details 
+                    })
                 });
                 
                 return await response.json();
+                
             } catch (error) {
                 console.error('Error processing withdrawal:', error);
                 return { success: false, message: 'Network error' };
@@ -2194,6 +2204,7 @@
         }
 
         // ========== HELPER FUNCTIONS ==========
+        
         function saveGameState() {
             localStorage.setItem('gameState_' + TODAY, JSON.stringify(gameState));
         }
@@ -2229,11 +2240,13 @@
 
         function showToast(msg) {
             const t = document.getElementById('toast');
-            t.innerText = msg; t.style.display = 'block';
+            t.innerText = msg; 
+            t.style.display = 'block';
             setTimeout(() => t.style.display = 'none', 2500);
         }
 
-        // ========== REFERRAL LINK ==========
+        // ========== REFERRAL LINK - FIXED ==========
+        
         function getReferralLink() {
             const userId = tg.initDataUnsafe?.user?.id || userData.user_id || '123456';
             return `https://t.me/${BOT_USERNAME}?start=ref_${userId}`;
@@ -2268,6 +2281,7 @@
         }
 
         // ========== DAILY BONUS ==========
+        
         function checkBonusAvailability() {
             const today = new Date().toISOString().split('T')[0];
             const isClaimed = claimedDates.includes(today);
@@ -2335,7 +2349,6 @@
                 userStreak = newStreak;
                 
                 claimedDates.push(today);
-                lastClaimDate = today;
                 
                 updateUI();
                 checkBonusAvailability();
@@ -2354,6 +2367,7 @@
         }
 
         // ========== MISSIONS ==========
+        
         function updateMissionsUI() {
             document.getElementById('mission1Bar').style.width = `${(missions.mission1.progress / missions.mission1.total) * 100}%`;
             document.getElementById('mission1Status').innerText = `${missions.mission1.progress}/${missions.mission1.total}`;
@@ -2396,6 +2410,7 @@
         }
 
         // ========== ADS ==========
+        
         function renderAds() {
             let html = '';
             
@@ -2538,6 +2553,7 @@
         }
 
         // ========== ADD PROMOTION (USER) ==========
+        
         function openAddPromoModal() {
             const today = new Date().toDateString();
             
@@ -2565,10 +2581,9 @@
                 return;
             }
             
-            // Deduct balance locally
+            // Deduct balance
             userData.balance -= 50;
             
-            // Add to userAds (in real app, would be saved to database)
             userAds.push({
                 id: Date.now(),
                 title: title,
@@ -2594,6 +2609,7 @@
         }
 
         // ========== ADMIN ADS ==========
+        
         function openAdminAddAdModal() {
             if (!userData.is_admin) {
                 showToast('❌ Only admin');
@@ -2614,6 +2630,7 @@
                 return;
             }
             
+            // In a real app, this would save to database via API
             const newId = adminAds.length > 0 ? Math.max(...adminAds.map(a => a.id)) + 1 : 4;
             
             adminAds.push({
@@ -2625,7 +2642,6 @@
                 icon
             });
             
-            // In real app, would save to database via API
             renderAds();
             closeModal('adminAddAd');
             showToast('✅ Ad added!');
@@ -2638,6 +2654,7 @@
         }
 
         // ========== GAME FUNCTIONS ==========
+        
         function addGameEarnings(amount) {
             if (gameState.todayGameEarned >= DAILY_GAME_LIMIT) {
                 showToast('⚠️ Aaj ki daily limit ₹25 poori ho gayi!');
@@ -2670,6 +2687,7 @@
         }
 
         // ========== SPIN WHEEL ==========
+        
         function drawSpinWheel(angle) {
             const canvas = document.getElementById('spinCanvas');
             const ctx = canvas.getContext('2d');
@@ -2793,6 +2811,7 @@
         }
 
         // ========== NUMBER GUESS ==========
+        
         function startGuessGame() {
             guessSecret = Math.floor(Math.random() * 10) + 1;
             guessCurrentAttempts = 0;
@@ -2914,6 +2933,7 @@
         }
 
         // ========== COIN FLIP ==========
+        
         function resetCoinUI() {
             coinChoice = null;
             coinBet = 1;
@@ -3012,6 +3032,7 @@
         }
 
         // ========== SCRATCH CARD ==========
+        
         function initScratchCard() {
             scratchRevealed = false;
             scratchIsDrawing = false;
@@ -3121,6 +3142,7 @@
         }
 
         // ========== GAME MODAL CONTROLS ==========
+        
         function openGame(game) {
             playSound('tap');
             
@@ -3164,6 +3186,7 @@
         }
 
         // ========== TICKER ==========
+        
         function updateTickerWithData(activities) {
             if (!activities || activities.length === 0) {
                 const fallback = [
@@ -3207,10 +3230,11 @@
         }
 
         // ========== UI UPDATE ==========
+        
         function updateUI() {
             document.getElementById('balanceAmount').innerText = `₹${userData.balance.toFixed(2)}`;
             document.getElementById('withdrawBalance').innerText = `₹${userData.balance.toFixed(2)}`;
-            document.getElementById('referralCount').innerText = userData.active_refs;
+            document.getElementById('referralCount').innerText = userData.active_refs || 0;
             document.getElementById('todayEarned').innerText = `₹${userData.today_earned.toFixed(2)}`;
             document.getElementById('referralLink').innerText = getReferralLink();
             
@@ -3219,9 +3243,9 @@
             document.getElementById('profileBalance').innerText = `₹${userData.balance.toFixed(2)}`;
             document.getElementById('profileTotalEarned').innerText = `₹${userData.total_earned.toFixed(2)}`;
             document.getElementById('profileStreak').innerText = userStreak;
-            document.getElementById('profileTotalRefs').innerText = userData.total_refs;
-            document.getElementById('profileActiveRefs').innerText = userData.active_refs;
-            document.getElementById('profilePendingRefs').innerText = userData.pending_refs;
+            document.getElementById('profileTotalRefs').innerText = userData.total_refs || 0;
+            document.getElementById('profileActiveRefs').innerText = userData.active_refs || 0;
+            document.getElementById('profilePendingRefs').innerText = userData.pending_refs || 0;
             document.getElementById('profileGamesWon').innerText = userData.games_won || 0;
             document.getElementById('profileReferralLink').innerText = getReferralLink();
             
@@ -3251,6 +3275,7 @@
         }
 
         // ========== TAB SWITCHING ==========
+        
         function switchTab(index, el) {
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             el.classList.add('active');
@@ -3276,6 +3301,7 @@
         }
 
         // ========== MODAL CONTROLS ==========
+        
         function openModal(id) {
             closeAllModals();
             document.getElementById(id + 'Modal').classList.add('active');
@@ -3294,6 +3320,7 @@
         }
 
         // ========== SETTINGS ==========
+        
         function toggleTheme() {
             const html = document.documentElement;
             if (currentTheme === 'light') {
@@ -3324,6 +3351,7 @@
         }
 
         // ========== LEADERBOARD ==========
+        
         function renderLeaderboard(leaders) {
             if (!leaders || leaders.length === 0) {
                 document.getElementById('leaderboardContainer').innerHTML = '<div style="text-align:center;padding:20px;">No data yet</div>';
@@ -3346,6 +3374,7 @@
         }
 
         // ========== HISTORY ==========
+        
         function renderWithdrawalHistory(history) {
             if (!history || history.length === 0) {
                 document.getElementById('withdrawalHistoryContainer').innerHTML = '<div style="text-align:center;padding:20px;">No history</div>';
@@ -3371,6 +3400,7 @@
         }
 
         // ========== WITHDRAWAL ==========
+        
         function openWithdrawPage() {
             closeAllModals();
             openModal('withdraw');
@@ -3436,6 +3466,7 @@
         }
 
         // ========== SUPPORT ==========
+        
         async function sendSupportMessage() {
             const msg = document.getElementById('supportMessage').value.trim();
             if (!msg || msg.length < 10) {
@@ -3455,7 +3486,11 @@
         }
 
         // ========== INIT ==========
+        
         async function initApp() {
+            // Show loading
+            showToast('⏱️ Loading your data...');
+            
             if (tg.initDataUnsafe?.user) {
                 userData.first_name = tg.initDataUnsafe.user.first_name || 'User';
                 userData.user_id = tg.initDataUnsafe.user.id;
@@ -3468,6 +3503,8 @@
                 await loadMissions();
                 await loadAds();
                 await loadLiveActivity();
+                
+                showToast('✅ Data loaded!');
             }
             
             document.getElementById('homeContent').style.display = 'block';
