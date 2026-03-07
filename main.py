@@ -1,4 +1,4 @@
-# ===== main.py (COMPLETE FIXED - NO ERRORS) =====
+# ===== main.py (FINAL - WITH ALL APIs) =====
 
 import logging
 import os
@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 
 import requests
 from bson.objectid import ObjectId
-from flask import Flask, request, jsonify, render_template, session, redirect, url_for
+from flask import Flask, request, jsonify, render_template
 from functools import wraps
 
 # Configure logging
@@ -39,7 +39,6 @@ try:
     from telegram.constants import ParseMode
     import nest_asyncio
     from dotenv import load_dotenv
-    import pytz
 except ImportError as e:
     logger.critical(f"Import Error: {e}")
     print(f"Missing dependency: {e}")
@@ -65,7 +64,7 @@ handlers = None
 admin_handlers = None
 bot_app = None
 bot_loop = None
-bot_running = False  # Flag to track if bot is running
+bot_running = False
 
 # Health status
 start_time = datetime.now()
@@ -205,6 +204,59 @@ def get_user_withdrawals_api(user_id):
         return jsonify([])
 
 
+@app.route('/api/user/<int:user_id>/bonus-days')
+def get_user_bonus_days(user_id):
+    """Get user's claimed bonus days"""
+    try:
+        if not db or not db.ensure_connection():
+            return jsonify({'claimed_days': []})
+        
+        claimed_days = db.get_user_bonus_days(user_id)
+        return jsonify({'claimed_days': claimed_days})
+        
+    except Exception as e:
+        logger.error(f"Bonus days error: {e}")
+        return jsonify({'claimed_days': []})
+
+
+@app.route('/api/user/<int:user_id>/missions')
+def get_user_missions(user_id):
+    """Get user's mission progress"""
+    try:
+        if not db or not db.ensure_connection():
+            return jsonify({})
+        
+        missions = db.get_user_missions(user_id)
+        if missions:
+            return jsonify({
+                'mission1': missions.get('mission1', {}),
+                'mission2': missions.get('mission2', {}),
+                'reward_claimed': missions.get('reward_claimed', False)
+            })
+        
+        return jsonify({})
+        
+    except Exception as e:
+        logger.error(f"Missions error: {e}")
+        return jsonify({})
+
+
+@app.route('/api/user/<int:user_id>/claimed-ads')
+def get_user_claimed_ads(user_id):
+    """Get user's claimed ads"""
+    try:
+        if not db or not db.ensure_connection():
+            return jsonify({'claimed_ads': []})
+        
+        today = datetime.now().date().isoformat()
+        claimed = db.get_user_claimed_ads(user_id, today)
+        return jsonify({'claimed_ads': [{'ad_id': ad, 'date': today} for ad in claimed]})
+        
+    except Exception as e:
+        logger.error(f"Claimed ads error: {e}")
+        return jsonify({'claimed_ads': []})
+
+
 @app.route('/api/leaderboard')
 def leaderboard_api():
     """API to get leaderboard"""
@@ -222,134 +274,16 @@ def leaderboard_api():
         return jsonify([])
 
 
-@app.route('/api/stats')
-def stats_api():
-    """API to get system stats"""
-    global request_count, start_time, db
-    
-    uptime = str(datetime.now() - start_time).split('.')[0]
-    
-    stats = {
-        'uptime': uptime,
-        'requests': request_count,
-        'status': 'healthy',
-        'db_connected': db.connected if db else False,
-        'timestamp': datetime.now().isoformat()
-    }
-    
-    if db and db.connected:
-        try:
-            stats['total_users'] = db.users.count_documents({})
-            stats['pending_withdrawals'] = db.withdrawals.count_documents({'status': 'pending'})
-        except:
-            pass
-    
-    return jsonify(stats)
-
-
-@app.route('/health')
-def health():
-    """Health check endpoint"""
-    global db
-    
-    status = {
-        'status': 'ok',
-        'time': datetime.now().isoformat(),
-        'db_connected': db.connected if db else False
-    }
-    
-    if not db or not db.connected:
-        status['status'] = 'degraded'
-        return jsonify(status), 503
-    
-    return jsonify(status)
-
-
-@app.route('/favicon.ico')
-def favicon():
-    """Favicon fix"""
-    return "", 204
-
-
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    """Webhook endpoint for Telegram"""
-    global bot_app, bot_loop
-    
-    if not bot_app:
-        return "Bot not initialized", 503
-    
-    try:
-        update = Update.de_json(request.get_json(force=True), bot_app.bot)
-        asyncio.run_coroutine_threadsafe(
-            bot_app.process_update(update),
-            bot_loop
-        )
-        return "OK", 200
-    except Exception as e:
-        logger.error(f"Webhook error: {e}")
-        return "Error", 500
-
-
-# ========== API ROUTES FOR MINI APP ==========
-
 @app.route('/api/live-activity')
 def live_activity_api():
-    """Get live activity feed from database"""
+    """API to get live activity feed"""
     global db
     try:
-        activities = []
+        if not db or not db.ensure_connection():
+            return jsonify([])
         
-        if db and db.ensure_connection():
-            withdrawals = list(db.withdrawals.find(
-                {'status': 'completed'}
-            ).sort('processed_date', -1).limit(5))
-            
-            for w in withdrawals:
-                user = db.get_user(w['user_id'])
-                if user:
-                    activities.append({
-                        'type': 'withdraw',
-                        'first_name': user.get('first_name', 'User'),
-                        'amount': w['amount'],
-                        'time': get_time_ago(w.get('processed_date', w.get('request_date'))),
-                        'avatar': user.get('first_name', 'U')[0].upper()
-                    })
-            
-            earnings = list(db.transactions.find(
-                {'type': 'credit', 'amount': {'$gt': 0}}
-            ).sort('timestamp', -1).limit(5))
-            
-            for e in earnings:
-                user = db.get_user(e['user_id'])
-                if user:
-                    activities.append({
-                        'type': 'earn',
-                        'first_name': user.get('first_name', 'User'),
-                        'amount': e['amount'],
-                        'time': get_time_ago(e['timestamp']),
-                        'avatar': user.get('first_name', 'U')[0].upper()
-                    })
-            
-            referrals = list(db.referrals.find(
-                {'is_active': True}
-            ).sort('first_search_date', -1).limit(5))
-            
-            for r in referrals:
-                user = db.get_user(r['referred_id'])
-                referrer = db.get_user(r['referrer_id'])
-                if user and referrer:
-                    activities.append({
-                        'type': 'referral',
-                        'first_name': user.get('first_name', 'User'),
-                        'amount': 0,
-                        'time': get_time_ago(r.get('first_search_date', r.get('join_date'))),
-                        'avatar': user.get('first_name', 'U')[0].upper(),
-                        'text': f"{user.get('first_name')} joined via {referrer.get('first_name')}"
-                    })
-        
-        random.shuffle(activities)
-        return jsonify(activities[:10])
+        activities = db.get_live_activity(20)
+        return jsonify(activities)
         
     except Exception as e:
         logger.error(f"Live activity error: {e}")
@@ -362,19 +296,7 @@ def get_ads_api():
     global db
     try:
         if db and db.ensure_connection():
-            # Check if ads collection exists
-            collections = db.db.list_collection_names()
-            if 'ads' not in collections:
-                db.db.create_collection('ads')
-                # Insert default ads
-                db.ads.insert_many([
-                    {'id': 1, 'title': 'Install App & Earn', 'reward': 2.0, 'link': 'https://t.me/+8SdeM5gBihoxZjU1', 'meta': '⏱️ 2 min • 1.2k completed', 'icon': '📱', 'order': 1},
-                    {'id': 2, 'title': 'Watch Video', 'reward': 0.5, 'link': 'https://t.me/+8SdeM5gBihoxZjU1', 'meta': '⏱️ 30 sec • 3.4k completed', 'icon': '🎬', 'order': 2}
-                ])
-            
-            ads = list(db.ads.find().sort('order', 1))
-            for ad in ads:
-                ad['_id'] = str(ad['_id'])
+            ads = db.get_all_ads()
             return jsonify({'ads': ads})
         else:
             return jsonify({
@@ -388,9 +310,87 @@ def get_ads_api():
         return jsonify({'ads': []})
 
 
+@app.route('/api/claim-day-bonus', methods=['POST'])
+def claim_day_bonus_api():
+    """Claim bonus for specific day"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        date_str = data.get('date')
+        
+        if not user_id or not date_str:
+            return jsonify({'success': False, 'message': 'Missing data'}), 400
+        
+        result = db.claim_day_bonus(user_id, date_str)
+        
+        if result and result.get('success'):
+            return jsonify({
+                'success': True,
+                'bonus': result['bonus'],
+                'streak': result['streak']
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Already claimed today or invalid date'
+            })
+            
+    except Exception as e:
+        logger.error(f"Claim day bonus error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/update-mission', methods=['POST'])
+def update_mission_api():
+    """Update mission progress"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        mission_type = data.get('mission_type')
+        count = data.get('count', 1)
+        
+        if not user_id or not mission_type:
+            return jsonify({'success': False, 'message': 'Missing data'}), 400
+        
+        missions = db.update_mission_progress(user_id, mission_type, count)
+        
+        if missions:
+            return jsonify({
+                'success': True,
+                'missions': {
+                    'mission1': missions.get('mission1', {}),
+                    'mission2': missions.get('mission2', {})
+                }
+            })
+        else:
+            return jsonify({'success': False, 'message': 'Failed to update'})
+            
+    except Exception as e:
+        logger.error(f"Update mission error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/claim-mission-reward', methods=['POST'])
+def claim_mission_reward_api():
+    """Claim daily mission reward"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return jsonify({'success': False, 'message': 'Missing user ID'}), 400
+        
+        result = db.claim_mission_reward(user_id)
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Claim mission reward error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
 @app.route('/api/claim-ad', methods=['POST'])
 def claim_ad_api():
-    """Claim ad reward - FIXED: Collection check"""
+    """Claim ad reward"""
     global db
     try:
         data = request.get_json()
@@ -401,41 +401,12 @@ def claim_ad_api():
         if not all([user_id, ad_id, reward]):
             return jsonify({'success': False, 'message': 'Missing data'}), 400
         
-        today = datetime.now().date().isoformat()
-        
-        # Check if user already claimed this ad today
-        if db and db.ensure_connection():
-            # Check if daily_claims collection exists
-            if not hasattr(db, 'daily_claims'):
-                db.daily_claims = db.db['daily_claims']
-            
-            # Check existing claim - FIXED: Check if collection exists in list, not bool()
-            existing = db.daily_claims.find_one({
-                'user_id': int(user_id),
-                'ad_id': ad_id,
-                'date': today
-            })
-            
-            if existing:
-                return jsonify({'success': False, 'message': 'Already claimed today'})
-        
-        # Add balance
-        success = db.add_balance(user_id, float(reward), f"Ad reward #{ad_id}")
+        success = db.claim_ad(user_id, ad_id, reward)
         
         if success:
-            # Record claim
-            if db and db.ensure_connection():
-                db.daily_claims.insert_one({
-                    'user_id': int(user_id),
-                    'ad_id': ad_id,
-                    'date': today,
-                    'reward': float(reward),
-                    'timestamp': datetime.now().isoformat()
-                })
-            
             return jsonify({'success': True, 'message': 'Reward added'})
         else:
-            return jsonify({'success': False, 'message': 'Failed to add reward'})
+            return jsonify({'success': False, 'message': 'Already claimed today'})
             
     except Exception as e:
         logger.error(f"Claim ad error: {e}")
@@ -453,7 +424,7 @@ def update_ad_api():
         reward = data.get('reward')
         link = data.get('link')
         meta = data.get('meta')
-        
+        icon = data.get('icon')
         admin_id = data.get('admin_id')
         
         if not admin_id:
@@ -463,23 +434,38 @@ def update_ad_api():
         if not admin_user or not admin_user.get('is_admin', False):
             return jsonify({'success': False, 'message': 'Unauthorized'}), 403
         
-        if db and db.ensure_connection():
-            db.ads.update_one(
-                {'id': int(ad_id)},
-                {'$set': {
-                    'title': title,
-                    'reward': float(reward),
-                    'link': link,
-                    'meta': meta
-                }},
-                upsert=True
-            )
-            logger.info(f"✅ Ad {ad_id} updated by admin {admin_id}")
+        success = db.update_ad(ad_id, title, reward, link, meta, icon)
         
-        return jsonify({'success': True})
+        if success:
+            # Reset claims for this ad so users can claim again
+            db.reset_ad_claims(ad_id)
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'message': 'Failed to update'})
         
     except Exception as e:
         logger.error(f"Update ad error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/reset-ad-claims', methods=['POST'])
+def reset_ad_claims_api():
+    """Reset all claims for an ad (when admin edits)"""
+    global db
+    try:
+        data = request.get_json()
+        ad_id = data.get('ad_id')
+        admin_id = data.get('admin_id')
+        
+        admin_user = db.get_user(int(admin_id))
+        if not admin_user or not admin_user.get('is_admin', False):
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+        
+        success = db.reset_ad_claims(ad_id)
+        return jsonify({'success': success})
+        
+    except Exception as e:
+        logger.error(f"Reset ad claims error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
@@ -507,112 +493,12 @@ def update_setting_api():
         
         db_field = setting_map.get(setting)
         if db_field and db and db.ensure_connection():
-            db.users.update_one(
-                {'user_id': int(user_id)},
-                {'$set': {db_field: value}}
-            )
-            db.user_cache.pop(f"user_{user_id}", None)
-            logger.info(f"✅ Setting {setting} updated for user {user_id}")
+            db.update_notification_setting(user_id, setting, value)
         
         return jsonify({'success': True})
         
     except Exception as e:
         logger.error(f"Update setting error: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-
-@app.route('/api/user/<int:user_id>/update', methods=['POST'])
-def update_user_api(user_id):
-    """Update user data"""
-    global db
-    try:
-        data = request.get_json()
-        
-        if not db or not db.ensure_connection():
-            return jsonify({'success': False, 'message': 'Database error'}), 503
-        
-        update_data = {}
-        for key, value in data.items():
-            if key in ['first_name', 'username', 'dark_mode', 'notify_referrals', 'notify_earnings', 'notify_withdrawals', 'sound_enabled']:
-                update_data[key] = value
-        
-        if update_data:
-            db.users.update_one(
-                {'user_id': int(user_id)},
-                {'$set': update_data}
-            )
-            db.user_cache.pop(f"user_{user_id}", None)
-            logger.info(f"✅ User {user_id} updated: {update_data}")
-        
-        return jsonify({'success': True})
-        
-    except Exception as e:
-        logger.error(f"Update user error: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-
-@app.route('/api/claim-daily-bonus', methods=['POST'])
-def claim_daily_bonus_api():
-    """API to claim daily bonus"""
-    global db
-    try:
-        data = request.get_json()
-        user_id = data.get('user_id')
-        
-        if not user_id:
-            return jsonify({'success': False, 'message': 'User ID required'}), 400
-        
-        result = db.claim_daily_bonus(user_id)
-        
-        if result and result.get('success'):
-            return jsonify({
-                'success': True,
-                'bonus': result['bonus'],
-                'streak': result['streak']
-            })
-        else:
-            return jsonify({
-                'success': False,
-                'message': 'Already claimed today or try again'
-            })
-            
-    except Exception as e:
-        logger.error(f"Daily bonus API error: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-
-@app.route('/api/verify-channel', methods=['POST'])
-def verify_channel_api():
-    """API to verify channel join"""
-    global db
-    try:
-        data = request.get_json()
-        user_id = data.get('user_id')
-        channel_id = data.get('channel_id')
-        
-        if not user_id or not channel_id:
-            return jsonify({'success': False, 'message': 'Missing data'}), 400
-        
-        result = db.mark_channel_join(user_id, channel_id)
-        
-        if result:
-            user = db.get_user(user_id)
-            return jsonify({
-                'success': True,
-                'message': 'Channel bonus claimed',
-                'user_data': {
-                    'balance': user.get('balance', 0),
-                    'channel_joined': True
-                }
-            })
-        else:
-            return jsonify({
-                'success': False,
-                'message': 'Already claimed or invalid channel'
-            })
-            
-    except Exception as e:
-        logger.error(f"Channel verify API error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
@@ -650,70 +536,101 @@ def support_api():
         if not user_id or not message:
             return jsonify({'success': False, 'message': 'Missing data'}), 400
         
-        db.issues.insert_one({
-            'user_id': int(user_id),
-            'message': message,
-            'timestamp': datetime.now().isoformat(),
-            'status': 'pending',
-            'read': False
-        })
+        msg_id = db.add_support_message(user_id, message)
         
-        if bot_app and config and hasattr(config, 'LOG_CHANNEL_ID') and config.LOG_CHANNEL_ID:
-            try:
-                user = db.get_user(user_id)
-                asyncio.run_coroutine_threadsafe(
-                    bot_app.bot.send_message(
-                        chat_id=config.LOG_CHANNEL_ID,
-                        text=f"📩 **New Support Message**\n\nUser: {user.get('first_name', 'Unknown')} (ID: {user_id})\nMessage: {message}",
-                        parse_mode=ParseMode.MARKDOWN
-                    ),
-                    bot_loop
-                )
-            except Exception as e:
-                logger.error(f"Failed to notify admin: {e}")
-        
-        return jsonify({'success': True, 'message': 'Message sent'})
+        if msg_id:
+            # Notify admins
+            if bot_app and config:
+                for admin_id in config.ADMIN_IDS:
+                    try:
+                        keyboard = [[InlineKeyboardButton("📩 VIEW MESSAGE", callback_data=f"view_support_{msg_id}")]]
+                        
+                        asyncio.run_coroutine_threadsafe(
+                            bot_app.bot.send_message(
+                                chat_id=admin_id,
+                                text=(
+                                    f"📩 **New Support Message**\n\n"
+                                    f"User ID: `{user_id}`\n"
+                                    f"Message: {message[:100]}...\n\n"
+                                    f"Click below to reply:"
+                                ),
+                                reply_markup=InlineKeyboardMarkup(keyboard)
+                            ),
+                            bot_loop
+                        )
+                    except:
+                        pass
+            
+            return jsonify({'success': True, 'message': 'Message sent to support'})
+        else:
+            return jsonify({'success': False, 'message': 'Failed to send message'})
         
     except Exception as e:
         logger.error(f"Support API error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
-@app.route('/api/today-active')
-def today_active_api():
-    """API to get today's active users"""
+@app.route('/api/stats')
+def stats_api():
+    """API to get system stats"""
+    global request_count, start_time, db
+    
+    uptime = str(datetime.now() - start_time).split('.')[0]
+    
+    stats = {
+        'uptime': uptime,
+        'requests': request_count,
+        'status': 'healthy',
+        'db_connected': db.connected if db else False,
+        'timestamp': datetime.now().isoformat()
+    }
+    
+    if db and db.connected:
+        try:
+            system_stats = db.get_system_stats()
+            stats.update(system_stats)
+        except:
+            pass
+    
+    return jsonify(stats)
+
+
+@app.route('/health')
+def health():
+    """Health check endpoint"""
     global db
-    try:
-        today = datetime.now().date().isoformat()
-        active_count = db.daily_searches.count_documents({'date': today})
-        return jsonify({'active_today': active_count})
-    except Exception as e:
-        logger.error(f"Today active API error: {e}")
-        return jsonify({'active_today': 0})
+    
+    status = {
+        'status': 'ok',
+        'time': datetime.now().isoformat(),
+        'db_connected': db.connected if db else False
+    }
+    
+    if not db or not db.connected:
+        status['status'] = 'degraded'
+        return jsonify(status), 503
+    
+    return jsonify(status)
 
 
-# ========== HELPER FUNCTIONS ==========
-
-def get_time_ago(timestamp_str):
-    """Convert ISO timestamp to 'X min ago' format"""
-    if not timestamp_str:
-        return 'recently'
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    """Webhook endpoint for Telegram"""
+    global bot_app, bot_loop
+    
+    if not bot_app:
+        return "Bot not initialized", 503
     
     try:
-        timestamp = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
-        now = datetime.now()
-        diff = now - timestamp
-        
-        if diff.days > 0:
-            return f"{diff.days}d ago"
-        elif diff.seconds // 3600 > 0:
-            return f"{diff.seconds // 3600}h ago"
-        elif diff.seconds // 60 > 0:
-            return f"{diff.seconds // 60}min ago"
-        else:
-            return "just now"
-    except:
-        return "recently"
+        update = Update.de_json(request.get_json(force=True), bot_app.bot)
+        asyncio.run_coroutine_threadsafe(
+            bot_app.process_update(update),
+            bot_loop
+        )
+        return "OK", 200
+    except Exception as e:
+        logger.error(f"Webhook error: {e}")
+        return "Error", 500
 
 
 # ========== BOT SETUP ==========
@@ -781,7 +698,8 @@ async def scheduled_jobs():
                 if db and db.ensure_connection():
                     total_users = db.users.count_documents({})
                     active_today = db.daily_searches.count_documents({'date': now.date().isoformat()})
-                    logger.info(f"📊 Stats - Users: {total_users}, Active Today: {active_today}")
+                    pending_support = db.issues.count_documents({'status': 'pending'})
+                    logger.info(f"📊 Stats - Users: {total_users}, Active Today: {active_today}, Support: {pending_support}")
             
             await asyncio.sleep(60)
             
@@ -808,12 +726,11 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def run_bot():
-    """Run the bot - FIXED: Properly handles bot instance and prevents conflict"""
+    """Run the bot"""
     global bot_app, bot_loop, config, db, handlers, admin_handlers, bot_running
     
     logger.info("🤖 Starting bot...")
     
-    # Check if bot is already running
     if bot_running:
         logger.warning("⚠️ Bot is already running, skipping...")
         return
@@ -834,30 +751,14 @@ def run_bot():
         bot_app.add_handler(CommandHandler("admin", admin_handlers.admin_panel))
         
         # ===== CALLBACK HANDLERS =====
-        bot_app.add_handler(CallbackQueryHandler(admin_handlers.handle_admin_callback, pattern="^admin_"))
+        bot_app.add_handler(CallbackQueryHandler(admin_handlers.handle_admin_callback))
         
         # ===== MESSAGE HANDLERS =====
         bot_app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handlers.handle_webapp_data))
-        
-        bot_app.add_handler(MessageHandler(
-            filters.TEXT & filters.ChatType.PRIVATE, 
-            admin_handlers.handle_admin_message
-        ))
-        
-        bot_app.add_handler(MessageHandler(
-            filters.TEXT & filters.ChatType.GROUP, 
-            handlers.handle_message
-        ))
-        
-        bot_app.add_handler(MessageHandler(
-            filters.TEXT & filters.ChatType.SUPERGROUP, 
-            handlers.handle_message
-        ))
-        
-        bot_app.add_handler(MessageHandler(
-            filters.TEXT & filters.ChatType.PRIVATE & ~filters.COMMAND, 
-            handlers.handle_message
-        ))
+        bot_app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.PRIVATE, admin_handlers.handle_admin_message))
+        bot_app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUP, handlers.handle_message))
+        bot_app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.SUPERGROUP, handlers.handle_message))
+        bot_app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.PRIVATE & ~filters.COMMAND, handlers.handle_message))
         
         # ===== ERROR HANDLER =====
         bot_app.add_error_handler(error_handler)
@@ -871,7 +772,7 @@ def run_bot():
         logger.info("✅ Bot started successfully")
         bot_running = True
         
-        # Start polling (simpler for Render)
+        # Start polling
         logger.info("🔄 Starting polling...")
         bot_app.run_polling()
         
@@ -953,9 +854,11 @@ def main():
     
     print("""
     ╔══════════════════════════════════════╗
-    ║     FILMYFUND BOT - FIXED VERSION    ║
-    ║        100% WORKING SOLUTION          ║
-    ║          All Issues Resolved          ║
+    ║     FILMYFUND BOT - FINAL VERSION    ║
+    ║         ALL FEATURES WORKING          ║
+    ║     Search User | Broadcast | WD     ║
+    ║    Calendar | Missions | Support     ║
+    ║    Live Activity | Log Channel       ║
     ╚══════════════════════════════════════╝
     """)
     
@@ -977,19 +880,12 @@ def main():
             sys.exit(1)
         logger.info("✅ Database connected")
         
-        # Initialize default ads if not exists
-        if db.ensure_connection() and 'ads' not in db.db.list_collection_names():
-            db.ads.insert_many([
-                {'id': 1, 'title': 'Install App & Earn', 'reward': 2.0, 'link': 'https://t.me/+8SdeM5gBihoxZjU1', 'meta': '⏱️ 2 min • 1.2k completed', 'icon': '📱', 'order': 1},
-                {'id': 2, 'title': 'Watch Video', 'reward': 0.5, 'link': 'https://t.me/+8SdeM5gBihoxZjU1', 'meta': '⏱️ 30 sec • 3.4k completed', 'icon': '🎬', 'order': 2}
-            ])
-        
         logger.info("🔄 Initializing handlers...")
         handlers = Handlers(config, db)
         logger.info("✅ Handlers initialized")
         
         logger.info("👑 Initializing admin handlers...")
-        admin_handlers = AdminHandlers(config, db)
+        admin_handlers = AdminHandlers(config, db, None)  # bot will be set later
         logger.info("✅ Admin handlers initialized")
         
         signal.signal(signal.SIGINT, signal_handler)
@@ -1001,6 +897,9 @@ def main():
         
         time.sleep(3)
         logger.info(f"✅ Flask server running on port {os.environ.get('PORT', 10000)}")
+        
+        # Set bot reference in admin_handlers
+        admin_handlers.bot = handlers.bot = None  # Will be set when bot_app is created
         
         logger.info("🤖 Starting Telegram bot...")
         run_bot()
