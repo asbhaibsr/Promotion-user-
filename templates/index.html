@@ -6,1403 +6,193 @@
     <title>🎮 GameZone - Play & Earn</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* SAME CSS AS BEFORE - Keep your existing CSS */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        * { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; -webkit-tap-highlight-color:transparent; }
         :root {
-            --bg-primary: #f8fafc;
-            --bg-secondary: #f1f5f9;
-            --bg-card: #ffffff;
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --text-muted: #64748b;
-            --accent-gold: #f59e0b;
-            --accent-light: #fbbf24;
-            --border-color: #e2e8f0;
-            --shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
-            --success: #10b981;
-            --danger: #ef4444;
-            --info: #3b82f6;
-            --card-radius: 28px;
-            --bottom-nav-height: 85px;
-            --game-purple: #7c3aed;
-            --game-purple-light: #a78bfa;
+            --bg-primary:#f8fafc; --bg-secondary:#f1f5f9; --bg-card:#ffffff;
+            --text-primary:#0f172a; --text-secondary:#475569; --text-muted:#64748b;
+            --accent-gold:#f59e0b; --accent-light:#fbbf24; --border-color:#e2e8f0;
+            --shadow:0 10px 25px -5px rgba(0,0,0,0.05); --success:#10b981;
+            --danger:#ef4444; --info:#3b82f6; --card-radius:28px;
+            --bottom-nav-height:85px; --game-purple:#7c3aed; --game-purple-light:#a78bfa;
         }
-
         [data-theme="dark"] {
-            --bg-primary: #0b1120;
-            --bg-secondary: #1e293b;
-            --bg-card: #1e293b;
-            --text-primary: #f1f5f9;
-            --text-secondary: #cbd5e1;
-            --border-color: #334155;
-        }
-
-        body {
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            transition: background 0.3s;
-            overflow-x: hidden;
-        }
-
-        .top-actions {
-            position: fixed;
-            top: 12px;
-            right: 16px;
-            left: 16px;
-            display: flex;
-            justify-content: space-between;
-            z-index: 50;
-            pointer-events: none;
-        }
-
-        .top-action-btn {
-            width: 44px;
-            height: 44px;
-            background: var(--bg-card);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-            pointer-events: auto;
-            transition: transform 0.15s;
-            color: var(--text-primary);
-            backdrop-filter: blur(8px);
-        }
-
-        .top-action-btn:active {
-            transform: scale(0.92);
-        }
-
-        .gift-popup {
-            position: fixed;
-            bottom: 100px;
-            right: 20px;
-            width: 65px;
-            height: 65px;
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            box-shadow: 0 10px 30px rgba(245,158,11,0.5);
-            z-index: 100;
-            cursor: pointer;
-            animation: giftPop 2s infinite;
-            border: 3px solid white;
-        }
-
-        @keyframes giftPop {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .gift-popup:active {
-            transform: scale(0.9);
-        }
-
-        .gift-popup-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            border: 2px solid white;
-        }
-
-        .main-content {
-            padding: 20px 16px calc(var(--bottom-nav-height) + 20px);
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        .games-content {
-            padding: 20px 16px calc(var(--bottom-nav-height) + 20px);
-            max-width: 500px;
-            margin: 0 auto;
-            display: none;
-        }
-
-        .balance-card {
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            border-radius: var(--card-radius);
-            padding: 24px;
-            margin: 70px 0 20px;
-            box-shadow: 0 20px 30px -10px rgba(245,158,11,0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .balance-card::after {
-            content: '💰';
-            position: absolute;
-            right: -20px;
-            bottom: -30px;
-            font-size: 150px;
-            opacity: 0.1;
-            pointer-events: none;
-        }
-
-        .balance-label {
-            color: rgba(0,0,0,0.7);
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .balance-amount {
-            font-size: 56px;
-            font-weight: 800;
-            color: #000;
-            line-height: 1;
-            margin-bottom: 15px;
-        }
-
-        .balance-stats {
-            display: flex;
-            gap: 25px;
-            color: rgba(0,0,0,0.7);
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .balance-stats span {
-            color: #000;
-            font-weight: 800;
-            font-size: 18px;
-            margin-left: 5px;
-        }
-
-        .ticker-container {
-            width: 100%;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 40px;
-            padding: 14px 18px;
-            margin: 15px 0 20px;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-        }
-
-        .ticker-wrap {
-            width: 100%;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-
-        .ticker-move {
-            display: inline-block;
-            animation: ticker 45s linear infinite;
-            font-size: 14px;
-            color: var(--text-primary);
-            will-change: transform;
-        }
-
-        .ticker-move span {
-            margin-right: 45px;
-            display: inline-block;
-        }
-
-        .ticker-move span i {
-            font-style: normal;
-            color: #f59e0b;
-            font-weight: 700;
-            background: rgba(245,158,11,0.1);
-            padding: 3px 8px;
-            border-radius: 30px;
-            margin-left: 5px;
-        }
-
-        @keyframes ticker {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-
-        .referral-card {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            border-radius: var(--card-radius);
-            padding: 22px;
-            margin: 20px 0;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .referral-card::before {
-            content: '👥';
-            position: absolute;
-            right: -20px;
-            bottom: -20px;
-            font-size: 100px;
-            opacity: 0.1;
-        }
-
-        .referral-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 15px;
-        }
-
-        .referral-link-box {
-            background: rgba(255,255,255,0.2);
-            border-radius: 40px;
-            padding: 12px 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-
-        .referral-link-text {
-            font-size: 14px;
-            font-weight: 500;
-            color: white;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            flex: 1;
-        }
-
-        .copy-btn {
-            background: white;
-            color: #2563eb;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 13px;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-
-        .share-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .share-btn {
-            flex: 1;
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 12px;
-            border-radius: 30px;
-            color: white;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .share-btn:active {
-            background: white;
-            color: #2563eb;
-        }
-
-        .mission-card {
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            border-radius: var(--card-radius);
-            padding: 22px;
-            margin: 20px 0;
-            color: black;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .mission-card:active {
-            transform: scale(0.98);
-        }
-
-        .mission-progress {
-            display: flex;
-            justify-content: space-between;
-            margin: 15px 0 8px;
-            font-size: 14px;
-        }
-
-        .mission-bar {
-            height: 10px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .mission-fill {
-            height: 100%;
-            background: white;
-            border-radius: 10px;
-            width: 0%;
-            transition: width 0.4s;
-        }
-
-        .bonus-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 300;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.3s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .bonus-card {
-            background: var(--bg-card);
-            border-radius: 40px;
-            padding: 30px;
-            max-width: 350px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 30px 50px rgba(0,0,0,0.5);
-            animation: slideUpBonus 0.4s;
-        }
-
-        @keyframes slideUpBonus {
-            from { transform: translateY(100px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .bonus-icon {
-            font-size: 80px;
-            margin-bottom: 15px;
-        }
-
-        .bonus-title {
-            font-size: 28px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-        }
-
-        .bonus-amount-big {
-            font-size: 48px;
-            font-weight: 900;
-            color: #f59e0b;
-            margin: 15px 0;
-        }
-
-        .bonus-streak {
-            background: var(--bg-secondary);
-            border-radius: 30px;
-            padding: 12px;
-            margin: 15px 0;
-            font-weight: 600;
-        }
-
-        .bonus-claim-btn {
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            color: black;
-            border: none;
-            padding: 18px;
-            border-radius: 50px;
-            font-weight: 800;
-            font-size: 20px;
-            width: 100%;
-            cursor: pointer;
-            margin: 10px 0;
-            box-shadow: 0 10px 20px rgba(245,158,11,0.3);
-        }
-
-        .bonus-claim-btn:active {
-            transform: scale(0.95);
-        }
-
-        .bonus-close-btn {
-            background: transparent;
-            border: 2px solid var(--border-color);
-            color: var(--text-secondary);
-            padding: 12px;
-            border-radius: 50px;
-            font-weight: 600;
-            width: 100%;
-            cursor: pointer;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 25px 0 15px;
-        }
-
-        .section-header h3 {
-            font-size: 22px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .add-promo-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 30px;
-            padding: 8px 16px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #f59e0b;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            box-shadow: var(--shadow);
-        }
-
-        .add-promo-btn:active {
-            transform: scale(0.95);
-        }
-
-        .admin-only-badge {
-            background: #3b82f6;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 30px;
-            font-size: 10px;
-            margin-left: 5px;
-        }
-
-        .price-tag {
-            background: #f59e0b;
-            color: black;
-            padding: 4px 10px;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 12px;
-            margin-left: 10px;
-        }
-
-        .ad-card {
-            background: var(--bg-card);
-            border-radius: 24px;
-            padding: 18px;
-            margin: 12px 0;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-        }
-
-        .ad-card:active {
-            transform: scale(0.98);
-        }
-
-        .ad-card.user-ad {
-            border-left: 4px solid #f59e0b;
-        }
-
-        .ad-card.admin-mode {
-            border: 2px dashed #f59e0b;
-        }
-
-        .ad-delete-btn {
-            position: absolute;
-            top: -8px;
-            left: -8px;
-            width: 30px;
-            height: 30px;
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            cursor: pointer;
-            z-index: 10;
-            border: 2px solid white;
-        }
-
-        .ad-edit-btn {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 30px;
-            height: 30px;
-            background: #3b82f6;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            cursor: pointer;
-            z-index: 10;
-            border: 2px solid white;
-        }
-
-        .ad-icon {
-            width: 50px;
-            height: 50px;
-            background: rgba(245,158,11,0.1);
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-        }
-
-        .ad-info {
-            flex: 1;
-        }
-
-        .ad-title {
-            font-weight: 700;
-            font-size: 16px;
-            margin-bottom: 4px;
-        }
-
-        .ad-meta {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        .ad-reward {
-            background: #f59e0b;
-            color: black;
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 14px;
-        }
-
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--bg-card);
-            border-top: 1px solid var(--border-color);
-            padding: 8px 12px calc(env(safe-area-inset-bottom) + 8px);
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
-            z-index: 100;
-            backdrop-filter: blur(10px);
-        }
-
-        .nav-items {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 4px;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-            padding: 6px 0;
-        }
-
-        .nav-icon {
-            width: 46px;
-            height: 46px;
-            background: var(--bg-secondary);
-            border-radius: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            margin-bottom: 4px;
-            transition: all 0.2s;
-            color: var(--text-primary);
-        }
-
-        .nav-item.active .nav-icon {
-            background: #f59e0b;
-            color: black;
-            transform: translateY(-3px);
-        }
-
-        .nav-label {
-            font-size: 10px;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-
-        .nav-item.active .nav-label {
-            color: #f59e0b;
-        }
-
-        .page-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--bg-primary);
-            z-index: 200;
-            overflow-y: auto;
-            padding: 20px;
-            padding-bottom: 100px;
-            display: none;
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .page-modal.active {
-            display: block;
-        }
-
-        .modal-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 25px;
-            padding: 5px 0;
-        }
-
-        .modal-back {
-            width: 48px;
-            height: 48px;
-            background: var(--bg-secondary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            cursor: pointer;
-            margin-right: 16px;
-        }
-
-        .modal-back:active {
-            background: #f59e0b;
-            color: black;
-        }
-
-        .modal-title {
-            font-size: 28px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .input-field {
-            width: 100%;
-            padding: 16px;
-            background: var(--bg-secondary);
-            border: 2px solid transparent;
-            border-radius: 20px;
-            color: var(--text-primary);
-            margin: 10px 0;
-            font-size: 16px;
-        }
-
-        .input-field:focus {
-            border-color: #f59e0b;
-            outline: none;
-        }
-
-        .save-btn {
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            color: black;
-            border: none;
-            padding: 16px;
-            border-radius: 40px;
-            font-weight: 800;
-            font-size: 18px;
-            width: 100%;
-            margin: 20px 0;
-            cursor: pointer;
-        }
-
-        .toast-message {
-            position: fixed;
-            bottom: 120px;
-            left: 20px;
-            right: 20px;
-            background: #1e293b;
-            color: white;
-            padding: 16px 20px;
-            border-radius: 50px;
-            text-align: center;
-            font-weight: 600;
-            z-index: 1000;
-            display: none;
-            animation: toastSlide 0.3s;
-        }
-
-        @keyframes toastSlide {
-            from { transform: translateY(100px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .method-select {
-            background: var(--bg-secondary);
-            border-radius: 20px;
-            padding: 16px;
-            margin: 10px 0;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border: 2px solid transparent;
-        }
-
-        .method-select.selected {
-            border-color: #f59e0b;
-        }
-
-        .profile-click {
-            color: #f59e0b;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .games-hero {
-            background: linear-gradient(135deg, var(--game-purple), var(--game-purple-light));
-            border-radius: var(--card-radius);
-            padding: 28px 24px;
-            margin: 70px 0 20px;
-            color: white;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 20px 40px -10px rgba(124,58,237,0.4);
-        }
-
-        .games-hero::before {
-            content: '🎮';
-            position: absolute;
-            right: -20px;
-            top: -20px;
-            font-size: 130px;
-            opacity: 0.12;
-        }
-
-        .games-hero h2 {
-            font-size: 30px;
-            font-weight: 900;
-            margin-bottom: 6px;
-        }
-
-        .games-hero p {
-            font-size: 15px;
-            opacity: 0.85;
-            margin-bottom: 18px;
-        }
-
-        .games-daily-badge {
-            background: rgba(255,255,255,0.2);
-            border-radius: 30px;
-            padding: 10px 20px;
-            display: inline-block;
-            font-weight: 700;
-            font-size: 14px;
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-
-        .games-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-            margin: 16px 0;
-        }
-
-        .game-card {
-            background: var(--bg-card);
-            border-radius: 22px;
-            padding: 24px 16px 20px;
-            text-align: center;
-            cursor: pointer;
-            border: 2px solid var(--border-color);
-            box-shadow: var(--shadow);
-            transition: transform 0.18s;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .game-card:active {
-            transform: scale(0.95);
-        }
-
-        .game-emoji {
-            font-size: 60px;
-            margin-bottom: 15px;
-            display: block;
-            text-align: center;
-        }
-
-        .game-name {
-            font-size: 16px;
-            font-weight: 800;
-            margin-bottom: 4px;
-        }
-
-        .game-desc {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-bottom: 12px;
-        }
-
-        .game-reward-badge {
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            color: black;
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: 800;
-            display: inline-block;
-        }
-
-        .game-plays-left {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: var(--bg-secondary);
-            border-radius: 20px;
-            padding: 3px 8px;
-            font-size: 10px;
-            font-weight: 700;
-            color: var(--text-muted);
-        }
-
-        .game-stats-bar {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin: 16px 0;
-        }
-
-        .gstat {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 18px;
-            padding: 14px 10px;
-            text-align: center;
-            box-shadow: var(--shadow);
-        }
-
-        .gstat .gval {
-            font-size: 22px;
-            font-weight: 900;
-            color: var(--game-purple);
-        }
-
-        .gstat .glbl {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 3px;
-        }
-
-        .spin-container {
-            text-align: center;
-            padding: 10px 0;
-        }
-
-        .wheel-wrapper {
-            position: relative;
-            display: inline-block;
-            margin: 20px auto;
-        }
-
-        .wheel-pointer {
-            position: absolute;
-            top: -18px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 36px;
-            z-index: 10;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-        }
-
-        #spinCanvas {
-            border-radius: 50%;
-            box-shadow: 0 0 0 8px #f59e0b, 0 0 0 12px rgba(245,158,11,0.3), 0 20px 50px rgba(245,158,11,0.4);
-            cursor: pointer;
-            transition: box-shadow 0.3s;
-            width: 280px;
-            height: 280px;
-        }
-
-        .spin-result-box {
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            border-radius: 20px;
-            padding: 18px;
-            margin: 15px 0;
-            display: none;
-            animation: bounceIn 0.4s;
-        }
-
-        @keyframes bounceIn {
-            0% { transform: scale(0.5); opacity: 0; }
-            80% { transform: scale(1.05); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .spin-result-box .result-amount {
-            font-size: 40px;
-            font-weight: 900;
-            color: black;
-        }
-
-        .spin-result-box .result-text {
-            font-size: 14px;
-            color: rgba(0,0,0,0.7);
-            margin-top: 4px;
-        }
-
-        .spin-btn {
-            background: linear-gradient(135deg, var(--game-purple), var(--game-purple-light));
-            color: white;
-            border: none;
-            padding: 18px 40px;
-            border-radius: 50px;
-            font-size: 20px;
-            font-weight: 900;
-            cursor: pointer;
-            margin: 10px 0;
-            box-shadow: 0 10px 30px rgba(124,58,237,0.4);
-            width: 100%;
-            transition: all 0.2s;
-        }
-
-        .spin-btn:active {
-            transform: scale(0.96);
-        }
-
-        .spin-btn:disabled {
-            background: #ccc;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-
-        .spin-info {
-            display: flex;
-            justify-content: space-between;
-            background: var(--bg-secondary);
-            border-radius: 16px;
-            padding: 14px 18px;
-            margin: 12px 0;
-        }
-
-        .spin-info-item {
-            text-align: center;
-        }
-
-        .spin-info-item .val {
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--game-purple);
-        }
-
-        .spin-info-item .lbl {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-
-        /* NUMBER GUESS */
-        .guess-game {
-            padding: 10px 0;
-        }
-
-        .guess-display {
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-            border-radius: 24px;
-            padding: 30px;
-            text-align: center;
-            margin: 10px 0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .guess-display::before {
-            content: '?';
-            position: absolute;
-            font-size: 200px;
-            font-weight: 900;
-            opacity: 0.05;
-            color: white;
-            right: -30px;
-            bottom: -60px;
-        }
-
-        .guess-number-show {
-            font-size: 90px;
-            font-weight: 900;
-            color: #f59e0b;
-            line-height: 1;
-        }
-
-        .guess-hint {
-            font-size: 16px;
-            color: #94a3b8;
-            margin-top: 10px;
-        }
-
-        .guess-range-bar {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            height: 8px;
-            margin: 15px 0;
-            overflow: hidden;
-        }
-
-        .guess-range-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #f59e0b, #fbbf24);
-            border-radius: 10px;
-            transition: width 0.4s;
-        }
-
-        .number-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            margin: 15px 0;
-        }
-
-        .num-btn {
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-color);
-            border-radius: 14px;
-            padding: 14px 6px;
-            font-size: 18px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: all 0.15s;
-            color: var(--text-primary);
-        }
-
-        .num-btn:active {
-            transform: scale(0.9);
-        }
-
-        .num-btn.correct {
-            background: #10b981;
-            color: white;
-            border-color: #10b981;
-        }
-
-        .num-btn.wrong {
-            background: #ef4444;
-            color: white;
-            border-color: #ef4444;
-        }
-
-        .num-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .guess-attempts {
-            display: flex;
-            gap: 6px;
-            justify-content: center;
-            margin: 12px 0;
-        }
-
-        .attempt-dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-color);
-        }
-
-        .attempt-dot.used {
-            background: #ef4444;
-            border-color: #ef4444;
-        }
-
-        .guess-bet-row {
-            display: flex;
-            gap: 10px;
-            margin: 10px 0;
-        }
-
-        .bet-chip {
-            flex: 1;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-color);
-            border-radius: 14px;
-            padding: 12px 8px;
-            text-align: center;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 13px;
-            transition: all 0.15s;
-            color: var(--text-primary);
-        }
-
-        .bet-chip.selected {
-            background: #f59e0b;
-            border-color: #f59e0b;
-            color: black;
-        }
-
-        .bet-chip:active {
-            transform: scale(0.94);
-        }
-
-        .bet-chip.disabled {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
-        /* COIN FLIP */
-        .coin-game {
-            text-align: center;
-            padding: 10px 0;
-        }
-
-        .coin-wrapper {
-            margin: 20px auto;
-            display: inline-block;
-            perspective: 800px;
-        }
-
-        .coin {
-            width: 130px;
-            height: 130px;
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            margin: 0 auto;
-        }
-
-        .coin-face {
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 60px;
-            backface-visibility: hidden;
-            box-shadow: inset 0 -8px 20px rgba(0,0,0,0.2), 0 8px 20px rgba(0,0,0,0.2);
-        }
-
-        .coin-heads {
-            background: radial-gradient(circle at 35% 35%, #fde68a, #f59e0b, #d97706);
-        }
-
-        .coin-tails {
-            background: radial-gradient(circle at 35% 35%, #e2e8f0, #94a3b8, #64748b);
-            transform: rotateY(180deg);
-        }
-
-        .coin-choice-btns {
-            display: flex;
-            gap: 14px;
-            margin: 18px 0;
-        }
-
-        .coin-choice {
-            flex: 1;
-            padding: 18px;
-            border-radius: 20px;
-            font-size: 24px;
-            font-weight: 800;
-            cursor: pointer;
-            border: 3px solid var(--border-color);
-            background: var(--bg-secondary);
-            transition: all 0.18s;
-            color: var(--text-primary);
-        }
-
-        .coin-choice.selected {
-            border-color: #f59e0b;
-            background: rgba(245,158,11,0.1);
-            transform: translateY(-3px);
-        }
-
-        .coin-choice:active {
-            transform: scale(0.94);
-        }
-
-        .coin-result-win {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-            display: none;
-            animation: bounceIn 0.4s;
-        }
-
-        .coin-result-lose {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-            display: none;
-            animation: bounceIn 0.4s;
-        }
-
-        .coin-result-big {
-            font-size: 44px;
-            font-weight: 900;
-        }
-
-        .flip-btn {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: black;
-            border: none;
-            padding: 18px;
-            border-radius: 50px;
-            font-size: 20px;
-            font-weight: 900;
-            width: 100%;
-            cursor: pointer;
-            margin: 10px 0;
-            box-shadow: 0 10px 25px rgba(245,158,11,0.4);
-            transition: all 0.2s;
-        }
-
-        .flip-btn:active {
-            transform: scale(0.96);
-        }
-
-        .flip-btn:disabled {
-            background: #ccc;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-
-        /* SCRATCH CARD */
-        .scratch-area {
-            position: relative;
-            width: 100%;
-            max-width: 340px;
-            height: 180px;
-            margin: 20px auto;
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-            cursor: crosshair;
-            touch-action: none;
-        }
-
-        .scratch-reward {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1;
-            border-radius: 24px;
-        }
-
-        .scratch-reward-amount {
-            font-size: 56px;
-            font-weight: 900;
-            color: black;
-            line-height: 1;
-        }
-
-        .scratch-reward-text {
-            font-size: 16px;
-            color: rgba(0,0,0,0.6);
-            margin-top: 8px;
-            font-weight: 600;
-        }
-
-        #scratchCanvas {
-            position: absolute;
-            inset: 0;
-            z-index: 2;
-            border-radius: 24px;
-            width: 100%;
-            height: 100%;
-        }
-
-        .scratch-progress {
-            background: var(--bg-secondary);
-            border-radius: 10px;
-            height: 10px;
-            margin: 12px 0;
-            overflow: hidden;
-        }
-
-        .scratch-progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--game-purple), var(--game-purple-light));
-            border-radius: 10px;
-            transition: width 0.2s;
-        }
-
-        .scratch-hint {
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 13px;
-            margin-bottom: 10px;
-        }
-
-        .new-scratch-btn {
-            background: linear-gradient(135deg, var(--game-purple), var(--game-purple-light));
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 40px;
-            font-weight: 800;
-            font-size: 17px;
-            width: 100%;
-            cursor: pointer;
-            margin: 10px 0;
-            box-shadow: 0 8px 24px rgba(124,58,237,0.35);
-        }
-
-        .new-scratch-btn:disabled {
-            background: #ccc;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
+            --bg-primary:#0b1120; --bg-secondary:#1e293b; --bg-card:#1e293b;
+            --text-primary:#f1f5f9; --text-secondary:#cbd5e1; --border-color:#334155;
+        }
+        body { background:var(--bg-primary); color:var(--text-primary); min-height:100vh; transition:background 0.3s; overflow-x:hidden; }
+        .top-actions { position:fixed; top:12px; right:16px; left:16px; display:flex; justify-content:space-between; z-index:50; pointer-events:none; }
+        .top-left, .top-right { display:flex; gap:8px; pointer-events:auto; }
+        .top-action-btn { width:44px; height:44px; background:var(--bg-card); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:var(--shadow); border:1px solid var(--border-color); cursor:pointer; transition:transform 0.15s; color:var(--text-primary); backdrop-filter:blur(8px); }
+        .top-action-btn:active { transform:scale(0.92); }
+        .gift-popup { position:fixed; bottom:100px; right:20px; width:65px; height:65px; background:linear-gradient(135deg,#f59e0b,#fbbf24); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; box-shadow:0 10px 30px rgba(245,158,11,0.5); z-index:100; cursor:pointer; animation:giftPop 2s infinite; border:3px solid white; }
+        @keyframes giftPop { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+        .gift-popup:active { transform:scale(0.9); }
+        .gift-popup-badge { position:absolute; top:-5px; right:-5px; background:#ef4444; color:white; border-radius:50%; width:22px; height:22px; font-size:12px; display:flex; align-items:center; justify-content:center; font-weight:bold; border:2px solid white; }
+        .main-content { padding:20px 16px calc(var(--bottom-nav-height)+20px); max-width:500px; margin:0 auto; }
+        .games-content { padding:20px 16px calc(var(--bottom-nav-height)+20px); max-width:500px; margin:0 auto; display:none; }
+        .balance-card { background:linear-gradient(135deg,#f59e0b,#fbbf24); border-radius:var(--card-radius); padding:24px; margin:70px 0 20px; box-shadow:0 20px 30px -10px rgba(245,158,11,0.3); position:relative; overflow:hidden; }
+        .balance-card::after { content:'💰'; position:absolute; right:-20px; bottom:-30px; font-size:150px; opacity:0.1; pointer-events:none; }
+        .balance-label { color:rgba(0,0,0,0.7); font-size:15px; font-weight:600; margin-bottom:8px; }
+        .balance-amount { font-size:56px; font-weight:800; color:#000; line-height:1; margin-bottom:15px; }
+        .balance-stats { display:flex; gap:25px; color:rgba(0,0,0,0.7); font-size:14px; font-weight:600; }
+        .balance-stats span { color:#000; font-weight:800; font-size:18px; margin-left:5px; }
+        .ticker-container { width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:40px; padding:14px 18px; margin:15px 0 20px; overflow:hidden; box-shadow:var(--shadow); }
+        .ticker-wrap { width:100%; overflow:hidden; white-space:nowrap; }
+        .ticker-move { display:inline-block; animation:ticker 45s linear infinite; font-size:14px; color:var(--text-primary); will-change:transform; }
+        .ticker-move span { margin-right:45px; display:inline-block; }
+        .ticker-move span i { font-style:normal; color:#f59e0b; font-weight:700; background:rgba(245,158,11,0.1); padding:3px 8px; border-radius:30px; margin-left:5px; }
+        @keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+        .referral-card { background:linear-gradient(135deg,#3b82f6,#2563eb); border-radius:var(--card-radius); padding:22px; margin:20px 0; color:white; position:relative; overflow:hidden; }
+        .referral-card::before { content:'👥'; position:absolute; right:-20px; bottom:-20px; font-size:100px; opacity:0.1; }
+        .referral-title { font-size:18px; font-weight:700; margin-bottom:15px; }
+        .referral-link-box { background:rgba(255,255,255,0.2); border-radius:40px; padding:12px 18px; display:flex; align-items:center; justify-content:space-between; margin-bottom:15px; border:1px solid rgba(255,255,255,0.3); }
+        .referral-link-text { font-size:14px; font-weight:500; color:white; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
+        .copy-btn { background:white; color:#2563eb; border:none; padding:8px 16px; border-radius:30px; font-weight:700; font-size:13px; cursor:pointer; margin-left:10px; }
+        .share-buttons { display:flex; gap:10px; margin-top:10px; }
+        .share-btn { flex:1; background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3); padding:12px; border-radius:30px; color:white; font-weight:600; display:flex; align-items:center; justify-content:center; gap:5px; cursor:pointer; transition:all 0.2s; }
+        .share-btn:active { background:white; color:#2563eb; }
+        .mission-card { background:linear-gradient(135deg,#f59e0b,#fbbf24); border-radius:var(--card-radius); padding:22px; margin:20px 0; color:black; cursor:pointer; position:relative; overflow:hidden; }
+        .mission-card:active { transform:scale(0.98); }
+        .mission-progress { display:flex; justify-content:space-between; margin:15px 0 8px; font-size:14px; }
+        .mission-bar { height:10px; background:rgba(0,0,0,0.2); border-radius:10px; overflow:hidden; }
+        .mission-fill { height:100%; background:white; border-radius:10px; width:0%; transition:width 0.4s; }
+        .bonus-modal { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:300; display:none; align-items:center; justify-content:center; animation:fadeIn 0.3s; }
+        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+        .bonus-card { background:var(--bg-card); border-radius:40px; padding:30px; max-width:350px; width:90%; text-align:center; box-shadow:0 30px 50px rgba(0,0,0,0.5); animation:slideUpBonus 0.4s; }
+        @keyframes slideUpBonus { from{transform:translateY(100px);opacity:0} to{transform:translateY(0);opacity:1} }
+        .bonus-icon { font-size:80px; margin-bottom:15px; }
+        .bonus-title { font-size:28px; font-weight:800; background:linear-gradient(135deg,#f59e0b,#fbbf24); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:10px; }
+        .bonus-amount-big { font-size:48px; font-weight:900; color:#f59e0b; margin:15px 0; }
+        .bonus-streak { background:var(--bg-secondary); border-radius:30px; padding:12px; margin:15px 0; font-weight:600; }
+        .bonus-claim-btn { background:linear-gradient(135deg,#f59e0b,#fbbf24); color:black; border:none; padding:18px; border-radius:50px; font-weight:800; font-size:20px; width:100%; cursor:pointer; margin:10px 0; box-shadow:0 10px 20px rgba(245,158,11,0.3); }
+        .bonus-claim-btn:active { transform:scale(0.95); }
+        .bonus-close-btn { background:transparent; border:2px solid var(--border-color); color:var(--text-secondary); padding:12px; border-radius:50px; font-weight:600; width:100%; cursor:pointer; }
+        .section-header { display:flex; justify-content:space-between; align-items:center; margin:25px 0 15px; }
+        .section-header h3 { font-size:22px; font-weight:800; background:linear-gradient(135deg,#f59e0b,#fbbf24); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .add-promo-btn { background:var(--bg-card); border:1px solid var(--border-color); border-radius:30px; padding:8px 16px; font-size:13px; font-weight:600; color:#f59e0b; cursor:pointer; display:flex; align-items:center; gap:5px; box-shadow:var(--shadow); }
+        .add-promo-btn:active { transform:scale(0.95); }
+        .admin-only-badge { background:#3b82f6; color:white; padding:2px 8px; border-radius:30px; font-size:10px; margin-left:5px; }
+        .price-tag { background:#f59e0b; color:black; padding:4px 10px; border-radius:30px; font-weight:700; font-size:12px; margin-left:10px; }
+        .ad-card { background:var(--bg-card); border-radius:24px; padding:18px; margin:12px 0; border:1px solid var(--border-color); box-shadow:var(--shadow); display:flex; align-items:center; gap:15px; cursor:pointer; transition:all 0.2s; position:relative; }
+        .ad-card:active { transform:scale(0.98); }
+        .ad-card.user-ad { border-left:4px solid #f59e0b; }
+        .ad-card.admin-mode { border:2px dashed #f59e0b; }
+        .ad-delete-btn { position:absolute; top:-8px; left:-8px; width:30px; height:30px; background:#ef4444; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer; z-index:10; border:2px solid white; }
+        .ad-edit-btn { position:absolute; top:-8px; right:-8px; width:30px; height:30px; background:#3b82f6; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer; z-index:10; border:2px solid white; }
+        .ad-icon { width:50px; height:50px; background:rgba(245,158,11,0.1); border-radius:18px; display:flex; align-items:center; justify-content:center; font-size:28px; }
+        .ad-info { flex:1; }
+        .ad-title { font-weight:700; font-size:16px; margin-bottom:4px; }
+        .ad-meta { font-size:12px; color:var(--text-muted); }
+        .ad-reward { background:#f59e0b; color:black; padding:6px 14px; border-radius:30px; font-weight:700; font-size:14px; }
+        .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--bg-card); border-top:1px solid var(--border-color); padding:8px 12px calc(env(safe-area-inset-bottom)+8px); box-shadow:0 -4px 20px rgba(0,0,0,0.08); z-index:100; backdrop-filter:blur(10px); }
+        .nav-items { display:grid; grid-template-columns:repeat(5,1fr); gap:4px; max-width:500px; margin:0 auto; }
+        .nav-item { display:flex; flex-direction:column; align-items:center; cursor:pointer; padding:6px 0; }
+        .nav-icon { width:46px; height:46px; background:var(--bg-secondary); border-radius:30px; display:flex; align-items:center; justify-content:center; font-size:22px; margin-bottom:4px; transition:all 0.2s; }
+        .nav-item.active .nav-icon { background:#f59e0b; color:black; transform:translateY(-3px); }
+        .nav-label { font-size:10px; font-weight:600; color:var(--text-secondary); }
+        .nav-item.active .nav-label { color:#f59e0b; }
+        .page-modal { position:fixed; top:0; left:0; right:0; bottom:0; background:var(--bg-primary); z-index:200; overflow-y:auto; padding:20px; padding-bottom:100px; display:none; animation:slideUp 0.3s ease; }
+        @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        .page-modal.active { display:block; }
+        .modal-header { display:flex; align-items:center; margin-bottom:25px; padding:5px 0; }
+        .modal-back { width:48px; height:48px; background:var(--bg-secondary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; cursor:pointer; margin-right:16px; }
+        .modal-back:active { background:#f59e0b; color:black; }
+        .modal-title { font-size:28px; font-weight:800; background:linear-gradient(135deg,#f59e0b,#fbbf24); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .input-field { width:100%; padding:16px; background:var(--bg-secondary); border:2px solid transparent; border-radius:20px; color:var(--text-primary); margin:10px 0; font-size:16px; }
+        .input-field:focus { border-color:#f59e0b; outline:none; }
+        .save-btn { background:linear-gradient(135deg,#f59e0b,#fbbf24); color:black; border:none; padding:16px; border-radius:40px; font-weight:800; font-size:18px; width:100%; margin:20px 0; cursor:pointer; }
+        .toast-message { position:fixed; bottom:120px; left:20px; right:20px; background:#1e293b; color:white; padding:16px 20px; border-radius:50px; text-align:center; font-weight:600; z-index:1000; display:none; animation:toastSlide 0.3s; }
+        @keyframes toastSlide { from{transform:translateY(100px);opacity:0} to{transform:translateY(0);opacity:1} }
+        .method-select { background:var(--bg-secondary); border-radius:20px; padding:16px; margin:10px 0; cursor:pointer; display:flex; align-items:center; gap:12px; border:2px solid transparent; }
+        .method-select.selected { border-color:#f59e0b; }
+        .profile-click { color:#f59e0b; text-decoration:none; font-weight:600; }
+        /* GAMES */
+        .games-hero { background:linear-gradient(135deg,var(--game-purple),var(--game-purple-light)); border-radius:var(--card-radius); padding:28px 24px; margin:70px 0 20px; color:white; text-align:center; position:relative; overflow:hidden; box-shadow:0 20px 40px -10px rgba(124,58,237,0.4); }
+        .games-hero::before { content:'🎮'; position:absolute; right:-20px; top:-20px; font-size:130px; opacity:0.12; }
+        .games-hero h2 { font-size:30px; font-weight:900; margin-bottom:6px; }
+        .games-hero p { font-size:15px; opacity:0.85; margin-bottom:18px; }
+        .games-daily-badge { background:rgba(255,255,255,0.2); border-radius:30px; padding:10px 20px; display:inline-block; font-weight:700; font-size:14px; border:1px solid rgba(255,255,255,0.3); }
+        .games-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0; }
+        .game-card { background:var(--bg-card); border-radius:22px; padding:24px 16px 20px; text-align:center; cursor:pointer; border:2px solid var(--border-color); box-shadow:var(--shadow); transition:transform 0.18s; position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:center; }
+        .game-card:active { transform:scale(0.95); }
+        .game-emoji { font-size:60px; margin-bottom:15px; display:block; }
+        .game-name { font-size:16px; font-weight:800; margin-bottom:4px; }
+        .game-desc { font-size:11px; color:var(--text-muted); margin-bottom:12px; }
+        .game-reward-badge { background:linear-gradient(135deg,#f59e0b,#fbbf24); color:black; padding:6px 14px; border-radius:30px; font-size:12px; font-weight:800; display:inline-block; }
+        .game-plays-left { position:absolute; top:10px; right:10px; background:var(--bg-secondary); border-radius:20px; padding:3px 8px; font-size:10px; font-weight:700; color:var(--text-muted); }
+        .game-stats-bar { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:16px 0; }
+        .gstat { background:var(--bg-card); border:1px solid var(--border-color); border-radius:18px; padding:14px 10px; text-align:center; box-shadow:var(--shadow); }
+        .gstat .gval { font-size:22px; font-weight:900; color:var(--game-purple); }
+        .gstat .glbl { font-size:11px; color:var(--text-muted); margin-top:3px; }
+        /* SPIN */
+        .spin-container { text-align:center; padding:10px 0; }
+        .wheel-wrapper { position:relative; display:inline-block; margin:20px auto; }
+        .wheel-pointer { position:absolute; top:-18px; left:50%; transform:translateX(-50%); font-size:36px; z-index:10; filter:drop-shadow(0 4px 8px rgba(0,0,0,0.3)); }
+        #spinCanvas { border-radius:50%; box-shadow:0 0 0 8px #f59e0b,0 0 0 12px rgba(245,158,11,0.3),0 20px 50px rgba(245,158,11,0.4); cursor:pointer; transition:box-shadow 0.3s; width:280px; height:280px; }
+        .spin-result-box { background:linear-gradient(135deg,#f59e0b,#fbbf24); border-radius:20px; padding:18px; margin:15px 0; display:none; animation:bounceIn 0.4s; }
+        @keyframes bounceIn { 0%{transform:scale(0.5);opacity:0} 80%{transform:scale(1.05)} 100%{transform:scale(1);opacity:1} }
+        .spin-result-box .result-amount { font-size:40px; font-weight:900; color:black; }
+        .spin-result-box .result-text { font-size:14px; color:rgba(0,0,0,0.7); margin-top:4px; }
+        .spin-btn { background:linear-gradient(135deg,var(--game-purple),var(--game-purple-light)); color:white; border:none; padding:18px 40px; border-radius:50px; font-size:20px; font-weight:900; cursor:pointer; margin:10px 0; box-shadow:0 10px 30px rgba(124,58,237,0.4); width:100%; transition:all 0.2s; }
+        .spin-btn:active { transform:scale(0.96); }
+        .spin-btn:disabled { background:#ccc; box-shadow:none; cursor:not-allowed; }
+        .spin-info { display:flex; justify-content:space-between; background:var(--bg-secondary); border-radius:16px; padding:14px 18px; margin:12px 0; }
+        .spin-info-item { text-align:center; }
+        .spin-info-item .val { font-size:22px; font-weight:800; color:var(--game-purple); }
+        .spin-info-item .lbl { font-size:11px; color:var(--text-muted); margin-top:2px; }
+        /* GUESS */
+        .guess-game { padding:10px 0; }
+        .guess-display { background:linear-gradient(135deg,#0f172a,#1e293b); border-radius:24px; padding:30px; text-align:center; margin:10px 0; position:relative; overflow:hidden; }
+        .guess-display::before { content:'?'; position:absolute; font-size:200px; font-weight:900; opacity:0.05; color:white; right:-30px; bottom:-60px; }
+        .guess-number-show { font-size:90px; font-weight:900; color:#f59e0b; line-height:1; }
+        .guess-hint { font-size:16px; color:#94a3b8; margin-top:10px; }
+        .guess-range-bar { background:rgba(255,255,255,0.1); border-radius:10px; height:8px; margin:15px 0; overflow:hidden; }
+        .guess-range-fill { height:100%; background:linear-gradient(90deg,#f59e0b,#fbbf24); border-radius:10px; transition:width 0.4s; }
+        .number-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:15px 0; }
+        .num-btn { background:var(--bg-secondary); border:2px solid var(--border-color); border-radius:14px; padding:14px 6px; font-size:18px; font-weight:800; cursor:pointer; transition:all 0.15s; color:var(--text-primary); }
+        .num-btn:active { transform:scale(0.9); }
+        .num-btn.correct { background:#10b981; color:white; border-color:#10b981; }
+        .num-btn.wrong { background:#ef4444; color:white; border-color:#ef4444; }
+        .num-btn:disabled { opacity:0.5; cursor:not-allowed; }
+        .guess-attempts { display:flex; gap:6px; justify-content:center; margin:12px 0; }
+        .attempt-dot { width:14px; height:14px; border-radius:50%; background:var(--bg-secondary); border:2px solid var(--border-color); }
+        .attempt-dot.used { background:#ef4444; border-color:#ef4444; }
+        .guess-bet-row { display:flex; gap:10px; margin:10px 0; }
+        .bet-chip { flex:1; background:var(--bg-secondary); border:2px solid var(--border-color); border-radius:14px; padding:12px 8px; text-align:center; cursor:pointer; font-weight:700; font-size:13px; transition:all 0.15s; color:var(--text-primary); }
+        .bet-chip.selected { background:#f59e0b; border-color:#f59e0b; color:black; }
+        .bet-chip:active { transform:scale(0.94); }
+        /* COIN */
+        .coin-game { text-align:center; padding:10px 0; }
+        .coin-wrapper { margin:20px auto; display:inline-block; perspective:800px; }
+        .coin { width:130px; height:130px; position:relative; transform-style:preserve-3d; transition:transform 1.2s cubic-bezier(0.4,0,0.2,1); cursor:pointer; margin:0 auto; }
+        .coin-face { position:absolute; inset:0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:60px; backface-visibility:hidden; box-shadow:inset 0 -8px 20px rgba(0,0,0,0.2),0 8px 20px rgba(0,0,0,0.2); }
+        .coin-heads { background:radial-gradient(circle at 35% 35%,#fde68a,#f59e0b,#d97706); }
+        .coin-tails { background:radial-gradient(circle at 35% 35%,#e2e8f0,#94a3b8,#64748b); transform:rotateY(180deg); }
+        .coin-choice-btns { display:flex; gap:14px; margin:18px 0; }
+        .coin-choice { flex:1; padding:18px; border-radius:20px; font-size:24px; font-weight:800; cursor:pointer; border:3px solid var(--border-color); background:var(--bg-secondary); transition:all 0.18s; color:var(--text-primary); }
+        .coin-choice.selected { border-color:#f59e0b; background:rgba(245,158,11,0.1); transform:translateY(-3px); }
+        .coin-choice:active { transform:scale(0.94); }
+        .coin-result-win { background:linear-gradient(135deg,#10b981,#059669); color:white; border-radius:20px; padding:20px; text-align:center; display:none; animation:bounceIn 0.4s; }
+        .coin-result-lose { background:linear-gradient(135deg,#ef4444,#dc2626); color:white; border-radius:20px; padding:20px; text-align:center; display:none; animation:bounceIn 0.4s; }
+        .coin-result-big { font-size:44px; font-weight:900; }
+        .flip-btn { background:linear-gradient(135deg,#f59e0b,#d97706); color:black; border:none; padding:18px; border-radius:50px; font-size:20px; font-weight:900; width:100%; cursor:pointer; margin:10px 0; box-shadow:0 10px 25px rgba(245,158,11,0.4); transition:all 0.2s; }
+        .flip-btn:active { transform:scale(0.96); }
+        .flip-btn:disabled { background:#ccc; box-shadow:none; cursor:not-allowed; }
+        /* SCRATCH */
+        .scratch-area { position:relative; width:100%; max-width:340px; height:180px; margin:20px auto; border-radius:24px; overflow:hidden; box-shadow:0 15px 40px rgba(0,0,0,0.2); cursor:crosshair; touch-action:none; }
+        .scratch-reward { position:absolute; inset:0; background:linear-gradient(135deg,#f59e0b,#fbbf24); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1; border-radius:24px; }
+        .scratch-reward-amount { font-size:56px; font-weight:900; color:black; line-height:1; }
+        .scratch-reward-text { font-size:16px; color:rgba(0,0,0,0.6); margin-top:8px; font-weight:600; }
+        #scratchCanvas { position:absolute; inset:0; z-index:2; border-radius:24px; width:100%; height:100%; }
+        .scratch-progress { background:var(--bg-secondary); border-radius:10px; height:10px; margin:12px 0; overflow:hidden; }
+        .scratch-progress-fill { height:100%; background:linear-gradient(90deg,var(--game-purple),var(--game-purple-light)); border-radius:10px; transition:width 0.2s; }
+        .scratch-hint { text-align:center; color:var(--text-muted); font-size:13px; margin-bottom:10px; }
+        .new-scratch-btn { background:linear-gradient(135deg,var(--game-purple),var(--game-purple-light)); color:white; border:none; padding:16px; border-radius:40px; font-weight:800; font-size:17px; width:100%; cursor:pointer; margin:10px 0; box-shadow:0 8px 24px rgba(124,58,237,0.35); }
+        .new-scratch-btn:disabled { background:#ccc; box-shadow:none; cursor:not-allowed; }
     </style>
 </head>
 <body>
-    <!-- GIFT POPUP - DAILY BONUS -->
+    <!-- GIFT POPUP -->
     <div class="gift-popup" id="giftPopup" onclick="openBonusModal()">
         <div>🎁</div>
         <div class="gift-popup-badge" id="giftBadge">!</div>
@@ -1449,18 +239,18 @@
         </div>
 
         <div class="mission-card" onclick="openModal('missions')">
-            <div class="mission-title">🎯 Daily Missions</div>
+            <div class="mission-title" style="font-size:18px;font-weight:700;">🎯 Daily Missions</div>
             <div class="mission-progress">
                 <span>Complete to earn ₹5!</span>
                 <span><span id="completedMissions">0</span>/2</span>
             </div>
-            <div class="mission-bar"><div class="mission-fill" id="missionProgressFill" style="width:0%"></div></div>
+            <div class="mission-bar"><div class="mission-fill" id="missionProgressFill"></div></div>
         </div>
 
         <div class="section-header">
             <h3>💰 Sponsored Offers</h3>
             <div class="add-promo-btn" onclick="openAddPromoModal()">
-                <span>➕</span> Add Promo <span class="price-tag">₹50/day</span>
+                ➕ Add Promo <span class="price-tag">₹50/day</span>
                 <span class="admin-only-badge" id="adminPromoBadge" style="display:none;">Admin</span>
             </div>
         </div>
@@ -1471,16 +261,14 @@
     <div class="games-content" id="gamesContent">
         <div class="games-hero">
             <h2>🎮 Play & Earn</h2>
-            <p>Apne balance se khelo, jeeto!</p>
+            <p>Balance se khelo, jeeto!</p>
             <div class="games-daily-badge">🎁 Max Win: ₹<span id="dailyGameLimit">25</span>/day</div>
         </div>
-
         <div class="game-stats-bar">
             <div class="gstat"><div class="gval" id="gameWins">0</div><div class="glbl">Total Wins</div></div>
             <div class="gstat"><div class="gval" id="gameTodayEarned">₹0</div><div class="glbl">Today Earned</div></div>
             <div class="gstat"><div class="gval" id="gameStreak">0🔥</div><div class="glbl">Win Streak</div></div>
         </div>
-
         <div class="games-grid">
             <div class="game-card" onclick="openGame('spin')">
                 <span class="game-plays-left" id="spinPlaysLeft">5 spins</span>
@@ -1511,7 +299,6 @@
                 <span class="game-reward-badge">Up to ₹10</span>
             </div>
         </div>
-
         <div style="background:var(--bg-card);border-radius:20px;padding:16px;border:1px solid var(--border-color);text-align:center;margin:10px 0;">
             <div style="font-size:13px;color:var(--text-muted);">⚠️ Games sirf entertainment ke liye hain. Khelo responsibly!</div>
         </div>
@@ -1540,8 +327,7 @@
         </div>
     </div>
 
-    <!-- MODALS -->
-    <!-- Settings Modal -->
+    <!-- SETTINGS MODAL -->
     <div id="settingsModal" class="page-modal">
         <div class="modal-header"><div class="modal-back" onclick="closeModal('settings')">←</div><div class="modal-title">Settings</div></div>
         <div style="background:var(--bg-card);border-radius:28px;padding:24px;">
@@ -1560,17 +346,17 @@
         </div>
     </div>
 
-    <!-- Support Modal -->
+    <!-- SUPPORT MODAL -->
     <div id="supportModal" class="page-modal">
         <div class="modal-header"><div class="modal-back" onclick="closeModal('support')">←</div><div class="modal-title">Support</div></div>
         <div style="background:var(--bg-card);border-radius:28px;padding:24px;">
             <p style="margin-bottom:20px;">📩 Contact our support team - <a href="https://t.me/asbhiabsr" class="profile-click" target="_blank">@asbhiabsr</a></p>
-            <textarea id="supportMessage" class="input-field" placeholder="Type your message..." style="height:140px;"></textarea>
+            <textarea id="supportMessage" class="input-field" placeholder="Type your message (min 10 chars)..." style="height:140px;resize:none;"></textarea>
             <button class="save-btn" onclick="sendSupportMessage()">SEND MESSAGE</button>
         </div>
     </div>
 
-    <!-- Missions Modal -->
+    <!-- MISSIONS MODAL -->
     <div id="missionsModal" class="page-modal">
         <div class="modal-header"><div class="modal-back" onclick="closeModal('missions')">←</div><div class="modal-title">Missions</div></div>
         <div style="background:linear-gradient(135deg,#f59e0b,#fbbf24);border-radius:28px;padding:24px;margin-bottom:20px;text-align:center;">
@@ -1583,26 +369,25 @@
                 <span style="font-weight:700;">📢 Refer 10 Users</span>
                 <span id="mission1Status" style="padding:5px 12px;border-radius:30px;background:#f59e0b;color:black;">0/10</span>
             </div>
-            <div class="mission-bar" style="background:var(--bg-secondary);"><div class="mission-fill" id="mission1Bar" style="width:0%"></div></div>
+            <div class="mission-bar" style="background:var(--bg-secondary);"><div class="mission-fill" id="mission1Bar"></div></div>
         </div>
         <div style="background:var(--bg-card);border-radius:20px;padding:18px;margin:12px 0;">
             <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
                 <span style="font-weight:700;">📅 Claim 5 Days Bonus</span>
                 <span id="mission2Status" style="padding:5px 12px;border-radius:30px;background:#f59e0b;color:black;">0/5</span>
             </div>
-            <div class="mission-bar" style="background:var(--bg-secondary);"><div class="mission-fill" id="mission2Bar" style="width:0%"></div></div>
+            <div class="mission-bar" style="background:var(--bg-secondary);"><div class="mission-fill" id="mission2Bar"></div></div>
         </div>
         <button class="save-btn" id="claimMissionBtn" onclick="claimMissionReward()" style="display:none;">CLAIM ₹5</button>
     </div>
 
-    <!-- Add Promotion Modal -->
+    <!-- ADD PROMO MODAL -->
     <div id="addPromoModal" class="page-modal">
         <div class="modal-header"><div class="modal-back" onclick="closeModal('addPromo')">←</div><div class="modal-title">Add Promotion</div></div>
         <div style="background:var(--bg-card);border-radius:28px;padding:24px;">
             <div style="background:#f59e0b20;border-radius:16px;padding:16px;margin-bottom:20px;text-align:center;">
                 <span style="font-size:24px;font-weight:800;">💰 ₹50 for 1 Day</span>
                 <p style="font-size:13px;margin-top:5px;">Your ad will be shown for 24 hours</p>
-                <p style="font-size:12px;color:#ef4444;margin-top:5px;" id="promoDailyLimitMsg">(Once per day)</p>
             </div>
             <input type="text" id="promoTitle" class="input-field" placeholder="Title">
             <input type="text" id="promoDesc" class="input-field" placeholder="Description">
@@ -1612,20 +397,7 @@
         </div>
     </div>
 
-    <!-- Admin Add Ad Modal -->
-    <div id="adminAddAdModal" class="page-modal">
-        <div class="modal-header"><div class="modal-back" onclick="closeModal('adminAddAd')">←</div><div class="modal-title">Admin: Add Ad</div></div>
-        <div style="background:var(--bg-card);border-radius:28px;padding:24px;">
-            <input type="text" id="adminAdTitle" class="input-field" placeholder="Title">
-            <input type="number" id="adminAdReward" class="input-field" placeholder="Reward (₹)" step="0.1">
-            <input type="url" id="adminAdLink" class="input-field" placeholder="Link URL">
-            <input type="text" id="adminAdMeta" class="input-field" placeholder="Meta (e.g., ⏱️ 2 min)">
-            <input type="text" id="adminAdIcon" class="input-field" placeholder="Icon (e.g., 📱)">
-            <button class="save-btn" onclick="saveAdminAd()">ADD AD</button>
-        </div>
-    </div>
-
-    <!-- Edit Ad Modal -->
+    <!-- EDIT AD MODAL (ADMIN) -->
     <div id="editAdModal" class="page-modal">
         <div class="modal-header"><div class="modal-back" onclick="closeModal('editAd')">←</div><div class="modal-title">Edit Offer</div></div>
         <div style="background:var(--bg-card);border-radius:28px;padding:24px;">
@@ -1636,17 +408,17 @@
             <input type="text" id="editAdMeta" class="input-field" placeholder="Meta (e.g., ⏱️ 2 min)">
             <input type="text" id="editAdIcon" class="input-field" placeholder="Icon (e.g., 📱)">
             <button class="save-btn" onclick="saveAdEdit()">UPDATE OFFER</button>
-            <button class="save-btn" style="background:#ef4444;color:white;" onclick="deleteAdFromEdit()">DELETE OFFER</button>
+            <button class="save-btn" style="background:#ef4444;color:white;margin-top:0;" onclick="deleteAdFromEdit()">DELETE OFFER</button>
         </div>
     </div>
 
-    <!-- Leaderboard Modal -->
+    <!-- LEADERBOARD MODAL -->
     <div id="leaderboardModal" class="page-modal">
         <div class="modal-header"><div class="modal-back" onclick="closeModal('leaderboard')">←</div><div class="modal-title">Top Earners</div></div>
         <div id="leaderboardContainer" style="background:var(--bg-card);border-radius:28px;padding:20px;"></div>
     </div>
 
-    <!-- Profile Modal -->
+    <!-- PROFILE MODAL -->
     <div id="profileModal" class="page-modal">
         <div class="modal-header"><div class="modal-back" onclick="closeModal('profile')">←</div><div class="modal-title">Profile</div></div>
         <div style="background:var(--bg-card);border-radius:28px;padding:24px;">
@@ -1690,7 +462,7 @@
                 </div>
             </div>
             <div style="margin-top:20px;text-align:center;">
-                <p>Your Referral Link:</p>
+                <p style="margin-bottom:8px;">Your Referral Link:</p>
                 <div style="background:var(--bg-secondary);padding:12px;border-radius:30px;font-size:12px;word-break:break-all;" id="profileReferralLink"></div>
                 <button class="save-btn" style="margin-top:15px;" onclick="copyProfileLink()">Copy Link</button>
             </div>
@@ -1698,14 +470,14 @@
         <button class="save-btn" onclick="openWithdrawPage()">💰 Withdraw</button>
     </div>
 
-    <!-- History Modal -->
+    <!-- HISTORY MODAL -->
     <div id="historyModal" class="page-modal">
         <div class="modal-header"><div class="modal-back" onclick="closeModal('history')">←</div><div class="modal-title">History</div></div>
         <button class="save-btn" onclick="openWithdrawPage()" style="margin-bottom:20px;">💰 New Withdrawal</button>
         <div id="withdrawalHistoryContainer" style="background:var(--bg-card);border-radius:28px;padding:20px;"></div>
     </div>
 
-    <!-- Withdraw Modal -->
+    <!-- WITHDRAW MODAL -->
     <div id="withdrawModal" class="page-modal">
         <div class="modal-header"><div class="modal-back" onclick="closeModal('withdraw')">←</div><div class="modal-title">Withdraw</div></div>
         <div style="background:var(--bg-card);border-radius:28px;padding:24px;">
@@ -1714,14 +486,14 @@
                 <div style="font-size:48px;font-weight:800;color:#f59e0b;" id="withdrawBalance">₹0</div>
                 <div style="color:var(--text-muted);">Min: ₹40</div>
             </div>
-            <input type="number" id="withdrawAmount" class="input-field" placeholder="Amount" min="40">
+            <input type="number" id="withdrawAmount" class="input-field" placeholder="Amount (min ₹40)" min="40">
             <div class="method-select" onclick="selectMethod('upi')" id="methodUpi"><span style="font-size:28px;">📱</span><span>UPI</span></div>
-            <div class="method-select" onclick="selectMethod('bank')" id="methodBank"><span style="font-size:28px;">🏦</span><span>Bank</span></div>
-            <div id="upiDetails" style="display:none;"><input type="text" id="upiId" class="input-field" placeholder="UPI ID"></div>
+            <div class="method-select" onclick="selectMethod('bank')" id="methodBank"><span style="font-size:28px;">🏦</span><span>Bank Transfer</span></div>
+            <div id="upiDetails" style="display:none;"><input type="text" id="upiId" class="input-field" placeholder="UPI ID (e.g. name@upi)"></div>
             <div id="bankDetails" style="display:none;">
-                <input type="text" id="accountNo" class="input-field" placeholder="Account No">
-                <input type="text" id="ifsc" class="input-field" placeholder="IFSC">
-                <input type="text" id="accountName" class="input-field" placeholder="Name">
+                <input type="text" id="accountNo" class="input-field" placeholder="Account Number">
+                <input type="text" id="ifsc" class="input-field" placeholder="IFSC Code">
+                <input type="text" id="accountName" class="input-field" placeholder="Account Holder Name">
             </div>
             <button class="save-btn" onclick="processWithdrawal()">WITHDRAW</button>
         </div>
@@ -1729,7 +501,7 @@
 
     <!-- SPIN WHEEL MODAL -->
     <div id="spinModal" class="page-modal">
-        <div class="modal-header"><div class="modal-back" onclick="closeGameModal('spin')">←</div><div class="modal-title">🎰 Spin & Earn</div></div>
+        <div class="modal-header"><div class="modal-back" onclick="closeModal('spin')">←</div><div class="modal-title">🎰 Spin & Earn</div></div>
         <div class="spin-container">
             <div class="spin-info">
                 <div class="spin-info-item"><div class="val" id="spinBalance">₹0</div><div class="lbl">Balance</div></div>
@@ -1751,7 +523,7 @@
 
     <!-- NUMBER GUESS MODAL -->
     <div id="guessModal" class="page-modal">
-        <div class="modal-header"><div class="modal-back" onclick="closeGameModal('guess')">←</div><div class="modal-title">🔢 Number Guess</div></div>
+        <div class="modal-header"><div class="modal-back" onclick="closeModal('guess')">←</div><div class="modal-title">🔢 Number Guess</div></div>
         <div class="guess-game">
             <div class="guess-display">
                 <div class="guess-number-show" id="guessDisplay">?</div>
@@ -1773,7 +545,7 @@
             <div class="number-grid" id="numberGrid"></div>
             <div style="background:var(--bg-secondary);border-radius:16px;padding:14px;margin:10px 0;">
                 <div style="display:flex;justify-content:space-between;font-size:14px;">
-                    <span>🎯 Correct guess = <strong style="color:#10b981;">8x reward</strong></span>
+                    <span>🎯 Correct = <strong style="color:#10b981;">8x reward</strong></span>
                     <span>❌ Wrong = <strong style="color:#ef4444;">lose bet</strong></span>
                 </div>
             </div>
@@ -1786,7 +558,7 @@
 
     <!-- COIN FLIP MODAL -->
     <div id="coinModal" class="page-modal">
-        <div class="modal-header"><div class="modal-back" onclick="closeGameModal('coin')">←</div><div class="modal-title">🪙 Coin Flip</div></div>
+        <div class="modal-header"><div class="modal-back" onclick="closeModal('coin')">←</div><div class="modal-title">🪙 Coin Flip</div></div>
         <div class="coin-game">
             <div style="display:flex;justify-content:space-between;background:var(--bg-secondary);border-radius:16px;padding:14px;margin:10px 0;">
                 <span>Flips Left: <strong id="coinFlipsLeft" style="color:#7c3aed;">5</strong></span>
@@ -1816,7 +588,7 @@
             </div>
             <div class="coin-result-lose" id="coinLose">
                 <div class="coin-result-big">😢 HARE!</div>
-                <div id="coinLoseAmount" style="font-size:22px;margin-top:8px;opacity:0.9;">-₹0</div>
+                <div id="coinLoseAmount" style="font-size:22px;margin-top:8px;">-₹0</div>
             </div>
             <button class="flip-btn" id="flipBtn" onclick="doFlip()">🪙 FLIP KARO!</button>
             <p style="text-align:center;font-size:12px;color:var(--text-muted);">Sahi guess pe 2x milega • Wrong pe bet kat jayega</p>
@@ -1825,7 +597,7 @@
 
     <!-- SCRATCH CARD MODAL -->
     <div id="scratchModal" class="page-modal">
-        <div class="modal-header"><div class="modal-back" onclick="closeGameModal('scratch')">←</div><div class="modal-title">🎫 Scratch Card</div></div>
+        <div class="modal-header"><div class="modal-back" onclick="closeModal('scratch')">←</div><div class="modal-title">🎫 Scratch Card</div></div>
         <div style="display:flex;justify-content:space-between;background:var(--bg-secondary);border-radius:16px;padding:14px;margin:10px 0;">
             <span>Cards Left: <strong id="scratchCardsLeft" style="color:#7c3aed;">2</strong></span>
             <span>Balance: <strong id="scratchBalance" style="color:#f59e0b;">₹0</strong></span>
@@ -1847,1718 +619,1069 @@
     <div id="toast" class="toast-message"></div>
 
     <script>
-        // ========== TELEGRAM INIT ==========
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.ready();
+    // ========== TELEGRAM INIT ==========
+    const tg = window.Telegram?.WebApp;
+    if(tg){ tg.expand(); tg.ready(); }
 
-        // Bot username
-        const BOT_USERNAME = 'LinkProviderRobot';
-        
-        // App State - REAL DATA FROM DATABASE
-        let userData = {
-            user_id: null,
-            first_name: 'Guest',
-            balance: 0,
-            total_earned: 0,
-            tier: 1,
-            tier_name: '🥉 BASIC',
-            total_refs: 0,
-            active_refs: 0,
-            pending_refs: 0,
-            daily_streak: 0,
-            today_earned: 0,
-            is_admin: false,
-            games_won: 0
-        };
+    const BOT_USERNAME = 'LinkProviderRobot';
 
-        let currentTheme = 'light';
-        let soundEnabled = true;
-        let adminEditMode = false;
-        let selectedMethod = null;
-        
-        // Daily Bonus
-        let claimedDates = [];
-        let userStreak = 0;
-        
-        // Missions
-        let missions = {
-            mission1: { progress: 0, completed: false, total: 10 },
-            mission2: { progress: 0, completed: false, total: 5 }
-        };
+    // ========== APP STATE ==========
+    let userData = {
+        user_id: null, first_name: 'Guest', balance: 0,
+        total_earned: 0, tier: 1, tier_name: '🥉 BASIC',
+        total_refs: 0, active_refs: 0, pending_refs: 0,
+        daily_streak: 0, today_earned: 0, is_admin: false, games_won: 0
+    };
 
-        // Ads
-        let adminAds = [];
-        let userAds = JSON.parse(localStorage.getItem('userAds')) || [];
+    let currentTheme = 'light', soundEnabled = true, adminEditMode = false, selectedMethod = null;
+    let claimedDates = [], userStreak = 0;
+    let missions = {
+        mission1: { progress: 0, completed: false, total: 10 },
+        mission2: { progress: 0, completed: false, total: 5 }
+    };
+    let adminAds = [];
+    let userAds = JSON.parse(localStorage.getItem('userAds') || '[]');
+    let lastPromoDate = localStorage.getItem('lastPromoDate') || null;
 
-        // Promotion daily limit
-        let lastPromoDate = localStorage.getItem('lastPromoDate') || null;
+    // Game state — synced from backend
+    let gameState = {
+        spin_left: 5, guess_left: 3, coin_left: 5, scratch_left: 2,
+        today_game_earned: 0, wins: 0, win_streak: 0, guess_attempts_used: 0
+    };
+    const DAILY_GAME_LIMIT = 25;
 
-        // Game State
-        const TODAY = new Date().toDateString();
-        let gameState = JSON.parse(localStorage.getItem('gameState_' + TODAY)) || {
-            spinLeft: 5,
-            guessLeft: 3,
-            coinLeft: 5,
-            scratchLeft: 2,
-            todayGameEarned: 0,
-            wins: 0,
-            winStreak: 0
-        };
-        const DAILY_GAME_LIMIT = 25;
+    // Spin wheel
+    const spinSegments = [
+        { label: '₹0.50', value: 0.5, color: '#f59e0b' },
+        { label: '₹1',    value: 1,   color: '#3b82f6' },
+        { label: '₹0.25', value: 0.25,color: '#10b981' },
+        { label: '₹2',    value: 2,   color: '#ef4444' },
+        { label: '₹0.10', value: 0.1, color: '#8b5cf6' },
+        { label: '₹5',    value: 5,   color: '#f97316' },
+        { label: '₹0.50', value: 0.5, color: '#06b6d4' },
+        { label: '₹1',    value: 1,   color: '#ec4899' }
+    ];
+    let spinAngle = 0, isSpinning = false;
 
-        // Spin wheel config
-        const spinSegments = [
-            { label: '₹0.50', value: 0.5, color: '#f59e0b' },
-            { label: '₹1', value: 1, color: '#3b82f6' },
-            { label: '₹0.25', value: 0.25, color: '#10b981' },
-            { label: '₹2', value: 2, color: '#ef4444' },
-            { label: '₹0.10', value: 0.1, color: '#8b5cf6' },
-            { label: '₹5', value: 5, color: '#f97316' },
-            { label: '₹0.50', value: 0.5, color: '#06b6d4' },
-            { label: '₹1', value: 1, color: '#ec4899' }
+    // Guess
+    let guessBet = 1, guessActive = false;
+    // Coin
+    let coinChoice = null, coinBet = 1, coinFlipping = false;
+    // Scratch
+    let scratchReward = 0, scratchRevealed = false, scratchCtx = null, scratchIsDrawing = false;
+
+    let audioCtx = null;
+
+    // ========== API HELPERS ==========
+
+    async function apiGet(url) {
+        try {
+            const r = await fetch(url);
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return await r.json();
+        } catch(e) {
+            console.error('GET', url, e);
+            return null;
+        }
+    }
+
+    async function apiPost(url, body) {
+        try {
+            const r = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return await r.json();
+        } catch(e) {
+            console.error('POST', url, e);
+            return { success: false, message: 'Network error' };
+        }
+    }
+
+    // ========== DATA LOADING ==========
+
+    async function loadUserData() {
+        const userId = tg?.initDataUnsafe?.user?.id;
+        if (!userId) return;
+        const data = await apiGet(`/api/user/${userId}`);
+        if (data && !data.error) {
+            userData = { ...userData, ...data,
+                user_id: userId,
+                first_name: tg.initDataUnsafe.user.first_name || data.first_name || 'User'
+            };
+            userStreak = userData.daily_streak || 0;
+            if (userData.is_admin) {
+                document.getElementById('adminEditBtn').style.display = 'flex';
+                document.getElementById('adminPromoBadge').style.display = 'inline-block';
+            }
+            updateUI();
+        }
+    }
+
+    async function loadGameState() {
+        const userId = userData.user_id;
+        if (!userId) return;
+        const data = await apiGet(`/api/game/state/${userId}`);
+        if (data && !data.error) {
+            gameState = { ...gameState, ...data };
+            updateUI();
+        }
+    }
+
+    async function loadBonusDays() {
+        const userId = userData.user_id;
+        if (!userId) return;
+        const data = await apiGet(`/api/user/${userId}/bonus-days`);
+        if (data) {
+            claimedDates = data.claimed_days || [];
+            checkBonusAvailability();
+        }
+    }
+
+    async function loadMissions() {
+        const userId = userData.user_id;
+        if (!userId) return;
+        const data = await apiGet(`/api/user/${userId}/missions`);
+        if (data && data.mission1) missions.mission1 = data.mission1;
+        if (data && data.mission2) missions.mission2 = data.mission2;
+        updateMissionsUI();
+    }
+
+    async function loadAds() {
+        const data = await apiGet('/api/ads');
+        adminAds = data ? (data.ads || []) : [
+            { id: 1, title: 'Install App', reward: 2.5, link: 'https://t.me/', meta: '⏱️ 2 min', icon: '📱' },
+            { id: 2, title: 'Watch Video', reward: 1.0, link: 'https://t.me/', meta: '⏱️ 30 sec', icon: '🎬' },
+            { id: 3, title: 'Join Channel', reward: 1.5, link: 'https://t.me/', meta: '⏱️ 1 min', icon: '📢' }
         ];
-        let spinAngle = 0, isSpinning = false;
-        const SPIN_COST = 1;
+        renderAds();
+    }
 
-        // Guess game
-        let guessSecret = 0, guessBet = 1, guessAttempts = 3, guessCurrentAttempts = 0, guessActive = false;
+    async function loadLiveActivity() {
+        const data = await apiGet('/api/live-activity');
+        updateTickerWithData(data || []);
+    }
 
-        // Coin game
-        let coinChoice = null, coinBet = 1, coinFlipping = false;
+    async function loadLeaderboardData() {
+        const data = await apiGet('/api/leaderboard');
+        renderLeaderboard(data || []);
+    }
 
-        // Scratch game
-        let scratchReward = 0, scratchRevealed = false, scratchCtx = null, scratchIsDrawing = false;
+    async function loadWithdrawalHistory() {
+        const userId = userData.user_id;
+        if (!userId) return;
+        const data = await apiGet(`/api/user/${userId}/withdrawals`);
+        renderWithdrawalHistory(data || []);
+    }
 
-        // Audio
-        let audioCtx = null;
+    // ========== REFERRAL ==========
 
-        // ========== API CALLS - REAL DATA FROM BACKEND ==========
-        
-        async function loadUserData() {
-            const userId = tg.initDataUnsafe?.user?.id;
-            if (!userId) {
-                console.log('No Telegram user ID');
-                return;
-            }
+    function getReferralLink() {
+        const uid = tg?.initDataUnsafe?.user?.id || userData.user_id || '123456';
+        return `https://t.me/${BOT_USERNAME}?start=ref_${uid}`;
+    }
 
-            try {
-                const response = await fetch(`/api/user/${userId}`);
-                if (!response.ok) throw new Error('Failed to fetch user data');
-                
-                const data = await response.json();
-                if (data && !data.error) {
-                    // Update userData with real values from database
-                    userData = {
-                        ...userData,
-                        ...data,
-                        user_id: userId,
-                        first_name: tg.initDataUnsafe.user.first_name || data.first_name || 'User'
-                    };
-                    
-                    // Update streak
-                    userStreak = userData.daily_streak || 0;
-                    
-                    // Check if admin
-                    if (userData.is_admin) {
-                        document.getElementById('adminEditBtn').style.display = 'flex';
-                        document.getElementById('adminPromoBadge').style.display = 'inline-block';
-                    }
-                    
-                    console.log('✅ User data loaded:', userData);
-                    updateUI();
-                }
-            } catch (error) {
-                console.error('Error loading user data:', error);
-                showToast('⚠️ Could not load user data');
-            }
+    function copyReferralLink() {
+        navigator.clipboard.writeText(getReferralLink());
+        showToast('✅ Referral link copied!');
+        playSound('tap');
+    }
+
+    function copyProfileLink() {
+        navigator.clipboard.writeText(getReferralLink());
+        showToast('✅ Link copied!');
+    }
+
+    function shareOn(platform) {
+        const link = getReferralLink();
+        const text = `Join me on this earning app! 💰 ${link}`;
+        if (platform === 'telegram') {
+            window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('Earn money with me!')}`, '_blank');
+        } else if (platform === 'whatsapp') {
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        } else {
+            if (navigator.share) navigator.share({ title: 'Earn App', text, url: link });
+            else copyReferralLink();
+        }
+        playSound('tap');
+    }
+
+    // ========== DAILY BONUS ==========
+
+    function checkBonusAvailability() {
+        const today = new Date().toISOString().split('T')[0];
+        const claimed = claimedDates.includes(today);
+        document.getElementById('giftPopup').style.display = 'flex';
+        document.getElementById('giftBadge').style.display = claimed ? 'none' : 'flex';
+    }
+
+    function openBonusModal() {
+        const today = new Date().toISOString().split('T')[0];
+        if (claimedDates.includes(today)) {
+            showToast('✅ Aaj ka bonus already claim kar liya! Kal phir aana');
+            return;
+        }
+        const base = 0.05, bonus = Math.min(userStreak * 0.02, 0.15);
+        document.getElementById('bonusAmount').innerText = `₹${(base + bonus).toFixed(2)}`;
+        document.getElementById('bonusStreak').innerText = `🔥 Streak: ${userStreak} days`;
+        document.getElementById('bonusModal').style.display = 'flex';
+        playSound('tap');
+    }
+
+    function closeBonusModal() { document.getElementById('bonusModal').style.display = 'none'; }
+    function closeBonusModalIfOutside(e) { if(e.target.classList.contains('bonus-modal')) closeBonusModal(); }
+
+    async function claimDailyBonus() {
+        const today = new Date().toISOString().split('T')[0];
+        if (claimedDates.includes(today)) { showToast('❌ Already claimed!'); closeBonusModal(); return; }
+
+        const btn = document.getElementById('claimBonusBtn');
+        btn.disabled = true; btn.innerText = 'Claiming...';
+
+        const result = await apiPost('/api/claim-day-bonus', {
+            user_id: userData.user_id, date: today
+        });
+
+        btn.disabled = false; btn.innerText = 'CLAIM NOW';
+
+        if (result && result.success) {
+            userData.balance += result.bonus;
+            userData.total_earned += result.bonus;
+            userData.today_earned += result.bonus;
+            userStreak = result.streak;
+            claimedDates.push(today);
+            updateUI(); checkBonusAvailability();
+            await apiPost('/api/update-mission', { user_id: userData.user_id, mission_type: 'bonus' });
+            await loadMissions();
+            showToast(`🎉 +₹${result.bonus.toFixed(2)} claimed! Streak: ${userStreak}`);
+            playSound('earn');
+            setTimeout(closeBonusModal, 1200);
+        } else {
+            showToast('❌ ' + (result?.message || 'Failed'));
+        }
+    }
+
+    // ========== MISSIONS ==========
+
+    function updateMissionsUI() {
+        const m1 = missions.mission1, m2 = missions.mission2;
+        document.getElementById('mission1Bar').style.width = `${(m1.progress/m1.total)*100}%`;
+        document.getElementById('mission1Status').innerText = `${m1.progress}/${m1.total}`;
+        document.getElementById('mission2Bar').style.width = `${(m2.progress/m2.total)*100}%`;
+        document.getElementById('mission2Status').innerText = `${m2.progress}/${m2.total}`;
+        const done = (m1.completed?1:0) + (m2.completed?1:0);
+        document.getElementById('completedMissions').innerText = done;
+        document.getElementById('missionProgressFill').style.width = `${(done/2)*100}%`;
+        document.getElementById('claimMissionBtn').style.display = done === 2 ? 'block' : 'none';
+    }
+
+    async function claimMissionReward() {
+        if (!missions.mission1.completed || !missions.mission2.completed) {
+            showToast('❌ Complete both missions first!'); return;
+        }
+        const result = await apiPost('/api/claim-mission-reward', { user_id: userData.user_id });
+        if (result && result.success) {
+            userData.balance += 5; userData.total_earned += 5;
+            missions = {
+                mission1: { progress: 0, completed: false, total: 10 },
+                mission2: { progress: 0, completed: false, total: 5 }
+            };
+            updateUI(); updateMissionsUI(); closeModal('missions');
+            showToast('✅ ₹5 claimed!'); playSound('earn');
+        } else {
+            showToast('❌ ' + (result?.message || 'Failed'));
+        }
+    }
+
+    // ========== ADS ==========
+
+    function renderAds() {
+        let html = '';
+        adminAds.forEach(ad => {
+            const del = adminEditMode ? `<div class="ad-delete-btn" onclick="event.stopPropagation();deleteAd(${ad.id})">✕</div>` : '';
+            const edit = adminEditMode ? `<div class="ad-edit-btn" onclick="event.stopPropagation();editAd(${ad.id})">✎</div>` : '';
+            html += `<div class="ad-card ${adminEditMode?'admin-mode':''}" onclick="handleAdClick(${ad.id})">
+                ${del}${edit}
+                <div class="ad-icon">${ad.icon}</div>
+                <div class="ad-info"><div class="ad-title">${ad.title}</div><div class="ad-meta">${ad.meta}</div></div>
+                <div class="ad-reward">+₹${ad.reward}</div>
+            </div>`;
+        });
+        userAds.filter(a=>a.approved).forEach(ad => {
+            html += `<div class="ad-card user-ad" onclick="window.open('${ad.link}','_blank')">
+                <div class="ad-icon">🛍️</div>
+                <div class="ad-info"><div class="ad-title">${ad.title}</div><div class="ad-meta">${ad.desc}</div></div>
+                <div class="ad-reward">View</div>
+            </div>`;
+        });
+        document.getElementById('adsContainer').innerHTML = html || '<div style="text-align:center;padding:20px;color:var(--text-muted);">No offers yet</div>';
+    }
+
+    async function handleAdClick(adId) {
+        if (adminEditMode) return;
+        const ad = adminAds.find(a=>a.id===adId); if(!ad) return;
+        playSound('tap');
+        window.open(ad.link, '_blank');
+        const result = await apiPost('/api/claim-ad', { user_id: userData.user_id, ad_id: adId, reward: ad.reward });
+        if (result && result.success) {
+            userData.balance += ad.reward; userData.today_earned += ad.reward;
+            updateUI(); showToast(`✅ +₹${ad.reward} earned!`); playSound('earn');
+            await apiPost('/api/update-mission', { user_id: userData.user_id, mission_type: 'ad' });
+            await loadMissions();
+        } else {
+            showToast('❌ ' + (result?.message || 'Already claimed today'));
+        }
+    }
+
+    function editAd(id) {
+        const ad = adminAds.find(a=>a.id===id); if(!ad) return;
+        document.getElementById('editAdId').value = ad.id;
+        document.getElementById('editAdTitle').value = ad.title;
+        document.getElementById('editAdReward').value = ad.reward;
+        document.getElementById('editAdLink').value = ad.link;
+        document.getElementById('editAdMeta').value = ad.meta;
+        document.getElementById('editAdIcon').value = ad.icon;
+        openModal('editAd');
+    }
+
+    async function saveAdEdit() {
+        const id = parseInt(document.getElementById('editAdId').value);
+        const body = {
+            ad_id: id, admin_id: userData.user_id,
+            title: document.getElementById('editAdTitle').value,
+            reward: parseFloat(document.getElementById('editAdReward').value),
+            link: document.getElementById('editAdLink').value,
+            meta: document.getElementById('editAdMeta').value,
+            icon: document.getElementById('editAdIcon').value
+        };
+        const result = await apiPost('/api/update-ad', body);
+        if (result && result.success) { showToast('✅ Updated!'); loadAds(); closeModal('editAd'); }
+        else showToast('❌ ' + (result?.message || 'Failed'));
+    }
+
+    async function deleteAd(id) {
+        if (!confirm('Delete this offer?')) return;
+        const result = await apiPost('/api/delete-ad', { ad_id: id, admin_id: userData.user_id });
+        if (result && result.success) { showToast('✅ Deleted'); loadAds(); }
+        else showToast('❌ ' + (result?.message || 'Failed'));
+    }
+
+    function deleteAdFromEdit() {
+        deleteAd(parseInt(document.getElementById('editAdId').value));
+        closeModal('editAd');
+    }
+
+    // ========== ADD PROMO ==========
+
+    function openAddPromoModal() {
+        if (lastPromoDate === new Date().toDateString()) {
+            showToast('❌ Din mein sirf ek baar promo add kar sakte hain!'); return;
+        }
+        if (userData.balance < 50) { showToast('❌ Balance kam hai! ₹50 chahiye'); return; }
+        openModal('addPromo');
+    }
+
+    function submitPromotion() {
+        const title = document.getElementById('promoTitle').value;
+        const desc = document.getElementById('promoDesc').value;
+        const link = document.getElementById('promoLink').value;
+        const contact = document.getElementById('promoContact').value;
+        if (!title || !desc || !link || !contact) { showToast('❌ Sab fields bharo'); return; }
+        userData.balance -= 50; updateUI();
+        userAds.push({ id: Date.now(), title, desc, link, contact, approved: false, expiry: new Date(Date.now()+86400000).toISOString() });
+        lastPromoDate = new Date().toDateString();
+        localStorage.setItem('lastPromoDate', lastPromoDate);
+        localStorage.setItem('userAds', JSON.stringify(userAds));
+        closeModal('addPromo'); showToast('✅ Promotion submit! Approval pending.'); playSound('tap');
+        ['promoTitle','promoDesc','promoLink','promoContact'].forEach(id => document.getElementById(id).value = '');
+    }
+
+    // ========== ADMIN TOGGLE ==========
+
+    function toggleAdminEdit() {
+        adminEditMode = !adminEditMode;
+        renderAds();
+        showToast(adminEditMode ? '✏️ Edit Mode ON' : '✅ Edit Mode OFF');
+    }
+
+    // ========================================================
+    // ========== GAME FUNCTIONS — ALL BACKEND CONNECTED =====
+    // ========================================================
+
+    // --- SPIN ---
+    function drawSpinWheel(angle) {
+        const canvas = document.getElementById('spinCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const cx=140, cy=140, r=130, n=spinSegments.length, seg=(2*Math.PI)/n;
+        ctx.clearRect(0,0,280,280);
+        spinSegments.forEach((s,i) => {
+            const sa=angle+i*seg, ea=sa+seg;
+            ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,sa,ea); ctx.closePath();
+            ctx.fillStyle=s.color; ctx.fill(); ctx.strokeStyle='white'; ctx.lineWidth=3; ctx.stroke();
+            ctx.save(); ctx.translate(cx,cy); ctx.rotate(sa+seg/2); ctx.textAlign='right';
+            ctx.fillStyle='white'; ctx.font='bold 16px Arial';
+            ctx.fillText(s.label, r-14, 6); ctx.restore();
+        });
+        ctx.beginPath(); ctx.arc(cx,cy,22,0,2*Math.PI);
+        ctx.fillStyle='#fff'; ctx.fill(); ctx.strokeStyle='#f59e0b'; ctx.lineWidth=4; ctx.stroke();
+        ctx.fillStyle='#f59e0b'; ctx.font='bold 18px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('SPIN',cx,cy);
+    }
+
+    async function doSpin() {
+        if (isSpinning || gameState.spin_left <= 0) return;
+        if (gameState.today_game_earned >= DAILY_GAME_LIMIT) { showToast('⚠️ Daily limit reached!'); return; }
+
+        isSpinning = true;
+        document.getElementById('spinBtn').disabled = true;
+        document.getElementById('spinResultBox').style.display = 'none';
+        playSound('tap');
+
+        // Call backend API
+        const result = await apiPost('/api/game/spin', { user_id: userData.user_id });
+
+        if (!result || !result.success) {
+            isSpinning = false;
+            document.getElementById('spinBtn').disabled = false;
+            showToast('❌ ' + (result?.message || 'Spin failed'));
+            return;
         }
 
-        async function loadBonusDays() {
-            const userId = userData.user_id;
-            if (!userId) return;
+        // Animate wheel to the correct segment
+        const selectedIdx = result.segment_index !== undefined ? result.segment_index :
+            Math.floor(Math.random() * spinSegments.length);
 
-            try {
-                const response = await fetch(`/api/user/${userId}/bonus-days`);
-                if (!response.ok) throw new Error('Failed to load bonus days');
-                
-                const data = await response.json();
-                claimedDates = data.claimed_days || [];
-                checkBonusAvailability();
-                
-            } catch (error) {
-                console.error('Error loading bonus days:', error);
-            }
-        }
+        const n = spinSegments.length, seg = (2*Math.PI)/n;
+        const target = -Math.PI/2 - (selectedIdx*seg + seg/2);
+        const extra = (5 + Math.floor(Math.random()*4)) * 2 * Math.PI;
+        const final = extra + target, dur = 3000, startA = spinAngle, startT = performance.now();
 
-        async function loadMissions() {
-            const userId = userData.user_id;
-            if (!userId) return;
+        function animate(now) {
+            const elapsed = now - startT, prog = Math.min(elapsed/dur, 1);
+            const ease = 1 - Math.pow(1-prog, 4);
+            spinAngle = startA + final*ease;
+            drawSpinWheel(spinAngle);
+            if (prog < 1) { requestAnimationFrame(animate); return; }
+            spinAngle = spinAngle % (2*Math.PI);
+            isSpinning = false;
 
-            try {
-                const response = await fetch(`/api/user/${userId}/missions`);
-                if (!response.ok) throw new Error('Failed to load missions');
-                
-                const data = await response.json();
-                if (data.mission1) missions.mission1 = data.mission1;
-                if (data.mission2) missions.mission2 = data.mission2;
-                
-                updateMissionsUI();
-                
-            } catch (error) {
-                console.error('Error loading missions:', error);
-            }
-        }
+            // Update state from backend result
+            gameState.spin_left = result.spin_left;
+            gameState.today_game_earned = result.today_earned || gameState.today_game_earned;
+            userData.balance = (userData.balance - 1) + (result.reward || 0); // net change
+            // Re-fetch fresh balance
+            loadUserData();
 
-        async function loadAds() {
-            try {
-                const response = await fetch('/api/ads');
-                if (!response.ok) throw new Error('Failed to load ads');
-                
-                const data = await response.json();
-                adminAds = data.ads || [];
-                renderAds();
-                
-            } catch (error) {
-                console.error('Error loading ads:', error);
-                // Fallback to default ads
-                adminAds = [
-                    { id: 1, title: 'Install App', reward: 2.5, link: 'https://t.me/', meta: '⏱️ 2 min', icon: '📱' },
-                    { id: 2, title: 'Watch Video', reward: 1.0, link: 'https://t.me/', meta: '⏱️ 30 sec', icon: '🎬' },
-                    { id: 3, title: 'Telegram Channel', reward: 1.5, link: 'https://t.me/', meta: '⏱️ 1 min', icon: '📢' }
-                ];
-                renderAds();
-            }
-        }
-
-        async function loadLiveActivity() {
-            try {
-                const response = await fetch('/api/live-activity');
-                if (!response.ok) throw new Error('Failed to load live activity');
-                
-                const activities = await response.json();
-                updateTickerWithData(activities);
-                
-            } catch (error) {
-                console.error('Error loading live activity:', error);
-                updateTickerWithData([]);
-            }
-        }
-
-        async function loadLeaderboardData() {
-            try {
-                const response = await fetch('/api/leaderboard');
-                if (!response.ok) throw new Error('Failed to load leaderboard');
-                
-                const leaders = await response.json();
-                renderLeaderboard(leaders);
-                
-            } catch (error) {
-                console.error('Error loading leaderboard:', error);
-                renderLeaderboard([]);
-            }
-        }
-
-        async function loadWithdrawalHistory() {
-            const userId = userData.user_id;
-            if (!userId) return;
-
-            try {
-                const response = await fetch(`/api/user/${userId}/withdrawals`);
-                if (!response.ok) throw new Error('Failed to load withdrawal history');
-                
-                const history = await response.json();
-                renderWithdrawalHistory(history);
-                
-            } catch (error) {
-                console.error('Error loading withdrawal history:', error);
-                renderWithdrawalHistory([]);
-            }
-        }
-
-        // ========== API POST REQUESTS ==========
-        
-        async function claimBonusAPI(date) {
-            const userId = userData.user_id;
-            if (!userId) return { success: false };
-
-            try {
-                const response = await fetch('/api/claim-day-bonus', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: userId, date: date })
-                });
-                
-                return await response.json();
-                
-            } catch (error) {
-                console.error('Error claiming bonus:', error);
-                return { success: false, message: 'Network error' };
-            }
-        }
-
-        async function updateMissionAPI(type, count = 1) {
-            const userId = userData.user_id;
-            if (!userId) return null;
-
-            try {
-                const response = await fetch('/api/update-mission', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: userId, mission_type: type, count: count })
-                });
-                
-                const data = await response.json();
-                if (data.success && data.missions) {
-                    missions.mission1 = data.missions.mission1;
-                    missions.mission2 = data.missions.mission2;
-                    updateMissionsUI();
-                }
-                return data;
-                
-            } catch (error) {
-                console.error('Error updating mission:', error);
-                return null;
-            }
-        }
-
-        async function claimMissionRewardAPI() {
-            const userId = userData.user_id;
-            if (!userId) return { success: false };
-
-            try {
-                const response = await fetch('/api/claim-mission-reward', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: userId })
-                });
-                
-                return await response.json();
-                
-            } catch (error) {
-                console.error('Error claiming mission reward:', error);
-                return { success: false, message: 'Network error' };
-            }
-        }
-
-        async function claimAdAPI(adId, reward) {
-            const userId = userData.user_id;
-            if (!userId) return { success: false };
-
-            try {
-                const response = await fetch('/api/claim-ad', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: userId, ad_id: adId, reward: reward })
-                });
-                
-                return await response.json();
-                
-            } catch (error) {
-                console.error('Error claiming ad:', error);
-                return { success: false, message: 'Network error' };
-            }
-        }
-
-        async function sendSupportAPI(message) {
-            const userId = userData.user_id;
-            if (!userId) return { success: false };
-
-            try {
-                const response = await fetch('/api/support', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: userId, message: message })
-                });
-                
-                return await response.json();
-                
-            } catch (error) {
-                console.error('Error sending support message:', error);
-                return { success: false, message: 'Network error' };
-            }
-        }
-
-        async function processWithdrawalAPI(amount, method, details) {
-            const userId = userData.user_id;
-            if (!userId) return { success: false };
-
-            try {
-                const response = await fetch('/api/withdraw', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        user_id: userId, 
-                        amount: amount, 
-                        method: method, 
-                        details: details 
-                    })
-                });
-                
-                return await response.json();
-                
-            } catch (error) {
-                console.error('Error processing withdrawal:', error);
-                return { success: false, message: 'Network error' };
-            }
-        }
-
-        // ========== HELPER FUNCTIONS ==========
-        
-        function saveGameState() {
-            localStorage.setItem('gameState_' + TODAY, JSON.stringify(gameState));
-        }
-
-        function playSound(type) {
-            if (!soundEnabled) return;
-            try {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                const now = audioCtx.currentTime;
-                if (type === 'tap') {
-                    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-                    o.connect(g); g.connect(audioCtx.destination);
-                    o.frequency.value = 600; g.gain.value = 0.1;
-                    o.start(now); o.stop(now + 0.05);
-                } else if (type === 'earn') {
-                    [400,500,600,700].forEach((f,i) => {
-                        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-                        o.connect(g); g.connect(audioCtx.destination);
-                        o.frequency.value = f; g.gain.value = 0.12;
-                        o.start(now + i*0.08); o.stop(now + i*0.08 + 0.1);
-                    });
-                } else if (type === 'lose') {
-                    [300,250,200].forEach((f,i) => {
-                        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-                        o.connect(g); g.connect(audioCtx.destination);
-                        o.frequency.value = f; g.gain.value = 0.1;
-                        o.start(now + i*0.1); o.stop(now + i*0.1 + 0.1);
-                    });
-                }
-            } catch(e) {}
-        }
-
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.innerText = msg; 
-            t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 2500);
-        }
-
-        // ========== REFERRAL LINK - FIXED ==========
-        
-        function getReferralLink() {
-            const userId = tg.initDataUnsafe?.user?.id || userData.user_id || '123456';
-            return `https://t.me/${BOT_USERNAME}?start=ref_${userId}`;
-        }
-
-        function copyReferralLink() {
-            navigator.clipboard.writeText(getReferralLink());
-            showToast('✅ Referral link copied!');
-            playSound('tap');
-        }
-
-        function copyProfileLink() {
-            navigator.clipboard.writeText(getReferralLink());
-            showToast('✅ Link copied!');
-        }
-
-        function shareOn(platform) {
-            const link = getReferralLink();
-            const text = `Join me on this earning app! 💰 ${link}`;
-            if (platform === 'telegram') {
-                window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('Earn money with me!')}`, '_blank');
-            } else if (platform === 'whatsapp') {
-                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-            } else {
-                if (navigator.share) {
-                    navigator.share({ title: 'Earn App', text: text, url: link });
-                } else {
-                    copyReferralLink();
-                }
-            }
-            playSound('tap');
-        }
-
-        // ========== DAILY BONUS ==========
-        
-        function checkBonusAvailability() {
-            const today = new Date().toISOString().split('T')[0];
-            const isClaimed = claimedDates.includes(today);
-            const giftPopup = document.getElementById('giftPopup');
-            const giftBadge = document.getElementById('giftBadge');
-            
-            if (!isClaimed) {
-                giftPopup.style.display = 'flex';
-                giftBadge.style.display = 'flex';
-            } else {
-                giftPopup.style.display = 'flex';
-                giftBadge.style.display = 'none';
-            }
-        }
-
-        function openBonusModal() {
-            const today = new Date().toISOString().split('T')[0];
-            const isClaimed = claimedDates.includes(today);
-            
-            if (isClaimed) {
-                showToast('✅ Aaj ka bonus already claim kar liya! Kal phir aana');
-                return;
-            }
-            
-            const baseBonus = 0.05;
-            const streakBonus = Math.min(userStreak * 0.02, 0.15);
-            const totalBonus = baseBonus + streakBonus;
-            
-            document.getElementById('bonusAmount').innerText = `₹${totalBonus.toFixed(2)}`;
-            document.getElementById('bonusStreak').innerText = `🔥 Streak: ${userStreak} days`;
-            document.getElementById('bonusModal').style.display = 'flex';
-            playSound('tap');
-        }
-
-        function closeBonusModal() {
-            document.getElementById('bonusModal').style.display = 'none';
-        }
-
-        function closeBonusModalIfOutside(e) {
-            if (e.target.classList.contains('bonus-modal')) {
-                closeBonusModal();
-            }
-        }
-
-        async function claimDailyBonus() {
-            const today = new Date().toISOString().split('T')[0];
-            
-            if (claimedDates.includes(today)) {
-                showToast('❌ Already claimed today!');
-                closeBonusModal();
-                return;
-            }
-            
-            playSound('tap');
-            
-            const result = await claimBonusAPI(today);
-            
-            if (result.success) {
-                const bonusAmount = result.bonus;
-                const newStreak = result.streak;
-                
-                userData.balance += bonusAmount;
-                userData.total_earned += bonusAmount;
-                userData.today_earned += bonusAmount;
-                userStreak = newStreak;
-                
-                claimedDates.push(today);
-                
-                updateUI();
-                checkBonusAvailability();
-                await updateMissionAPI('bonus');
-                
-                showToast(`🎉 +₹${bonusAmount.toFixed(2)} claimed! Streak: ${userStreak}`);
-                playSound('earn');
-                
-                setTimeout(() => {
-                    closeBonusModal();
-                    showToast('🎊 Congratulations! Kal phir aana!');
-                }, 1000);
-            } else {
-                showToast('❌ ' + (result.message || 'Failed to claim bonus'));
-            }
-        }
-
-        // ========== MISSIONS ==========
-        
-        function updateMissionsUI() {
-            document.getElementById('mission1Bar').style.width = `${(missions.mission1.progress / missions.mission1.total) * 100}%`;
-            document.getElementById('mission1Status').innerText = `${missions.mission1.progress}/${missions.mission1.total}`;
-            
-            document.getElementById('mission2Bar').style.width = `${(missions.mission2.progress / missions.mission2.total) * 100}%`;
-            document.getElementById('mission2Status').innerText = `${missions.mission2.progress}/${missions.mission2.total}`;
-            
-            let completed = (missions.mission1.completed ? 1 : 0) + (missions.mission2.completed ? 1 : 0);
-            document.getElementById('completedMissions').innerText = completed;
-            document.getElementById('missionProgressFill').style.width = `${(completed / 2) * 100}%`;
-            
-            document.getElementById('claimMissionBtn').style.display = completed === 2 ? 'block' : 'none';
-        }
-
-        async function claimMissionReward() {
-            if (!missions.mission1.completed || !missions.mission2.completed) {
-                showToast('❌ Complete both missions first!');
-                return;
-            }
-            
-            const result = await claimMissionRewardAPI();
-            
-            if (result.success) {
-                userData.balance += 5;
-                userData.total_earned += 5;
-                
-                missions = {
-                    mission1: { progress: 0, completed: false, total: 10 },
-                    mission2: { progress: 0, completed: false, total: 5 }
-                };
-                
-                updateUI();
-                updateMissionsUI();
-                closeModal('missions');
-                showToast('✅ ₹5 claimed!');
-                playSound('earn');
-            } else {
-                showToast('❌ ' + (result.message || 'Failed to claim reward'));
-            }
-        }
-
-        // ========== ADS ==========
-        
-        function renderAds() {
-            let html = '';
-            
-            adminAds.forEach(ad => {
-                const delBtn = adminEditMode ? `<div class="ad-delete-btn" onclick="event.stopPropagation();deleteAd(${ad.id})">✕</div>` : '';
-                const editBtn = adminEditMode ? `<div class="ad-edit-btn" onclick="event.stopPropagation();editAd(${ad.id})">✎</div>` : '';
-                
-                html += `
-                    <div class="ad-card ${adminEditMode ? 'admin-mode' : ''}" onclick="handleAdClick(${ad.id})">
-                        ${delBtn}${editBtn}
-                        <div class="ad-icon">${ad.icon}</div>
-                        <div class="ad-info">
-                            <div class="ad-title">${ad.title}</div>
-                            <div class="ad-meta">${ad.meta}</div>
-                        </div>
-                        <div class="ad-reward">+₹${ad.reward}</div>
-                    </div>
-                `;
-            });
-            
-            userAds.filter(a => a.approved).forEach(ad => {
-                html += `
-                    <div class="ad-card user-ad" onclick="openUserAd('${ad.link}')">
-                        <div class="ad-icon">🛍️</div>
-                        <div class="ad-info">
-                            <div class="ad-title">${ad.title}</div>
-                            <div class="ad-meta">${ad.desc} • ${ad.contact}</div>
-                        </div>
-                        <div class="ad-reward">View</div>
-                    </div>
-                `;
-            });
-            
-            document.getElementById('adsContainer').innerHTML = html || '<div style="text-align:center;padding:20px;">No offers yet</div>';
-        }
-
-        async function handleAdClick(adId) {
-            if (adminEditMode) return;
-            
-            playSound('tap');
-            const ad = adminAds.find(a => a.id === adId);
-            if (!ad) return;
-            
-            showToast('⏱️ Processing...');
-            window.open(ad.link, '_blank');
-            
-            const result = await claimAdAPI(adId, ad.reward);
-            
-            if (result.success) {
-                userData.balance += ad.reward;
-                userData.today_earned += ad.reward;
-                updateUI();
-                showToast(`✅ +₹${ad.reward} earned!`);
-                playSound('earn');
-                await updateMissionAPI('ad');
-            } else {
-                showToast('❌ ' + (result.message || 'Already claimed today'));
-            }
-        }
-
-        function openUserAd(link) {
-            window.open(link, '_blank');
-        }
-
-        function editAd(id) {
-            const ad = adminAds.find(a => a.id === id);
-            if (!ad) return;
-            
-            document.getElementById('editAdId').value = ad.id;
-            document.getElementById('editAdTitle').value = ad.title;
-            document.getElementById('editAdReward').value = ad.reward;
-            document.getElementById('editAdLink').value = ad.link;
-            document.getElementById('editAdMeta').value = ad.meta;
-            document.getElementById('editAdIcon').value = ad.icon;
-            
-            openModal('editAd');
-        }
-
-        async function saveAdEdit() {
-            const id = parseInt(document.getElementById('editAdId').value);
-            const title = document.getElementById('editAdTitle').value;
-            const reward = parseFloat(document.getElementById('editAdReward').value);
-            const link = document.getElementById('editAdLink').value;
-            const meta = document.getElementById('editAdMeta').value;
-            const icon = document.getElementById('editAdIcon').value;
-            
-            try {
-                const response = await fetch('/api/update-ad', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        ad_id: id,
-                        title: title,
-                        reward: reward,
-                        link: link,
-                        meta: meta,
-                        icon: icon,
-                        admin_id: userData.user_id
-                    })
-                });
-                
-                const result = await response.json();
-                if (result.success) {
-                    showToast('✅ Ad updated!');
-                    loadAds(); // Reload ads
-                    closeModal('editAd');
-                } else {
-                    showToast('❌ ' + (result.message || 'Failed to update'));
-                }
-            } catch (error) {
-                showToast('❌ Network error');
-            }
-        }
-
-        async function deleteAd(id) {
-            if (!confirm('Delete this offer?')) return;
-            
-            try {
-                const response = await fetch('/api/delete-ad', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ad_id: id, admin_id: userData.user_id })
-                });
-                
-                const result = await response.json();
-                if (result.success) {
-                    showToast('✅ Ad deleted');
-                    loadAds(); // Reload ads
-                } else {
-                    showToast('❌ ' + (result.message || 'Failed to delete'));
-                }
-            } catch (error) {
-                showToast('❌ Network error');
-            }
-        }
-
-        function deleteAdFromEdit() {
-            deleteAd(parseInt(document.getElementById('editAdId').value));
-            closeModal('editAd');
-        }
-
-        // ========== ADD PROMOTION (USER) ==========
-        
-        function openAddPromoModal() {
-            const today = new Date().toDateString();
-            
-            if (lastPromoDate === today) {
-                showToast('❌ Aap din mein sirf ek baar promo add kar sakte hain! Kal aayein');
-                return;
-            }
-            
-            if (userData.balance < 50) {
-                showToast('❌ Balance kam hai! ₹50 chahiye');
-                return;
-            }
-            
-            openModal('addPromo');
-        }
-
-        function submitPromotion() {
-            const title = document.getElementById('promoTitle').value;
-            const desc = document.getElementById('promoDesc').value;
-            const link = document.getElementById('promoLink').value;
-            const contact = document.getElementById('promoContact').value;
-            
-            if (!title || !desc || !link || !contact) {
-                showToast('❌ Sab fields bharo');
-                return;
-            }
-            
-            // Deduct balance
-            userData.balance -= 50;
-            
-            userAds.push({
-                id: Date.now(),
-                title: title,
-                desc: desc,
-                link: link,
-                contact: contact,
-                approved: false,
-                expiry: new Date(Date.now() + 86400000).toISOString()
-            });
-            
-            lastPromoDate = new Date().toDateString();
-            localStorage.setItem('lastPromoDate', lastPromoDate);
-            localStorage.setItem('userAds', JSON.stringify(userAds));
-            
+            document.getElementById('spinResultAmount').innerText = `+₹${parseFloat(result.reward||0).toFixed(2)}`;
+            document.getElementById('spinResultText').innerText = (result.reward||0) >= 2 ? '🎉 Jackpot!' : '✅ Badhaai ho!';
+            document.getElementById('spinResultBox').style.display = 'block';
+            playSound('earn');
             updateUI();
-            closeModal('addPromo');
-            showToast('✅ Promotion submit! Approval pending.');
-            playSound('tap');
-            
-            ['promoTitle','promoDesc','promoLink','promoContact'].forEach(id => {
-                document.getElementById(id).value = '';
-            });
-        }
 
-        // ========== ADMIN ADS ==========
-        
-        function openAdminAddAdModal() {
-            if (!userData.is_admin) {
-                showToast('❌ Only admin');
-                return;
-            }
-            openModal('adminAddAd');
-        }
-
-        async function saveAdminAd() {
-            const title = document.getElementById('adminAdTitle').value;
-            const reward = parseFloat(document.getElementById('adminAdReward').value);
-            const link = document.getElementById('adminAdLink').value;
-            const meta = document.getElementById('adminAdMeta').value;
-            const icon = document.getElementById('adminAdIcon').value;
-            
-            if (!title || !reward || !link || !meta || !icon) {
-                showToast('❌ All fields required');
-                return;
-            }
-            
-            // In a real app, this would save to database via API
-            const newId = adminAds.length > 0 ? Math.max(...adminAds.map(a => a.id)) + 1 : 4;
-            
-            adminAds.push({
-                id: newId,
-                title,
-                reward,
-                link,
-                meta,
-                icon
-            });
-            
-            renderAds();
-            closeModal('adminAddAd');
-            showToast('✅ Ad added!');
-            
-            document.getElementById('adminAdTitle').value = '';
-            document.getElementById('adminAdReward').value = '';
-            document.getElementById('adminAdLink').value = '';
-            document.getElementById('adminAdMeta').value = '';
-            document.getElementById('adminAdIcon').value = '';
-        }
-
-        // ========== GAME FUNCTIONS ==========
-        
-        function addGameEarnings(amount) {
-            if (gameState.todayGameEarned >= DAILY_GAME_LIMIT) {
-                showToast('⚠️ Aaj ki daily limit ₹25 poori ho gayi!');
-                return 0;
-            }
-            
-            const canAdd = Math.min(amount, DAILY_GAME_LIMIT - gameState.todayGameEarned);
-            userData.balance += canAdd;
-            userData.total_earned += canAdd;
-            userData.today_earned += canAdd;
-            gameState.todayGameEarned += canAdd;
-            gameState.wins++;
-            gameState.winStreak++;
-            userData.games_won++;
-            
-            saveGameState();
-            updateUI();
-            return canAdd;
-        }
-
-        function deductGameBalance(amount) {
-            if (userData.balance < amount) {
-                showToast('❌ Balance kam hai!');
-                return false;
-            }
-            userData.balance -= amount;
-            gameState.winStreak = 0;
-            updateUI();
-            return true;
-        }
-
-        // ========== SPIN WHEEL ==========
-        
-        function drawSpinWheel(angle) {
-            const canvas = document.getElementById('spinCanvas');
-            const ctx = canvas.getContext('2d');
-            const cx = 140, cy = 140, r = 130;
-            const segCount = spinSegments.length;
-            const segAngle = (2 * Math.PI) / segCount;
-            
-            ctx.clearRect(0, 0, 280, 280);
-            
-            spinSegments.forEach((seg, i) => {
-                const startA = angle + i * segAngle;
-                const endA = startA + segAngle;
-                
-                ctx.beginPath();
-                ctx.moveTo(cx, cy);
-                ctx.arc(cx, cy, r, startA, endA);
-                ctx.closePath();
-                ctx.fillStyle = seg.color;
-                ctx.fill();
-                ctx.strokeStyle = 'white';
-                ctx.lineWidth = 3;
-                ctx.stroke();
-                
-                ctx.save();
-                ctx.translate(cx, cy);
-                ctx.rotate(startA + segAngle / 2);
-                ctx.textAlign = 'right';
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 16px Arial';
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 4;
-                ctx.fillText(seg.label, r - 14, 6);
-                ctx.restore();
-            });
-            
-            ctx.beginPath();
-            ctx.arc(cx, cy, 22, 0, 2*Math.PI);
-            ctx.fillStyle = '#fff';
-            ctx.fill();
-            ctx.strokeStyle = '#f59e0b';
-            ctx.lineWidth = 4;
-            ctx.stroke();
-            ctx.fillStyle = '#f59e0b';
-            ctx.font = 'bold 18px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('SPIN', cx, cy);
-        }
-
-        function doSpin() {
-            if (isSpinning || gameState.spinLeft <= 0) return;
-            if (gameState.todayGameEarned >= DAILY_GAME_LIMIT) {
-                showToast('⚠️ Daily limit reached!');
-                return;
-            }
-            
-            if (!deductGameBalance(SPIN_COST)) return;
-            
-            isSpinning = true;
-            document.getElementById('spinBtn').disabled = true;
-            document.getElementById('spinResultBox').style.display = 'none';
-            playSound('tap');
-
-            gameState.spinLeft--;
-            document.getElementById('spinLeft').innerText = gameState.spinLeft;
-
-            const weights = [3, 4, 5, 2, 6, 1, 3, 4];
-            let totalW = weights.reduce((a,b) => a+b, 0);
-            let rand = Math.random() * totalW, selectedIdx = 0;
-            
-            for (let i = 0; i < weights.length; i++) {
-                rand -= weights[i];
-                if (rand <= 0) { selectedIdx = i; break; }
-            }
-
-            const segCount = spinSegments.length;
-            const segAngle = (2 * Math.PI) / segCount;
-            const targetAngle = -Math.PI/2 - (selectedIdx * segAngle + segAngle/2);
-            const fullSpins = (5 + Math.floor(Math.random() * 4)) * 2 * Math.PI;
-            const finalAngle = fullSpins + targetAngle;
-            const duration = 3000;
-            const startAngle = spinAngle;
-            const startTime = performance.now();
-
-            function animate(now) {
-                const elapsed = now - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                const ease = 1 - Math.pow(1 - progress, 4);
-                spinAngle = startAngle + finalAngle * ease;
-                drawSpinWheel(spinAngle);
-                
-                if (progress < 1) {
-                    requestAnimationFrame(animate);
-                } else {
-                    spinAngle = spinAngle % (2 * Math.PI);
-                    isSpinning = false;
-
-                    const reward = spinSegments[selectedIdx].value;
-                    const earned = addGameEarnings(reward);
-                    
-                    if (earned) {
-                        document.getElementById('spinResultAmount').innerText = `+₹${earned.toFixed(2)}`;
-                        document.getElementById('spinResultText').innerText = reward >= 2 ? '🎉 Jackpot!' : '✅ Badhaai ho!';
-                        document.getElementById('spinResultBox').style.display = 'block';
-                        playSound('earn');
-                    }
-                    
-                    saveGameState();
-                    
-                    if (gameState.spinLeft > 0) {
-                        document.getElementById('spinBtn').disabled = false;
-                    } else {
-                        document.getElementById('spinBtn').innerText = '❌ Spins Khatam!';
-                    }
-                    
-                    updateUI();
-                }
-            }
-            
-            requestAnimationFrame(animate);
-        }
-
-        // ========== NUMBER GUESS ==========
-        
-        function startGuessGame() {
-            guessSecret = Math.floor(Math.random() * 10) + 1;
-            guessCurrentAttempts = 0;
-            guessActive = true;
-            guessBet = 1;
-            
-            document.getElementById('guessDisplay').innerText = '?';
-            document.getElementById('guessDisplay').style.color = '#f59e0b';
-            document.getElementById('guessHint').innerText = '1 se 10 ke beech number guess karo';
-            document.getElementById('guessRangeFill').style.width = '0%';
-            
-            renderGuessGrid();
-            renderGuessAttempts();
-            document.getElementById('guessTriesLeft').innerText = gameState.guessLeft;
-        }
-
-        function renderGuessGrid() {
-            let html = '';
-            for (let i = 1; i <= 10; i++) {
-                html += `<button class="num-btn" id="numBtn${i}" onclick="makeGuess(${i})">${i}</button>`;
-            }
-            document.getElementById('numberGrid').innerHTML = html;
-        }
-
-        function renderGuessAttempts() {
-            let html = '';
-            for (let i = 0; i < 3; i++) {
-                const cls = i < guessCurrentAttempts ? 'used' : '';
-                html += `<div class="attempt-dot ${cls}"></div>`;
-            }
-            document.getElementById('guessAttempts').innerHTML = html;
-        }
-
-        function selectGuessBet(amount, el) {
-            if (amount > userData.balance) {
-                showToast('❌ Balance kam hai!');
-                return;
-            }
-            guessBet = amount;
-            document.querySelectorAll('.guess-game .bet-chip').forEach(c => c.classList.remove('selected'));
-            el.classList.add('selected');
-            document.getElementById('guessBetDisplay').innerText = `₹${guessBet}`;
-        }
-
-        function makeGuess(num) {
-            if (!guessActive || gameState.guessLeft <= 0) return;
-            if (!deductGameBalance(guessBet)) return;
-            
-            playSound('tap');
-            
-            guessCurrentAttempts++;
-            renderGuessAttempts();
-            
-            const btn = document.getElementById(`numBtn${num}`);
-            
-            if (num === guessSecret) {
-                btn.classList.add('correct');
-                const reward = guessBet * 8;
-                const earned = addGameEarnings(reward);
-                
-                document.getElementById('guessDisplay').innerText = guessSecret;
-                document.getElementById('guessDisplay').style.color = '#10b981';
-                document.getElementById('guessHint').innerText = `🎉 Sahi! +₹${earned ? earned.toFixed(2) : '0'}`;
-                document.getElementById('guessRangeFill').style.width = '100%';
-                
-                gameState.guessLeft--;
-                saveGameState();
-                guessActive = false;
-                disableGuessGrid();
-                playSound('earn');
-                
-                showToast(`🎉 Sahi number! +₹${earned ? earned.toFixed(2) : '0'}`);
-                
-                setTimeout(() => {
-                    if (gameState.guessLeft > 0) {
-                        startGuessGame();
-                    } else {
-                        document.getElementById('guessHint').innerText = '❌ Aaj ke tries khatam!';
-                    }
-                }, 1800);
+            if (gameState.spin_left > 0) {
+                document.getElementById('spinBtn').disabled = false;
             } else {
-                btn.classList.add('wrong');
-                btn.disabled = true;
-                playSound('lose');
-                
-                const diff = Math.abs(num - guessSecret);
-                let hint = diff <= 1 ? '🔥 Bahut paas!' : diff <= 3 ? '♨️ Kaafi paas' : diff <= 5 ? '🌡️ Thoda door' : '❄️ Bahut door!';
-                hint += num > guessSecret ? ' (Kam karo)' : ' (Zyada karo)';
-                
-                document.getElementById('guessHint').innerText = hint;
-                document.getElementById('guessRangeFill').style.width = `${Math.max(0, 100 - diff * 20)}%`;
-                
-                if (guessCurrentAttempts >= 3) {
-                    document.getElementById('guessDisplay').innerText = guessSecret;
-                    document.getElementById('guessDisplay').style.color = '#ef4444';
-                    document.getElementById('guessHint').innerText = `❌ Number tha: ${guessSecret}`;
-                    
-                    gameState.guessLeft--;
-                    saveGameState();
-                    guessActive = false;
-                    disableGuessGrid();
-                    
-                    setTimeout(() => {
-                        if (gameState.guessLeft > 0) {
-                            startGuessGame();
-                        } else {
-                            document.getElementById('guessHint').innerText = '❌ Aaj ke tries khatam!';
-                        }
-                    }, 1800);
-                }
+                document.getElementById('spinBtn').innerText = '❌ Spins Khatam!';
             }
-            
-            document.getElementById('guessTriesLeft').innerText = gameState.guessLeft;
-            document.getElementById('guessBalance').innerText = `₹${userData.balance.toFixed(2)}`;
+        }
+        requestAnimationFrame(animate);
+    }
+
+    // --- NUMBER GUESS ---
+
+    function startGuessGame() {
+        guessActive = true; guessBet = 1;
+        document.getElementById('guessDisplay').innerText = '?';
+        document.getElementById('guessDisplay').style.color = '#f59e0b';
+        document.getElementById('guessHint').innerText = '1 se 10 ke beech number guess karo';
+        document.getElementById('guessRangeFill').style.width = '0%';
+        renderGuessGrid();
+        renderGuessAttempts(0);
+        document.getElementById('guessTriesLeft').innerText = gameState.guess_left;
+    }
+
+    function renderGuessGrid() {
+        let h = '';
+        for (let i=1;i<=10;i++) h+=`<button class="num-btn" id="numBtn${i}" onclick="makeGuess(${i})">${i}</button>`;
+        document.getElementById('numberGrid').innerHTML = h;
+    }
+
+    function renderGuessAttempts(used) {
+        let h = '';
+        for (let i=0;i<3;i++) h+=`<div class="attempt-dot ${i<used?'used':''}"></div>`;
+        document.getElementById('guessAttempts').innerHTML = h;
+    }
+
+    function selectGuessBet(amount, el) {
+        if (amount > userData.balance) { showToast('❌ Balance kam hai!'); return; }
+        guessBet = amount;
+        document.querySelectorAll('.guess-game .bet-chip').forEach(c=>c.classList.remove('selected'));
+        el.classList.add('selected');
+        document.getElementById('guessBetDisplay').innerText = `₹${guessBet}`;
+    }
+
+    async function makeGuess(num) {
+        if (!guessActive || gameState.guess_left <= 0) return;
+        if (userData.balance < guessBet) { showToast('❌ Balance kam hai!'); return; }
+
+        playSound('tap');
+        // Disable grid during API call
+        document.querySelectorAll('.num-btn').forEach(b=>b.disabled=true);
+
+        const result = await apiPost('/api/game/guess', {
+            user_id: userData.user_id, guess: num, bet: guessBet
+        });
+
+        if (!result || !result.success) {
+            document.querySelectorAll('.num-btn').forEach(b=>b.disabled=false);
+            showToast('❌ ' + (result?.message || 'Error'));
+            return;
         }
 
-        function disableGuessGrid() {
-            document.querySelectorAll('.num-btn').forEach(b => b.disabled = true);
-        }
+        gameState.guess_left = result.guess_left;
+        renderGuessAttempts(result.attempts_used || 0);
 
-        // ========== COIN FLIP ==========
-        
-        function resetCoinUI() {
-            coinChoice = null;
-            coinBet = 1;
-            coinFlipping = false;
-            
-            document.getElementById('choiceHeads').classList.remove('selected');
-            document.getElementById('choiceTails').classList.remove('selected');
-            document.getElementById('coinWin').style.display = 'none';
-            document.getElementById('coinLose').style.display = 'none';
-            document.getElementById('flipBtn').disabled = false;
-            document.getElementById('flipBtn').innerText = '🪙 FLIP KARO!';
-            document.getElementById('theCoin').style.transform = 'rotateY(0deg)';
-            document.getElementById('theCoin').className = 'coin';
-            updateUI();
-        }
+        const btn = document.getElementById(`numBtn${num}`);
 
-        function chooseCoin(side) {
-            if (coinFlipping) return;
-            coinChoice = side;
-            document.getElementById('choiceHeads').classList.toggle('selected', side === 'heads');
-            document.getElementById('choiceTails').classList.toggle('selected', side === 'tails');
-            playSound('tap');
-        }
-
-        function selectCoinBet(amount, el) {
-            if (amount > userData.balance) {
-                showToast('❌ Balance kam hai!');
-                return;
-            }
-            coinBet = amount;
-            document.querySelectorAll('.coin-game .bet-chip').forEach(c => c.classList.remove('selected'));
-            el.classList.add('selected');
-        }
-
-        function doFlip() {
-            if (!coinChoice) {
-                showToast('❌ Pehle Heads ya Tails choose karo!');
-                return;
-            }
-            
-            if (coinFlipping || gameState.coinLeft <= 0) return;
-            if (!deductGameBalance(coinBet)) return;
-            
-            coinFlipping = true;
-            document.getElementById('flipBtn').disabled = true;
-            document.getElementById('coinWin').style.display = 'none';
-            document.getElementById('coinLose').style.display = 'none';
-            playSound('tap');
-
-            const result = Math.random() < 0.5 ? 'heads' : 'tails';
-            const coin = document.getElementById('theCoin');
-            const extraSpins = 5;
-            const finalDeg = result === 'heads' ? extraSpins * 360 : extraSpins * 360 + 180;
-            
-            coin.style.transition = 'transform 1.2s cubic-bezier(0.4, 0, 0.2, 1)';
-            coin.style.transform = `rotateY(${finalDeg}deg)`;
-
+        if (result.correct) {
+            btn.classList.add('correct');
+            document.getElementById('guessDisplay').innerText = num;
+            document.getElementById('guessDisplay').style.color = '#10b981';
+            document.getElementById('guessHint').innerText = `🎉 Sahi! +₹${parseFloat(result.reward||0).toFixed(2)}`;
+            document.getElementById('guessRangeFill').style.width = '100%';
+            playSound('earn');
+            showToast(`🎉 Sahi! +₹${parseFloat(result.reward||0).toFixed(2)}`);
+            guessActive = false;
+            await loadUserData();
             setTimeout(() => {
-                coinFlipping = false;
-                gameState.coinLeft--;
-                document.getElementById('coinFlipsLeft').innerText = gameState.coinLeft;
-
-                if (result === coinChoice) {
-                    const reward = coinBet * 2;
-                    const earned = addGameEarnings(reward);
-                    
-                    document.getElementById('coinWinAmount').innerText = `+₹${earned ? earned.toFixed(2) : reward.toFixed(2)}`;
-                    document.getElementById('coinWin').style.display = 'block';
-                    playSound('earn');
-                    showToast(`🎉 ${result === 'heads' ? '👑 Heads' : '⚡ Tails'}! +₹${earned ? earned.toFixed(2) : reward.toFixed(2)}`);
-                } else {
-                    document.getElementById('coinLoseAmount').innerText = `-₹${coinBet}`;
-                    document.getElementById('coinLose').style.display = 'block';
-                    playSound('lose');
-                    showToast(`😢 ${result === 'heads' ? '👑 Heads' : '⚡ Tails'} aaya! Haar gaye`);
-                }
-                
-                saveGameState();
-                updateUI();
-
-                if (gameState.coinLeft > 0) {
-                    setTimeout(() => {
-                        document.getElementById('flipBtn').disabled = false;
-                        document.getElementById('coinWin').style.display = 'none';
-                        document.getElementById('coinLose').style.display = 'none';
-                        coinChoice = null;
-                        document.getElementById('choiceHeads').classList.remove('selected');
-                        document.getElementById('choiceTails').classList.remove('selected');
-                        coin.style.transition = 'none';
-                        coin.style.transform = 'rotateY(0deg)';
-                    }, 2000);
-                } else {
-                    document.getElementById('flipBtn').innerText = '❌ Flips Khatam!';
-                }
-            }, 1300);
+                if (gameState.guess_left > 0) startGuessGame();
+                else document.getElementById('guessHint').innerText = '❌ Aaj ke tries khatam!';
+            }, 1800);
+        } else if (result.secret !== null && result.secret !== undefined) {
+            btn.classList.add('wrong');
+            document.getElementById('guessDisplay').innerText = result.secret;
+            document.getElementById('guessDisplay').style.color = '#ef4444';
+            document.getElementById('guessHint').innerText = `❌ Number tha: ${result.secret}`;
+            playSound('lose');
+            guessActive = false;
+            await loadUserData();
+            setTimeout(() => {
+                if (gameState.guess_left > 0) startGuessGame();
+                else document.getElementById('guessHint').innerText = '❌ Aaj ke tries khatam!';
+            }, 1800);
+        } else {
+            btn.classList.add('wrong');
+            document.getElementById('guessHint').innerText = result.hint || 'Try again!';
+            const diff = result.diff || 0;
+            document.getElementById('guessRangeFill').style.width = `${Math.max(0,100-diff*20)}%`;
+            playSound('lose');
+            document.querySelectorAll('.num-btn').forEach(b => { if(!b.classList.contains('wrong')) b.disabled=false; });
         }
 
-        // ========== SCRATCH CARD ==========
-        
-        function initScratchCard() {
-            scratchRevealed = false;
-            scratchIsDrawing = false;
-            
-            const roll = Math.random();
-            if (roll < 0.4) scratchReward = 0.1;
-            else if (roll < 0.65) scratchReward = 0.25;
-            else if (roll < 0.8) scratchReward = 0.5;
-            else if (roll < 0.9) scratchReward = 1;
-            else if (roll < 0.96) scratchReward = 2;
-            else if (roll < 0.99) scratchReward = 5;
-            else scratchReward = 10;
+        document.getElementById('guessTriesLeft').innerText = gameState.guess_left;
+        document.getElementById('guessBalance').innerText = `₹${userData.balance.toFixed(2)}`;
+        updateUI();
+    }
 
-            document.getElementById('scratchRewardAmt').innerText = `₹${scratchReward}`;
-            document.getElementById('scratchRewardTxt').innerText = scratchReward >= 2 ? '🎉 Jackpot!' : 'Aapka inaam!';
-            document.getElementById('scratchProgressFill').style.width = '0%';
-            document.getElementById('scratchHint').innerText = '👆 Yahan finger se khurcho!';
-            document.getElementById('newScratchBtn').disabled = true;
+    // --- COIN FLIP ---
 
-            const area = document.getElementById('scratchArea');
-            const canvas = document.getElementById('scratchCanvas');
-            canvas.width = area.offsetWidth || 340;
-            canvas.height = 180;
-            scratchCtx = canvas.getContext('2d');
+    function resetCoinUI() {
+        coinChoice=null; coinBet=1; coinFlipping=false;
+        document.getElementById('choiceHeads').classList.remove('selected');
+        document.getElementById('choiceTails').classList.remove('selected');
+        document.getElementById('coinWin').style.display='none';
+        document.getElementById('coinLose').style.display='none';
+        document.getElementById('flipBtn').disabled=false;
+        document.getElementById('flipBtn').innerText='🪙 FLIP KARO!';
+        document.getElementById('theCoin').style.transform='rotateY(0deg)';
+    }
 
-            const grad = scratchCtx.createLinearGradient(0, 0, canvas.width, canvas.height);
-            grad.addColorStop(0, '#9ca3af');
-            grad.addColorStop(0.5, '#d1d5db');
-            grad.addColorStop(1, '#6b7280');
-            scratchCtx.fillStyle = grad;
-            scratchCtx.fillRect(0, 0, canvas.width, canvas.height);
+    function chooseCoin(side) {
+        if (coinFlipping) return;
+        coinChoice = side;
+        document.getElementById('choiceHeads').classList.toggle('selected', side==='heads');
+        document.getElementById('choiceTails').classList.toggle('selected', side==='tails');
+        playSound('tap');
+    }
 
-            scratchCtx.fillStyle = '#6b7280';
-            scratchCtx.font = 'bold 20px Arial';
-            scratchCtx.textAlign = 'center';
-            scratchCtx.textBaseline = 'middle';
-            scratchCtx.fillText('✨ KHURCHO ✨', canvas.width/2, canvas.height/2 - 16);
-            scratchCtx.font = '14px Arial';
-            scratchCtx.fillText('Apni luck azmaao!', canvas.width/2, canvas.height/2 + 16);
+    function selectCoinBet(amount, el) {
+        if (amount > userData.balance) { showToast('❌ Balance kam hai!'); return; }
+        coinBet = amount;
+        document.querySelectorAll('.coin-game .bet-chip').forEach(c=>c.classList.remove('selected'));
+        el.classList.add('selected');
+    }
 
-            scratchCtx.globalCompositeOperation = 'destination-out';
+    async function doFlip() {
+        if (!coinChoice) { showToast('❌ Pehle Heads ya Tails choose karo!'); return; }
+        if (coinFlipping || gameState.coin_left <= 0) return;
+        if (userData.balance < coinBet) { showToast('❌ Balance kam hai!'); return; }
 
-            canvas.onmousedown = (e) => { scratchIsDrawing = true; scratch(e); };
-            canvas.onmousemove = (e) => { if (scratchIsDrawing) scratch(e); };
-            canvas.onmouseup = () => { scratchIsDrawing = false; };
-            canvas.ontouchstart = (e) => { scratchIsDrawing = true; scratch(e.touches[0]); e.preventDefault(); };
-            canvas.ontouchmove = (e) => { if (scratchIsDrawing) scratch(e.touches[0]); e.preventDefault(); };
-            canvas.ontouchend = () => { scratchIsDrawing = false; };
+        coinFlipping = true;
+        document.getElementById('flipBtn').disabled = true;
+        document.getElementById('coinWin').style.display = 'none';
+        document.getElementById('coinLose').style.display = 'none';
+        playSound('tap');
+
+        // Call API
+        const result = await apiPost('/api/game/coin', {
+            user_id: userData.user_id, choice: coinChoice, bet: coinBet
+        });
+
+        if (!result || !result.success) {
+            coinFlipping = false;
+            document.getElementById('flipBtn').disabled = false;
+            showToast('❌ ' + (result?.message || 'Error'));
+            return;
         }
 
-        function scratch(e) {
-            if (scratchRevealed) return;
-            
-            const canvas = document.getElementById('scratchCanvas');
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            scratchCtx.beginPath();
-            scratchCtx.arc(x, y, 28, 0, Math.PI * 2);
-            scratchCtx.fill();
+        // Animate coin
+        const coin = document.getElementById('theCoin');
+        const deg = result.result === 'heads' ? 5*360 : 5*360+180;
+        coin.style.transition = 'transform 1.2s cubic-bezier(0.4,0,0.2,1)';
+        coin.style.transform = `rotateY(${deg}deg)`;
 
-            const imageData = scratchCtx.getImageData(0, 0, canvas.width, canvas.height);
-            let cleared = 0;
-            
-            for (let i = 3; i < imageData.data.length; i += 4) {
-                if (imageData.data[i] === 0) cleared++;
+        setTimeout(async () => {
+            coinFlipping = false;
+            gameState.coin_left = result.coin_left;
+            document.getElementById('coinFlipsLeft').innerText = gameState.coin_left;
+
+            if (result.won) {
+                document.getElementById('coinWinAmount').innerText = `+₹${parseFloat(result.reward||0).toFixed(2)}`;
+                document.getElementById('coinWin').style.display = 'block';
+                playSound('earn');
+                showToast(`🎉 ${result.result==='heads'?'👑 Heads':'⚡ Tails'}! +₹${parseFloat(result.reward||0).toFixed(2)}`);
+            } else {
+                document.getElementById('coinLoseAmount').innerText = `-₹${coinBet}`;
+                document.getElementById('coinLose').style.display = 'block';
+                playSound('lose');
+                showToast(`😢 ${result.result==='heads'?'👑 Heads':'⚡ Tails'} aaya! Haar gaye`);
             }
-            
-            const percent = (cleared / (canvas.width * canvas.height)) * 100;
-            document.getElementById('scratchProgressFill').style.width = `${Math.min(percent * 1.2, 100)}%`;
 
-            if (percent > 50 && !scratchRevealed) {
-                scratchRevealed = true;
-                scratchCtx.clearRect(0, 0, canvas.width, canvas.height);
-                document.getElementById('scratchProgressFill').style.width = '100%';
+            await loadUserData();
+            updateUI();
+
+            if (gameState.coin_left > 0) {
+                setTimeout(() => {
+                    document.getElementById('flipBtn').disabled = false;
+                    document.getElementById('coinWin').style.display = 'none';
+                    document.getElementById('coinLose').style.display = 'none';
+                    coinChoice = null;
+                    document.getElementById('choiceHeads').classList.remove('selected');
+                    document.getElementById('choiceTails').classList.remove('selected');
+                    coin.style.transition = 'none';
+                    coin.style.transform = 'rotateY(0deg)';
+                }, 2000);
+            } else {
+                document.getElementById('flipBtn').innerText = '❌ Flips Khatam!';
+            }
+        }, 1300);
+    }
+
+    // --- SCRATCH CARD ---
+
+    function initScratchCard() {
+        scratchRevealed = false; scratchIsDrawing = false;
+        // Show placeholder until user scratches — reward revealed on completion via API
+        scratchReward = 0;
+        document.getElementById('scratchRewardAmt').innerText = '?';
+        document.getElementById('scratchRewardTxt').innerText = 'Khurcho aur jaano!';
+        document.getElementById('scratchProgressFill').style.width = '0%';
+        document.getElementById('scratchHint').innerText = '👆 Yahan finger se khurcho!';
+        document.getElementById('newScratchBtn').disabled = true;
+
+        const area = document.getElementById('scratchArea');
+        const canvas = document.getElementById('scratchCanvas');
+        canvas.width = area.offsetWidth || 340; canvas.height = 180;
+        scratchCtx = canvas.getContext('2d');
+
+        const grad = scratchCtx.createLinearGradient(0,0,canvas.width,canvas.height);
+        grad.addColorStop(0,'#9ca3af'); grad.addColorStop(0.5,'#d1d5db'); grad.addColorStop(1,'#6b7280');
+        scratchCtx.fillStyle = grad;
+        scratchCtx.fillRect(0,0,canvas.width,canvas.height);
+        scratchCtx.fillStyle='rgba(0,0,0,0.4)'; scratchCtx.font='bold 20px Arial';
+        scratchCtx.textAlign='center'; scratchCtx.textBaseline='middle';
+        scratchCtx.fillText('✨ KHURCHO ✨', canvas.width/2, canvas.height/2-16);
+        scratchCtx.font='14px Arial'; scratchCtx.fillText('Apni luck azmaao!', canvas.width/2, canvas.height/2+16);
+        scratchCtx.globalCompositeOperation='destination-out';
+
+        canvas.onmousedown=(e)=>{scratchIsDrawing=true;scratch(e);};
+        canvas.onmousemove=(e)=>{if(scratchIsDrawing)scratch(e);};
+        canvas.onmouseup=()=>{scratchIsDrawing=false;};
+        canvas.ontouchstart=(e)=>{scratchIsDrawing=true;scratch(e.touches[0]);e.preventDefault();};
+        canvas.ontouchmove=(e)=>{if(scratchIsDrawing)scratch(e.touches[0]);e.preventDefault();};
+        canvas.ontouchend=()=>{scratchIsDrawing=false;};
+    }
+
+    async function scratch(e) {
+        if (scratchRevealed) return;
+        const canvas = document.getElementById('scratchCanvas');
+        const rect = canvas.getBoundingClientRect();
+        scratchCtx.beginPath();
+        scratchCtx.arc(e.clientX-rect.left, e.clientY-rect.top, 28, 0, Math.PI*2);
+        scratchCtx.fill();
+
+        const d = scratchCtx.getImageData(0,0,canvas.width,canvas.height).data;
+        let cleared=0;
+        for(let i=3;i<d.length;i+=4) if(d[i]===0) cleared++;
+        const pct=(cleared/(canvas.width*canvas.height))*100;
+        document.getElementById('scratchProgressFill').style.width=`${Math.min(pct*1.2,100)}%`;
+
+        if (pct>50 && !scratchRevealed) {
+            scratchRevealed=true;
+            scratchCtx.clearRect(0,0,canvas.width,canvas.height);
+            document.getElementById('scratchProgressFill').style.width='100%';
+            document.getElementById('scratchHint').innerText='⏳ Processing reward...';
+
+            // Call backend API
+            const result = await apiPost('/api/game/scratch', { user_id: userData.user_id });
+
+            if (result && result.success) {
+                scratchReward = result.reward || 0;
+                gameState.scratch_left = result.scratch_left;
+                document.getElementById('scratchRewardAmt').innerText = `₹${scratchReward}`;
+                document.getElementById('scratchRewardTxt').innerText = scratchReward >= 2 ? '🎉 Jackpot!' : 'Aapka inaam!';
+                document.getElementById('scratchCardsLeft').innerText = gameState.scratch_left;
                 document.getElementById('scratchHint').innerText = '🎊 Reveal ho gaya!';
-                
-                gameState.scratchLeft--;
-                document.getElementById('scratchCardsLeft').innerText = gameState.scratchLeft;
-
-                const earned = addGameEarnings(scratchReward);
-                
-                if (earned) {
-                    playSound('earn');
-                    showToast(`🎫 Scratch Card: +₹${earned.toFixed(2)}!`);
-                }
-                
-                saveGameState();
+                playSound('earn');
+                showToast(`🎫 +₹${scratchReward}!`);
+                await loadUserData();
                 updateUI();
-
-                if (gameState.scratchLeft > 0) {
-                    document.getElementById('newScratchBtn').disabled = false;
-                } else {
-                    document.getElementById('newScratchBtn').innerText = '❌ Cards Khatam!';
-                }
+                if (gameState.scratch_left > 0) document.getElementById('newScratchBtn').disabled=false;
+                else document.getElementById('newScratchBtn').innerText='❌ Cards Khatam!';
+            } else {
+                document.getElementById('scratchHint').innerText = '❌ ' + (result?.message || 'Error');
+                showToast('❌ ' + (result?.message || 'Daily limit reached'));
             }
         }
+    }
 
-        function newScratchCard() {
-            if (gameState.scratchLeft <= 0) {
-                showToast('❌ Aaj ke cards khatam!');
-                return;
-            }
-            initScratchCard();
-            playSound('tap');
+    function newScratchCard() {
+        if (gameState.scratch_left <= 0) { showToast('❌ Cards khatam!'); return; }
+        initScratchCard(); playSound('tap');
+    }
+
+    // ========== GAME MODAL CONTROLS ==========
+
+    function openGame(game) {
+        playSound('tap');
+        if (game === 'spin') {
+            if (gameState.spin_left <= 0) { showToast('❌ Aaj ke spins khatam!'); return; }
+            drawSpinWheel(spinAngle); openModal('spin');
+        } else if (game === 'guess') {
+            if (gameState.guess_left <= 0) { showToast('❌ Aaj ke tries khatam!'); return; }
+            startGuessGame(); openModal('guess');
+        } else if (game === 'coin') {
+            if (gameState.coin_left <= 0) { showToast('❌ Aaj ke flips khatam!'); return; }
+            resetCoinUI(); openModal('coin');
+        } else if (game === 'scratch') {
+            if (gameState.scratch_left <= 0) { showToast('❌ Aaj ke cards khatam!'); return; }
+            openModal('scratch'); setTimeout(initScratchCard, 100);
+        }
+    }
+
+    // ========== LIVE ACTIVITY TICKER ==========
+
+    function updateTickerWithData(activities) {
+        if (!activities || activities.length === 0) {
+            document.getElementById('tickerContent').innerHTML =
+                '<span>🎉 System loading... <i>just now</i></span>'.repeat(4);
+            return;
+        }
+        let html = '';
+        for (let i=0;i<2;i++) {
+            activities.slice(0,8).forEach(act => {
+                let text = '';
+                if (act.type==='join') text=`🎉 ${act.user_name} joined`;
+                else if (act.type==='withdraw'||act.type==='withdraw_request') text=`💰 ${act.user_name} withdrew ₹${act.amount}`;
+                else if (act.type==='bonus') text=`🎁 ${act.user_name} claimed ₹${act.amount}`;
+                else if (act.type==='mission') text=`🏆 ${act.user_name} completed missions`;
+                else if (act.type==='referral') text=`👥 ${act.user_name} got referral`;
+                else if (act.type==='game') text=`🎮 ${act.user_name} won ₹${act.amount}`;
+                else text=`${act.user_name} was active`;
+                html+=`<span>${text} • <i>${act.time||'just now'}</i></span>`;
+            });
+        }
+        document.getElementById('tickerContent').innerHTML = html;
+    }
+
+    // ========== UI UPDATE ==========
+
+    function updateUI() {
+        document.getElementById('balanceAmount').innerText = `₹${(userData.balance||0).toFixed(2)}`;
+        document.getElementById('withdrawBalance').innerText = `₹${(userData.balance||0).toFixed(2)}`;
+        document.getElementById('referralCount').innerText = userData.active_refs || 0;
+        document.getElementById('todayEarned').innerText = `₹${(userData.today_earned||0).toFixed(2)}`;
+        document.getElementById('referralLink').innerText = getReferralLink();
+
+        document.getElementById('profileName').innerText = userData.first_name;
+        document.getElementById('profileAvatar').innerText = (userData.first_name||'U').charAt(0).toUpperCase();
+        document.getElementById('profileBalance').innerText = `₹${(userData.balance||0).toFixed(2)}`;
+        document.getElementById('profileTotalEarned').innerText = `₹${(userData.total_earned||0).toFixed(2)}`;
+        document.getElementById('profileStreak').innerText = userStreak;
+        document.getElementById('profileTotalRefs').innerText = userData.total_refs || 0;
+        document.getElementById('profileActiveRefs').innerText = userData.active_refs || 0;
+        document.getElementById('profilePendingRefs').innerText = userData.pending_refs || 0;
+        document.getElementById('profileGamesWon').innerText = userData.games_won || 0;
+        document.getElementById('profileReferralLink').innerText = getReferralLink();
+
+        document.getElementById('spinBalance').innerText = `₹${(userData.balance||0).toFixed(2)}`;
+        document.getElementById('spinLeft').innerText = gameState.spin_left || 0;
+        document.getElementById('spinTodayEarned').innerText = `₹${(gameState.today_game_earned||0).toFixed(2)}`;
+
+        document.getElementById('guessTriesLeft').innerText = gameState.guess_left || 0;
+        document.getElementById('guessBalance').innerText = `₹${(userData.balance||0).toFixed(2)}`;
+
+        document.getElementById('coinFlipsLeft').innerText = gameState.coin_left || 0;
+        document.getElementById('coinBalance').innerText = `₹${(userData.balance||0).toFixed(2)}`;
+
+        document.getElementById('scratchCardsLeft').innerText = gameState.scratch_left || 0;
+        document.getElementById('scratchBalance').innerText = `₹${(userData.balance||0).toFixed(2)}`;
+
+        document.getElementById('gameWins').innerText = gameState.wins || 0;
+        document.getElementById('gameTodayEarned').innerText = `₹${(gameState.today_game_earned||0).toFixed(2)}`;
+        document.getElementById('gameStreak').innerText = `${gameState.win_streak||0}🔥`;
+
+        document.getElementById('spinPlaysLeft').innerText = `${gameState.spin_left||0} spins`;
+        document.getElementById('guessPlaysLeft').innerText = `${gameState.guess_left||0} tries`;
+        document.getElementById('coinPlaysLeft').innerText = `${gameState.coin_left||0} flips`;
+        document.getElementById('scratchPlaysLeft').innerText = `${gameState.scratch_left||0} cards`;
+        document.getElementById('dailyGameLimit').innerText = Math.max(0, DAILY_GAME_LIMIT-(gameState.today_game_earned||0)).toFixed(2);
+    }
+
+    // ========== TAB & MODAL ==========
+
+    function switchTab(index, el) {
+        document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+        el.classList.add('active');
+        playSound('tap'); closeAllModals();
+        document.getElementById('homeContent').style.display='none';
+        document.getElementById('gamesContent').style.display='none';
+        if (index===0) document.getElementById('homeContent').style.display='block';
+        else if (index===4) document.getElementById('gamesContent').style.display='block';
+        else if (index===1) { openModal('leaderboard'); loadLeaderboardData(); }
+        else if (index===2) { openModal('profile'); }
+        else if (index===3) { openModal('history'); loadWithdrawalHistory(); }
+    }
+
+    function openModal(id) {
+        closeAllModals();
+        const m = document.getElementById(id+'Modal');
+        if (m) m.classList.add('active');
+        if (id==='missions') updateMissionsUI();
+        if (id==='leaderboard') loadLeaderboardData();
+        if (id==='history') loadWithdrawalHistory();
+        if (id==='profile') updateUI();
+    }
+
+    function closeModal(id) {
+        const m = document.getElementById(id+'Modal');
+        if (m) m.classList.remove('active');
+    }
+
+    function closeAllModals() {
+        document.querySelectorAll('.page-modal').forEach(m=>m.classList.remove('active'));
+    }
+
+    // ========== SETTINGS ==========
+
+    function toggleTheme() {
+        const html = document.documentElement;
+        if (currentTheme==='light') {
+            html.setAttribute('data-theme','dark');
+            document.getElementById('themeToggle').innerText='☀️';
+            document.getElementById('themeToggleKnob').style.left='26px';
+            currentTheme='dark';
+        } else {
+            html.removeAttribute('data-theme');
+            document.getElementById('themeToggle').innerText='🌙';
+            document.getElementById('themeToggleKnob').style.left='2px';
+            currentTheme='light';
+        }
+        playSound('tap');
+    }
+
+    function toggleSound() {
+        soundEnabled = !soundEnabled;
+        const k = document.getElementById('soundToggleKnob');
+        if (soundEnabled) { k.style.right='2px'; k.style.left=''; playSound('tap'); }
+        else { k.style.left='2px'; k.style.right=''; }
+    }
+
+    // ========== LEADERBOARD & HISTORY ==========
+
+    function renderLeaderboard(leaders) {
+        if (!leaders || leaders.length===0) {
+            document.getElementById('leaderboardContainer').innerHTML='<div style="text-align:center;padding:20px;">No data yet</div>';
+            return;
+        }
+        let html='';
+        leaders.forEach((u,i) => {
+            html+=`<div style="display:flex;align-items:center;padding:15px;margin:8px 0;background:var(--bg-secondary);border-radius:20px;">
+                <div style="width:40px;height:40px;background:#f59e0b;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-right:15px;font-weight:bold;">
+                    ${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}
+                </div>
+                <div style="flex:1;font-weight:600;">${u.name}</div>
+                <div style="color:#f59e0b;font-weight:700;">${u.active_refs||0} refs</div>
+            </div>`;
+        });
+        document.getElementById('leaderboardContainer').innerHTML=html;
+    }
+
+    function renderWithdrawalHistory(history) {
+        if (!history || history.length===0) {
+            document.getElementById('withdrawalHistoryContainer').innerHTML='<div style="text-align:center;padding:20px;color:var(--text-muted);">No history yet</div>';
+            return;
+        }
+        let html='';
+        history.forEach(h => {
+            const clr = h.status==='completed'?'#10b981':h.status==='pending'?'#f59e0b':'#ef4444';
+            html+=`<div style="background:var(--bg-secondary);padding:15px;margin:10px 0;border-radius:20px;">
+                <div style="display:flex;justify-content:space-between;">
+                    <span style="font-weight:700;">₹${h.amount}</span>
+                    <span style="color:${clr};font-weight:600;">${h.status}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-top:6px;">
+                    <span>${h.request_date?new Date(h.request_date).toLocaleDateString():''}</span>
+                    <span>${h.method||'UPI'}</span>
+                </div>
+            </div>`;
+        });
+        document.getElementById('withdrawalHistoryContainer').innerHTML=html;
+    }
+
+    // ========== WITHDRAWAL ==========
+
+    function openWithdrawPage() { closeAllModals(); openModal('withdraw'); }
+
+    function selectMethod(m) {
+        selectedMethod=m;
+        document.getElementById('methodUpi').classList.toggle('selected',m==='upi');
+        document.getElementById('methodBank').classList.toggle('selected',m==='bank');
+        document.getElementById('upiDetails').style.display=m==='upi'?'block':'none';
+        document.getElementById('bankDetails').style.display=m==='bank'?'block':'none';
+        playSound('tap');
+    }
+
+    async function processWithdrawal() {
+        const amount = parseFloat(document.getElementById('withdrawAmount').value);
+        if (!amount||amount<40) { showToast('❌ Minimum ₹40'); return; }
+        if (amount>userData.balance) { showToast('❌ Insufficient balance'); return; }
+        if (!selectedMethod) { showToast('❌ Method select karo'); return; }
+
+        let details='';
+        if (selectedMethod==='upi') {
+            const upi=document.getElementById('upiId').value;
+            if(!upi){showToast('❌ UPI ID enter karo');return;}
+            details=upi;
+        } else {
+            const acc=document.getElementById('accountNo').value;
+            const ifsc=document.getElementById('ifsc').value;
+            const name=document.getElementById('accountName').value;
+            if(!acc||!ifsc||!name){showToast('❌ Bank details bharo');return;}
+            details=`${name}|${acc}|${ifsc}`;
         }
 
-        // ========== GAME MODAL CONTROLS ==========
-        
-        function openGame(game) {
-            playSound('tap');
-            
-            if (game === 'spin') {
-                if (gameState.spinLeft <= 0) {
-                    showToast('❌ Aaj ke spins khatam! Kal aao');
-                    return;
-                }
-                drawSpinWheel(spinAngle);
-                updateUI();
-                openModal('spin');
-                
-            } else if (game === 'guess') {
-                if (gameState.guessLeft <= 0) {
-                    showToast('❌ Aaj ke tries khatam! Kal aao');
-                    return;
-                }
-                startGuessGame();
-                openModal('guess');
-                
-            } else if (game === 'coin') {
-                if (gameState.coinLeft <= 0) {
-                    showToast('❌ Aaj ke flips khatam! Kal aao');
-                    return;
-                }
-                resetCoinUI();
-                openModal('coin');
-                
-            } else if (game === 'scratch') {
-                if (gameState.scratchLeft <= 0) {
-                    showToast('❌ Aaj ke cards khatam! Kal aao');
-                    return;
-                }
-                initScratchCard();
-                openModal('scratch');
-            }
-        }
+        const result = await apiPost('/api/withdraw', {
+            user_id: userData.user_id, amount, method: selectedMethod==='upi'?'UPI':'Bank', details
+        });
 
-        function closeGameModal(game) {
-            closeModal(game);
+        if (result&&result.success) {
+            userData.balance -= amount; updateUI(); closeModal('withdraw');
+            showToast('✅ Withdrawal requested!'); playSound('earn');
+        } else {
+            showToast('❌ '+(result?.message||'Failed'));
         }
+    }
 
-        // ========== TICKER ==========
-        
-        function updateTickerWithData(activities) {
-            if (!activities || activities.length === 0) {
-                const fallback = [
-                    { name: 'Raj', action: 'withdraw', amount: 120 },
-                    { name: 'Priya', action: 'bonus', amount: 50 },
-                    { name: 'Amit', action: 'join' }
-                ];
-                
-                let html = '';
-                for (let i = 0; i < 3; i++) {
-                    fallback.forEach(a => {
-                        let text = a.action === 'withdraw' ? `💰 ${a.name} withdrew ₹${a.amount}` :
-                                   a.action === 'bonus' ? `🎁 ${a.name} claimed ₹${a.amount}` :
-                                   `🎉 ${a.name} joined`;
-                        html += `<span>${text} • <i>${Math.floor(Math.random()*59)+1}s ago</i></span>`;
-                    });
-                }
-                document.getElementById('tickerContent').innerHTML = html;
-                return;
-            }
-            
-            let html = '';
-            for (let i = 0; i < 2; i++) {
-                activities.slice(0, 8).forEach(act => {
-                    let text = '';
-                    if (act.type === 'join') text = `🎉 ${act.user_name} joined`;
-                    else if (act.type === 'withdraw') text = `💰 ${act.user_name} withdrew ₹${act.amount}`;
-                    else if (act.type === 'bonus') text = `🎁 ${act.user_name} claimed ₹${act.amount}`;
-                    else if (act.type === 'mission') text = `🏆 ${act.user_name} completed missions`;
-                    else if (act.type === 'referral') text = `👥 ${act.user_name} got referral`;
-                    else text = `${act.user_name} was active`;
-                    
-                    html += `<span>${text} • <i>${act.time || 'just now'}</i></span>`;
+    // ========== SUPPORT ==========
+
+    async function sendSupportMessage() {
+        const msg=document.getElementById('supportMessage').value.trim();
+        if (!msg||msg.length<10){showToast('❌ Message too short (min 10 chars)');return;}
+
+        const result = await apiPost('/api/support', { user_id: userData.user_id, message: msg });
+        if (result&&result.success) {
+            showToast('✅ Message sent!');
+            document.getElementById('supportMessage').value='';
+            closeModal('support');
+        } else {
+            showToast('❌ '+(result?.message||'Failed to send'));
+        }
+    }
+
+    // ========== SOUND ==========
+
+    function playSound(type) {
+        if (!soundEnabled) return;
+        try {
+            if (!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+            if (audioCtx.state==='suspended') audioCtx.resume();
+            const now=audioCtx.currentTime;
+            if (type==='tap'){
+                const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+                o.connect(g);g.connect(audioCtx.destination);
+                o.frequency.value=600;g.gain.value=0.1;o.start(now);o.stop(now+0.05);
+            } else if (type==='earn'){
+                [400,500,600,700].forEach((f,i)=>{
+                    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+                    o.connect(g);g.connect(audioCtx.destination);
+                    o.frequency.value=f;g.gain.value=0.12;o.start(now+i*0.08);o.stop(now+i*0.08+0.1);
+                });
+            } else if (type==='lose'){
+                [300,250,200].forEach((f,i)=>{
+                    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+                    o.connect(g);g.connect(audioCtx.destination);
+                    o.frequency.value=f;g.gain.value=0.1;o.start(now+i*0.1);o.stop(now+i*0.1+0.1);
                 });
             }
-            document.getElementById('tickerContent').innerHTML = html;
+        } catch(e){}
+    }
+
+    // ========== TOAST ==========
+
+    function showToast(msg) {
+        const t=document.getElementById('toast');
+        t.innerText=msg; t.style.display='block';
+        setTimeout(()=>t.style.display='none', 2500);
+    }
+
+    // ========== INIT ==========
+
+    async function initApp() {
+        showToast('⏱️ Loading...');
+        document.getElementById('homeContent').style.display='block';
+        document.getElementById('gamesContent').style.display='none';
+
+        if (tg?.initDataUnsafe?.user) {
+            userData.first_name=tg.initDataUnsafe.user.first_name||'User';
+            userData.user_id=tg.initDataUnsafe.user.id;
+        } else {
+            // Dev/web fallback — check URL param
+            const params=new URLSearchParams(window.location.search);
+            const uid=params.get('user_id');
+            if(uid) userData.user_id=parseInt(uid);
         }
 
-        function updateTicker() {
-            loadLiveActivity();
-        }
+        await loadUserData();
+        await loadGameState();
+        await loadBonusDays();
+        await loadMissions();
+        await loadAds();
+        await loadLiveActivity();
 
-        // ========== UI UPDATE ==========
-        
-        function updateUI() {
-            document.getElementById('balanceAmount').innerText = `₹${userData.balance.toFixed(2)}`;
-            document.getElementById('withdrawBalance').innerText = `₹${userData.balance.toFixed(2)}`;
-            document.getElementById('referralCount').innerText = userData.active_refs || 0;
-            document.getElementById('todayEarned').innerText = `₹${userData.today_earned.toFixed(2)}`;
-            document.getElementById('referralLink').innerText = getReferralLink();
-            
-            document.getElementById('profileName').innerText = userData.first_name;
-            document.getElementById('profileAvatar').innerText = userData.first_name.charAt(0).toUpperCase();
-            document.getElementById('profileBalance').innerText = `₹${userData.balance.toFixed(2)}`;
-            document.getElementById('profileTotalEarned').innerText = `₹${userData.total_earned.toFixed(2)}`;
-            document.getElementById('profileStreak').innerText = userStreak;
-            document.getElementById('profileTotalRefs').innerText = userData.total_refs || 0;
-            document.getElementById('profileActiveRefs').innerText = userData.active_refs || 0;
-            document.getElementById('profilePendingRefs').innerText = userData.pending_refs || 0;
-            document.getElementById('profileGamesWon').innerText = userData.games_won || 0;
-            document.getElementById('profileReferralLink').innerText = getReferralLink();
-            
-            // Game stats
-            document.getElementById('spinBalance').innerText = `₹${userData.balance.toFixed(2)}`;
-            document.getElementById('spinLeft').innerText = gameState.spinLeft;
-            document.getElementById('spinTodayEarned').innerText = `₹${gameState.todayGameEarned.toFixed(2)}`;
-            
-            document.getElementById('guessTriesLeft').innerText = gameState.guessLeft;
-            document.getElementById('guessBalance').innerText = `₹${userData.balance.toFixed(2)}`;
-            
-            document.getElementById('coinFlipsLeft').innerText = gameState.coinLeft;
-            document.getElementById('coinBalance').innerText = `₹${userData.balance.toFixed(2)}`;
-            
-            document.getElementById('scratchCardsLeft').innerText = gameState.scratchLeft;
-            document.getElementById('scratchBalance').innerText = `₹${userData.balance.toFixed(2)}`;
-            
-            document.getElementById('gameWins').innerText = gameState.wins;
-            document.getElementById('gameTodayEarned').innerText = `₹${gameState.todayGameEarned.toFixed(2)}`;
-            document.getElementById('gameStreak').innerText = `${gameState.winStreak}🔥`;
-            
-            document.getElementById('spinPlaysLeft').innerText = `${gameState.spinLeft} spins`;
-            document.getElementById('guessPlaysLeft').innerText = `${gameState.guessLeft} tries`;
-            document.getElementById('coinPlaysLeft').innerText = `${gameState.coinLeft} flips`;
-            document.getElementById('scratchPlaysLeft').innerText = `${gameState.scratchLeft} cards`;
-            document.getElementById('dailyGameLimit').innerText = DAILY_GAME_LIMIT - gameState.todayGameEarned;
-        }
+        drawSpinWheel(0);
+        updateUI();
+        showToast('✅ Ready!');
 
-        // ========== TAB SWITCHING ==========
-        
-        function switchTab(index, el) {
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
-            playSound('tap');
-            closeAllModals();
-            
-            document.getElementById('homeContent').style.display = 'none';
-            document.getElementById('gamesContent').style.display = 'none';
-            
-            if (index === 0) {
-                document.getElementById('homeContent').style.display = 'block';
-            } else if (index === 4) {
-                document.getElementById('gamesContent').style.display = 'block';
-            } else if (index === 1) {
-                openModal('leaderboard');
-                loadLeaderboardData();
-            } else if (index === 2) {
-                openModal('profile');
-            } else if (index === 3) {
-                openModal('history');
-                loadWithdrawalHistory();
-            }
-        }
+        // Auto refresh
+        setInterval(loadLiveActivity, 30000);
+        setInterval(async()=>{ await loadUserData(); await loadGameState(); }, 60000);
+    }
 
-        // ========== MODAL CONTROLS ==========
-        
-        function openModal(id) {
-            closeAllModals();
-            document.getElementById(id + 'Modal').classList.add('active');
-            if (id === 'profile') updateUI();
-            if (id === 'missions') updateMissionsUI();
-            if (id === 'leaderboard') loadLeaderboardData();
-            if (id === 'history') loadWithdrawalHistory();
-        }
-
-        function closeModal(id) {
-            document.getElementById(id + 'Modal').classList.remove('active');
-        }
-
-        function closeAllModals() {
-            document.querySelectorAll('.page-modal').forEach(m => m.classList.remove('active'));
-        }
-
-        // ========== SETTINGS ==========
-        
-        function toggleTheme() {
-            const html = document.documentElement;
-            if (currentTheme === 'light') {
-                html.setAttribute('data-theme', 'dark');
-                document.getElementById('themeToggle').innerText = '☀️';
-                document.getElementById('themeToggleKnob').style.left = '26px';
-                currentTheme = 'dark';
-            } else {
-                html.removeAttribute('data-theme');
-                document.getElementById('themeToggle').innerText = '🌙';
-                document.getElementById('themeToggleKnob').style.left = '2px';
-                currentTheme = 'light';
-            }
-            playSound('tap');
-        }
-
-        function toggleSound() {
-            soundEnabled = !soundEnabled;
-            const knob = document.getElementById('soundToggleKnob');
-            knob.style[soundEnabled ? 'right' : 'left'] = '2px';
-            if (soundEnabled) playSound('tap');
-        }
-
-        function toggleAdminEdit() {
-            adminEditMode = !adminEditMode;
-            renderAds();
-            showToast(adminEditMode ? '✏️ Edit Mode ON' : '✅ Edit Mode OFF');
-        }
-
-        // ========== LEADERBOARD ==========
-        
-        function renderLeaderboard(leaders) {
-            if (!leaders || leaders.length === 0) {
-                document.getElementById('leaderboardContainer').innerHTML = '<div style="text-align:center;padding:20px;">No data yet</div>';
-                return;
-            }
-            
-            let html = '';
-            leaders.forEach((user, i) => {
-                html += `
-                    <div style="display:flex;align-items:center;padding:15px;margin:8px 0;background:var(--bg-secondary);border-radius:20px;">
-                        <div style="width:40px;height:40px;background:#f59e0b;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-right:15px;font-weight:bold;">
-                            ${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i+1}
-                        </div>
-                        <div style="flex:1;font-weight:600;">${user.name}</div>
-                        <div style="color:#f59e0b;font-weight:700;">${user.active_refs || user.referrals || 0}</div>
-                    </div>
-                `;
-            });
-            document.getElementById('leaderboardContainer').innerHTML = html;
-        }
-
-        // ========== HISTORY ==========
-        
-        function renderWithdrawalHistory(history) {
-            if (!history || history.length === 0) {
-                document.getElementById('withdrawalHistoryContainer').innerHTML = '<div style="text-align:center;padding:20px;">No history</div>';
-                return;
-            }
-            
-            let html = '';
-            history.forEach(h => {
-                html += `
-                    <div style="background:var(--bg-secondary);padding:15px;margin:10px 0;border-radius:20px;">
-                        <div style="display:flex;justify-content:space-between;">
-                            <span style="font-weight:700;">₹${h.amount}</span>
-                            <span style="color:${h.status === 'completed' ? '#10b981' : h.status === 'pending' ? '#f59e0b' : '#ef4444'};">${h.status}</span>
-                        </div>
-                        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);">
-                            <span>${h.request_date ? new Date(h.request_date).toLocaleDateString() : h.date || ''}</span>
-                            <span>${h.method || 'UPI'}</span>
-                        </div>
-                    </div>
-                `;
-            });
-            document.getElementById('withdrawalHistoryContainer').innerHTML = html;
-        }
-
-        // ========== WITHDRAWAL ==========
-        
-        function openWithdrawPage() {
-            closeAllModals();
-            openModal('withdraw');
-        }
-
-        function selectMethod(m) {
-            selectedMethod = m;
-            document.getElementById('methodUpi').classList.toggle('selected', m === 'upi');
-            document.getElementById('methodBank').classList.toggle('selected', m === 'bank');
-            document.getElementById('upiDetails').style.display = m === 'upi' ? 'block' : 'none';
-            document.getElementById('bankDetails').style.display = m === 'bank' ? 'block' : 'none';
-            playSound('tap');
-        }
-
-        async function processWithdrawal() {
-            const amount = parseFloat(document.getElementById('withdrawAmount').value);
-            
-            if (!amount || amount < 40) {
-                showToast('❌ Minimum ₹40');
-                return;
-            }
-            
-            if (amount > userData.balance) {
-                showToast('❌ Insufficient balance');
-                return;
-            }
-            
-            if (!selectedMethod) {
-                showToast('❌ Method select karo');
-                return;
-            }
-            
-            let details = '';
-            if (selectedMethod === 'upi') {
-                const upi = document.getElementById('upiId').value;
-                if (!upi) {
-                    showToast('❌ UPI ID enter karo');
-                    return;
-                }
-                details = upi;
-            } else {
-                const acc = document.getElementById('accountNo').value;
-                const ifsc = document.getElementById('ifsc').value;
-                const name = document.getElementById('accountName').value;
-                if (!acc || !ifsc || !name) {
-                    showToast('❌ Bank details bharo');
-                    return;
-                }
-                details = `${name}|${acc}|${ifsc}`;
-            }
-            
-            const result = await processWithdrawalAPI(amount, selectedMethod === 'upi' ? 'UPI' : 'Bank', details);
-            
-            if (result.success) {
-                userData.balance -= amount;
-                updateUI();
-                closeModal('withdraw');
-                showToast('✅ Withdrawal requested!');
-                playSound('earn');
-            } else {
-                showToast('❌ ' + (result.message || 'Failed to process withdrawal'));
-            }
-        }
-
-        // ========== SUPPORT ==========
-        
-        async function sendSupportMessage() {
-            const msg = document.getElementById('supportMessage').value.trim();
-            if (!msg || msg.length < 10) {
-                showToast('❌ Message too short (min 10 chars)');
-                return;
-            }
-            
-            const result = await sendSupportAPI(msg);
-            
-            if (result.success) {
-                showToast('✅ Message sent! Support will contact you.');
-                document.getElementById('supportMessage').value = '';
-                closeModal('support');
-            } else {
-                showToast('❌ ' + (result.message || 'Failed to send'));
-            }
-        }
-
-        // ========== INIT ==========
-        
-        async function initApp() {
-            // Show loading
-            showToast('⏱️ Loading your data...');
-            
-            if (tg.initDataUnsafe?.user) {
-                userData.first_name = tg.initDataUnsafe.user.first_name || 'User';
-                userData.user_id = tg.initDataUnsafe.user.id;
-                
-                document.querySelector('.nav-item.profile .nav-label').innerText = userData.first_name.split(' ')[0];
-                
-                // Load all data from APIs
-                await loadUserData();
-                await loadBonusDays();
-                await loadMissions();
-                await loadAds();
-                await loadLiveActivity();
-                
-                showToast('✅ Data loaded!');
-            }
-            
-            document.getElementById('homeContent').style.display = 'block';
-            document.getElementById('gamesContent').style.display = 'none';
-            
-            updateUI();
-            drawSpinWheel(0);
-            
-            // Auto refresh
-            setInterval(loadLiveActivity, 30000);
-            setInterval(loadUserData, 60000); // Refresh user data every minute
-        }
-
-        document.addEventListener('DOMContentLoaded', initApp);
-
-        // Expose functions
-        window.playSound = playSound;
-        window.openModal = openModal;
-        window.closeModal = closeModal;
-        window.toggleTheme = toggleTheme;
-        window.toggleSound = toggleSound;
-        window.switchTab = switchTab;
-        window.claimMissionReward = claimMissionReward;
-        window.handleAdClick = handleAdClick;
-        window.openUserAd = openUserAd;
-        window.toggleAdminEdit = toggleAdminEdit;
-        window.selectMethod = selectMethod;
-        window.processWithdrawal = processWithdrawal;
-        window.openWithdrawPage = openWithdrawPage;
-        window.sendSupportMessage = sendSupportMessage;
-        window.copyReferralLink = copyReferralLink;
-        window.copyProfileLink = copyProfileLink;
-        window.shareOn = shareOn;
-        window.openAddPromoModal = openAddPromoModal;
-        window.submitPromotion = submitPromotion;
-        window.editAd = editAd;
-        window.deleteAd = deleteAd;
-        window.saveAdEdit = saveAdEdit;
-        window.deleteAdFromEdit = deleteAdFromEdit;
-        window.openAdminAddAdModal = openAdminAddAdModal;
-        window.saveAdminAd = saveAdminAd;
-        window.openGame = openGame;
-        window.closeGameModal = closeGameModal;
-        window.doSpin = doSpin;
-        window.makeGuess = makeGuess;
-        window.selectGuessBet = selectGuessBet;
-        window.chooseCoin = chooseCoin;
-        window.selectCoinBet = selectCoinBet;
-        window.doFlip = doFlip;
-        window.newScratchCard = newScratchCard;
-        window.openBonusModal = openBonusModal;
-        window.closeBonusModal = closeBonusModal;
-        window.claimDailyBonus = claimDailyBonus;
-        window.closeBonusModalIfOutside = closeBonusModalIfOutside;
+    document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
-    </html>
+                </html>
