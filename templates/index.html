@@ -24,35 +24,48 @@
             --border:rgba(0,0,0,0.08);--shadow:0 8px 24px rgba(0,0,0,0.1);
         }
         body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s;}
-        /* SCROLLBAR */
         ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--gold);border-radius:4px;}
+
         /* TOP BAR */
-        .topbar{position:fixed;top:0;left:0;right:0;z-index:200;padding:10px 14px 0;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(to bottom,var(--bg),transparent);pointer-events:none;}
+        .topbar{position:fixed;top:0;left:0;right:0;z-index:200;padding:10px 14px 0;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(to bottom,var(--bg) 70%,transparent);pointer-events:none;}
         .topbar>*{pointer-events:auto;}
-        .top-left,.top-right{display:flex;gap:8px;}
-        .tbtn{width:42px;height:42px;border-radius:14px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;transition:transform .15s,background .2s;box-shadow:var(--shadow);}
-        .tbtn:active{transform:scale(.9);}
-        /* PROFILE AVATAR TOP */
-        .profile-avatar-top{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--purple));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#000;border:2px solid var(--gold);cursor:pointer;transition:transform .15s;overflow:hidden;}
-        .profile-avatar-top img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-        .profile-avatar-top:active{transform:scale(.9);}
-        /* GIFT BUTTON */
-        .gift-btn{position:fixed;bottom:calc(var(--nav)+20px);right:16px;width:60px;height:60px;background:linear-gradient(135deg,var(--gold),#f97316);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 8px 24px rgba(245,200,66,.5);z-index:150;cursor:pointer;animation:floatGift 2.5s ease-in-out infinite;border:3px solid rgba(255,255,255,.2);}
-        @keyframes floatGift{0%,100%{transform:translateY(0) rotate(-5deg);}50%{transform:translateY(-8px) rotate(5deg);}}
-        .gift-btn:active{transform:scale(.88)!important;}
-        .gift-dot{position:absolute;top:-3px;right:-3px;width:18px;height:18px;background:var(--red);border-radius:50%;font-size:10px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;border:2px solid var(--bg);}
+        .hamburger-btn{width:42px;height:42px;border-radius:14px;background:var(--bg3);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:transform .15s;box-shadow:var(--shadow);}
+        .hamburger-btn span{width:20px;height:2px;background:var(--text);border-radius:2px;transition:all .3s;}
+        .hamburger-btn:active{transform:scale(.9);}
+
+        /* SIDEBAR */
+        .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:none;opacity:0;transition:opacity .3s;}
+        .sidebar-overlay.show{display:block;opacity:1;}
+        .sidebar{position:fixed;left:0;top:0;bottom:0;width:280px;background:var(--bg2);z-index:501;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding:60px 0 40px;overflow-y:auto;border-right:1px solid var(--border);}
+        .sidebar.open{transform:translateX(0);}
+        .sidebar-header{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:10px;}
+        .sidebar-logo{font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:900;color:var(--gold);}
+        .sidebar-item{display:flex;align-items:center;gap:14px;padding:14px 20px;cursor:pointer;transition:background .15s;font-weight:700;font-size:15px;}
+        .sidebar-item:active{background:rgba(255,255,255,.05);}
+        .sidebar-item .si-icon{width:38px;height:38px;border-radius:12px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+        .sidebar-item.active .si-icon{background:linear-gradient(135deg,var(--gold),var(--gold-dim));}
+        .sidebar-divider{height:1px;background:var(--border);margin:8px 20px;}
+        .sidebar-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;}
+        .sidebar-toggle-lbl{font-weight:700;font-size:14px;display:flex;align-items:center;gap:10px;}
+        .toggle{width:48px;height:26px;background:var(--bg3);border-radius:30px;position:relative;cursor:pointer;transition:background .3s;border:1px solid var(--border);}
+        .toggle.on{background:var(--gold);}
+        .toggle-knob{width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:3px;left:3px;transition:left .2s;box-shadow:0 2px 6px rgba(0,0,0,.3);}
+        .toggle.on .toggle-knob{left:25px;}
+
         /* PAGE LAYOUT */
-        .page{padding:70px 14px calc(var(--nav)+20px);max-width:480px;margin:0 auto;display:none;}
+        .page{padding:68px 14px calc(var(--nav)+24px);max-width:480px;margin:0 auto;display:none;min-height:100vh;}
         .page.active{display:block;}
+
         /* BALANCE CARD */
-        .balance-card{background:linear-gradient(135deg,#1a2f60,#0d1535);border:1px solid rgba(245,200,66,.25);border-radius:28px;padding:26px 22px 22px;margin-bottom:18px;position:relative;overflow:hidden;}
+        .balance-card{background:linear-gradient(135deg,#1a2f60,#0d1535);border:1px solid rgba(245,200,66,.25);border-radius:28px;padding:26px 22px 22px;margin-bottom:16px;position:relative;overflow:hidden;}
         .balance-card::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(245,200,66,.15),transparent 70%);pointer-events:none;}
         .balance-label{font-size:13px;color:var(--text2);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;}
         .balance-main{font-family:'Baloo 2',sans-serif;font-size:52px;font-weight:900;color:var(--gold);line-height:1;margin-bottom:4px;text-shadow:0 0 30px rgba(245,200,66,.3);}
-        .balance-sub{display:flex;gap:20px;margin-top:14px;}
+        .balance-sub{display:flex;gap:16px;margin-top:14px;}
         .bsub-item{flex:1;background:rgba(255,255,255,.06);border-radius:14px;padding:10px 12px;border:1px solid var(--border);}
         .bsub-label{font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
         .bsub-val{font-size:18px;font-weight:900;color:var(--gold);margin-top:2px;}
+
         /* PASSES DISPLAY */
         .passes-card{background:linear-gradient(135deg,#2a1a5e,#1a0d35);border:1px solid rgba(123,97,255,.3);border-radius:20px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
         .passes-info{display:flex;align-items:center;gap:10px;}
@@ -60,24 +73,7 @@
         .passes-text .passes-count{font-family:'Baloo 2',sans-serif;font-size:28px;font-weight:900;color:var(--purple2);}
         .passes-text .passes-lbl{font-size:12px;color:var(--text2);margin-top:-2px;}
         .passes-earn-btn{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;padding:10px 18px;border-radius:30px;font-weight:800;font-size:13px;cursor:pointer;}
-        /* LIVE ACTIVITY */
-        .live-section{background:var(--card);border:1px solid var(--border);border-radius:20px;margin-bottom:16px;overflow:hidden;box-shadow:var(--shadow);}
-        .live-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);}
-        .live-title{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px;}
-        .live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
-        @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,211,160,.4);}50%{opacity:.8;box-shadow:0 0 0 6px rgba(34,211,160,0);}}
-        .live-list{max-height:200px;overflow-y:auto;}
-        .live-item{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
-        .live-item:last-child{border-bottom:none;}
-        .live-item:hover{background:rgba(255,255,255,.03);}
-        .live-item:active{background:rgba(255,255,255,.05);}
-        .live-dp{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--gold));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#000;flex-shrink:0;border:2px solid var(--border);overflow:hidden;}
-        .live-dp img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-        .live-info{flex:1;min-width:0;}
-        .live-name{font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .live-act{font-size:12px;color:var(--text2);margin-top:2px;}
-        .live-time{font-size:11px;color:var(--text3);}
-        .live-amount{font-weight:900;font-size:15px;color:var(--green);}
+
         /* REFERRAL CARD */
         .ref-card{background:linear-gradient(135deg,#0d2a5e,#1a1060);border:1px solid rgba(56,189,248,.2);border-radius:24px;padding:20px;margin-bottom:16px;}
         .ref-title{font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px;}
@@ -89,22 +85,24 @@
         .share-btn{background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:14px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;font-size:11px;font-weight:700;color:var(--text2);transition:all .2s;}
         .share-btn:active{background:rgba(255,255,255,.15);transform:scale(.95);}
         .share-btn span:first-child{font-size:24px;}
-        /* MISSIONS */
-        .mission-card{background:linear-gradient(135deg,var(--gold-dim),var(--gold));border-radius:20px;padding:18px;margin-bottom:16px;cursor:pointer;color:#000;}
+
+        /* MISSIONS MINI CARD */
+        .mission-card{background:linear-gradient(135deg,var(--gold-dim),var(--gold));border-radius:20px;padding:18px;margin-bottom:16px;cursor:pointer;color:#000;position:relative;overflow:hidden;}
         .mission-card:active{transform:scale(.98);}
         .mission-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
         .mission-t{font-family:'Baloo 2',sans-serif;font-size:18px;font-weight:900;}
         .mission-reward{background:rgba(0,0,0,.2);padding:5px 14px;border-radius:30px;font-size:13px;font-weight:800;}
         .mission-bar-bg{height:10px;background:rgba(0,0,0,.2);border-radius:10px;overflow:hidden;}
         .mission-bar-fill{height:100%;background:#fff;border-radius:10px;transition:width .4s;}
+
         /* ADS */
         .section-head{display:flex;justify-content:space-between;align-items:center;margin:20px 0 12px;}
         .section-head h3{font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:800;color:var(--gold);}
-        .add-ad-btn{background:var(--bg3);border:1px solid var(--border);border-radius:30px;padding:8px 14px;font-size:12px;font-weight:800;color:var(--gold);cursor:pointer;display:flex;align-items:center;gap:5px;}
-        .ad-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative;}
+        .admin-add-btn{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;border-radius:30px;padding:8px 16px;font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;gap:5px;}
+        .ad-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform .15s;position:relative;}
         .ad-card:active{transform:scale(.97);}
-        .ad-card.admin-mode{border:2px dashed var(--gold);animation:adminPulse 2s infinite;}
-        @keyframes adminPulse{0%,100%{border-color:var(--gold);}50%{border-color:var(--purple);}}
+        .ad-card.admin-mode{border:2px dashed var(--gold);}
+        .ad-claimed{opacity:.5;pointer-events:none;}
         .ad-del-btn{position:absolute;top:-8px;left:-8px;width:26px;height:26px;background:var(--red);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;border:2px solid var(--bg);z-index:5;}
         .ad-edit-btn{position:absolute;top:-8px;right:-8px;width:26px;height:26px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;border:2px solid var(--bg);z-index:5;}
         .ad-icon-box{width:48px;height:48px;background:rgba(245,200,66,.1);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
@@ -112,6 +110,26 @@
         .ad-title{font-weight:800;font-size:15px;margin-bottom:3px;}
         .ad-meta{font-size:12px;color:var(--text2);}
         .ad-reward{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:7px 14px;border-radius:30px;font-weight:900;font-size:14px;flex-shrink:0;}
+        .ad-claimed-badge{background:var(--bg3);color:var(--text3);padding:7px 10px;border-radius:30px;font-weight:700;font-size:12px;flex-shrink:0;}
+
+        /* LIVE ACTIVITY */
+        .live-section{background:var(--card);border:1px solid var(--border);border-radius:20px;margin-bottom:16px;overflow:hidden;box-shadow:var(--shadow);}
+        .live-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);}
+        .live-title{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px;}
+        .live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
+        @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,211,160,.4);}50%{opacity:.8;box-shadow:0 0 0 6px rgba(34,211,160,0);}}
+        .live-list{max-height:200px;overflow-y:auto;}
+        .live-item{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
+        .live-item:last-child{border-bottom:none;}
+        .live-item:active{background:rgba(255,255,255,.05);}
+        .live-dp{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--gold));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#000;flex-shrink:0;border:2px solid var(--border);overflow:hidden;}
+        .live-dp img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+        .live-info{flex:1;min-width:0;}
+        .live-name{font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .live-act{font-size:12px;color:var(--text2);margin-top:2px;}
+        .live-time{font-size:11px;color:var(--text3);}
+        .live-amount{font-weight:900;font-size:15px;color:var(--green);}
+
         /* BOTTOM NAV */
         .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--bg2);border-top:1px solid var(--border);padding:8px 0 calc(env(safe-area-inset-bottom)+8px);}
         .nav-wrap{display:grid;grid-template-columns:repeat(5,1fr);max-width:480px;margin:0 auto;}
@@ -122,11 +140,11 @@
         .nav-item.active .nav-icon-wrap{background:linear-gradient(135deg,var(--gold),var(--gold-dim));box-shadow:0 4px 16px rgba(245,200,66,.4);}
         .nav-item.active .nav-icon-wrap .ni{transform:translateY(-2px);}
         .nav-item.active .nav-label{color:var(--gold);}
-        /* GAME NAV CENTER */
         .nav-item.game-center .nav-icon-wrap{width:54px;height:54px;background:linear-gradient(135deg,var(--purple),var(--purple2));border-radius:18px;margin-top:-16px;box-shadow:0 6px 20px rgba(123,97,255,.5);}
         .nav-item.game-center .nav-icon-wrap .ni{font-size:30px;}
         .nav-item.game-center.active .nav-icon-wrap{background:linear-gradient(135deg,var(--gold),var(--gold-dim));}
-        /* PAGE MODALS */
+
+        /* MODALS */
         .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:300;overflow-y:auto;padding:20px 14px calc(var(--nav)+20px);display:none;animation:slideUp .25s ease;}
         @keyframes slideUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
         .modal.open{display:block;}
@@ -134,6 +152,7 @@
         .back-btn{width:44px;height:44px;background:var(--bg3);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;border:1px solid var(--border);flex-shrink:0;}
         .back-btn:active{background:var(--gold);color:#000;}
         .modal-title{font-family:'Baloo 2',sans-serif;font-size:26px;font-weight:900;color:var(--gold);}
+
         /* INPUT */
         .inp{width:100%;padding:14px 16px;background:var(--bg3);border:1.5px solid var(--border);border-radius:14px;color:var(--text);font-size:15px;font-family:inherit;margin:8px 0;transition:border-color .2s;}
         .inp:focus{border-color:var(--gold);outline:none;}
@@ -142,10 +161,12 @@
         .btn-purple{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;padding:16px;border-radius:40px;font-weight:900;font-size:17px;width:100%;cursor:pointer;margin:8px 0;font-family:inherit;transition:transform .15s;box-shadow:0 6px 20px rgba(123,97,255,.3);}
         .btn-purple:active{transform:scale(.97);}
         .btn-red{background:linear-gradient(135deg,var(--red),#c0392b);color:#fff;border:none;padding:14px;border-radius:40px;font-weight:800;font-size:16px;width:100%;cursor:pointer;margin:6px 0;font-family:inherit;}
+
         /* TOAST */
         .toast{position:fixed;bottom:calc(var(--nav)+20px);left:14px;right:14px;background:#1e2535;color:var(--text);padding:14px 20px;border-radius:50px;text-align:center;font-weight:700;z-index:999;display:none;border:1px solid var(--border);box-shadow:0 8px 30px rgba(0,0,0,.5);animation:toastIn .3s ease;}
         @keyframes toastIn{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
-        /* BONUS MODAL */
+
+        /* BONUS OVERLAY */
         .bonus-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:400;display:none;align-items:flex-end;justify-content:center;padding:20px;}
         .bonus-overlay.show{display:flex;}
         .bonus-card{background:var(--bg2);border-radius:30px 30px 24px 24px;width:100%;max-width:440px;padding:28px 24px;text-align:center;border:1px solid var(--border);box-shadow:0 -20px 60px rgba(0,0,0,.6);animation:bonusSlide .4s ease;}
@@ -154,10 +175,56 @@
         @keyframes bonusBounce{0%,100%{transform:scale(1);}50%{transform:scale(1.2);}}
         .bonus-title{font-family:'Baloo 2',sans-serif;font-size:28px;font-weight:900;color:var(--gold);margin-bottom:6px;}
         .bonus-amt{font-family:'Baloo 2',sans-serif;font-size:56px;font-weight:900;color:var(--green);margin:10px 0;}
-        .bonus-streak-row{background:var(--bg3);border-radius:16px;padding:12px;margin:12px 0;font-weight:700;font-size:15px;}
-        .streak-days{display:flex;justify-content:center;gap:6px;margin-top:10px;}
-        .streak-day{width:32px;height:32px;border-radius:10px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;}
-        .streak-day.done{background:linear-gradient(135deg,var(--gold),var(--gold-dim));border:none;}
+        .bonus-pass-info{background:rgba(123,97,255,.1);border:1px solid rgba(123,97,255,.3);border-radius:16px;padding:14px;margin-top:12px;text-align:center;font-size:13px;color:var(--purple2);font-weight:700;}
+
+        /* DAILY BONUS PAGE - TRAIN CHAIN */
+        .daily-bonus-page{padding:20px 14px calc(var(--nav)+20px);}
+        .daily-train-header{text-align:center;padding:20px 0 10px;}
+        .daily-train-title{font-family:'Baloo 2',sans-serif;font-size:28px;font-weight:900;color:var(--gold);}
+        .daily-train-sub{font-size:13px;color:var(--text2);margin-top:4px;}
+        .train-track{position:relative;overflow-x:auto;padding:30px 20px 20px;-webkit-overflow-scrolling:touch;}
+        .train-track::-webkit-scrollbar{height:4px;}
+        .train-chain{display:flex;align-items:flex-end;gap:0;min-width:max-content;position:relative;}
+        .train-chain::before{content:'';position:absolute;bottom:24px;left:40px;right:40px;height:4px;background:var(--border);border-radius:2px;}
+        .train-car{display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;}
+        .train-node{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;border:3px solid var(--border);background:var(--bg3);transition:all .3s;cursor:pointer;position:relative;}
+        .train-node.claimed{background:linear-gradient(135deg,var(--gold),var(--gold-dim));border-color:var(--gold);box-shadow:0 4px 16px rgba(245,200,66,.4);color:#000;}
+        .train-node.today{background:linear-gradient(135deg,var(--green),#059669);border-color:var(--green);box-shadow:0 4px 20px rgba(34,211,160,.5);animation:todayPulse 1.5s infinite;}
+        @keyframes todayPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
+        .train-node.future{opacity:.5;}
+        .train-connector{width:40px;height:4px;background:var(--border);margin-bottom:24px;border-radius:2px;}
+        .train-connector.filled{background:linear-gradient(90deg,var(--gold),var(--gold-dim));}
+        .train-date{font-size:10px;color:var(--text3);margin-top:6px;font-weight:700;text-align:center;}
+        .train-reward{font-size:11px;color:var(--gold);font-weight:800;}
+        .today-claim-box{background:linear-gradient(135deg,#0d2a40,#1a1060);border:1px solid rgba(34,211,160,.3);border-radius:24px;padding:24px;margin-top:20px;text-align:center;}
+        .today-claim-amt{font-family:'Baloo 2',sans-serif;font-size:48px;font-weight:900;color:var(--green);}
+        .streak-row{background:var(--bg3);border-radius:16px;padding:14px;margin:16px 0;display:flex;justify-content:space-around;}
+        .streak-item{text-align:center;}
+        .streak-val{font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:900;color:var(--gold);}
+        .streak-lbl{font-size:11px;color:var(--text3);font-weight:600;}
+
+        /* EARN PASSES PAGE */
+        .earn-passes-hero{background:linear-gradient(135deg,#2a1a5e,#1a0d35);border:1px solid rgba(123,97,255,.3);border-radius:28px;padding:24px;margin-bottom:18px;text-align:center;}
+        .earn-passes-hero h2{font-family:'Baloo 2',sans-serif;font-size:26px;font-weight:900;color:var(--purple2);}
+        .ep-count{font-family:'Baloo 2',sans-serif;font-size:52px;font-weight:900;color:var(--gold);margin:8px 0;}
+        .ep-method{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px 18px;margin-bottom:12px;display:flex;align-items:center;gap:14px;}
+        .ep-method-icon{width:48px;height:48px;border-radius:16px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+        .ep-method-info{flex:1;}
+        .ep-method-title{font-weight:800;font-size:15px;}
+        .ep-method-desc{font-size:12px;color:var(--text2);margin-top:2px;}
+        .ep-method-badge{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;padding:6px 14px;border-radius:30px;font-weight:900;font-size:13px;flex-shrink:0;}
+        .buy-passes-section{margin-top:20px;}
+        .buy-passes-title{font-family:'Baloo 2',sans-serif;font-size:18px;font-weight:800;color:var(--gold);margin-bottom:12px;}
+        .pass-pkg{background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .2s;}
+        .pass-pkg:active{transform:scale(.97);}
+        .pass-pkg.popular{border-color:var(--gold);background:rgba(245,200,66,.05);}
+        .pass-pkg-left{display:flex;align-items:center;gap:12px;}
+        .pass-pkg-icon{font-size:28px;}
+        .pass-pkg-passes{font-family:'Baloo 2',sans-serif;font-size:24px;font-weight:900;color:var(--purple2);}
+        .pass-pkg-lbl{font-size:12px;color:var(--text2);}
+        .pass-pkg-price{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:10px 18px;border-radius:30px;font-weight:900;font-size:15px;}
+        .popular-tag{position:absolute;top:-8px;right:14px;background:var(--red);color:#fff;font-size:10px;padding:3px 10px;border-radius:20px;font-weight:800;}
+
         /* PROFILE PAGE */
         .profile-hero{background:linear-gradient(135deg,var(--bg3),var(--bg2));border-radius:24px;padding:24px;margin-bottom:16px;text-align:center;border:1px solid var(--border);}
         .profile-dp{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--purple));margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:900;border:3px solid var(--gold);overflow:hidden;}
@@ -169,7 +236,6 @@
         .stat-val{font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:900;color:var(--gold);}
         .stat-lbl{font-size:11px;color:var(--text3);margin-top:2px;font-weight:600;}
         .stats-grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px;}
-        /* PROFILE REFER ACTIVITY */
         .ref-activity-section{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:18px;margin-top:14px;}
         .ref-activity-title{font-weight:800;margin-bottom:12px;color:var(--gold);}
         .ref-act-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
@@ -181,6 +247,7 @@
         .ref-act-badge{font-size:11px;padding:3px 8px;border-radius:20px;font-weight:700;}
         .badge-active{background:rgba(34,211,160,.15);color:var(--green);}
         .badge-pending{background:rgba(245,200,66,.15);color:var(--gold);}
+
         /* LEADERBOARD */
         .lb-tabs{display:flex;gap:8px;margin-bottom:18px;}
         .lb-tab{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center;font-weight:800;cursor:pointer;transition:all .2s;}
@@ -193,7 +260,6 @@
         .podium-dp{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--purple));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;border:3px solid var(--gold);}
         .podium-slot.p2 .podium-dp,.podium-slot.p3 .podium-dp{width:50px;height:50px;font-size:20px;}
         .podium-name{font-weight:800;font-size:12px;text-align:center;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .podium-refs{font-size:11px;color:var(--text2);font-weight:700;}
         .podium-bar{border-radius:10px 10px 0 0;}
         .podium-slot.p1 .podium-bar{width:80px;height:90px;background:linear-gradient(to top,var(--gold-dim),var(--gold));display:flex;align-items:center;justify-content:center;font-size:32px;}
         .podium-slot.p2 .podium-bar{width:68px;height:65px;background:linear-gradient(to top,#94a3b8,#cbd5e1);display:flex;align-items:center;justify-content:center;font-size:26px;}
@@ -206,9 +272,7 @@
         .lb-refs{font-size:12px;color:var(--text2);margin-top:2px;}
         .lb-prize{font-weight:900;color:var(--gold);}
         .lb-info-card{background:var(--bg3);border-radius:18px;padding:16px;margin-top:16px;border:1px solid var(--border);}
-        .lb-info-title{font-weight:800;font-size:15px;margin-bottom:10px;color:var(--gold);}
-        .lb-info-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
-        .lb-info-row:last-child{border-bottom:none;}
+
         /* GAMES PAGE */
         .games-hero{background:linear-gradient(135deg,#1a0d40,#0d1535);border:1px solid rgba(123,97,255,.3);border-radius:28px;padding:26px 20px;margin-bottom:18px;text-align:center;position:relative;overflow:hidden;}
         .games-hero::before{content:'🎮';position:absolute;right:-20px;top:-20px;font-size:120px;opacity:.08;}
@@ -220,68 +284,61 @@
         .gstat-val{font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:900;color:var(--purple2);}
         .gstat-lbl{font-size:11px;color:var(--text3);margin-top:2px;}
         .games-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
-        .game-card{background:var(--card);border:1.5px solid var(--border);border-radius:22px;padding:22px 14px 18px;text-align:center;cursor:pointer;transition:transform .18s,box-shadow .18s;position:relative;overflow:hidden;}
+        .game-card{background:var(--card);border:1.5px solid var(--border);border-radius:22px;padding:22px 14px 18px;text-align:center;cursor:pointer;transition:transform .18s;position:relative;overflow:hidden;}
         .game-card:active{transform:scale(.94);}
-        .game-card:hover{box-shadow:0 8px 30px rgba(123,97,255,.2);}
-        .game-plays{position:absolute;top:10px;right:10px;background:var(--bg3);border-radius:20px;padding:3px 8px;font-size:10px;font-weight:800;color:var(--text2);}
-        .game-emoji{font-size:64px;display:block;margin-bottom:14px;filter:drop-shadow(0 4px 12px rgba(123,97,255,.3));}
+        .game-emoji{font-size:64px;display:block;margin-bottom:14px;}
         .game-name{font-family:'Baloo 2',sans-serif;font-size:17px;font-weight:800;margin-bottom:3px;}
         .game-desc{font-size:11px;color:var(--text2);margin-bottom:12px;}
         .game-reward{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;padding:6px 14px;border-radius:30px;font-size:12px;font-weight:800;display:inline-block;}
-        .pass-warning{background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.3);border-radius:16px;padding:14px;text-align:center;font-size:13px;color:var(--gold);font-weight:700;margin-bottom:14px;}
+
         /* SPIN */
         .spin-wrap{text-align:center;padding:10px 0;}
         .spin-stats{display:flex;justify-content:space-around;background:var(--bg3);border-radius:18px;padding:16px;margin-bottom:20px;border:1px solid var(--border);}
         .ss-item .ss-val{font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:900;color:var(--purple2);}
         .ss-item .ss-lbl{font-size:11px;color:var(--text3);margin-top:2px;}
         .wheel-outer{position:relative;display:inline-block;margin:10px auto;}
-        .wheel-ptr{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:32px;z-index:5;filter:drop-shadow(0 3px 6px rgba(0,0,0,.4));}
+        .wheel-ptr{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:32px;z-index:5;}
         #spinCanvas{border-radius:50%;box-shadow:0 0 0 6px var(--gold),0 0 0 10px rgba(245,200,66,.2),0 16px 50px rgba(245,200,66,.3);cursor:pointer;width:270px;height:270px;}
         .spin-result{background:linear-gradient(135deg,var(--green),#059669);border-radius:18px;padding:18px;margin:16px 0;display:none;animation:bounceIn .4s;}
         @keyframes bounceIn{0%{transform:scale(.5);opacity:0;}80%{transform:scale(1.06);}100%{transform:scale(1);opacity:1;}}
         .spin-result-amt{font-family:'Baloo 2',sans-serif;font-size:44px;font-weight:900;color:#fff;}
-        .spin-result-txt{font-size:14px;color:rgba(255,255,255,.8);margin-top:4px;}
+
         /* GUESS */
-        .guess-display{background:linear-gradient(135deg,#0d1535,#1a0d40);border-radius:22px;padding:28px;text-align:center;margin-bottom:14px;position:relative;overflow:hidden;}
+        .guess-display{background:linear-gradient(135deg,#0d1535,#1a0d40);border-radius:22px;padding:28px;text-align:center;margin-bottom:14px;}
         .guess-num{font-family:'Baloo 2',sans-serif;font-size:100px;font-weight:900;color:var(--gold);line-height:1;}
         .guess-hint{font-size:15px;color:var(--text2);margin-top:8px;}
-        .guess-range{background:rgba(255,255,255,.1);border-radius:10px;height:8px;margin:12px 0;overflow:hidden;}
-        .guess-range-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-dim));border-radius:10px;transition:width .4s;}
         .num-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0;}
         .num-btn{background:var(--bg3);border:1.5px solid var(--border);border-radius:14px;padding:14px 4px;font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:900;cursor:pointer;transition:all .15s;color:var(--text);}
         .num-btn:active{transform:scale(.88);}
         .num-btn.correct{background:var(--green);color:#fff;border-color:var(--green);}
         .num-btn.wrong{background:var(--red);color:#fff;border-color:var(--red);}
-        .num-btn:disabled{opacity:.45;cursor:not-allowed;}
-        .attempts-row{display:flex;gap:8px;justify-content:center;margin:10px 0;}
-        .att-dot{width:14px;height:14px;border-radius:50%;background:var(--bg3);border:2px solid var(--border);}
-        .att-dot.used{background:var(--red);border-color:var(--red);}
+        .num-btn:disabled{opacity:.45;}
         .bet-row{display:flex;gap:8px;margin:10px 0;}
         .bet-chip{flex:1;background:var(--bg3);border:1.5px solid var(--border);border-radius:14px;padding:12px 4px;text-align:center;cursor:pointer;font-weight:800;font-size:13px;transition:all .15s;color:var(--text);}
         .bet-chip.sel{background:var(--gold);border-color:var(--gold);color:#000;}
-        .bet-chip:active{transform:scale(.93);}
+
         /* COIN */
         .coin-game-wrap{text-align:center;}
         .coin-outer{margin:20px auto;display:inline-block;perspective:800px;}
         .coin{width:130px;height:130px;position:relative;transform-style:preserve-3d;transition:transform 1.2s cubic-bezier(.4,0,.2,1);cursor:pointer;margin:0 auto;}
-        .coin-face{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:60px;backface-visibility:hidden;box-shadow:inset 0 -8px 20px rgba(0,0,0,.3),0 8px 20px rgba(0,0,0,.3);}
+        .coin-face{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:60px;backface-visibility:hidden;box-shadow:inset 0 -8px 20px rgba(0,0,0,.3);}
         .coin-h{background:radial-gradient(circle at 35% 35%,#fde68a,var(--gold),var(--gold-dim));}
         .coin-t{background:radial-gradient(circle at 35% 35%,#e2e8f0,#94a3b8,#64748b);transform:rotateY(180deg);}
         .coin-choices{display:flex;gap:12px;margin:16px 0;}
         .coin-choice{flex:1;padding:18px;border-radius:18px;font-size:26px;font-weight:900;cursor:pointer;border:2px solid var(--border);background:var(--bg3);transition:all .18s;}
         .coin-choice.sel{border-color:var(--gold);background:rgba(245,200,66,.1);transform:translateY(-4px);}
-        .coin-choice:active{transform:scale(.93);}
         .coin-res-win{background:linear-gradient(135deg,var(--green),#059669);color:#fff;border-radius:18px;padding:18px;text-align:center;display:none;animation:bounceIn .4s;}
         .coin-res-lose{background:linear-gradient(135deg,var(--red),#dc2626);color:#fff;border-radius:18px;padding:18px;text-align:center;display:none;animation:bounceIn .4s;}
         .coin-res-big{font-family:'Baloo 2',sans-serif;font-size:48px;font-weight:900;}
+
         /* SCRATCH */
         .scratch-area{position:relative;width:100%;max-width:340px;height:180px;margin:18px auto;border-radius:22px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.4);cursor:crosshair;touch-action:none;}
         .scratch-reward-layer{position:absolute;inset:0;background:linear-gradient(135deg,var(--gold),var(--gold-dim));display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1;border-radius:22px;}
         .scratch-amt{font-family:'Baloo 2',sans-serif;font-size:56px;font-weight:900;color:#000;line-height:1;}
-        .scratch-lbl{font-size:15px;color:rgba(0,0,0,.6);margin-top:6px;font-weight:700;}
         #scratchCanvas{position:absolute;inset:0;z-index:2;border-radius:22px;width:100%;height:100%;}
         .scratch-prog{background:var(--bg3);border-radius:10px;height:8px;margin:10px 0;overflow:hidden;}
         .scratch-prog-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--purple2));border-radius:10px;transition:width .2s;}
+
         /* HISTORY */
         .hist-item{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:10px;}
         .hist-top{display:flex;justify-content:space-between;align-items:center;}
@@ -291,48 +348,73 @@
         .status-completed{background:rgba(34,211,160,.15);color:var(--green);}
         .status-rejected{background:rgba(255,91,107,.15);color:var(--red);}
         .hist-bot{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--text3);}
+
         /* WITHDRAW */
         .avail-balance{text-align:center;padding:20px;background:var(--bg3);border-radius:20px;margin-bottom:16px;border:1px solid var(--border);}
         .avail-amt{font-family:'Baloo 2',sans-serif;font-size:52px;font-weight:900;color:var(--gold);}
-        .avail-lbl{font-size:13px;color:var(--text2);margin-top:4px;}
         .method-btn{background:var(--bg3);border:2px solid var(--border);border-radius:16px;padding:16px;margin:8px 0;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .2s;}
         .method-btn.sel{border-color:var(--gold);}
-        .method-btn:active{transform:scale(.98);}
-        /* SETTINGS */
+
+        /* CARD SECTION */
+        .card-section{background:var(--bg3);border-radius:16px;padding:16px;margin-bottom:10px;border:1px solid var(--border);}
+
+        /* CONGRATS POPUP */
+        .congrats-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:600;display:none;align-items:center;justify-content:center;padding:20px;}
+        .congrats-overlay.show{display:flex;}
+        .congrats-card{background:var(--bg2);border-radius:28px;padding:30px 24px;text-align:center;border:1px solid var(--gold);box-shadow:0 0 60px rgba(245,200,66,.3);max-width:360px;width:100%;animation:congratsPop .5s cubic-bezier(.175,.885,.32,1.275);}
+        @keyframes congratsPop{0%{transform:scale(.3);opacity:0;}100%{transform:scale(1);opacity:1;}}
+        .confetti{font-size:60px;animation:spin 1s linear infinite;}
+        @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+
+        /* SETTINGS MODAL */
         .settings-group{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:14px;}
         .setting-row{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--border);}
         .setting-row:last-child{border-bottom:none;}
         .setting-lbl{font-weight:700;font-size:15px;}
-        .toggle{width:50px;height:28px;background:var(--bg3);border-radius:30px;position:relative;cursor:pointer;transition:background .3s;border:1px solid var(--border);}
-        .toggle.on{background:var(--gold);}
-        .toggle-knob{width:22px;height:22px;background:#fff;border-radius:50%;position:absolute;top:3px;left:3px;transition:left .2s;box-shadow:0 2px 6px rgba(0,0,0,.3);}
-        .toggle.on .toggle-knob{left:25px;}
-        /* USER PROFILE CLICK MODAL */
+
+        /* USER PROFILE */
         .user-profile-card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:24px;margin-bottom:14px;text-align:center;}
         .user-profile-dp-lg{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--purple));margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:900;overflow:hidden;}
-        .user-profile-dp-lg img{width:100%;height:100%;object-fit:cover;}
-        .card-section{background:var(--bg3);border-radius:16px;padding:16px;margin-bottom:10px;border:1px solid var(--border);}
-        /* DAILY BONUS PASSES */
-        .bonus-pass-info{background:rgba(123,97,255,.1);border:1px solid rgba(123,97,255,.3);border-radius:16px;padding:14px;margin-top:12px;text-align:center;font-size:13px;color:var(--purple2);font-weight:700;}
     </style>
 </head>
 <body>
-    <!-- TOP BAR -->
-    <div class="topbar">
-        <div class="top-left">
-            <div class="tbtn" onclick="openModal('settings')">⚙️</div>
-            <div class="tbtn" onclick="openModal('support')">📩</div>
+    <!-- SIDEBAR OVERLAY -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">💰 EarnZone</div>
         </div>
-        <div class="top-right">
-            <div class="tbtn" id="themeToggleBtn" onclick="toggleTheme()">☀️</div>
-            <div class="tbtn" id="adminBtn" onclick="toggleAdminEdit()" style="display:none">✏️</div>
-            <div class="profile-avatar-top" id="topProfileAvatar" onclick="openModal('profile')">?</div>
+        <div class="sidebar-item" onclick="closeSidebar();openModal('settings')">
+            <div class="si-icon">⚙️</div><span>Settings</span>
+        </div>
+        <div class="sidebar-item" onclick="closeSidebar();openModal('support')">
+            <div class="si-icon">📩</div><span>Help & Support</span>
+        </div>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-toggle-row">
+            <div class="sidebar-toggle-lbl"><span>🌙</span> Dark Mode</div>
+            <div class="toggle on" id="themeToggleEl" onclick="toggleTheme()"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="sidebar-toggle-row">
+            <div class="sidebar-toggle-lbl"><span>🔊</span> Sounds</div>
+            <div class="toggle on" id="soundToggleEl" onclick="toggleSound()"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-item" id="adminSidebarBtn" style="display:none;" onclick="closeSidebar();toggleAdminEdit()">
+            <div class="si-icon">✏️</div><span>Admin Edit Mode</span>
+        </div>
+        <div class="sidebar-item" onclick="closeSidebar();openModal('referral')">
+            <div class="si-icon">👥</div><span>Refer & Earn</span>
         </div>
     </div>
 
-    <!-- GIFT BUTTON -->
-    <div class="gift-btn" id="giftBtn" onclick="openBonusModal()">
-        🎁<div class="gift-dot" id="giftDot">!</div>
+    <!-- TOP BAR -->
+    <div class="topbar">
+        <div class="hamburger-btn" onclick="openSidebar()">
+            <span></span><span></span><span></span>
+        </div>
+        <div style="font-family:'Baloo 2',sans-serif;font-size:18px;font-weight:900;color:var(--gold);">💰 EarnZone</div>
+        <div style="width:42px;height:42px;"></div>
     </div>
 
     <!-- HOME PAGE -->
@@ -360,18 +442,30 @@
                     <div class="passes-lbl">Game Passes</div>
                 </div>
             </div>
-            <button class="passes-earn-btn" onclick="openModal('referral')">+ Earn Passes</button>
+            <button class="passes-earn-btn" onclick="openModal('earnPasses')">+ Earn Passes</button>
         </div>
 
-        <!-- LIVE ACTIVITY -->
-        <div class="live-section">
-            <div class="live-header">
-                <div class="live-title"><div class="live-dot"></div> Live Activity</div>
-                <span style="font-size:12px;color:var(--text3)">Real-time</span>
+        <!-- DAILY BONUS CARD -->
+        <div style="background:linear-gradient(135deg,#1a3a20,#0d2010);border:1px solid rgba(34,211,160,.3);border-radius:20px;padding:16px 18px;margin-bottom:16px;display:flex;align-items:center;gap:14px;cursor:pointer;" onclick="openModal('dailyBonus')" id="dailyBonusCard">
+            <div style="font-size:36px;" id="dailyBonusIcon">🎁</div>
+            <div style="flex:1;">
+                <div style="font-weight:800;font-size:15px;">Daily Bonus</div>
+                <div style="font-size:12px;color:var(--text2);margin-top:2px;" id="dailyBonusSubtitle">Aaj ka bonus claim karo!</div>
             </div>
-            <div class="live-list" id="liveList">
-                <div style="text-align:center;padding:20px;color:var(--text3)">Loading...</div>
+            <div style="background:linear-gradient(135deg,var(--green),#059669);color:#fff;padding:8px 16px;border-radius:30px;font-weight:900;font-size:13px;" id="dailyBonusBtn">Claim</div>
+        </div>
+
+        <!-- MISSIONS -->
+        <div class="mission-card" onclick="openModal('missions')">
+            <div class="mission-top">
+                <div class="mission-t">🎯 Daily Missions</div>
+                <div class="mission-reward">₹5 Reward</div>
             </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;">
+                <span>Complete karo ₹5 pao!</span>
+                <span><b id="missionsDone">0</b>/4</span>
+            </div>
+            <div class="mission-bar-bg"><div class="mission-bar-fill" id="missionBarFill"></div></div>
         </div>
 
         <!-- REFERRAL -->
@@ -389,25 +483,26 @@
             </div>
         </div>
 
-        <!-- MISSIONS -->
-        <div class="mission-card" onclick="openModal('missions')">
-            <div class="mission-top">
-                <div class="mission-t">🎯 Daily Missions</div>
-                <div class="mission-reward">₹5 Reward</div>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;">
-                <span>Complete karo ₹5 pao!</span>
-                <span><b id="missionsDone">0</b>/2</span>
-            </div>
-            <div class="mission-bar-bg"><div class="mission-bar-fill" id="missionBarFill"></div></div>
-        </div>
-
         <!-- ADS -->
         <div class="section-head">
             <h3>💎 Sponsored Offers</h3>
-            <div class="add-ad-btn" onclick="openAddAd()">➕ Add Promo <span style="background:var(--gold);color:#000;padding:2px 8px;border-radius:20px;font-size:10px;margin-left:4px;">₹50/day</span></div>
+            <button class="admin-add-btn" id="addOfferBtn" onclick="openAdminCreateOffer()" style="display:none;">➕ Create Offer</button>
         </div>
         <div id="adsContainer"></div>
+
+        <!-- LIVE ACTIVITY - BOTTOM -->
+        <div class="section-head" style="margin-top:8px;">
+            <h3>⚡ Live Activity</h3>
+            <span style="font-size:12px;color:var(--text3);">Real-time</span>
+        </div>
+        <div class="live-section" style="margin-bottom:16px;">
+            <div class="live-header">
+                <div class="live-title"><div class="live-dot"></div> Users Online</div>
+            </div>
+            <div class="live-list" id="liveList">
+                <div style="text-align:center;padding:20px;color:var(--text3)">Loading...</div>
+            </div>
+        </div>
     </div>
 
     <!-- LEADERBOARD PAGE -->
@@ -420,13 +515,10 @@
             </div>
             <div id="lbContent"></div>
             <div class="lb-info-card">
-                <div class="lb-info-title">📋 Leaderboard Rules</div>
-                <div class="lb-info-row"><span>Weekly minimum</span><span style="color:var(--gold);font-weight:700">50 refs</span></div>
-                <div class="lb-info-row"><span>Monthly minimum</span><span style="color:var(--gold);font-weight:700">200 refs</span></div>
-                <div class="lb-info-row"><span>Refs must be active</span><span style="color:var(--green);font-weight:700">Group search + shortlink</span></div>
-                <div style="margin-top:12px;font-size:13px;color:var(--text2);">🏅 <b style="color:var(--gold)">Weekly Prizes:</b> 1st: ₹150 • 2nd: ₹65 • 3rd: ₹30 • 4th-10th: ₹10</div>
-                <div style="margin-top:8px;font-size:13px;color:var(--text2);">🏅 <b style="color:var(--gold)">Monthly Prizes:</b> 1st: ₹300 • 2nd: ₹200 • 3rd: ₹200 • 4th-10th: ₹30</div>
-                <div style="margin-top:10px;font-size:12px;color:var(--text3);background:var(--bg);border-radius:10px;padding:10px;">⚡ Refer kiye users ko group pe movie search karni hogi aur shortlink poori karni hogi tabhi <b>active</b> honge!</div>
+                <div style="font-weight:800;font-size:15px;margin-bottom:10px;color:var(--gold);">📋 Rules</div>
+                <div style="font-size:13px;color:var(--text2);">🏅 <b style="color:var(--gold)">Weekly:</b> 1st ₹150 • 2nd ₹65 • 3rd ₹30 • 4-10 ₹10</div>
+                <div style="font-size:13px;color:var(--text2);margin-top:6px;">🏅 <b style="color:var(--gold)">Monthly:</b> 1st ₹300 • 2nd ₹200 • 3rd ₹200 • 4-10 ₹30</div>
+                <div style="margin-top:10px;font-size:12px;color:var(--text3);background:var(--bg);border-radius:10px;padding:10px;">⚡ Refer karo + Group pe movie search karao + Shortlink karwao = Active ref!</div>
             </div>
         </div>
     </div>
@@ -450,14 +542,12 @@
                     <div class="stat-box"><div class="stat-val" id="pGamesWon">0</div><div class="stat-lbl">Games Won</div></div>
                 </div>
             </div>
-
             <div class="ref-activity-section">
-                <div class="ref-activity-title">👥 Referred Users Activity</div>
+                <div class="ref-activity-title">👥 Referred Users</div>
                 <div id="refActivityList"><div style="color:var(--text3);font-size:13px;">Loading...</div></div>
             </div>
-
             <div style="background:var(--bg3);border-radius:18px;padding:16px;margin-top:14px;border:1px solid var(--border);">
-                <div style="font-size:13px;color:var(--text2);margin-bottom:10px;">Your Referral Link:</div>
+                <div style="font-size:13px;color:var(--text2);margin-bottom:10px;">Referral Link:</div>
                 <div style="background:var(--bg);border-radius:12px;padding:10px 14px;font-size:12px;word-break:break-all;color:var(--text2);" id="pRefLink"></div>
                 <button class="btn-gold" style="margin-top:12px;" onclick="copyRef()">📋 Copy Link</button>
             </div>
@@ -481,7 +571,9 @@
             <p>Passes use karo, paise jeeto!</p>
             <div class="games-hero-badge">🎟️ Passes: <span id="gameBadgePasses">0</span></div>
         </div>
-        <div class="pass-warning">⚠️ Sirf Passes se khelo • 1 refer = 3 Passes • Daily bonus = 1 Pass</div>
+        <div style="background:rgba(123,97,255,.1);border:1px solid rgba(123,97,255,.3);border-radius:16px;padding:14px;text-align:center;font-size:13px;color:var(--purple2);font-weight:700;margin-bottom:16px;">
+            🎟️ 1 Pass = 1 Game • Jitne bhi passes ho utne khelo!
+        </div>
         <div class="games-stats">
             <div class="gstat"><div class="gstat-val" id="gameWins">0</div><div class="gstat-lbl">Total Wins</div></div>
             <div class="gstat"><div class="gstat-val" id="gameTodayEarned">₹0</div><div class="gstat-lbl">Today Earned</div></div>
@@ -489,28 +581,24 @@
         </div>
         <div class="games-grid">
             <div class="game-card" onclick="openGame('spin')">
-                <div class="game-plays" id="spinPlays">5 spins</div>
                 <span class="game-emoji">🎰</span>
                 <div class="game-name">Spin & Earn</div>
                 <div class="game-desc">Wheel ghumao, inaam pao</div>
                 <span class="game-reward">1 Pass/spin</span>
             </div>
             <div class="game-card" onclick="openGame('guess')">
-                <div class="game-plays" id="guessPlays">3 tries</div>
                 <span class="game-emoji">🔢</span>
                 <div class="game-name">Number Guess</div>
                 <div class="game-desc">1-10 mein guess karo</div>
                 <span class="game-reward">8x Reward</span>
             </div>
             <div class="game-card" onclick="openGame('coin')">
-                <div class="game-plays" id="coinPlays">5 flips</div>
                 <span class="game-emoji">🪙</span>
                 <div class="game-name">Coin Flip</div>
                 <div class="game-desc">Heads ya Tails?</div>
                 <span class="game-reward">2x Multiplier</span>
             </div>
             <div class="game-card" onclick="openGame('scratch')">
-                <div class="game-plays" id="scratchPlays">2 cards</div>
                 <span class="game-emoji">🎫</span>
                 <div class="game-name">Scratch Card</div>
                 <div class="game-desc">Khurcho aur jeeto</div>
@@ -530,46 +618,113 @@
         </div>
     </div>
 
-    <!-- BONUS OVERLAY -->
-    <div class="bonus-overlay" id="bonusOverlay" onclick="closeBonusIfOutside(event)">
-        <div class="bonus-card">
-            <div class="bonus-emoji">🎁</div>
-            <div class="bonus-title">Daily Bonus</div>
-            <div class="bonus-amt" id="bonusAmt">₹0.05</div>
-            <div class="bonus-pass-info">🎟️ +1 Game Pass bhi milega!</div>
-            <div class="bonus-streak-row">
-                <div>🔥 Streak: <b id="bonusStreakTxt">0</b> days</div>
-                <div class="streak-days" id="streakDays"></div>
+    <!-- ===== MODALS ===== -->
+
+    <!-- DAILY BONUS MODAL -->
+    <div class="modal" id="dailyBonusModal">
+        <div class="modal-hdr"><div class="back-btn" onclick="closeModal('dailyBonus')">←</div><div class="modal-title">🎁 Daily Bonus</div></div>
+        <div class="daily-train-header">
+            <div class="daily-train-sub">Roz claim karo, streak badhao, zyada pao!</div>
+        </div>
+        <!-- TRAIN CHAIN -->
+        <div class="train-track" id="trainTrack">
+            <div class="train-chain" id="trainChain"></div>
+        </div>
+        <!-- TODAY CLAIM BOX -->
+        <div class="today-claim-box" id="todayClaimBox">
+            <div style="font-size:14px;color:var(--text2);margin-bottom:6px;">Aaj ka bonus</div>
+            <div class="today-claim-amt" id="todayBonusAmt">₹0.05</div>
+            <div style="font-size:13px;color:var(--purple2);margin:8px 0;">🎟️ +1 Game Pass bhi milega!</div>
+            <div class="streak-row">
+                <div class="streak-item"><div class="streak-val" id="streakDays2">0</div><div class="streak-lbl">Day Streak</div></div>
+                <div class="streak-item"><div class="streak-val" id="bonusTotal">₹0</div><div class="streak-lbl">Total Earned</div></div>
             </div>
-            <button class="btn-gold" id="claimBonusBtn" onclick="claimBonus()">🎉 CLAIM NOW</button>
-            <button class="btn-red" onclick="closeBonusOverlay()" style="background:transparent;color:var(--text3);border:1px solid var(--border);box-shadow:none;">Close</button>
+            <button class="btn-gold" id="claimBonusBtn2" onclick="claimBonus()" style="margin-top:12px;">🎉 CLAIM NOW</button>
+        </div>
+        <div id="alreadyClaimedMsg" style="display:none;text-align:center;padding:20px;background:rgba(34,211,160,.1);border-radius:16px;border:1px solid rgba(34,211,160,.3);margin-top:16px;">
+            <div style="font-size:32px;margin-bottom:8px;">✅</div>
+            <div style="font-weight:800;color:var(--green);">Aaj ka bonus claim ho gaya!</div>
+            <div style="font-size:13px;color:var(--text2);margin-top:4px;">Kal wapas aao</div>
         </div>
     </div>
 
-    <!-- MODALS -->
-
-    <!-- SETTINGS MODAL -->
-    <div class="modal" id="settingsModal">
-        <div class="modal-hdr"><div class="back-btn" onclick="closeModal('settings')">←</div><div class="modal-title">⚙️ Settings</div></div>
-        <div class="settings-group">
-            <div class="setting-row">
-                <span class="setting-lbl">🌙 Dark Mode</span>
-                <div class="toggle on" id="themeToggleEl" onclick="toggleTheme()"><div class="toggle-knob"></div></div>
-            </div>
-            <div class="setting-row">
-                <span class="setting-lbl">🔊 Sound Effects</span>
-                <div class="toggle on" id="soundToggleEl" onclick="toggleSound()"><div class="toggle-knob"></div></div>
-            </div>
+    <!-- EARN PASSES MODAL -->
+    <div class="modal" id="earnPassesModal">
+        <div class="modal-hdr"><div class="back-btn" onclick="closeModal('earnPasses')">←</div><div class="modal-title">🎟️ Earn Passes</div></div>
+        <div class="earn-passes-hero">
+            <h2>Game Passes</h2>
+            <div class="ep-count" id="epPassCount">0</div>
+            <div style="font-size:13px;color:var(--purple2);">Passes se khelo, paise jeeto!</div>
         </div>
-    </div>
+        <div style="font-family:'Baloo 2',sans-serif;font-size:18px;font-weight:800;color:var(--gold);margin-bottom:12px;">📌 Kaise mile Passes?</div>
+        <div class="ep-method">
+            <div class="ep-method-icon">👥</div>
+            <div class="ep-method-info">
+                <div class="ep-method-title">Dost ko Refer karo</div>
+                <div class="ep-method-desc">Har ek active referral pe 3 passes milenge</div>
+            </div>
+            <div class="ep-method-badge">+3 Pass</div>
+        </div>
+        <div class="ep-method">
+            <div class="ep-method-icon">🎁</div>
+            <div class="ep-method-info">
+                <div class="ep-method-title">Daily Bonus Claim karo</div>
+                <div class="ep-method-desc">Roz bonus claim karo, 1 pass milega</div>
+            </div>
+            <div class="ep-method-badge">+1 Pass</div>
+        </div>
+        <div class="ep-method">
+            <div class="ep-method-icon">🔗</div>
+            <div class="ep-method-info">
+                <div class="ep-method-title">Shortlink complete karo</div>
+                <div class="ep-method-desc">Apne refer kiye dost se group pe movie search karwao aur shortlink poori karwao</div>
+            </div>
+            <div class="ep-method-badge">+1 Pass</div>
+        </div>
+        <div class="ep-method">
+            <div class="ep-method-icon">🎯</div>
+            <div class="ep-method-info">
+                <div class="ep-method-title">Daily Missions complete karo</div>
+                <div class="ep-method-desc">Sab missions pore karo extra passes pao</div>
+            </div>
+            <div class="ep-method-badge">+2 Pass</div>
+        </div>
 
-    <!-- SUPPORT MODAL -->
-    <div class="modal" id="supportModal">
-        <div class="modal-hdr"><div class="back-btn" onclick="closeModal('support')">←</div><div class="modal-title">📩 Support</div></div>
-        <div class="card-section">
-            <p style="margin-bottom:14px;font-size:14px;">Seedha contact karo: <a href="https://t.me/asbhiabsr" style="color:var(--blue);font-weight:800;" target="_blank">@asbhiabsr</a></p>
-            <textarea id="supportMsg" class="inp" placeholder="Apna message likho (min 10 chars)..." style="height:130px;resize:none;"></textarea>
-            <button class="btn-gold" onclick="sendSupport()">📤 SEND MESSAGE</button>
+        <!-- BUY PASSES -->
+        <div class="buy-passes-section">
+            <div class="buy-passes-title">🛒 Passes Kharido</div>
+            <div style="font-size:13px;color:var(--text2);margin-bottom:14px;">UPI se seedha kharido, turant milenge!</div>
+            <div class="pass-pkg" onclick="buyPasses(5,20)">
+                <div class="pass-pkg-left">
+                    <div class="pass-pkg-icon">🎟️</div>
+                    <div>
+                        <div class="pass-pkg-passes">5 Passes</div>
+                        <div class="pass-pkg-lbl">₹4 per pass</div>
+                    </div>
+                </div>
+                <div class="pass-pkg-price">₹20</div>
+            </div>
+            <div class="pass-pkg popular" style="position:relative;" onclick="buyPasses(15,50)">
+                <div class="popular-tag">🔥 Best Value</div>
+                <div class="pass-pkg-left">
+                    <div class="pass-pkg-icon">🎟️🎟️</div>
+                    <div>
+                        <div class="pass-pkg-passes">15 Passes</div>
+                        <div class="pass-pkg-lbl">₹3.3 per pass</div>
+                    </div>
+                </div>
+                <div class="pass-pkg-price">₹50</div>
+            </div>
+            <div class="pass-pkg" onclick="buyPasses(35,100)">
+                <div class="pass-pkg-left">
+                    <div class="pass-pkg-icon">💎</div>
+                    <div>
+                        <div class="pass-pkg-passes">35 Passes</div>
+                        <div class="pass-pkg-lbl">₹2.8 per pass</div>
+                    </div>
+                </div>
+                <div class="pass-pkg-price">₹100</div>
+            </div>
         </div>
     </div>
 
@@ -581,29 +736,83 @@
             <div style="font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:900;">Daily Challenge</div>
             <div style="font-family:'Baloo 2',sans-serif;font-size:36px;font-weight:900;">₹5 REWARD</div>
         </div>
-        <div class="card-section" style="margin-bottom:12px;">
-            <div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span style="font-weight:800;">📢 Refer 10 Active Users</span><span id="m1Status" style="background:rgba(245,200,66,.2);color:var(--gold);padding:4px 12px;border-radius:20px;font-weight:800;">0/10</span></div>
-            <div class="mission-bar-bg"><div class="mission-bar-fill" id="m1Bar"></div></div>
-        </div>
-        <div class="card-section" style="margin-bottom:16px;">
-            <div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span style="font-weight:800;">📅 Claim 5 Day Bonuses</span><span id="m2Status" style="background:rgba(245,200,66,.2);color:var(--gold);padding:4px 12px;border-radius:20px;font-weight:800;">0/5</span></div>
-            <div class="mission-bar-bg"><div class="mission-bar-fill" id="m2Bar"></div></div>
-        </div>
+        <div id="missionsContainer"></div>
         <button class="btn-gold" id="claimMissionBtn" onclick="claimMission()" style="display:none;">✅ CLAIM ₹5</button>
     </div>
 
-    <!-- ADD PROMO MODAL -->
-    <div class="modal" id="addPromoModal">
-        <div class="modal-hdr"><div class="back-btn" onclick="closeModal('addPromo')">←</div><div class="modal-title">📢 Add Promo</div></div>
-        <div class="card-section" style="text-align:center;margin-bottom:16px;">
-            <div style="font-family:'Baloo 2',sans-serif;font-size:28px;font-weight:900;color:var(--gold);">💰 ₹50 / 1 Din</div>
-            <div style="font-size:13px;color:var(--text2);margin-top:4px;">24 ghante tak aapka ad dikhega</div>
+    <!-- SETTINGS MODAL -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-hdr"><div class="back-btn" onclick="closeModal('settings')">←</div><div class="modal-title">⚙️ Settings</div></div>
+        <div class="settings-group">
+            <div class="setting-row">
+                <span class="setting-lbl">🌙 Dark Mode</span>
+                <div class="toggle on" id="themeToggleEl2" onclick="toggleTheme()"><div class="toggle-knob"></div></div>
+            </div>
+            <div class="setting-row">
+                <span class="setting-lbl">🔊 Sound Effects</span>
+                <div class="toggle on" id="soundToggleEl2" onclick="toggleSound()"><div class="toggle-knob"></div></div>
+            </div>
         </div>
-        <input id="promoTitle" class="inp" placeholder="Title" type="text">
+    </div>
+
+    <!-- SUPPORT MODAL -->
+    <div class="modal" id="supportModal">
+        <div class="modal-hdr"><div class="back-btn" onclick="closeModal('support')">←</div><div class="modal-title">📩 Support</div></div>
+        <div class="card-section">
+            <p style="margin-bottom:14px;font-size:14px;">Seedha contact: <a href="https://t.me/asbhiabsr" style="color:var(--blue);font-weight:800;" target="_blank">@asbhiabsr</a></p>
+            <textarea id="supportMsg" class="inp" placeholder="Apna message likho (min 10 chars)..." style="height:130px;resize:none;"></textarea>
+            <button class="btn-gold" onclick="sendSupport()">📤 SEND MESSAGE</button>
+        </div>
+    </div>
+
+    <!-- REFERRAL MODAL -->
+    <div class="modal" id="referralModal">
+        <div class="modal-hdr"><div class="back-btn" onclick="closeModal('referral')">←</div><div class="modal-title">👥 Refer & Earn</div></div>
+        <div style="background:linear-gradient(135deg,#0d2a5e,#1a1060);border-radius:24px;padding:20px;margin-bottom:16px;">
+            <div style="text-align:center;margin-bottom:16px;">
+                <div style="font-size:48px;margin-bottom:8px;">👥</div>
+                <div style="font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:900;color:var(--gold);">Har Referral Pe</div>
+                <div style="font-family:'Baloo 2',sans-serif;font-size:36px;font-weight:900;color:var(--green);">3 Passes + ₹ Bonus!</div>
+            </div>
+            <div class="ref-link-box">
+                <span class="ref-link-text" id="refLinkText2">Loading...</span>
+                <button class="ref-copy-btn" onclick="copyRef()">Copy</button>
+            </div>
+            <div class="share-grid" style="margin-top:10px;">
+                <div class="share-btn" onclick="shareOn('telegram')"><span>📱</span><span>Telegram</span></div>
+                <div class="share-btn" onclick="shareOn('whatsapp')"><span>💬</span><span>WhatsApp</span></div>
+                <div class="share-btn" onclick="shareOn('other')"><span>🔗</span><span>More</span></div>
+            </div>
+        </div>
+        <div class="card-section">
+            <div style="font-weight:800;margin-bottom:10px;color:var(--gold);">📋 Kaise active hoga referral?</div>
+            <div style="font-size:13px;color:var(--text2);line-height:1.7;">
+                1️⃣ Dost ko apna link bhejo<br>
+                2️⃣ Wo bot join kare<br>
+                3️⃣ Movie Group pe movie search kare<br>
+                4️⃣ Shortlink poori kare<br>
+                5️⃣ <b style="color:var(--gold);">Referral active!</b> Aapko 3 passes + ₹ bonus milega
+            </div>
+        </div>
+        <div class="card-section" style="margin-top:10px;">
+            <div style="font-weight:800;margin-bottom:6px;color:var(--gold);">💰 Daily Earnings</div>
+            <div style="font-size:13px;color:var(--text2);">Har roz jab aapka referred user movie search karega, aapko ₹ milega!</div>
+        </div>
+    </div>
+
+    <!-- ADMIN CREATE OFFER MODAL -->
+    <div class="modal" id="createOfferModal">
+        <div class="modal-hdr"><div class="back-btn" onclick="closeModal('createOffer')">←</div><div class="modal-title">➕ Create Offer</div></div>
+        <div class="card-section" style="text-align:center;margin-bottom:16px;">
+            <div style="font-size:13px;color:var(--text2);">Admin Only • Offer ek baar hi claim ho sakta hai jab tak edit na karo</div>
+        </div>
+        <input id="promoTitle" class="inp" placeholder="Offer Title" type="text">
         <input id="promoDesc" class="inp" placeholder="Description" type="text">
+        <input id="promoReward" class="inp" placeholder="Reward Amount (₹)" type="number" step="0.1">
         <input id="promoLink" class="inp" placeholder="Link URL" type="url">
-        <input id="promoContact" class="inp" placeholder="Contact @username" type="text">
-        <button class="btn-gold" onclick="submitPromo()">💳 PAY ₹50 & SUBMIT</button>
+        <input id="promoIcon" class="inp" placeholder="Icon emoji (e.g. 📱)" type="text">
+        <input id="promoMeta" class="inp" placeholder="Meta text (e.g. ⏱️ 2 min)" type="text">
+        <button class="btn-gold" onclick="submitAdminOffer()">✅ CREATE OFFER</button>
     </div>
 
     <!-- EDIT AD MODAL -->
@@ -613,7 +822,7 @@
         <input id="editAdTitle" class="inp" placeholder="Title" type="text">
         <input id="editAdReward" class="inp" placeholder="Reward (₹)" type="number" step="0.1">
         <input id="editAdLink" class="inp" placeholder="Link URL" type="url">
-        <input id="editAdMeta" class="inp" placeholder="Meta (e.g. ⏱️ 2 min)" type="text">
+        <input id="editAdMeta" class="inp" placeholder="Meta text" type="text">
         <input id="editAdIcon" class="inp" placeholder="Icon emoji" type="text">
         <button class="btn-gold" onclick="saveAd()">✅ UPDATE OFFER</button>
         <button class="btn-red" onclick="deleteAdFromEdit()">🗑️ DELETE OFFER</button>
@@ -625,12 +834,12 @@
         <div class="avail-balance">
             <div style="font-size:13px;color:var(--text2);margin-bottom:4px;">Available Balance</div>
             <div class="avail-amt" id="wdrawBal">₹0</div>
-            <div class="avail-lbl">Minimum: ₹40</div>
+            <div style="font-size:13px;color:var(--text2);margin-top:4px;">Minimum: ₹40</div>
         </div>
         <input id="wdrawAmt" class="inp" placeholder="Amount (min ₹40)" type="number" min="40">
-        <div class="method-btn" onclick="selMethod('upi')" id="methodUpi"><span style="font-size:28px;">📱</span><div><div style="font-weight:800;">UPI</div><div style="font-size:12px;color:var(--text2);">Instant transfer</div></div></div>
+        <div class="method-btn" onclick="selMethod('upi')" id="methodUpi"><span style="font-size:28px;">📱</span><div><div style="font-weight:800;">UPI</div><div style="font-size:12px;color:var(--text2);">Instant</div></div></div>
         <div class="method-btn" onclick="selMethod('bank')" id="methodBank"><span style="font-size:28px;">🏦</span><div><div style="font-weight:800;">Bank Transfer</div><div style="font-size:12px;color:var(--text2);">1-2 working days</div></div></div>
-        <div id="upiFields" style="display:none;"><input id="upiId" class="inp" placeholder="UPI ID (name@upi)" type="text"></div>
+        <div id="upiFields" style="display:none;"><input id="upiId" class="inp" placeholder="UPI ID" type="text"></div>
         <div id="bankFields" style="display:none;">
             <input id="accNo" class="inp" placeholder="Account Number" type="text">
             <input id="ifsc" class="inp" placeholder="IFSC Code" type="text">
@@ -646,8 +855,7 @@
             <div class="spin-stats">
                 <div class="ss-item"><div class="ss-val" id="spinBal">₹0</div><div class="ss-lbl">Balance</div></div>
                 <div class="ss-item"><div class="ss-val" id="spinPassesLeft">0</div><div class="ss-lbl">Passes</div></div>
-                <div class="ss-item"><div class="ss-val" id="spinLeft">5</div><div class="ss-lbl">Spins Left</div></div>
-                <div class="ss-item"><div class="ss-val" id="spinTodayEarned">₹0</div><div class="ss-lbl">Today Earned</div></div>
+                <div class="ss-item"><div class="ss-val" id="spinTodayEarned">₹0</div><div class="ss-lbl">Today Won</div></div>
             </div>
             <div class="wheel-outer">
                 <div class="wheel-ptr">▼</div>
@@ -655,10 +863,10 @@
             </div>
             <div class="spin-result" id="spinResultBox">
                 <div class="spin-result-amt" id="spinResultAmt">+₹0</div>
-                <div class="spin-result-txt" id="spinResultTxt">Badhaai ho!</div>
+                <div style="font-size:14px;color:rgba(255,255,255,.8);margin-top:4px;" id="spinResultTxt">Badhaai ho!</div>
             </div>
             <button class="btn-purple" id="spinBtn" onclick="doSpin()">🎰 SPIN (1 Pass)</button>
-            <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:6px;">1 Pass per spin • Winnings wallet mein save honge</p>
+            <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:6px;">Jitne passes hain utne spin karo!</p>
         </div>
     </div>
 
@@ -667,12 +875,13 @@
         <div class="modal-hdr"><div class="back-btn" onclick="closeModal('guess')">←</div><div class="modal-title">🔢 Number Guess</div></div>
         <div class="guess-display">
             <div class="guess-num" id="guessDisp">?</div>
-            <div class="guess-hint" id="guessHint">1 se 10 ke beech number guess karo</div>
-            <div class="guess-range"><div class="guess-range-fill" id="guessRangeFill"></div></div>
+            <div class="guess-hint" id="guessHint">1 se 10 ke beech guess karo</div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0;">
-            <span style="font-weight:700;">Bet Amount:</span>
+            <span style="font-weight:700;">Bet:</span>
             <span style="font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:900;color:var(--gold);" id="guessBetDisp">₹1</span>
+            <span style="font-size:13px;color:var(--text2);">Passes: <b style="color:var(--purple2);" id="guessPassLeft">0</b></span>
+            <span style="font-size:13px;color:var(--text2);">Bal: <b style="color:var(--gold);" id="guessBal">₹0</b></span>
         </div>
         <div class="bet-row">
             <div class="bet-chip sel" onclick="selGuessBet(1,this)">₹1</div>
@@ -680,13 +889,9 @@
             <div class="bet-chip" onclick="selGuessBet(5,this)">₹5</div>
             <div class="bet-chip" onclick="selGuessBet(10,this)">₹10</div>
         </div>
-        <div style="font-size:12px;color:var(--text3);margin:6px 0 4px;">Attempts:</div>
-        <div class="attempts-row" id="guessAtts"></div>
         <div class="num-grid" id="numGrid"></div>
-        <div style="display:flex;justify-content:space-between;background:var(--bg3);border-radius:14px;padding:14px;margin:8px 0;font-size:14px;">
-            <span>🎯 Correct = <b style="color:var(--green);">8x</b></span>
-            <span>Tries Left: <b style="color:var(--purple2);" id="guessTriesLeft">3</b></span>
-            <span>Bal: <b style="color:var(--gold);" id="guessBal">₹0</b></span>
+        <div style="text-align:center;background:var(--bg3);border-radius:14px;padding:12px;margin:8px 0;font-size:13px;">
+            ✅ Sahi guess = <b style="color:var(--green);">8x reward</b> • Galat = ek hint milega aur try karo!
         </div>
     </div>
 
@@ -695,19 +900,17 @@
         <div class="modal-hdr"><div class="back-btn" onclick="closeModal('coin')">←</div><div class="modal-title">🪙 Coin Flip</div></div>
         <div class="coin-game-wrap">
             <div style="display:flex;justify-content:space-between;background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:14px;">
-                <span>Flips Left: <b style="color:var(--purple2);" id="coinFlipsLeft">5</b></span>
-                <span>Passes: <b style="color:var(--gold);" id="coinPassesLeft">0</b></span>
+                <span>Passes: <b style="color:var(--purple2);" id="coinPassesLeft">0</b></span>
                 <span>Bal: <b style="color:var(--gold);" id="coinBal">₹0</b></span>
             </div>
             <div class="coin-outer">
                 <div class="coin" id="theCoin"><div class="coin-face coin-h">👑</div><div class="coin-face coin-t">⚡</div></div>
             </div>
-            <p style="text-align:center;color:var(--text2);font-size:14px;margin:12px 0;">Pehle choose karo, phir flip karo:</p>
+            <p style="text-align:center;color:var(--text2);font-size:14px;margin:12px 0;">Pehle choose karo, phir flip:</p>
             <div class="coin-choices">
                 <button class="coin-choice" id="coinChoiceH" onclick="chooseCoin('heads')">👑<br><span style="font-size:14px;">Heads</span></button>
                 <button class="coin-choice" id="coinChoiceT" onclick="chooseCoin('tails')">⚡<br><span style="font-size:14px;">Tails</span></button>
             </div>
-            <div style="font-size:13px;color:var(--text3);margin:8px 0;">Bet Amount:</div>
             <div class="bet-row">
                 <div class="bet-chip sel" onclick="selCoinBet(1,this)">₹1</div>
                 <div class="bet-chip" onclick="selCoinBet(2,this)">₹2</div>
@@ -717,7 +920,6 @@
             <div class="coin-res-win" id="coinResWin"><div class="coin-res-big">🎉 JEETE!</div><div id="coinWinAmt" style="font-family:'Baloo 2',sans-serif;font-size:36px;font-weight:900;margin-top:6px;">+₹0</div></div>
             <div class="coin-res-lose" id="coinResLose"><div class="coin-res-big">😢 HARE!</div><div id="coinLoseAmt" style="font-size:22px;margin-top:6px;">-₹0</div></div>
             <button class="btn-gold" id="flipBtn" onclick="doFlip()">🪙 FLIP KARO!</button>
-            <p style="text-align:center;font-size:12px;color:var(--text3);">Sahi guess pe 2x milega</p>
         </div>
     </div>
 
@@ -733,13 +935,12 @@
         <div class="scratch-area" id="scratchArea">
             <div class="scratch-reward-layer" id="scratchRewardLayer">
                 <div class="scratch-amt" id="scratchAmt">?</div>
-                <div class="scratch-lbl" id="scratchLbl">Khurcho aur jaano!</div>
+                <div style="font-size:15px;color:rgba(0,0,0,.6);margin-top:6px;font-weight:700;" id="scratchLbl">Khurcho aur jaano!</div>
             </div>
             <canvas id="scratchCanvas"></canvas>
         </div>
         <div class="scratch-prog"><div class="scratch-prog-fill" id="scratchProgFill"></div></div>
         <button class="btn-purple" id="newScratchBtn" onclick="newScratch()" disabled>🎫 NEW CARD (1 Pass)</button>
-        <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:6px;">2 free cards aaj • Kal reset hoga</p>
     </div>
 
     <!-- USER PROFILE CLICK MODAL -->
@@ -760,36 +961,44 @@
     <!-- TOAST -->
     <div id="toast" class="toast"></div>
 
+    <!-- CONGRATS POPUP (new referral) -->
+    <div class="congrats-overlay" id="congratsOverlay">
+        <div class="congrats-card">
+            <div class="confetti">🎊</div>
+            <div style="font-family:'Baloo 2',sans-serif;font-size:26px;font-weight:900;color:var(--gold);margin:12px 0 6px;">Congratulations!</div>
+            <div id="congratsMsg" style="font-size:14px;color:var(--text2);margin-bottom:20px;">Naya referral aaya!</div>
+            <button class="btn-gold" onclick="document.getElementById('congratsOverlay').classList.remove('show')">🎉 Awesome!</button>
+        </div>
+    </div>
+
     <script>
     // ========== TELEGRAM INIT ==========
-    const tg = window.Telegram?.WebApp;
+    const tg=window.Telegram?.WebApp;
     if(tg){tg.expand();tg.ready();}
     const BOT_USERNAME='LinkProviderRobot';
 
     // ========== STATE ==========
     let userData={user_id:null,first_name:'Guest',username:'',balance:0,total_earned:0,tier:1,total_refs:0,active_refs:0,pending_refs:0,daily_streak:0,today_earned:0,is_admin:false,games_won:0,passes:0,photo_url:null};
-    let gameState={spin_left:5,guess_left:3,coin_left:5,scratch_left:2,today_game_earned:0,wins:0,win_streak:0};
+    let gameState={today_game_earned:0,wins:0,win_streak:0};
     let claimedDates=[],userStreak=0,adminAds=[],adminEditMode=false,selectedMethod=null;
-    let missions={mission1:{progress:0,completed:false,total:10},mission2:{progress:0,completed:false,total:5}};
-    let soundOn=true,currentTheme='dark';
-    let lbMode='weekly';
+    let missions={m1:{p:0,done:false,total:10,label:'📢 10 Active Refs karo'},m2:{p:0,done:false,total:5,label:'📅 5 Daily Bonus claim karo'},m3:{p:0,done:false,total:1,label:'🎮 Aaj koi game khelo'},m4:{p:0,done:false,total:1,label:'💎 Koi offer claim karo'}};
+    let soundOn=true,currentTheme='dark',lbMode='weekly';
+    let spinAngle=0,isSpinning=false;
+    let guessBet=1,guessActive=false,guessSecret=null,guessAttempts=0;
+    let coinChoice=null,coinBet=1,coinFlipping=false;
+    let scratchRevealed=false,scratchCtx=null,scratchDrawing=false;
+    let audioCtx=null,prevActiveRefs=0;
 
-    // Spin
     const SEGS=[
         {l:'₹0.50',v:.5,c:'#f59e0b'},{l:'₹1',v:1,c:'#3b82f6'},
         {l:'₹0.25',v:.25,c:'#22d3a0'},{l:'₹2',v:2,c:'#ff5b6b'},
         {l:'₹0.10',v:.1,c:'#a78bfa'},{l:'₹5',v:5,c:'#f97316'},
         {l:'₹0.50',v:.5,c:'#38bdf8'},{l:'₹1',v:1,c:'#ec4899'}
     ];
-    let spinAngle=0,isSpinning=false;
-    let guessBet=1,guessActive=false;
-    let coinChoice=null,coinBet=1,coinFlipping=false;
-    let scratchRevealed=false,scratchCtx=null,scratchDrawing=false;
-    let audioCtx=null;
 
     // ========== API ==========
-    async function apiGet(url){try{const r=await fetch(url);if(!r.ok)throw new Error('HTTP '+r.status);return await r.json();}catch(e){console.error('GET',url,e);return null;}}
-    async function apiPost(url,body){try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json();}catch(e){console.error('POST',url,e);return{success:false,message:'Network error'};}}
+    async function apiGet(url){try{const r=await fetch(url);if(!r.ok)throw new Error();return await r.json();}catch(e){return null;}}
+    async function apiPost(url,body){try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw new Error();return await r.json();}catch(e){return{success:false,message:'Network error'};}}
 
     // ========== LOAD DATA ==========
     async function loadUser(){
@@ -797,9 +1006,11 @@
         if(!uid)return;
         const d=await apiGet(`/api/user/${uid}`);
         if(d&&!d.error){
+            const oldRefs=userData.active_refs||0;
             userData={...userData,...d,user_id:uid,first_name:tg?.initDataUnsafe?.user?.first_name||d.first_name||'User',photo_url:tg?.initDataUnsafe?.user?.photo_url||null};
             userStreak=userData.daily_streak||0;
-            if(userData.is_admin){document.getElementById('adminBtn').style.display='flex';}
+            if(userData.is_admin){document.getElementById('adminSidebarBtn').style.display='flex';document.getElementById('addOfferBtn').style.display='flex';}
+            if((userData.active_refs||0)>oldRefs&&oldRefs>0){showCongratsPopup();}
             updateUI();
         }
     }
@@ -811,48 +1022,45 @@
     async function loadBonusDays(){
         if(!userData.user_id)return;
         const d=await apiGet(`/api/user/${userData.user_id}/bonus-days`);
-        if(d){claimedDates=d.claimed_days||[];checkGift();}
+        if(d){claimedDates=d.claimed_days||[];updateDailyBonusCard();}
     }
     async function loadMissions(){
         if(!userData.user_id)return;
         const d=await apiGet(`/api/user/${userData.user_id}/missions`);
-        if(d&&d.mission1)missions.mission1=d.mission1;
-        if(d&&d.mission2)missions.mission2=d.mission2;
+        if(d){
+            if(d.mission1){missions.m1={...missions.m1,p:d.mission1.progress||0,done:d.mission1.completed||false};}
+            if(d.mission2){missions.m2={...missions.m2,p:d.mission2.progress||0,done:d.mission2.completed||false};}
+        }
         updateMissionsUI();
     }
     async function loadAds(){
         const d=await apiGet('/api/ads');
         adminAds=d?(d.ads||[]):[{id:1,title:'Install App & Earn',reward:2,link:'https://t.me/',meta:'⏱️ 2 min',icon:'📱'},{id:2,title:'Watch Video',reward:0.5,link:'https://t.me/',meta:'⏱️ 30 sec',icon:'🎬'},{id:3,title:'Join Channel',reward:1,link:'https://t.me/',meta:'⏱️ 1 min',icon:'📢'}];
-        renderAds();
+        let claimedIds=[];
+        if(userData.user_id){const cd=await apiGet(`/api/user/${userData.user_id}/claimed-ads`);if(cd)claimedIds=(cd.claimed_ads||[]).map(a=>a.ad_id);}
+        renderAds(claimedIds);
     }
-    async function loadLiveActivity(){
-        const d=await apiGet('/api/live-activity');
-        renderLiveActivity(d||[]);
-    }
+    async function loadLiveActivity(){const d=await apiGet('/api/live-activity');renderLiveActivity(d||[]);}
     async function loadWithdrawalHistory(){
-        if(!userData.user_id){document.getElementById('histContainer').innerHTML='<div style="color:var(--text3);text-align:center;padding:20px;">Login required</div>';return;}
+        if(!userData.user_id)return;
         const d=await apiGet(`/api/user/${userData.user_id}/withdrawals`);
         renderHistory(d||[]);
     }
-    async function loadLeaderboard(){
-        const d=await apiGet('/api/leaderboard');
-        renderLeaderboard(d||[]);
-    }
+    async function loadLeaderboard(){const d=await apiGet('/api/leaderboard');renderLeaderboard(d||[]);}
     async function loadRefActivity(){
         if(!userData.user_id)return;
-        // Try to get referred users activity from API
-        const d=await apiGet(`/api/user/${userData.user_id}/ref-activity`).catch(()=>null);
+        const d=await apiGet(`/api/user/${userData.user_id}/ref-activity`);
         renderRefActivity(d||[]);
     }
 
     // ========== UI UPDATE ==========
     function updateUI(){
-        // Balance
         document.getElementById('balAmt').textContent=`₹${(userData.balance||0).toFixed(2)}`;
         document.getElementById('todayEarned').textContent=`₹${(userData.today_earned||0).toFixed(2)}`;
         document.getElementById('activeRefs').textContent=userData.active_refs||0;
         document.getElementById('passCount').textContent=userData.passes||0;
         document.getElementById('wdrawBal').textContent=`₹${(userData.balance||0).toFixed(2)}`;
+        document.getElementById('epPassCount').textContent=userData.passes||0;
         // Profile
         const fname=userData.first_name||'Guest';
         document.getElementById('profileName').textContent=fname;
@@ -866,68 +1074,137 @@
         document.getElementById('pGamesWon').textContent=userData.games_won||0;
         document.getElementById('pRefLink').textContent=getRefLink();
         document.getElementById('refLinkText').textContent=getRefLink();
-        // Profile avatar (top + profile page) with Telegram photo
+        document.getElementById('refLinkText2').textContent=getRefLink();
+        // Profile DP (only in profile page)
         const iniChar=fname.charAt(0).toUpperCase();
         const tgPhoto=userData.photo_url;
-        const topAv=document.getElementById('topProfileAvatar');
         const profDp=document.getElementById('profileDp');
-        if(tgPhoto){
-            topAv.innerHTML=`<img src="${tgPhoto}" alt="${iniChar}" onerror="this.parentNode.textContent='${iniChar}'">`;
-            profDp.innerHTML=`<img src="${tgPhoto}" alt="${iniChar}" onerror="this.parentNode.textContent='${iniChar}'">`;
-        }else{
-            topAv.textContent=iniChar;
-            profDp.textContent=iniChar;
-        }
+        if(tgPhoto){profDp.innerHTML=`<img src="${tgPhoto}" alt="${iniChar}" onerror="this.parentNode.textContent='${iniChar}'">`;}
+        else{profDp.textContent=iniChar;}
         // Games
         document.getElementById('gameBadgePasses').textContent=userData.passes||0;
         document.getElementById('gameWins').textContent=gameState.wins||0;
         document.getElementById('gameTodayEarned').textContent=`₹${(gameState.today_game_earned||0).toFixed(2)}`;
         document.getElementById('gameStreak').textContent=`${gameState.win_streak||0}🔥`;
-        document.getElementById('spinPlays').textContent=`${gameState.spin_left||0} spins`;
-        document.getElementById('guessPlays').textContent=`${gameState.guess_left||0} tries`;
-        document.getElementById('coinPlays').textContent=`${gameState.coin_left||0} flips`;
-        document.getElementById('scratchPlays').textContent=`${gameState.scratch_left||0} cards`;
-        // Spin modal
-        document.getElementById('spinBal').textContent=`₹${(userData.balance||0).toFixed(2)}`;
-        document.getElementById('spinPassesLeft').textContent=userData.passes||0;
-        document.getElementById('spinLeft').textContent=gameState.spin_left||0;
+        // Spin/game modals
+        ['spinBal','spinPassesLeft'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=id==='spinBal'?`₹${(userData.balance||0).toFixed(2)}`:userData.passes||0;});
         document.getElementById('spinTodayEarned').textContent=`₹${(gameState.today_game_earned||0).toFixed(2)}`;
-        document.getElementById('guessTriesLeft').textContent=gameState.guess_left||0;
+        document.getElementById('guessPassLeft').textContent=userData.passes||0;
         document.getElementById('guessBal').textContent=`₹${(userData.balance||0).toFixed(2)}`;
-        document.getElementById('coinFlipsLeft').textContent=gameState.coin_left||0;
         document.getElementById('coinPassesLeft').textContent=userData.passes||0;
         document.getElementById('coinBal').textContent=`₹${(userData.balance||0).toFixed(2)}`;
-        document.getElementById('scratchCardsLeft').textContent=gameState.scratch_left||0;
         document.getElementById('scratchPassesLeft').textContent=userData.passes||0;
         document.getElementById('scratchBal').textContent=`₹${(userData.balance||0).toFixed(2)}`;
     }
-
     function getTierName(t){return t>=4?'💎 DIAMOND':t===3?'🥇 GOLD':t===2?'🥈 SILVER':'🥉 BASIC';}
     function getRefLink(){return `https://t.me/${BOT_USERNAME}?start=ref_${userData.user_id||'xxx'}`;}
+
+    // ========== SIDEBAR ==========
+    function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('sidebarOverlay').classList.add('show');playSound('tap');}
+    function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');}
+
+    // ========== DAILY BONUS CARD ==========
+    function updateDailyBonusCard(){
+        const today=new Date().toISOString().split('T')[0];
+        const claimed=claimedDates.includes(today);
+        const btn=document.getElementById('dailyBonusBtn');
+        const icon=document.getElementById('dailyBonusIcon');
+        const sub=document.getElementById('dailyBonusSubtitle');
+        if(claimed){btn.textContent='Claimed ✅';btn.style.background='var(--bg3)';btn.style.color='var(--text3)';icon.textContent='✅';sub.textContent='Kal wapas aao!';}
+        else{btn.textContent='Claim';btn.style.background='linear-gradient(135deg,var(--green),#059669)';btn.style.color='#fff';icon.textContent='🎁';sub.textContent='Aaj ka bonus claim karo!';}
+        // Update daily bonus modal
+        buildTrainChain();
+    }
+
+    function buildTrainChain(){
+        const chain=document.getElementById('trainChain');
+        if(!chain)return;
+        const today=new Date().toISOString().split('T')[0];
+        // Show last 7 days + next 7 days
+        let days=[];
+        for(let i=-7;i<=7;i++){
+            const d=new Date();d.setDate(d.getDate()+i);
+            days.push(d.toISOString().split('T')[0]);
+        }
+        chain.innerHTML='';
+        days.forEach((day,idx)=>{
+            const isClaimed=claimedDates.includes(day);
+            const isToday=day===today;
+            const isPast=day<today;
+            const isFuture=day>today;
+            const dayNum=new Date(day).getDate();
+            const mon=new Date(day).toLocaleString('hi',{month:'short'});
+            const car=document.createElement('div');
+            car.className='train-car';
+            const bonus=0.05+Math.min((claimedDates.length)*0.02,0.15);
+            car.innerHTML=`
+                ${idx>0?`<div class="train-connector ${isClaimed&&days[idx-1]&&claimedDates.includes(days[idx-1])?'filled':''}"></div>`:'<div style="width:20px;margin-bottom:24px;"></div>'}
+                <div class="train-node ${isClaimed?'claimed':isToday?'today':'future'}" onclick="${isToday&&!isClaimed?'claimBonusFromModal()':''}">
+                    ${isClaimed?'✅':isToday?'🎁':isPast?'⭕':'🔒'}
+                </div>
+                <div class="train-date">${dayNum} ${mon}</div>
+                <div class="train-reward">${isClaimed?'+₹'+bonus.toFixed(2):isToday?'₹'+bonus.toFixed(2):'--'}</div>
+            `;
+            chain.appendChild(car);
+        });
+        // Scroll to today
+        setTimeout(()=>{const todayNode=chain.querySelector('.today');if(todayNode)todayNode.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});},100);
+        // Update today claim box
+        const claimed=claimedDates.includes(today);
+        const base=0.05,extra=Math.min(userStreak*.02,.15);
+        document.getElementById('todayBonusAmt').textContent=`₹${(base+extra).toFixed(2)}`;
+        document.getElementById('streakDays2').textContent=userStreak;
+        document.getElementById('bonusTotal').textContent=`₹${(userData.total_earned||0).toFixed(2)}`;
+        document.getElementById('todayClaimBox').style.display=claimed?'none':'block';
+        document.getElementById('alreadyClaimedMsg').style.display=claimed?'block':'none';
+    }
+
+    function claimBonusFromModal(){
+        claimBonus();
+    }
+
+    async function claimBonus(){
+        const today=new Date().toISOString().split('T')[0];
+        if(claimedDates.includes(today)){showToast('✅ Aaj ka bonus pehle hi claim ho chuka!');return;}
+        const btn=document.getElementById('claimBonusBtn2');
+        if(btn){btn.disabled=true;btn.textContent='Claiming...';}
+        const r=await apiPost('/api/claim-day-bonus',{user_id:userData.user_id,date:today});
+        if(btn){btn.disabled=false;btn.textContent='🎉 CLAIM NOW';}
+        if(r&&r.success){
+            userData.balance+=r.bonus;userData.today_earned+=r.bonus;
+            userData.passes=(userData.passes||0)+1;
+            userStreak=r.streak;claimedDates.push(today);
+            missions.m2.p=Math.min(missions.m2.p+1,missions.m2.total);
+            if(missions.m2.p>=missions.m2.total)missions.m2.done=true;
+            updateUI();updateDailyBonusCard();updateMissionsUI();
+            playSound('earn');
+            showToast(`🎉 +₹${r.bonus.toFixed(2)} + 1 Pass! Streak: ${userStreak}🔥`);
+            setTimeout(()=>closeModal('dailyBonus'),1500);
+        }else{showToast('❌ '+(r?.message||'Failed'));}
+    }
 
     // ========== LIVE ACTIVITY ==========
     function renderLiveActivity(acts){
         const el=document.getElementById('liveList');
         if(!acts||!acts.length){el.innerHTML='<div style="text-align:center;padding:18px;color:var(--text3);">Koi activity nahi abhi</div>';return;}
-        el.innerHTML=acts.slice(0,12).map(a=>{
-            const dp=a.photo_url?`<img src="${a.photo_url}" alt="${a.user_name||'U'}" onerror="this.style.display='none'">`:a.avatar||a.user_name?.charAt(0)||'?';
-            const dpEl=a.photo_url?`<div class="live-dp"><img src="${a.photo_url}" alt="" onerror="this.parentNode.textContent='${a.user_name?.charAt(0)||'?'}'"></div>`:`<div class="live-dp">${a.avatar||a.user_name?.charAt(0)||'?'}</div>`;
+        el.innerHTML=acts.slice(0,10).map(a=>{
+            const dpEl=a.photo_url?`<div class="live-dp"><img src="${a.photo_url}" onerror="this.parentNode.textContent='${(a.user_name||'?')[0]}'"></div>`:`<div class="live-dp">${a.avatar||'👤'}</div>`;
             const amtEl=a.amount?`<div class="live-amount">${a.amount>0?'+':''}₹${parseFloat(a.amount).toFixed(2)}</div>`:'';
             return `<div class="live-item" onclick="viewUserProfile(${a.user_id||0},'${(a.user_name||'User').replace(/'/g,"\\'")}')">
                 ${dpEl}
-                <div class="live-info"><div class="live-name">${a.user_name||'User'}</div><div class="live-act">${a.description||a.type||'active'}</div></div>
-                <div style="text-align:right;">${amtEl}<div class="live-time">${a.time||'just now'}</div></div>
+                <div class="live-info"><div class="live-name">${a.user_name||'User'}</div><div class="live-act">${a.description||'active'}</div></div>
+                <div style="text-align:right;">${amtEl}<div class="live-time">${a.time||'now'}</div></div>
             </div>`;
         }).join('');
     }
 
     async function viewUserProfile(userId,name){
-        if(!userId||userId===0)return;
+        if(!userId)return;
         openModal('userProfile');
         document.getElementById('upName').textContent=name;
         document.getElementById('upId').textContent=`ID: ${userId}`;
         document.getElementById('upDp').textContent=name.charAt(0).toUpperCase();
-        document.getElementById('upBal').textContent='₹...';
+        document.getElementById('upBal').textContent='...';
         document.getElementById('upRefs').textContent='...';
         document.getElementById('upActiveRefs').textContent='...';
         const d=await apiGet(`/api/user/${userId}`);
@@ -935,103 +1212,79 @@
             document.getElementById('upBal').textContent=`₹${(d.balance||0).toFixed(2)}`;
             document.getElementById('upRefs').textContent=d.total_refs||0;
             document.getElementById('upActiveRefs').textContent=d.active_refs||0;
-        }else{
-            document.getElementById('upBal').textContent='N/A';
-            document.getElementById('upRefs').textContent='N/A';
-            document.getElementById('upActiveRefs').textContent='N/A';
         }
     }
 
-    // ========== REF ACTIVITY ==========
     function renderRefActivity(acts){
         const el=document.getElementById('refActivityList');
-        if(!acts||!acts.length){
-            el.innerHTML=`<div style="color:var(--text3);font-size:13px;text-align:center;padding:16px;">Koi referred user nahi abhi<br><span style="font-size:11px;margin-top:4px;display:block;">Apne refer kiye logon ko group pe movie search karao!</span></div>`;
-            return;
-        }
+        if(!acts||!acts.length){el.innerHTML=`<div style="color:var(--text3);font-size:13px;text-align:center;padding:16px;">Koi referred user nahi abhi<br><span style="font-size:11px;display:block;margin-top:4px;">Apne dosto ko group pe movie search karao!</span></div>`;return;}
         el.innerHTML=acts.map(u=>`<div class="ref-act-item">
             <div class="ref-act-dp">${(u.first_name||'U').charAt(0)}</div>
             <div class="ref-act-info">
                 <div class="ref-act-name">${u.first_name||'User'}</div>
-                <div class="ref-act-detail">${u.last_search||'No activity yet'}</div>
+                <div class="ref-act-detail">${u.last_search||'No activity'}</div>
             </div>
             <span class="ref-act-badge ${u.is_active?'badge-active':'badge-pending'}">${u.is_active?'Active':'Pending'}</span>
         </div>`).join('');
     }
 
-    // ========== GIFT / DAILY BONUS ==========
-    function checkGift(){
-        const today=new Date().toISOString().split('T')[0];
-        const claimed=claimedDates.includes(today);
-        document.getElementById('giftDot').style.display=claimed?'none':'flex';
-    }
-    function openBonusModal(){
-        const today=new Date().toISOString().split('T')[0];
-        if(claimedDates.includes(today)){showToast('✅ Aaj ka bonus pehle hi claim ho chuka hai!');return;}
-        const base=0.05,streak=Math.min(userStreak*.02,.15);
-        document.getElementById('bonusAmt').textContent=`₹${(base+streak).toFixed(2)}`;
-        document.getElementById('bonusStreakTxt').textContent=userStreak;
-        // Render streak days
-        const days=document.getElementById('streakDays');
-        days.innerHTML=[...Array(7)].map((_,i)=>`<div class="streak-day ${i<Math.min(userStreak%7,7)?'done':''}">D${i+1}</div>`).join('');
-        document.getElementById('bonusOverlay').classList.add('show');
-        playSound('tap');
-    }
-    function closeBonusOverlay(){document.getElementById('bonusOverlay').classList.remove('show');}
-    function closeBonusIfOutside(e){if(e.target.id==='bonusOverlay')closeBonusOverlay();}
-
-    async function claimBonus(){
-        const today=new Date().toISOString().split('T')[0];
-        if(claimedDates.includes(today)){showToast('❌ Already claimed!');closeBonusOverlay();return;}
-        const btn=document.getElementById('claimBonusBtn');
-        btn.disabled=true;btn.textContent='Claiming...';
-        const r=await apiPost('/api/claim-day-bonus',{user_id:userData.user_id,date:today});
-        btn.disabled=false;btn.textContent='🎉 CLAIM NOW';
-        if(r&&r.success){
-            userData.balance+=r.bonus;userData.today_earned+=r.bonus;
-            userData.passes=(userData.passes||0)+1; // +1 pass for daily bonus
-            userStreak=r.streak;claimedDates.push(today);
-            updateUI();checkGift();
-            await apiPost('/api/update-mission',{user_id:userData.user_id,mission_type:'bonus'});
-            await loadMissions();
-            showToast(`🎉 +₹${r.bonus.toFixed(2)} + 1 Pass! Streak: ${userStreak}`);
-            playSound('earn');setTimeout(closeBonusOverlay,1200);
-        }else{showToast('❌ '+(r?.message||'Failed'));}
+    // ========== CONGRATS ==========
+    function showCongratsPopup(){
+        document.getElementById('congratsMsg').textContent=`${userData.active_refs} active referral! +3 Passes mile!`;
+        document.getElementById('congratsOverlay').classList.add('show');
+        playSound('earn');
+        setTimeout(()=>document.getElementById('congratsOverlay').classList.remove('show'),5000);
     }
 
     // ========== MISSIONS ==========
     function updateMissionsUI(){
-        const m1=missions.mission1,m2=missions.mission2;
-        document.getElementById('m1Bar').style.width=`${(m1.progress/m1.total)*100}%`;
-        document.getElementById('m1Status').textContent=`${m1.progress}/${m1.total}`;
-        document.getElementById('m2Bar').style.width=`${(m2.progress/m2.total)*100}%`;
-        document.getElementById('m2Status').textContent=`${m2.progress}/${m2.total}`;
-        const done=(m1.completed?1:0)+(m2.completed?1:0);
+        const container=document.getElementById('missionsContainer');
+        if(!container)return;
+        const mArr=[
+            {key:'m1',label:'📢 10 Active Refs karo',p:missions.m1.p,total:10,done:missions.m1.done},
+            {key:'m2',label:'📅 5 Daily Bonus claim karo',p:missions.m2.p,total:5,done:missions.m2.done},
+            {key:'m3',label:'🎮 Aaj koi game khelo',p:missions.m3.p,total:1,done:missions.m3.done},
+            {key:'m4',label:'💎 Koi offer claim karo',p:missions.m4.p,total:1,done:missions.m4.done},
+        ];
+        container.innerHTML=mArr.map(m=>`
+            <div class="card-section" style="margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                    <span style="font-weight:800;">${m.label}</span>
+                    <span style="background:${m.done?'rgba(34,211,160,.2)':'rgba(245,200,66,.2)'};color:${m.done?'var(--green)':'var(--gold)'};padding:3px 10px;border-radius:20px;font-size:12px;font-weight:800;">${m.done?'✅ Done':m.p+'/'+m.total}</span>
+                </div>
+                <div class="mission-bar-bg"><div class="mission-bar-fill" style="width:${Math.min((m.p/m.total)*100,100)}%;background:${m.done?'var(--green)':'#fff'};"></div></div>
+            </div>
+        `).join('');
+        const done=mArr.filter(m=>m.done).length;
         document.getElementById('missionsDone').textContent=done;
-        document.getElementById('missionBarFill').style.width=`${(done/2)*100}%`;
-        document.getElementById('claimMissionBtn').style.display=done===2?'block':'none';
+        document.getElementById('missionBarFill').style.width=`${(done/4)*100}%`;
+        const claimBtn=document.getElementById('claimMissionBtn');
+        if(claimBtn)claimBtn.style.display=done>=4?'block':'none';
     }
+
     async function claimMission(){
-        if(!missions.mission1.completed||!missions.mission2.completed){showToast('❌ Pehle dono missions complete karo!');return;}
         const r=await apiPost('/api/claim-mission-reward',{user_id:userData.user_id});
         if(r&&r.success){
             userData.balance+=5;userData.total_earned+=5;
-            missions={mission1:{progress:0,completed:false,total:10},mission2:{progress:0,completed:false,total:5}};
+            missions={m1:{p:0,done:false,total:10,label:''},m2:{p:0,done:false,total:5,label:''},m3:{p:0,done:false,total:1,label:''},m4:{p:0,done:false,total:1,label:''}};
             updateUI();updateMissionsUI();closeModal('missions');
             showToast('✅ ₹5 claimed!');playSound('earn');
         }else{showToast('❌ '+(r?.message||'Failed'));}
     }
 
     // ========== ADS ==========
-    function renderAds(){
+    function renderAds(claimedIds=[]){
         const c=document.getElementById('adsContainer');
         if(!adminAds.length){c.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);">No offers yet</div>';return;}
-        c.innerHTML=adminAds.map(ad=>`<div class="ad-card ${adminEditMode?'admin-mode':''}" onclick="handleAdClick(${ad.id})">
-            ${adminEditMode?`<div class="ad-del-btn" onclick="event.stopPropagation();delAd(${ad.id})">✕</div><div class="ad-edit-btn" onclick="event.stopPropagation();editAd(${ad.id})">✎</div>`:''}
-            <div class="ad-icon-box">${ad.icon||'📢'}</div>
-            <div class="ad-info"><div class="ad-title">${ad.title}</div><div class="ad-meta">${ad.meta||''}</div></div>
-            <div class="ad-reward">+₹${ad.reward}</div>
-        </div>`).join('');
+        c.innerHTML=adminAds.map(ad=>{
+            const isClaimed=claimedIds.includes(ad.id);
+            return `<div class="ad-card ${adminEditMode?'admin-mode':''} ${isClaimed&&!adminEditMode?'ad-claimed':''}" onclick="handleAdClick(${ad.id})">
+                ${adminEditMode?`<div class="ad-del-btn" onclick="event.stopPropagation();delAd(${ad.id})">✕</div><div class="ad-edit-btn" onclick="event.stopPropagation();editAd(${ad.id})">✎</div>`:''}
+                <div class="ad-icon-box">${ad.icon||'📢'}</div>
+                <div class="ad-info"><div class="ad-title">${ad.title}</div><div class="ad-meta">${ad.meta||''}</div></div>
+                ${isClaimed&&!adminEditMode?`<div class="ad-claimed-badge">✅ Claimed</div>`:`<div class="ad-reward">+₹${ad.reward}</div>`}
+            </div>`;
+        }).join('');
     }
 
     async function handleAdClick(adId){
@@ -1042,10 +1295,22 @@
         const r=await apiPost('/api/claim-ad',{user_id:userData.user_id,ad_id:adId,reward:ad.reward});
         if(r&&r.success){
             userData.balance+=ad.reward;userData.today_earned+=ad.reward;
-            updateUI();showToast(`✅ +₹${ad.reward} earned!`);playSound('earn');
-            await apiPost('/api/update-mission',{user_id:userData.user_id,mission_type:'ad'});
-            await loadMissions();
-        }else{showToast('❌ '+(r?.message||'Already claimed today'));}
+            missions.m4.p=1;missions.m4.done=true;
+            updateUI();updateMissionsUI();
+            showToast(`✅ +₹${ad.reward} earned!`);playSound('earn');
+            await loadAds();
+        }else{showToast('❌ '+(r?.message||'Already claimed'));}
+    }
+
+    function openAdminCreateOffer(){if(!userData.is_admin){return;}openModal('createOffer');}
+
+    async function submitAdminOffer(){
+        const t=document.getElementById('promoTitle').value,d=document.getElementById('promoDesc').value,rw=document.getElementById('promoReward').value,l=document.getElementById('promoLink').value,ic=document.getElementById('promoIcon').value||'📢',m=document.getElementById('promoMeta').value||'';
+        if(!t||!rw||!l){showToast('❌ Title, Reward aur Link zaruri hain');return;}
+        const newId=Date.now()%100000;
+        const r=await apiPost('/api/update-ad',{ad_id:newId,admin_id:userData.user_id,title:t,reward:parseFloat(rw),link:l,meta:m,icon:ic});
+        if(r&&r.success){showToast('✅ Offer created!');loadAds();closeModal('createOffer');['promoTitle','promoDesc','promoReward','promoLink','promoIcon','promoMeta'].forEach(i=>document.getElementById(i).value='');}
+        else showToast('❌ '+(r?.message||'Failed'));
     }
 
     function editAd(id){
@@ -1054,59 +1319,40 @@
         document.getElementById('editAdTitle').value=ad.title;
         document.getElementById('editAdReward').value=ad.reward;
         document.getElementById('editAdLink').value=ad.link;
-        document.getElementById('editAdMeta').value=ad.meta;
-        document.getElementById('editAdIcon').value=ad.icon;
+        document.getElementById('editAdMeta').value=ad.meta||'';
+        document.getElementById('editAdIcon').value=ad.icon||'';
         openModal('editAd');
     }
-
     async function saveAd(){
         const id=parseInt(document.getElementById('editAdId').value);
-        const body={ad_id:id,admin_id:userData.user_id,title:document.getElementById('editAdTitle').value,reward:parseFloat(document.getElementById('editAdReward').value),link:document.getElementById('editAdLink').value,meta:document.getElementById('editAdMeta').value,icon:document.getElementById('editAdIcon').value};
-        const r=await apiPost('/api/update-ad',body);
-        if(r&&r.success){showToast('✅ Updated!');loadAds();closeModal('editAd');}
+        const r=await apiPost('/api/update-ad',{ad_id:id,admin_id:userData.user_id,title:document.getElementById('editAdTitle').value,reward:parseFloat(document.getElementById('editAdReward').value),link:document.getElementById('editAdLink').value,meta:document.getElementById('editAdMeta').value,icon:document.getElementById('editAdIcon').value});
+        if(r&&r.success){showToast('✅ Updated + Claims Reset!');loadAds();closeModal('editAd');}
         else showToast('❌ '+(r?.message||'Failed'));
     }
-
     async function delAd(id){
         if(!confirm('Delete this offer?'))return;
         const r=await apiPost('/api/delete-ad',{ad_id:id,admin_id:userData.user_id});
         if(r&&r.success){showToast('✅ Deleted');loadAds();}
         else showToast('❌ '+(r?.message||'Failed'));
     }
+    function deleteAdFromEdit(){delAd(parseInt(document.getElementById('editAdId').value));closeModal('editAd');}
+    function toggleAdminEdit(){adminEditMode=!adminEditMode;loadAds();showToast(adminEditMode?'✏️ Edit Mode ON':'✅ Edit Mode OFF');}
 
-    function deleteAdFromEdit(){
-        delAd(parseInt(document.getElementById('editAdId').value));
-        closeModal('editAd');
-    }
-
-    function toggleAdminEdit(){
-        adminEditMode=!adminEditMode;renderAds();
-        showToast(adminEditMode?'✏️ Edit Mode ON':'✅ Edit Mode OFF');
-    }
-
-    // ========== ADD PROMO ==========
-    function openAddAd(){
-        if(userData.balance<50){showToast('❌ Balance kam hai! ₹50 chahiye');return;}
-        openModal('addPromo');
-    }
-    function submitPromo(){
-        const t=document.getElementById('promoTitle').value,d=document.getElementById('promoDesc').value,l=document.getElementById('promoLink').value,c=document.getElementById('promoContact').value;
-        if(!t||!d||!l||!c){showToast('❌ Sab fields bharo');return;}
-        userData.balance-=50;updateUI();
-        closeModal('addPromo');showToast('✅ Promotion submit! Approval pending.');playSound('tap');
-        ['promoTitle','promoDesc','promoLink','promoContact'].forEach(i=>document.getElementById(i).value='');
+    // ========== BUY PASSES ==========
+    function buyPasses(passes,price){
+        if(!userData.user_id){showToast('❌ Login required');return;}
+        const msg=`Namaskar! Main ${passes} Game Passes kharidna chahta hoon (₹${price}). Mera User ID: ${userData.user_id}`;
+        window.open(`https://t.me/asbhiabsr?text=${encodeURIComponent(msg)}`,'_blank');
+        showToast(`📩 Admin ko message bheja! Payment ke baad passes milenge.`);
     }
 
     // ========== SHARE / REFER ==========
-    function copyRef(){
-        navigator.clipboard.writeText(getRefLink()).then(()=>showToast('✅ Link copied!'));
-        playSound('tap');
-    }
+    function copyRef(){navigator.clipboard.writeText(getRefLink()).then(()=>showToast('✅ Link copied!'));playSound('tap');}
     function shareOn(platform){
-        const link=getRefLink(),text=`Join me on this earning app! 💰 ${link}`;
-        if(platform==='telegram')window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('Earn money with me!')},'_blank'`);
+        const link=getRefLink(),text=`EarnZone se paise kamao! 💰 ${link}`;
+        if(platform==='telegram')window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('Paise kamao!')},'_blank'`);
         else if(platform==='whatsapp')window.open(`https://wa.me/?text=${encodeURIComponent(text)}`,'_blank');
-        else if(navigator.share)navigator.share({title:'Earn App',text,url:link});
+        else if(navigator.share)navigator.share({title:'EarnZone',text,url:link});
         else{navigator.clipboard.writeText(link);showToast('✅ Link copied!');}
         playSound('tap');
     }
@@ -1118,68 +1364,26 @@
         document.getElementById('lbMonthlyTab').classList.toggle('active',mode==='monthly');
         loadLeaderboard();
     }
-
     function renderLeaderboard(data){
         const el=document.getElementById('lbContent');
         if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--text3);">No data yet</div>';return;}
         const minRefs=lbMode==='weekly'?50:200;
         const qualified=data.filter(u=>(u.active_refs||0)>=minRefs);
-
         const prizes=lbMode==='weekly'?[150,65,30,10,10,10,10,10,10,10]:[300,200,200,30,30,30,30,30,30,30];
-
         let html='';
-        // Podium for top 3
         if(qualified.length>=1){
             html+=`<div class="lb-podium">`;
-            // 2nd place
-            if(qualified.length>=2){
-                html+=`<div class="podium-slot p2">
-                    <div class="podium-dp">${(qualified[1].name||'U').charAt(0)}</div>
-                    <div class="podium-name">${qualified[1].name||'User'}</div>
-                    <div class="podium-refs">${qualified[1].active_refs||0} refs</div>
-                    <div class="podium-bar">🥈</div>
-                </div>`;
-            }
-            // 1st place (center, tallest)
-            html+=`<div class="podium-slot p1">
-                <div class="podium-dp">${(qualified[0].name||'U').charAt(0)}</div>
-                <div class="podium-name">${qualified[0].name||'User'}</div>
-                <div class="podium-refs">${qualified[0].active_refs||0} refs</div>
-                <div class="podium-bar">🥇</div>
-            </div>`;
-            // 3rd place
-            if(qualified.length>=3){
-                html+=`<div class="podium-slot p3">
-                    <div class="podium-dp">${(qualified[2].name||'U').charAt(0)}</div>
-                    <div class="podium-name">${qualified[2].name||'User'}</div>
-                    <div class="podium-refs">${qualified[2].active_refs||0} refs</div>
-                    <div class="podium-bar">🥉</div>
-                </div>`;
-            }
+            if(qualified.length>=2)html+=`<div class="podium-slot p2"><div class="podium-dp">${(qualified[1].name||'U')[0]}</div><div class="podium-name">${qualified[1].name||'User'}</div><div style="font-size:11px;color:var(--text2)">${qualified[1].active_refs||0} refs</div><div class="podium-bar">🥈</div></div>`;
+            html+=`<div class="podium-slot p1"><div class="podium-dp">${(qualified[0].name||'U')[0]}</div><div class="podium-name">${qualified[0].name||'User'}</div><div style="font-size:11px;color:var(--text2)">${qualified[0].active_refs||0} refs</div><div class="podium-bar">🥇</div></div>`;
+            if(qualified.length>=3)html+=`<div class="podium-slot p3"><div class="podium-dp">${(qualified[2].name||'U')[0]}</div><div class="podium-name">${qualified[2].name||'User'}</div><div style="font-size:11px;color:var(--text2)">${qualified[2].active_refs||0} refs</div><div class="podium-bar">🥉</div></div>`;
             html+=`</div>`;
         }
-
-        // 4-10 list
         if(qualified.length>3){
             html+=`<div class="lb-list">`;
-            qualified.slice(3,10).forEach((u,i)=>{
-                html+=`<div class="lb-item">
-                    <div class="lb-rank">${i+4}</div>
-                    <div class="lb-info"><div class="lb-name">${u.name||'User'}</div><div class="lb-refs">${u.active_refs||0} active refs</div></div>
-                    <div class="lb-prize">₹${prizes[i+3]||0}</div>
-                </div>`;
-            });
+            qualified.slice(3,10).forEach((u,i)=>{html+=`<div class="lb-item"><div class="lb-rank">${i+4}</div><div class="lb-info"><div class="lb-name">${u.name||'User'}</div><div class="lb-refs">${u.active_refs||0} active refs</div></div><div class="lb-prize">₹${prizes[i+3]||0}</div></div>`;});
             html+=`</div>`;
         }
-
-        if(!qualified.length){
-            html=`<div style="text-align:center;padding:20px;background:var(--bg3);border-radius:18px;border:1px solid var(--border);">
-                <div style="font-size:48px;margin-bottom:10px;">🏆</div>
-                <div style="font-weight:800;margin-bottom:6px;">Min ${minRefs} refs chahiye</div>
-                <div style="font-size:13px;color:var(--text2);">Abhi tak koi qualify nahi hua</div>
-            </div>`;
-        }
-
+        if(!qualified.length)html=`<div style="text-align:center;padding:20px;background:var(--bg3);border-radius:18px;"><div style="font-size:48px;margin-bottom:10px;">🏆</div><div style="font-weight:800;">Min ${minRefs} refs chahiye</div></div>`;
         el.innerHTML=html;
     }
 
@@ -1188,14 +1392,8 @@
         const el=document.getElementById('histContainer');
         if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);">No withdrawals yet</div>';return;}
         el.innerHTML=data.map(h=>`<div class="hist-item">
-            <div class="hist-top">
-                <span class="hist-amt">₹${h.amount}</span>
-                <span class="hist-status status-${h.status||'pending'}">${h.status||'pending'}</span>
-            </div>
-            <div class="hist-bot">
-                <span>${h.request_date?new Date(h.request_date).toLocaleDateString():'-'}</span>
-                <span>${h.method||'UPI'}</span>
-            </div>
+            <div class="hist-top"><span class="hist-amt">₹${h.amount}</span><span class="hist-status status-${h.status||'pending'}">${h.status||'pending'}</span></div>
+            <div class="hist-bot"><span>${h.request_date?new Date(h.request_date).toLocaleDateString():'-'}</span><span>${h.method||'UPI'}</span></div>
         </div>`).join('');
     }
 
@@ -1224,13 +1422,14 @@
     // ========== SUPPORT ==========
     async function sendSupport(){
         const msg=document.getElementById('supportMsg').value.trim();
-        if(!msg||msg.length<10){showToast('❌ Message too short (min 10 chars)');return;}
+        if(!msg||msg.length<10){showToast('❌ Message too short');return;}
         const r=await apiPost('/api/support',{user_id:userData.user_id,message:msg});
         if(r&&r.success){showToast('✅ Message sent!');document.getElementById('supportMsg').value='';closeModal('support');}
         else showToast('❌ '+(r?.message||'Failed'));
     }
 
     // ========== GAMES ==========
+
     // --- SPIN ---
     function drawWheel(angle){
         const cv=document.getElementById('spinCanvas');if(!cv)return;
@@ -1243,57 +1442,51 @@
             ctx.save();ctx.translate(cx,cy);ctx.rotate(sa+seg/2);ctx.textAlign='right';
             ctx.fillStyle='#fff';ctx.font='bold 14px Nunito';ctx.fillText(s.l,r-12,5);ctx.restore();
         });
-        ctx.beginPath();ctx.arc(cx,cy,20,0,2*Math.PI);
-        ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='var(--gold)';ctx.lineWidth=3;ctx.stroke();
-        ctx.fillStyle='#000';ctx.font='bold 11px Nunito';ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.fillText('SPIN',cx,cy);
+        ctx.beginPath();ctx.arc(cx,cy,20,0,2*Math.PI);ctx.fillStyle='#fff';ctx.fill();
+        ctx.fillStyle='#000';ctx.font='bold 11px Nunito';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('SPIN',cx,cy);
     }
 
     async function doSpin(){
-        if(isSpinning||gameState.spin_left<=0)return;
-        if((userData.passes||0)<=0){showToast('❌ Passes nahi hai! Refer karo ya daily bonus lo');return;}
+        if(isSpinning)return;
+        if((userData.passes||0)<=0){showToast('❌ Passes nahi! Refer karo ya daily bonus lo');return;}
         isSpinning=true;
-        document.getElementById('spinBtn').disabled=true;
+        const btn=document.getElementById('spinBtn');
+        btn.disabled=true;btn.textContent='⏳ Spinning...';
         document.getElementById('spinResultBox').style.display='none';
         playSound('tap');
         const r=await apiPost('/api/game/spin',{user_id:userData.user_id});
-        if(!r||!r.success){isSpinning=false;document.getElementById('spinBtn').disabled=false;showToast('❌ '+(r?.message||'Error'));return;}
+        if(!r||!r.success){isSpinning=false;btn.disabled=false;btn.textContent='🎰 SPIN (1 Pass)';showToast('❌ '+(r?.message||'Error'));return;}
         const sel=r.segment_index!==undefined?r.segment_index:Math.floor(Math.random()*SEGS.length);
         const n=SEGS.length,seg=(2*Math.PI)/n,target=-Math.PI/2-(sel*seg+seg/2),extra=(5+Math.floor(Math.random()*4))*2*Math.PI,final=extra+target,dur=3000,startA=spinAngle,startT=performance.now();
         function anim(now){
             const el=now-startT,prog=Math.min(el/dur,1),ease=1-Math.pow(1-prog,4);
             spinAngle=startA+final*ease;drawWheel(spinAngle);
             if(prog<1){requestAnimationFrame(anim);return;}
-            spinAngle=spinAngle%(2*Math.PI);isSpinning=false;
-            gameState.spin_left=r.spin_left;
-            gameState.today_game_earned=r.today_earned||gameState.today_game_earned;
+            isSpinning=false;
             userData.passes=Math.max(0,(userData.passes||1)-1);
-            loadUser();
+            gameState.today_game_earned=(gameState.today_game_earned||0)+(r.reward||0);
+            gameState.wins=(gameState.wins||0)+1;
+            missions.m3.p=1;missions.m3.done=true;
+            updateUI();updateMissionsUI();
             document.getElementById('spinResultAmt').textContent=`+₹${parseFloat(r.reward||0).toFixed(2)}`;
             document.getElementById('spinResultTxt').textContent=(r.reward||0)>=2?'🎉 Jackpot!':'✅ Badhaai ho!';
             document.getElementById('spinResultBox').style.display='block';
-            playSound('earn');updateUI();
-            if(gameState.spin_left>0)document.getElementById('spinBtn').disabled=false;
-            else document.getElementById('spinBtn').textContent='❌ Spins Khatam!';
+            playSound('earn');
+            btn.disabled=false;btn.textContent='🎰 SPIN (1 Pass)';
         }
         requestAnimationFrame(anim);
     }
 
     // --- GUESS ---
     function startGuess(){
-        guessActive=true;guessBet=1;
+        guessActive=true;guessAttempts=0;guessSecret=Math.floor(Math.random()*10)+1;
         document.getElementById('guessDisp').textContent='?';
         document.getElementById('guessDisp').style.color='var(--gold)';
         document.getElementById('guessHint').textContent='1 se 10 ke beech guess karo';
-        document.getElementById('guessRangeFill').style.width='0%';
-        renderNumGrid();renderAtts(0);
-        document.getElementById('guessTriesLeft').textContent=gameState.guess_left;
+        renderNumGrid();
     }
     function renderNumGrid(){
         document.getElementById('numGrid').innerHTML=[...Array(10)].map((_,i)=>`<button class="num-btn" id="nb${i+1}" onclick="makeGuess(${i+1})">${i+1}</button>`).join('');
-    }
-    function renderAtts(used){
-        document.getElementById('guessAtts').innerHTML=[...Array(3)].map((_,i)=>`<div class="att-dot ${i<used?'used':''}"></div>`).join('');
     }
     function selGuessBet(a,el){
         if(a>userData.balance){showToast('❌ Balance kam hai!');return;}
@@ -1303,39 +1496,60 @@
         document.getElementById('guessBetDisp').textContent=`₹${guessBet}`;
     }
     async function makeGuess(num){
-        if(!guessActive||gameState.guess_left<=0)return;
-        if((userData.passes||0)<=0){showToast('❌ Passes nahi hai!');return;}
+        if(!guessActive)return;
+        if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
         if(userData.balance<guessBet){showToast('❌ Balance kam hai!');return;}
         playSound('tap');
         document.querySelectorAll('.num-btn').forEach(b=>b.disabled=true);
         const r=await apiPost('/api/game/guess',{user_id:userData.user_id,guess:num,bet:guessBet});
-        if(!r||!r.success){document.querySelectorAll('.num-btn').forEach(b=>b.disabled=false);showToast('❌ '+(r?.message||'Error'));return;}
-        gameState.guess_left=r.guess_left;renderAtts(r.attempts_used||0);
+        if(!r||!r.success){
+            // Fallback local logic
+            guessAttempts++;
+            const btn=document.getElementById(`nb${num}`);
+            if(num===guessSecret){
+                btn.classList.add('correct');
+                const reward=guessBet*8;
+                userData.balance+=reward-guessBet;userData.passes=Math.max(0,(userData.passes||1)-1);
+                document.getElementById('guessDisp').textContent=num;document.getElementById('guessDisp').style.color='var(--green)';
+                document.getElementById('guessHint').textContent=`🎉 Sahi! +₹${reward.toFixed(2)}`;
+                gameState.wins=(gameState.wins||0)+1;missions.m3.p=1;missions.m3.done=true;
+                updateUI();updateMissionsUI();playSound('earn');showToast(`🎉 +₹${reward.toFixed(2)}`);
+                guessActive=false;setTimeout(startGuess,2000);
+            }else{
+                btn.classList.add('wrong');
+                const diff=Math.abs(num-guessSecret);
+                let hint=diff<=1?'🔥 Bahut paas!':diff<=3?'♨️ Kaafi paas':diff<=5?'🌡️ Thoda door':'❄️ Bahut door!';
+                hint+=' '+(num>guessSecret?'(Kam karo)':'(Zyada karo)');
+                document.getElementById('guessHint').textContent=hint;
+                playSound('lose');
+                document.querySelectorAll('.num-btn').forEach(b=>{if(!b.classList.contains('wrong'))b.disabled=false;});
+            }
+            return;
+        }
         const btn=document.getElementById(`nb${num}`);
         if(r.correct){
             btn.classList.add('correct');
             document.getElementById('guessDisp').textContent=num;document.getElementById('guessDisp').style.color='var(--green)';
             document.getElementById('guessHint').textContent=`🎉 Sahi! +₹${parseFloat(r.reward||0).toFixed(2)}`;
-            document.getElementById('guessRangeFill').style.width='100%';
             userData.passes=Math.max(0,(userData.passes||1)-1);
+            gameState.wins=(gameState.wins||0)+1;missions.m3.p=1;missions.m3.done=true;
             playSound('earn');showToast(`🎉 +₹${parseFloat(r.reward||0).toFixed(2)}`);
-            guessActive=false;await loadUser();
-            setTimeout(()=>{if(gameState.guess_left>0)startGuess();else document.getElementById('guessHint').textContent='❌ Aaj ke tries khatam!';},1800);
+            updateUI();updateMissionsUI();guessActive=false;await loadUser();
+            setTimeout(startGuess,2000);
         }else if(r.secret!==null&&r.secret!==undefined){
             btn.classList.add('wrong');
             document.getElementById('guessDisp').textContent=r.secret;document.getElementById('guessDisp').style.color='var(--red)';
             document.getElementById('guessHint').textContent=`❌ Number tha: ${r.secret}`;
             userData.passes=Math.max(0,(userData.passes||1)-1);
             playSound('lose');guessActive=false;await loadUser();
-            setTimeout(()=>{if(gameState.guess_left>0)startGuess();else document.getElementById('guessHint').textContent='❌ Aaj ke tries khatam!';},1800);
+            setTimeout(startGuess,2000);
         }else{
             btn.classList.add('wrong');
             document.getElementById('guessHint').textContent=r.hint||'Try again!';
-            document.getElementById('guessRangeFill').style.width=`${Math.max(0,100-(r.diff||5)*20)}%`;
             playSound('lose');
             document.querySelectorAll('.num-btn').forEach(b=>{if(!b.classList.contains('wrong'))b.disabled=false;});
         }
-        document.getElementById('guessTriesLeft').textContent=gameState.guess_left;
+        document.getElementById('guessPassLeft').textContent=userData.passes||0;
         document.getElementById('guessBal').textContent=`₹${userData.balance.toFixed(2)}`;
         updateUI();
     }
@@ -1345,54 +1559,62 @@
         coinChoice=null;coinBet=1;coinFlipping=false;
         document.getElementById('coinChoiceH').classList.remove('sel');document.getElementById('coinChoiceT').classList.remove('sel');
         document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';
-        document.getElementById('flipBtn').disabled=false;document.getElementById('flipBtn').textContent='🪙 FLIP KARO!';
+        const btn=document.getElementById('flipBtn');btn.disabled=false;btn.textContent='🪙 FLIP KARO!';
         document.getElementById('theCoin').style.transform='rotateY(0deg)';
     }
-    function chooseCoin(s){
-        if(coinFlipping)return;coinChoice=s;
-        document.getElementById('coinChoiceH').classList.toggle('sel',s==='heads');
-        document.getElementById('coinChoiceT').classList.toggle('sel',s==='tails');
-        playSound('tap');
-    }
-    function selCoinBet(a,el){
-        if(a>userData.balance){showToast('❌ Balance kam hai!');return;}
-        coinBet=a;document.querySelectorAll('#coinModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');
-    }
+    function chooseCoin(s){if(coinFlipping)return;coinChoice=s;document.getElementById('coinChoiceH').classList.toggle('sel',s==='heads');document.getElementById('coinChoiceT').classList.toggle('sel',s==='tails');playSound('tap');}
+    function selCoinBet(a,el){if(a>userData.balance){showToast('❌ Balance kam hai!');return;}coinBet=a;document.querySelectorAll('#coinModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+
     async function doFlip(){
         if(!coinChoice){showToast('❌ Pehle Heads ya Tails choose karo!');return;}
-        if(coinFlipping||gameState.coin_left<=0)return;
-        if((userData.passes||0)<=0){showToast('❌ Passes nahi hai!');return;}
+        if(coinFlipping)return;
+        if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
         if(userData.balance<coinBet){showToast('❌ Balance kam hai!');return;}
         coinFlipping=true;document.getElementById('flipBtn').disabled=true;
         document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';
         playSound('tap');
         const r=await apiPost('/api/game/coin',{user_id:userData.user_id,choice:coinChoice,bet:coinBet});
-        if(!r||!r.success){coinFlipping=false;document.getElementById('flipBtn').disabled=false;showToast('❌ '+(r?.message||'Error'));return;}
+        if(!r||!r.success){
+            // Fallback local
+            coinFlipping=false;document.getElementById('flipBtn').disabled=false;
+            const actualResult=Math.random()<0.5?'heads':'tails';
+            const won=coinChoice===actualResult;
+            const coin=document.getElementById('theCoin');
+            const deg=actualResult==='heads'?5*360:5*360+180;
+            coin.style.transition='transform 1.2s cubic-bezier(.4,0,.2,1)';coin.style.transform=`rotateY(${deg}deg)`;
+            setTimeout(()=>{
+                userData.passes=Math.max(0,(userData.passes||1)-1);
+                if(won){
+                    const reward=coinBet*2;userData.balance+=coinBet;
+                    document.getElementById('coinWinAmt').textContent=`+₹${reward.toFixed(2)}`;
+                    document.getElementById('coinResWin').style.display='block';playSound('earn');showToast(`🎉 +₹${reward.toFixed(2)}`);
+                    gameState.wins=(gameState.wins||0)+1;missions.m3.p=1;missions.m3.done=true;
+                }else{
+                    userData.balance=Math.max(0,userData.balance-coinBet);
+                    document.getElementById('coinLoseAmt').textContent=`-₹${coinBet}`;
+                    document.getElementById('coinResLose').style.display='block';playSound('lose');
+                }
+                updateUI();updateMissionsUI();coinFlipping=false;
+                setTimeout(()=>{resetCoinUI();document.getElementById('flipBtn').disabled=false;coin.style.transition='none';coin.style.transform='rotateY(0deg)';},2000);
+            },1300);
+            return;
+        }
         const coin=document.getElementById('theCoin');
         const deg=r.result==='heads'?5*360:5*360+180;
         coin.style.transition='transform 1.2s cubic-bezier(.4,0,.2,1)';coin.style.transform=`rotateY(${deg}deg)`;
         setTimeout(async()=>{
-            coinFlipping=false;gameState.coin_left=r.coin_left;
-            userData.passes=Math.max(0,(userData.passes||1)-1);
-            document.getElementById('coinFlipsLeft').textContent=gameState.coin_left;
+            coinFlipping=false;userData.passes=Math.max(0,(userData.passes||1)-1);
             if(r.won){
                 document.getElementById('coinWinAmt').textContent=`+₹${parseFloat(r.reward||0).toFixed(2)}`;
                 document.getElementById('coinResWin').style.display='block';playSound('earn');
                 showToast(`🎉 +₹${parseFloat(r.reward||0).toFixed(2)}`);
+                gameState.wins=(gameState.wins||0)+1;missions.m3.p=1;missions.m3.done=true;
             }else{
                 document.getElementById('coinLoseAmt').textContent=`-₹${coinBet}`;
-                document.getElementById('coinResLose').style.display='block';playSound('lose');
-                showToast('😢 Haar gaye!');
+                document.getElementById('coinResLose').style.display='block';playSound('lose');showToast('😢 Haar gaye!');
             }
-            await loadUser();updateUI();
-            if(gameState.coin_left>0){
-                setTimeout(()=>{
-                    document.getElementById('flipBtn').disabled=false;
-                    document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';
-                    coinChoice=null;document.getElementById('coinChoiceH').classList.remove('sel');document.getElementById('coinChoiceT').classList.remove('sel');
-                    coin.style.transition='none';coin.style.transform='rotateY(0deg)';
-                },2000);
-            }else{document.getElementById('flipBtn').textContent='❌ Flips Khatam!';}
+            await loadUser();updateUI();updateMissionsUI();
+            setTimeout(()=>{document.getElementById('flipBtn').disabled=false;document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';coinChoice=null;document.getElementById('coinChoiceH').classList.remove('sel');document.getElementById('coinChoiceT').classList.remove('sel');coin.style.transition='none';coin.style.transform='rotateY(0deg)';},2500);
         },1300);
     }
 
@@ -1416,6 +1638,7 @@
         cv.ontouchmove=e=>{if(scratchDrawing)doScratch(e.touches[0]);e.preventDefault();};
         cv.ontouchend=()=>scratchDrawing=false;
     }
+
     async function doScratch(e){
         if(scratchRevealed)return;
         const cv=document.getElementById('scratchCanvas'),rect=cv.getBoundingClientRect();
@@ -1428,35 +1651,31 @@
             scratchRevealed=true;scratchCtx.clearRect(0,0,cv.width,cv.height);
             document.getElementById('scratchProgFill').style.width='100%';
             document.getElementById('scratchHintTxt').textContent='⏳ Processing...';
-            if((userData.passes||0)<=0){document.getElementById('scratchHintTxt').textContent='❌ Passes nahi hai!';showToast('❌ Passes nahi hai!');return;}
+            if((userData.passes||0)<=0){document.getElementById('scratchHintTxt').textContent='❌ Passes nahi!';showToast('❌ Passes nahi!');return;}
             const r=await apiPost('/api/game/scratch',{user_id:userData.user_id});
             if(r&&r.success){
                 gameState.scratch_left=r.scratch_left;
                 document.getElementById('scratchAmt').textContent=`₹${r.reward}`;
                 document.getElementById('scratchLbl').textContent=r.reward>=2?'🎉 Jackpot!':'Aapka inaam!';
-                document.getElementById('scratchCardsLeft').textContent=gameState.scratch_left;
-                document.getElementById('scratchHintTxt').textContent='🎊 Reveal ho gaya!';
+                document.getElementById('scratchCardsLeft').textContent=gameState.scratch_left||'∞';
+                document.getElementById('scratchHintTxt').textContent='🎊 Reveal!';
                 userData.passes=Math.max(0,(userData.passes||1)-1);
-                playSound('earn');showToast(`🎫 +₹${r.reward}!`);await loadUser();updateUI();
-                if(gameState.scratch_left>0)document.getElementById('newScratchBtn').disabled=false;
-                else document.getElementById('newScratchBtn').textContent='❌ Cards Khatam!';
+                missions.m3.p=1;missions.m3.done=true;
+                playSound('earn');showToast(`🎫 +₹${r.reward}!`);await loadUser();updateUI();updateMissionsUI();
+                document.getElementById('newScratchBtn').disabled=false;
             }else{document.getElementById('scratchHintTxt').textContent='❌ '+(r?.message||'Error');showToast('❌ '+(r?.message||'Error'));}
         }
     }
-    function newScratch(){
-        if(gameState.scratch_left<=0){showToast('❌ Cards khatam!');return;}
-        if((userData.passes||0)<=0){showToast('❌ Passes nahi hai!');return;}
-        initScratch();playSound('tap');
-    }
+    function newScratch(){if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}initScratch();playSound('tap');}
 
     // ========== GAME MODAL OPEN ==========
     function openGame(g){
         playSound('tap');
-        if((userData.passes||0)<=0&&g!=='scratch'){showToast('❌ Passes nahi hai! Refer karo ya daily bonus lo');return;}
-        if(g==='spin'){if(gameState.spin_left<=0){showToast('❌ Spins khatam!');return;}drawWheel(spinAngle);openModal('spin');}
-        else if(g==='guess'){if(gameState.guess_left<=0){showToast('❌ Tries khatam!');return;}startGuess();openModal('guess');}
-        else if(g==='coin'){if(gameState.coin_left<=0){showToast('❌ Flips khatam!');return;}resetCoinUI();openModal('coin');}
-        else if(g==='scratch'){if(gameState.scratch_left<=0){showToast('❌ Cards khatam!');return;}openModal('scratch');setTimeout(initScratch,100);}
+        if((userData.passes||0)<=0){showToast('❌ Passes nahi! Refer karo ya daily bonus lo');return;}
+        if(g==='spin'){drawWheel(spinAngle);openModal('spin');}
+        else if(g==='guess'){startGuess();openModal('guess');}
+        else if(g==='coin'){resetCoinUI();openModal('coin');}
+        else if(g==='scratch'){openModal('scratch');setTimeout(initScratch,100);}
     }
 
     // ========== TAB SWITCH ==========
@@ -1468,37 +1687,35 @@
         document.getElementById(`nav${idx}`).classList.add('active');
         playSound('tap');
         if(idx===1)loadLeaderboard();
-        else if(idx===3)loadRefActivity();
+        else if(idx===3){updateUI();loadRefActivity();}
         else if(idx===4)loadWithdrawalHistory();
+        // Scroll to top
+        window.scrollTo(0,0);
     }
 
     // ========== MODAL SYSTEM ==========
     function openModal(id){
-        document.getElementById(id+'Modal').classList.add('open');
+        const el=document.getElementById(id+'Modal');
+        if(!el)return;
+        el.classList.add('open');
         if(id==='missions')updateMissionsUI();
         if(id==='profile')updateUI();
+        if(id==='dailyBonus')buildTrainChain();
     }
-    function closeModal(id){document.getElementById(id+'Modal').classList.remove('open');}
+    function closeModal(id){const el=document.getElementById(id+'Modal');if(el)el.classList.remove('open');}
 
     // ========== THEME ==========
     function toggleTheme(){
         const html=document.documentElement;
-        if(currentTheme==='dark'){
-            html.setAttribute('data-theme','light');currentTheme='light';
-            document.getElementById('themeToggleBtn').textContent='🌙';
-            document.getElementById('themeToggleEl').classList.remove('on');
-        }else{
-            html.removeAttribute('data-theme');currentTheme='dark';
-            document.getElementById('themeToggleBtn').textContent='☀️';
-            document.getElementById('themeToggleEl').classList.add('on');
-        }
+        if(currentTheme==='dark'){html.setAttribute('data-theme','light');currentTheme='light';[document.getElementById('themeToggleEl'),document.getElementById('themeToggleEl2')].forEach(el=>{if(el)el.classList.remove('on');});}
+        else{html.removeAttribute('data-theme');currentTheme='dark';[document.getElementById('themeToggleEl'),document.getElementById('themeToggleEl2')].forEach(el=>{if(el)el.classList.add('on');});}
         playSound('tap');
     }
 
     // ========== SOUND ==========
     function toggleSound(){
         soundOn=!soundOn;
-        document.getElementById('soundToggleEl').classList.toggle('on',soundOn);
+        [document.getElementById('soundToggleEl'),document.getElementById('soundToggleEl2')].forEach(el=>{if(el)el.classList.toggle('on',soundOn);});
         if(soundOn)playSound('tap');
     }
     function playSound(type){
@@ -1507,18 +1724,15 @@
             if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
             if(audioCtx.state==='suspended')audioCtx.resume();
             const now=audioCtx.currentTime;
-            if(type==='tap'){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=600;g.gain.value=.08;o.start(now);o.stop(now+.05);}
-            else if(type==='earn'){[400,500,600,700].forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=f;g.gain.value=.1;o.start(now+i*.08);o.stop(now+i*.08+.1);});}
-            else if(type==='lose'){[300,250,200].forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=f;g.gain.value=.08;o.start(now+i*.1);o.stop(now+i*.1+.1);});}
+            if(type==='tap'){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=600;g.gain.value=.06;o.start(now);o.stop(now+.05);}
+            else if(type==='earn'){[400,500,600,700,900].forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=f;g.gain.value=.1;o.start(now+i*.08);o.stop(now+i*.08+.12);});}
+            else if(type==='lose'){[300,250,200].forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=f;g.gain.value=.07;o.start(now+i*.1);o.stop(now+i*.1+.1);});}
         }catch(e){}
     }
 
     // ========== TOAST ==========
     let toastTimer;
-    function showToast(msg){
-        const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';
-        clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.style.display='none',2500);
-    }
+    function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.style.display='none',2800);}
 
     // ========== INIT ==========
     async function init(){
@@ -1532,7 +1746,7 @@
             if(uid)userData.user_id=parseInt(uid);
         }
         await Promise.all([loadUser(),loadGameState(),loadBonusDays(),loadMissions(),loadAds(),loadLiveActivity()]);
-        drawWheel(0);updateUI();
+        drawWheel(0);updateUI();updateMissionsUI();
         showToast('✅ Ready!');
         // Auto-refresh
         setInterval(loadLiveActivity,30000);
