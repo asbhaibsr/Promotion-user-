@@ -1,4 +1,4 @@
-# ===== main.py (COMPLETE FIXED VERSION - ALL APIs WORKING) =====
+# ===== main.py (COMPLETE UPDATED VERSION) =====
 
 import logging
 import os
@@ -16,7 +16,6 @@ from bson.objectid import ObjectId
 from flask import Flask, request, jsonify, render_template
 from functools import wraps
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s',
@@ -49,11 +48,9 @@ from database import Database
 from handlers import Handlers
 from admin import AdminHandlers
 
-# ========== FLASK APP ==========
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'filmyfund-secret-key-2024')
 
-# Global references
 config = None
 db = None
 handlers = None
@@ -65,7 +62,6 @@ bot_running = False
 start_time = datetime.now()
 request_count = 0
 
-# ========== CORS HELPER ==========
 def add_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
@@ -88,11 +84,8 @@ def handle_options(path=''):
 def index():
     global config, db, request_count
     request_count += 1
-
     try:
         user_id = request.args.get('user_id', 0, type=int)
-        logger.info(f"Index page accessed by user_id: {user_id}")
-
         user_data = None
         if user_id and user_id > 0 and db and db.ensure_connection():
             try:
@@ -101,19 +94,11 @@ def index():
                 logger.error(f"Error fetching user {user_id}: {e}")
 
         template_vars = {
-            'user_id': user_id,
-            'user_name': 'Guest',
-            'balance': 0,
-            'total_earned': 0,
-            'tier': 1,
-            'tier_name': '🥉 BASIC',
-            'tier_rate': 0.30,
-            'total_refs': 0,
-            'active_refs': 0,
-            'pending_refs': 0,
-            'daily_streak': 0,
+            'user_id': user_id, 'user_name': 'Guest', 'balance': 0,
+            'total_earned': 0, 'tier': 1, 'tier_name': '🥉 BASIC', 'tier_rate': 0.30,
+            'total_refs': 0, 'active_refs': 0, 'pending_refs': 0, 'daily_streak': 0,
             'channel_joined': False,
-            'min_withdrawal': config.MIN_WITHDRAWAL if config and hasattr(config, 'MIN_WITHDRAWAL') else 50,
+            'min_withdrawal': config.MIN_WITHDRAWAL if config and hasattr(config, 'MIN_WITHDRAWAL') else 40,
             'channel_id': config.CHANNEL_ID if config and hasattr(config, 'CHANNEL_ID') else '',
             'channel_link': config.CHANNEL_LINK if config and hasattr(config, 'CHANNEL_LINK') else '',
             'channel_bonus': config.CHANNEL_JOIN_BONUS if config and hasattr(config, 'CHANNEL_JOIN_BONUS') else 2.0,
@@ -160,9 +145,7 @@ def get_user_api(user_id):
                 'total_earned': 0, 'tier': 1, 'tier_name': '🥉 BASIC',
                 'total_refs': 0, 'active_refs': 0, 'pending_refs': 0,
                 'daily_streak': 0, 'channel_joined': False, 'is_admin': False,
-                'dark_mode': False, 'notify_referrals': True,
-                'notify_earnings': True, 'notify_withdrawals': True,
-                'games_won': 0, 'today_game_earned': 0
+                'dark_mode': True, 'games_won': 0, 'passes': 0
             })
 
         if not db or not db.ensure_connection():
@@ -182,8 +165,7 @@ def get_user_api(user_id):
 
 @app.route('/api/user/<int:user_id>/withdrawals')
 def get_user_withdrawals_api(user_id):
-    global db, request_count
-    request_count += 1
+    global db
     try:
         if not db or not db.ensure_connection():
             return jsonify([])
@@ -227,6 +209,19 @@ def get_user_missions(user_id):
         return jsonify({})
 
 
+@app.route('/api/user/<int:user_id>/ref-activity')
+def get_ref_activity_api(user_id):
+    """Get activity of referred users"""
+    try:
+        if not db or not db.ensure_connection():
+            return jsonify([])
+        activity = db.get_ref_activity(user_id, 20)
+        return jsonify(activity)
+    except Exception as e:
+        logger.error(f"Ref activity error: {e}")
+        return jsonify([])
+
+
 @app.route('/api/user/<int:user_id>/claimed-ads')
 def get_user_claimed_ads(user_id):
     try:
@@ -244,8 +239,7 @@ def get_user_claimed_ads(user_id):
 
 @app.route('/api/leaderboard')
 def leaderboard_api():
-    global db, request_count
-    request_count += 1
+    global db
     try:
         if not db or not db.ensure_connection():
             return jsonify([])
@@ -282,16 +276,10 @@ def get_ads_api():
             ads = db.get_all_ads()
             return jsonify({'ads': ads})
         else:
-            return jsonify({
-                'ads': [
-                    {'id': 1, 'title': 'Install App & Earn', 'reward': 2.0,
-                     'link': 'https://t.me/+8SdeM5gBihoxZjU1',
-                     'meta': '⏱️ 2 min • 1.2k completed', 'icon': '📱'},
-                    {'id': 2, 'title': 'Watch Video', 'reward': 0.5,
-                     'link': 'https://t.me/+8SdeM5gBihoxZjU1',
-                     'meta': '⏱️ 30 sec • 3.4k completed', 'icon': '🎬'}
-                ]
-            })
+            return jsonify({'ads': [
+                {'id': 1, 'title': 'Install App & Earn', 'reward': 2.0, 'link': 'https://t.me/+8SdeM5gBihoxZjU1', 'meta': '⏱️ 2 min', 'icon': '📱'},
+                {'id': 2, 'title': 'Watch Video', 'reward': 0.5, 'link': 'https://t.me/+8SdeM5gBihoxZjU1', 'meta': '⏱️ 30 sec', 'icon': '🎬'}
+            ]})
     except Exception as e:
         logger.error(f"Get ads error: {e}")
         return jsonify({'ads': []})
@@ -305,10 +293,8 @@ def claim_ad_api():
         user_id = data.get('user_id')
         ad_id = data.get('ad_id')
         reward = data.get('reward')
-
         if not all([user_id, ad_id, reward]):
             return jsonify({'success': False, 'message': 'Missing data'}), 400
-
         success = db.claim_ad(user_id, ad_id, reward)
         if success:
             return jsonify({'success': True, 'message': 'Reward added'})
@@ -331,17 +317,14 @@ def update_ad_api():
         meta = data.get('meta')
         icon = data.get('icon')
         admin_id = data.get('admin_id')
-
         if not admin_id:
             return jsonify({'success': False, 'message': 'Admin verification required'}), 401
-
         admin_user = db.get_user(int(admin_id))
         if not admin_user or not admin_user.get('is_admin', False):
             return jsonify({'success': False, 'message': 'Unauthorized'}), 403
-
         success = db.update_ad(ad_id, title, reward, link, meta, icon)
         if success:
-            db.reset_ad_claims(ad_id)
+            db.reset_ad_claims(ad_id)  # Reset claims so users can claim again after edit
             return jsonify({'success': True})
         else:
             return jsonify({'success': False, 'message': 'Failed to update'})
@@ -357,14 +340,11 @@ def delete_ad_api():
         data = request.get_json()
         ad_id = data.get('ad_id')
         admin_id = data.get('admin_id')
-
         if not admin_id:
             return jsonify({'success': False, 'message': 'Admin verification required'}), 401
-
         admin_user = db.get_user(int(admin_id))
         if not admin_user or not admin_user.get('is_admin', False):
             return jsonify({'success': False, 'message': 'Unauthorized'}), 403
-
         success = db.delete_ad(ad_id)
         if success:
             return jsonify({'success': True, 'message': 'Ad deleted'})
@@ -382,11 +362,9 @@ def reset_ad_claims_api():
         data = request.get_json()
         ad_id = data.get('ad_id')
         admin_id = data.get('admin_id')
-
         admin_user = db.get_user(int(admin_id))
         if not admin_user or not admin_user.get('is_admin', False):
             return jsonify({'success': False, 'message': 'Unauthorized'}), 403
-
         success = db.reset_ad_claims(ad_id)
         return jsonify({'success': success})
     except Exception as e:
@@ -402,18 +380,11 @@ def claim_day_bonus_api():
         data = request.get_json()
         user_id = data.get('user_id')
         date_str = data.get('date')
-
         if not user_id or not date_str:
             return jsonify({'success': False, 'message': 'Missing data'}), 400
-
         result = db.claim_day_bonus(user_id, date_str)
-
         if result and result.get('success'):
-            return jsonify({
-                'success': True,
-                'bonus': result['bonus'],
-                'streak': result['streak']
-            })
+            return jsonify({'success': True, 'bonus': result['bonus'], 'streak': result['streak']})
         else:
             return jsonify({'success': False, 'message': 'Already claimed or invalid date'})
     except Exception as e:
@@ -428,19 +399,11 @@ def update_mission_api():
         user_id = data.get('user_id')
         mission_type = data.get('mission_type')
         count = data.get('count', 1)
-
         if not user_id or not mission_type:
             return jsonify({'success': False, 'message': 'Missing data'}), 400
-
         missions = db.update_mission_progress(user_id, mission_type, count)
         if missions:
-            return jsonify({
-                'success': True,
-                'missions': {
-                    'mission1': missions.get('mission1', {}),
-                    'mission2': missions.get('mission2', {})
-                }
-            })
+            return jsonify({'success': True, 'missions': {'mission1': missions.get('mission1', {}), 'mission2': missions.get('mission2', {})}})
         else:
             return jsonify({'success': False, 'message': 'Failed to update'})
     except Exception as e:
@@ -453,14 +416,46 @@ def claim_mission_reward_api():
     try:
         data = request.get_json()
         user_id = data.get('user_id')
-
         if not user_id:
             return jsonify({'success': False, 'message': 'Missing user ID'}), 400
-
         result = db.claim_mission_reward(user_id)
         return jsonify(result)
     except Exception as e:
         logger.error(f"Claim mission reward error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+# ========== PASSES API ==========
+
+@app.route('/api/user/<int:user_id>/passes')
+def get_passes_api(user_id):
+    try:
+        if not db or not db.ensure_connection():
+            return jsonify({'passes': 0})
+        user = db.get_user(user_id)
+        return jsonify({'passes': user.get('passes', 0) if user else 0})
+    except Exception as e:
+        logger.error(f"Get passes error: {e}")
+        return jsonify({'passes': 0})
+
+
+@app.route('/api/add-passes', methods=['POST'])
+def add_passes_api():
+    """Admin endpoint to add passes"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        count = data.get('count', 1)
+        admin_id = data.get('admin_id')
+        if not admin_id:
+            return jsonify({'success': False, 'message': 'Admin required'}), 401
+        admin_user = db.get_user(int(admin_id))
+        if not admin_user or not admin_user.get('is_admin', False):
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+        success = db.add_passes(int(user_id), int(count), "Admin added passes")
+        return jsonify({'success': success})
+    except Exception as e:
+        logger.error(f"Add passes error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
@@ -475,10 +470,8 @@ def withdraw_api():
         amount = data.get('amount')
         method = data.get('method')
         details = data.get('details')
-
         if not all([user_id, amount, method, details]):
             return jsonify({'success': False, 'message': 'Missing data'}), 400
-
         result = db.process_withdrawal(user_id, amount, method, details)
         return jsonify(result)
     except Exception as e:
@@ -495,36 +488,20 @@ def support_api():
         data = request.get_json()
         user_id = data.get('user_id')
         message = data.get('message')
-
         if not user_id or not message:
             return jsonify({'success': False, 'message': 'Missing data'}), 400
-
         msg_id = db.add_support_message(user_id, message)
-
         if msg_id:
             if bot_app and config:
                 for admin_id in config.ADMIN_IDS:
                     try:
-                        keyboard = [[InlineKeyboardButton(
-                            "📩 VIEW MESSAGE",
-                            callback_data=f"view_support_{msg_id}"
-                        )]]
+                        keyboard = [[InlineKeyboardButton("📩 VIEW MESSAGE", callback_data=f"view_support_{msg_id}")]]
                         asyncio.run_coroutine_threadsafe(
-                            bot_app.bot.send_message(
-                                chat_id=admin_id,
-                                text=(
-                                    f"📩 **New Support Message**\n\n"
-                                    f"User ID: `{user_id}`\n"
-                                    f"Message: {message[:100]}...\n\n"
-                                    f"Click below to reply:"
-                                ),
-                                reply_markup=InlineKeyboardMarkup(keyboard)
-                            ),
+                            bot_app.bot.send_message(chat_id=admin_id, text=f"📩 **New Support Message**\n\nUser ID: `{user_id}`\nMessage: {message[:100]}...", reply_markup=InlineKeyboardMarkup(keyboard)),
                             bot_loop
                         )
                     except:
                         pass
-
             return jsonify({'success': True, 'message': 'Message sent to support'})
         else:
             return jsonify({'success': False, 'message': 'Failed to send message'})
@@ -543,31 +520,24 @@ def update_setting_api():
         user_id = data.get('user_id')
         setting = data.get('setting')
         value = data.get('value')
-
         if not all([user_id, setting]):
             return jsonify({'success': False, 'message': 'Missing data'}), 400
-
         if db and db.ensure_connection():
             db.update_notification_setting(user_id, setting, value)
-
         return jsonify({'success': True})
     except Exception as e:
         logger.error(f"Update setting error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
-# ============================================================
-# ========== GAME APIs (NEW - MAIN FIX) ==========
-# ============================================================
+# ========== GAME APIs ==========
 
 @app.route('/api/game/state/<int:user_id>')
 def get_game_state(user_id):
-    """Get user's game state for today"""
     global db
     try:
         if not db or not db.ensure_connection():
             return jsonify({'error': 'Database not connected'}), 503
-
         today = datetime.now().date().isoformat()
         game_state = db.get_game_state(user_id, today)
         return jsonify(game_state)
@@ -578,18 +548,14 @@ def get_game_state(user_id):
 
 @app.route('/api/game/spin', methods=['POST'])
 def game_spin_api():
-    """Process spin wheel game"""
     global db
     try:
         data = request.get_json()
         user_id = data.get('user_id')
-
         if not user_id:
             return jsonify({'success': False, 'message': 'Missing user_id'}), 400
-
         if not db or not db.ensure_connection():
             return jsonify({'success': False, 'message': 'Database error'}), 503
-
         result = db.process_game_spin(user_id)
         return jsonify(result)
     except Exception as e:
@@ -599,20 +565,16 @@ def game_spin_api():
 
 @app.route('/api/game/guess', methods=['POST'])
 def game_guess_api():
-    """Process number guess game"""
     global db
     try:
         data = request.get_json()
         user_id = data.get('user_id')
         guess = data.get('guess')
         bet = data.get('bet', 1)
-
         if not user_id or guess is None:
             return jsonify({'success': False, 'message': 'Missing data'}), 400
-
         if not db or not db.ensure_connection():
             return jsonify({'success': False, 'message': 'Database error'}), 503
-
         result = db.process_game_guess(user_id, int(guess), float(bet))
         return jsonify(result)
     except Exception as e:
@@ -622,20 +584,16 @@ def game_guess_api():
 
 @app.route('/api/game/coin', methods=['POST'])
 def game_coin_api():
-    """Process coin flip game"""
     global db
     try:
         data = request.get_json()
         user_id = data.get('user_id')
-        choice = data.get('choice')  # 'heads' or 'tails'
+        choice = data.get('choice')
         bet = data.get('bet', 1)
-
         if not user_id or not choice:
             return jsonify({'success': False, 'message': 'Missing data'}), 400
-
         if not db or not db.ensure_connection():
             return jsonify({'success': False, 'message': 'Database error'}), 503
-
         result = db.process_game_coin(user_id, choice, float(bet))
         return jsonify(result)
     except Exception as e:
@@ -645,18 +603,14 @@ def game_coin_api():
 
 @app.route('/api/game/scratch', methods=['POST'])
 def game_scratch_api():
-    """Process scratch card game"""
     global db
     try:
         data = request.get_json()
         user_id = data.get('user_id')
-
         if not user_id:
             return jsonify({'success': False, 'message': 'Missing user_id'}), 400
-
         if not db or not db.ensure_connection():
             return jsonify({'success': False, 'message': 'Database error'}), 503
-
         result = db.process_game_scratch(user_id)
         return jsonify(result)
     except Exception as e:
@@ -666,7 +620,6 @@ def game_scratch_api():
 
 @app.route('/api/game/earn', methods=['POST'])
 def game_earn_api():
-    """Add game earnings to user balance"""
     global db
     try:
         data = request.get_json()
@@ -674,40 +627,14 @@ def game_earn_api():
         amount = data.get('amount')
         game_type = data.get('game_type', 'game')
         description = data.get('description', 'Game reward')
-
         if not user_id or amount is None:
             return jsonify({'success': False, 'message': 'Missing data'}), 400
-
         if not db or not db.ensure_connection():
             return jsonify({'success': False, 'message': 'Database error'}), 503
-
         result = db.add_game_earning(user_id, float(amount), game_type, description)
         return jsonify(result)
     except Exception as e:
         logger.error(f"Game earn error: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-
-@app.route('/api/game/deduct', methods=['POST'])
-def game_deduct_api():
-    """Deduct game bet from user balance"""
-    global db
-    try:
-        data = request.get_json()
-        user_id = data.get('user_id')
-        amount = data.get('amount')
-        game_type = data.get('game_type', 'game')
-
-        if not user_id or amount is None:
-            return jsonify({'success': False, 'message': 'Missing data'}), 400
-
-        if not db or not db.ensure_connection():
-            return jsonify({'success': False, 'message': 'Database error'}), 503
-
-        result = db.deduct_game_balance(user_id, float(amount), game_type)
-        return jsonify(result)
-    except Exception as e:
-        logger.error(f"Game deduct error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
@@ -717,13 +644,7 @@ def game_deduct_api():
 def stats_api():
     global request_count, start_time, db
     uptime = str(datetime.now() - start_time).split('.')[0]
-    stats = {
-        'uptime': uptime,
-        'requests': request_count,
-        'status': 'healthy',
-        'db_connected': db.connected if db else False,
-        'timestamp': datetime.now().isoformat()
-    }
+    stats = {'uptime': uptime, 'requests': request_count, 'status': 'healthy', 'db_connected': db.connected if db else False, 'timestamp': datetime.now().isoformat()}
     if db and db.connected:
         try:
             system_stats = db.get_system_stats()
@@ -736,11 +657,7 @@ def stats_api():
 @app.route('/health')
 def health():
     global db
-    status = {
-        'status': 'ok',
-        'time': datetime.now().isoformat(),
-        'db_connected': db.connected if db else False
-    }
+    status = {'status': 'ok', 'time': datetime.now().isoformat(), 'db_connected': db.connected if db else False}
     if not db or not db.connected:
         status['status'] = 'degraded'
         return jsonify(status), 503
@@ -754,10 +671,7 @@ def webhook():
         return "Bot not initialized", 503
     try:
         update = Update.de_json(request.get_json(force=True), bot_app.bot)
-        asyncio.run_coroutine_threadsafe(
-            bot_app.process_update(update),
-            bot_loop
-        )
+        asyncio.run_coroutine_threadsafe(bot_app.process_update(update), bot_loop)
         return "OK", 200
     except Exception as e:
         logger.error(f"Webhook error: {e}")
@@ -780,22 +694,15 @@ async def post_init(application):
             BotCommand("help", "Help")
         ]
         await application.bot.set_my_commands(commands)
-
         if config and hasattr(config, 'WEBHOOK_URL') and config.WEBHOOK_URL:
             webhook_url = f"{config.WEBHOOK_URL}/webhook"
             await application.bot.set_webhook(url=webhook_url)
             logger.info(f"Webhook set to {webhook_url}")
-
         if config and hasattr(config, 'LOG_CHANNEL_ID') and config.LOG_CHANNEL_ID:
             try:
-                await application.bot.send_message(
-                    chat_id=config.LOG_CHANNEL_ID,
-                    text=f"Bot Started! Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-                    parse_mode=ParseMode.MARKDOWN
-                )
+                await application.bot.send_message(chat_id=config.LOG_CHANNEL_ID, text=f"Bot Started! Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", parse_mode=ParseMode.MARKDOWN)
             except Exception as e:
                 logger.error(f"Log channel error: {e}")
-
         logger.info("Bot initialization complete")
     except Exception as e:
         logger.error(f"Post-init error: {e}")
@@ -823,9 +730,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     traceback.print_exc()
     if update and update.effective_message:
         try:
-            await update.effective_message.reply_text(
-                "An error occurred. Please try again later."
-            )
+            await update.effective_message.reply_text("An error occurred. Please try again later.")
         except:
             pass
 
@@ -833,7 +738,6 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def run_bot():
     global bot_app, bot_loop, config, db, handlers, admin_handlers, bot_running
     logger.info("Starting bot...")
-
     if bot_running:
         logger.warning("Bot is already running, skipping...")
         return
@@ -843,7 +747,6 @@ def run_bot():
 
     try:
         bot_app = Application.builder().token(config.BOT_TOKEN).build()
-
         bot_app.add_handler(CommandHandler("start", handlers.start))
         bot_app.add_handler(CommandHandler("app", handlers.open_app))
         bot_app.add_handler(CommandHandler("balance", handlers.check_balance))
@@ -851,34 +754,18 @@ def run_bot():
         bot_app.add_handler(CommandHandler("withdraw", handlers.withdraw_cmd))
         bot_app.add_handler(CommandHandler("help", handlers.help_cmd))
         bot_app.add_handler(CommandHandler("admin", admin_handlers.admin_panel))
-
         bot_app.add_handler(CallbackQueryHandler(admin_handlers.handle_admin_callback))
-
-        bot_app.add_handler(MessageHandler(
-            filters.StatusUpdate.WEB_APP_DATA, handlers.handle_webapp_data
-        ))
-        bot_app.add_handler(MessageHandler(
-            filters.TEXT & filters.ChatType.PRIVATE, admin_handlers.handle_admin_message
-        ))
-        bot_app.add_handler(MessageHandler(
-            filters.TEXT & filters.ChatType.GROUP, handlers.handle_message
-        ))
-        bot_app.add_handler(MessageHandler(
-            filters.TEXT & filters.ChatType.SUPERGROUP, handlers.handle_message
-        ))
-        bot_app.add_handler(MessageHandler(
-            filters.TEXT & filters.ChatType.PRIVATE & ~filters.COMMAND, handlers.handle_message
-        ))
-
+        bot_app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handlers.handle_webapp_data))
+        bot_app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.PRIVATE, admin_handlers.handle_admin_message))
+        bot_app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUP, handlers.handle_message))
+        bot_app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.SUPERGROUP, handlers.handle_message))
+        bot_app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.PRIVATE & ~filters.COMMAND, handlers.handle_message))
         bot_app.add_error_handler(error_handler)
-
         bot_loop.run_until_complete(post_init(bot_app))
         bot_loop.create_task(scheduled_jobs())
-
         logger.info("Bot started successfully")
         bot_running = True
         bot_app.run_polling()
-
     except Exception as e:
         logger.error(f"Bot error: {e}")
         import traceback
@@ -935,12 +822,12 @@ def main():
 
     print("""
     ╔══════════════════════════════════════╗
-    ║     FILMYFUND BOT - FIXED VERSION    ║
-    ║    ALL APIs + GAME APIs WORKING      ║
+    ║     EARNZONE BOT - UPDATED VERSION   ║
+    ║    PASSES SYSTEM + ALL FIXES         ║
     ╚══════════════════════════════════════╝
     """)
 
-    logger.info("Starting FilmyFund Bot...")
+    logger.info("Starting EarnZone Bot...")
 
     if not check_environment():
         logger.error("Please set all required environment variables in .env file")
