@@ -9,13 +9,14 @@
     <style>
         *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
         :root{
-            --bg:#0d1117;--bg2:#161b27;--bg3:#1e2535;--card:#1a2236;
+            --bg:#080c14;--bg2:#0f1520;--bg3:#1a2235;--card:#131c2e;
             --gold:#f5c842;--gold2:#ffd700;--gold-dim:#c9a227;
             --purple:#7b61ff;--purple2:#a78bfa;
             --green:#22d3a0;--red:#ff5b6b;--blue:#38bdf8;
-            --text:#f0f4ff;--text2:#8899bb;--text3:#5a6a8a;
-            --border:rgba(255,255,255,0.07);--shadow:0 8px 32px rgba(0,0,0,0.4);
-            --r:22px;--r2:16px;--nav:72px;
+            --text:#f0f4ff;--text2:#7889aa;--text3:#4a5a7a;
+            --border:rgba(255,255,255,0.06);
+            --shadow:0 8px 32px rgba(0,0,0,0.5);
+            --nav-h:70px;
             font-family:'Nunito',sans-serif;
         }
         [data-theme="light"]{
@@ -23,224 +24,402 @@
             --text:#1a2236;--text2:#4a5a7a;--text3:#8899bb;
             --border:rgba(0,0,0,0.08);--shadow:0 8px 24px rgba(0,0,0,0.1);
         }
-        body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s;}
-        ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--gold);border-radius:4px;}
+        html,body{
+            background:var(--bg);
+            color:var(--text);
+            min-height:100%;
+            overflow-x:hidden;
+            transition:background .3s,color .3s;
+        }
+        body{
+            padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 20px);
+        }
+        ::-webkit-scrollbar{width:3px;}
+        ::-webkit-scrollbar-track{background:transparent;}
+        ::-webkit-scrollbar-thumb{background:var(--gold);border-radius:4px;}
 
-        /* TOP BAR */
-        .topbar{position:fixed;top:0;left:0;right:0;z-index:200;padding:10px 14px 0;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(to bottom,var(--bg) 70%,transparent);pointer-events:none;}
-        .topbar>*{pointer-events:auto;}
-        .hamburger-btn{width:42px;height:42px;border-radius:14px;background:var(--bg3);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:transform .15s;box-shadow:var(--shadow);}
-        .hamburger-btn span{width:20px;height:2px;background:var(--text);border-radius:2px;transition:all .3s;}
+        /* === TOPBAR === */
+        .topbar{
+            position:sticky;top:0;left:0;right:0;z-index:200;
+            padding:10px 14px 10px;
+            display:flex;justify-content:space-between;align-items:center;
+            background:linear-gradient(to bottom,var(--bg) 75%,transparent);
+            backdrop-filter:blur(10px);
+            -webkit-backdrop-filter:blur(10px);
+        }
+        .topbar-logo{font-family:'Baloo 2',sans-serif;font-size:19px;font-weight:900;color:var(--gold);letter-spacing:-.3px;}
+        .hamburger-btn{
+            width:42px;height:42px;border-radius:14px;
+            background:var(--bg3);border:1px solid var(--border);
+            display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+            cursor:pointer;transition:transform .15s;box-shadow:var(--shadow);
+        }
+        .hamburger-btn span{width:18px;height:2px;background:var(--text);border-radius:2px;transition:all .3s;}
         .hamburger-btn:active{transform:scale(.9);}
+        .topbar-balance{
+            background:linear-gradient(135deg,rgba(245,200,66,.15),rgba(245,200,66,.05));
+            border:1px solid rgba(245,200,66,.25);
+            border-radius:30px;padding:7px 14px;
+            font-family:'Baloo 2',sans-serif;font-weight:800;font-size:15px;color:var(--gold);
+        }
 
-        /* SIDEBAR */
-        .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:none;opacity:0;transition:opacity .3s;}
+        /* === SIDEBAR === */
+        .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;opacity:0;transition:opacity .3s;}
         .sidebar-overlay.show{display:block;opacity:1;}
-        .sidebar{position:fixed;left:0;top:0;bottom:0;width:280px;background:var(--bg2);z-index:501;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding:60px 0 40px;overflow-y:auto;border-right:1px solid var(--border);}
+        .sidebar{
+            position:fixed;left:0;top:0;bottom:0;width:275px;
+            background:var(--bg2);z-index:501;
+            transform:translateX(-100%);
+            transition:transform .3s cubic-bezier(.4,0,.2,1);
+            padding:env(safe-area-inset-top,0) 0 40px;
+            padding-top:max(env(safe-area-inset-top,0), 10px);
+            overflow-y:auto;
+            border-right:1px solid var(--border);
+        }
         .sidebar.open{transform:translateX(0);}
-        .sidebar-header{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:10px;}
+        .sidebar-header{padding:16px 20px 18px;border-bottom:1px solid var(--border);margin-bottom:8px;}
         .sidebar-logo{font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:900;color:var(--gold);}
-        .sidebar-item{display:flex;align-items:center;gap:14px;padding:14px 20px;cursor:pointer;transition:background .15s;font-weight:700;font-size:15px;}
+        .sidebar-item{
+            display:flex;align-items:center;gap:14px;padding:14px 20px;
+            cursor:pointer;transition:background .15s;font-weight:700;font-size:15px;
+        }
         .sidebar-item:active{background:rgba(255,255,255,.05);}
-        .sidebar-item .si-icon{width:38px;height:38px;border-radius:12px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
-        .sidebar-item.active .si-icon{background:linear-gradient(135deg,var(--gold),var(--gold-dim));}
+        .sidebar-item .si-icon{
+            width:38px;height:38px;border-radius:12px;
+            background:var(--bg3);display:flex;align-items:center;justify-content:center;
+            font-size:18px;flex-shrink:0;
+        }
         .sidebar-divider{height:1px;background:var(--border);margin:8px 20px;}
-        .sidebar-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;}
+        .sidebar-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;}
         .sidebar-toggle-lbl{font-weight:700;font-size:14px;display:flex;align-items:center;gap:10px;}
         .toggle{width:48px;height:26px;background:var(--bg3);border-radius:30px;position:relative;cursor:pointer;transition:background .3s;border:1px solid var(--border);}
         .toggle.on{background:var(--gold);}
         .toggle-knob{width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:3px;left:3px;transition:left .2s;box-shadow:0 2px 6px rgba(0,0,0,.3);}
         .toggle.on .toggle-knob{left:25px;}
 
-        /* PAGE LAYOUT */
-        .page{padding:68px 14px calc(var(--nav)+24px);max-width:480px;margin:0 auto;display:none;min-height:100vh;}
+        /* === PAGE LAYOUT === */
+        .page{
+            padding:0 14px 24px;
+            max-width:480px;margin:0 auto;
+            display:none;min-height:80vh;
+        }
         .page.active{display:block;}
+        .page-inner{padding-top:8px;}
 
-        /* BALANCE CARD */
-        .balance-card{background:linear-gradient(135deg,#1a2f60,#0d1535);border:1px solid rgba(245,200,66,.25);border-radius:28px;padding:26px 22px 22px;margin-bottom:16px;position:relative;overflow:hidden;}
-        .balance-card::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(245,200,66,.15),transparent 70%);pointer-events:none;}
-        .balance-label{font-size:13px;color:var(--text2);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;}
-        .balance-main{font-family:'Baloo 2',sans-serif;font-size:52px;font-weight:900;color:var(--gold);line-height:1;margin-bottom:4px;text-shadow:0 0 30px rgba(245,200,66,.3);}
-        .balance-sub{display:flex;gap:16px;margin-top:14px;}
-        .bsub-item{flex:1;background:rgba(255,255,255,.06);border-radius:14px;padding:10px 12px;border:1px solid var(--border);}
-        .bsub-label{font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+        /* === BALANCE CARD === */
+        .balance-card{
+            background:linear-gradient(135deg,#162040,#0d1535,#1a1060);
+            border:1px solid rgba(245,200,66,.2);border-radius:28px;
+            padding:24px 20px 20px;margin-bottom:14px;
+            position:relative;overflow:hidden;
+        }
+        .balance-card::before{
+            content:'';position:absolute;top:-50px;right:-50px;
+            width:200px;height:200px;
+            background:radial-gradient(circle,rgba(245,200,66,.12),transparent 65%);
+            pointer-events:none;
+        }
+        .balance-card::after{
+            content:'';position:absolute;bottom:-30px;left:-30px;
+            width:150px;height:150px;
+            background:radial-gradient(circle,rgba(123,97,255,.1),transparent 65%);
+            pointer-events:none;
+        }
+        .balance-label{font-size:12px;color:var(--text2);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;}
+        .balance-main{
+            font-family:'Baloo 2',sans-serif;font-size:48px;font-weight:900;
+            color:var(--gold);line-height:1.05;margin-bottom:4px;
+            text-shadow:0 0 40px rgba(245,200,66,.25);
+        }
+        .balance-sub{display:flex;gap:10px;margin-top:14px;}
+        .bsub-item{
+            flex:1;background:rgba(255,255,255,.05);border-radius:14px;
+            padding:10px 12px;border:1px solid var(--border);
+        }
+        .bsub-label{font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
         .bsub-val{font-size:18px;font-weight:900;color:var(--gold);margin-top:2px;}
 
-        /* PASSES DISPLAY */
-        .passes-card{background:linear-gradient(135deg,#2a1a5e,#1a0d35);border:1px solid rgba(123,97,255,.3);border-radius:20px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+        /* === PASSES CARD === */
+        .passes-card{
+            background:linear-gradient(135deg,#1e1050,#150c3a);
+            border:1px solid rgba(123,97,255,.25);border-radius:20px;
+            padding:14px 16px;margin-bottom:14px;
+            display:flex;align-items:center;justify-content:space-between;
+        }
         .passes-info{display:flex;align-items:center;gap:10px;}
-        .passes-icon{font-size:28px;}
-        .passes-text .passes-count{font-family:'Baloo 2',sans-serif;font-size:28px;font-weight:900;color:var(--purple2);}
-        .passes-text .passes-lbl{font-size:12px;color:var(--text2);margin-top:-2px;}
-        .passes-earn-btn{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;padding:10px 18px;border-radius:30px;font-weight:800;font-size:13px;cursor:pointer;}
+        .passes-icon{font-size:26px;}
+        .passes-text .passes-count{font-family:'Baloo 2',sans-serif;font-size:26px;font-weight:900;color:var(--purple2);}
+        .passes-text .passes-lbl{font-size:11px;color:var(--text2);margin-top:-2px;}
+        .passes-earn-btn{
+            background:linear-gradient(135deg,var(--purple),var(--purple2));
+            color:#fff;border:none;padding:10px 16px;border-radius:30px;
+            font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;
+        }
 
-        /* REFERRAL CARD */
-        .ref-card{background:linear-gradient(135deg,#0d2a5e,#1a1060);border:1px solid rgba(56,189,248,.2);border-radius:24px;padding:20px;margin-bottom:16px;}
-        .ref-title{font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px;}
-        .ref-desc{font-size:13px;color:var(--text2);margin-bottom:14px;}
-        .ref-link-box{background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px;}
-        .ref-link-text{flex:1;font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .ref-copy-btn{background:var(--gold);color:#000;border:none;padding:8px 16px;border-radius:30px;font-weight:900;font-size:13px;cursor:pointer;flex-shrink:0;}
-        .share-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
-        .share-btn{background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:14px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;font-size:11px;font-weight:700;color:var(--text2);transition:all .2s;}
-        .share-btn:active{background:rgba(255,255,255,.15);transform:scale(.95);}
-        .share-btn span:first-child{font-size:24px;}
+        /* === DAILY BONUS CARD === */
+        .daily-bonus-card{
+            background:linear-gradient(135deg,#0d2518,#0d1535);
+            border:1px solid rgba(34,211,160,.2);border-radius:20px;
+            padding:14px 16px;margin-bottom:14px;
+            display:flex;align-items:center;gap:14px;cursor:pointer;
+            transition:transform .15s;
+        }
+        .daily-bonus-card:active{transform:scale(.98);}
 
-        /* MISSIONS MINI CARD */
-        .mission-card{background:linear-gradient(135deg,var(--gold-dim),var(--gold));border-radius:20px;padding:18px;margin-bottom:16px;cursor:pointer;color:#000;position:relative;overflow:hidden;}
+        /* === MISSION CARD === */
+        .mission-card{
+            background:linear-gradient(135deg,var(--gold-dim),var(--gold));
+            border-radius:20px;padding:16px 18px;margin-bottom:14px;
+            cursor:pointer;color:#000;position:relative;overflow:hidden;
+            transition:transform .15s;
+        }
         .mission-card:active{transform:scale(.98);}
-        .mission-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
-        .mission-t{font-family:'Baloo 2',sans-serif;font-size:18px;font-weight:900;}
-        .mission-reward{background:rgba(0,0,0,.2);padding:5px 14px;border-radius:30px;font-size:13px;font-weight:800;}
-        .mission-bar-bg{height:10px;background:rgba(0,0,0,.2);border-radius:10px;overflow:hidden;}
+        .mission-bar-bg{height:8px;background:rgba(0,0,0,.2);border-radius:10px;overflow:hidden;margin-top:10px;}
         .mission-bar-fill{height:100%;background:#fff;border-radius:10px;transition:width .4s;}
 
-        /* ADS */
-        .section-head{display:flex;justify-content:space-between;align-items:center;margin:20px 0 12px;}
-        .section-head h3{font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:800;color:var(--gold);}
-        .admin-add-btn{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;border-radius:30px;padding:8px 16px;font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;gap:5px;}
-        .ad-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform .15s;position:relative;}
+        /* === REF CARD === */
+        .ref-card{
+            background:linear-gradient(135deg,#0b1e45,#10104a);
+            border:1px solid rgba(56,189,248,.15);border-radius:24px;
+            padding:18px;margin-bottom:14px;
+        }
+        .ref-link-box{
+            background:rgba(255,255,255,.07);border:1px solid var(--border);
+            border-radius:14px;padding:11px 14px;display:flex;align-items:center;gap:10px;margin-bottom:10px;
+        }
+        .ref-link-text{flex:1;font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .ref-copy-btn{background:var(--gold);color:#000;border:none;padding:8px 14px;border-radius:30px;font-weight:900;font-size:12px;cursor:pointer;flex-shrink:0;font-family:inherit;}
+        .share-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+        .share-btn{
+            background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:12px;
+            padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;
+            cursor:pointer;font-size:11px;font-weight:700;color:var(--text2);transition:all .2s;
+        }
+        .share-btn:active{background:rgba(255,255,255,.14);transform:scale(.95);}
+        .share-btn span:first-child{font-size:22px;}
+
+        /* === SECTION HEAD === */
+        .section-head{display:flex;justify-content:space-between;align-items:center;margin:16px 0 10px;}
+        .section-head h3{font-family:'Baloo 2',sans-serif;font-size:19px;font-weight:800;color:var(--gold);}
+        .admin-add-btn{
+            background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;
+            border:none;border-radius:30px;padding:7px 14px;font-size:12px;font-weight:900;
+            cursor:pointer;display:flex;align-items:center;gap:4px;font-family:inherit;
+        }
+
+        /* === AD CARDS === */
+        .ad-card{
+            background:var(--card);border:1px solid var(--border);border-radius:16px;
+            padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;
+            cursor:pointer;transition:transform .15s;position:relative;
+        }
         .ad-card:active{transform:scale(.97);}
         .ad-card.admin-mode{border:2px dashed var(--gold);}
-        .ad-claimed{opacity:.5;pointer-events:none;}
+        .ad-claimed{opacity:.45;pointer-events:none;}
         .ad-del-btn{position:absolute;top:-8px;left:-8px;width:26px;height:26px;background:var(--red);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;border:2px solid var(--bg);z-index:5;}
         .ad-edit-btn{position:absolute;top:-8px;right:-8px;width:26px;height:26px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;border:2px solid var(--bg);z-index:5;}
-        .ad-icon-box{width:48px;height:48px;background:rgba(245,200,66,.1);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+        .ad-icon-box{width:46px;height:46px;background:rgba(245,200,66,.1);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
         .ad-info{flex:1;min-width:0;}
-        .ad-title{font-weight:800;font-size:15px;margin-bottom:3px;}
+        .ad-title{font-weight:800;font-size:14px;margin-bottom:2px;}
         .ad-meta{font-size:12px;color:var(--text2);}
-        .ad-reward{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:7px 14px;border-radius:30px;font-weight:900;font-size:14px;flex-shrink:0;}
-        .ad-claimed-badge{background:var(--bg3);color:var(--text3);padding:7px 10px;border-radius:30px;font-weight:700;font-size:12px;flex-shrink:0;}
+        .ad-reward{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:7px 12px;border-radius:30px;font-weight:900;font-size:13px;flex-shrink:0;}
+        .ad-claimed-badge{background:var(--bg3);color:var(--text3);padding:7px 10px;border-radius:30px;font-weight:700;font-size:11px;flex-shrink:0;}
 
-        /* LIVE ACTIVITY */
-        .live-section{background:var(--card);border:1px solid var(--border);border-radius:20px;margin-bottom:16px;overflow:hidden;box-shadow:var(--shadow);}
-        .live-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);}
-        .live-title{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px;}
-        .live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
-        @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,211,160,.4);}50%{opacity:.8;box-shadow:0 0 0 6px rgba(34,211,160,0);}}
-        .live-list{max-height:200px;overflow-y:auto;}
-        .live-item{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
+        /* === LIVE ACTIVITY === */
+        .live-section{background:var(--card);border:1px solid var(--border);border-radius:18px;margin-bottom:14px;overflow:hidden;}
+        .live-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);}
+        .live-title{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;}
+        .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
+        @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,211,160,.4);}50%{opacity:.8;box-shadow:0 0 0 5px rgba(34,211,160,0);}}
+        .live-list{max-height:220px;overflow-y:auto;}
+        .live-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
         .live-item:last-child{border-bottom:none;}
-        .live-item:active{background:rgba(255,255,255,.05);}
-        .live-dp{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--gold));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#000;flex-shrink:0;border:2px solid var(--border);overflow:hidden;}
+        .live-item:active{background:rgba(255,255,255,.04);}
+        .live-dp{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--gold));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#000;flex-shrink:0;overflow:hidden;}
         .live-dp img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
         .live-info{flex:1;min-width:0;}
-        .live-name{font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .live-act{font-size:12px;color:var(--text2);margin-top:2px;}
-        .live-time{font-size:11px;color:var(--text3);}
-        .live-amount{font-weight:900;font-size:15px;color:var(--green);}
+        .live-name{font-weight:800;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .live-act{font-size:11px;color:var(--text2);margin-top:1px;}
+        .live-time{font-size:10px;color:var(--text3);}
+        .live-amount{font-weight:900;font-size:14px;color:var(--green);}
 
-        /* BOTTOM NAV */
-        .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--bg2);border-top:1px solid var(--border);padding:8px 0 calc(env(safe-area-inset-bottom)+8px);}
+        /* === BOTTOM NAV === */
+        .bottom-nav{
+            position:fixed;bottom:0;left:0;right:0;z-index:200;
+            background:rgba(8,12,20,.95);
+            border-top:1px solid var(--border);
+            padding-top:8px;
+            padding-bottom:calc(env(safe-area-inset-bottom) + 8px);
+            backdrop-filter:blur(20px);
+            -webkit-backdrop-filter:blur(20px);
+        }
         .nav-wrap{display:grid;grid-template-columns:repeat(5,1fr);max-width:480px;margin:0 auto;}
-        .nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer;position:relative;}
-        .nav-icon-wrap{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;transition:all .2s;position:relative;}
-        .nav-icon-wrap .ni{font-size:24px;transition:transform .2s;}
+        .nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 0;cursor:pointer;position:relative;}
+        .nav-icon-wrap{
+            width:42px;height:42px;border-radius:13px;
+            display:flex;align-items:center;justify-content:center;
+            transition:all .2s;
+        }
+        .nav-icon-wrap .ni{font-size:22px;transition:transform .2s;}
         .nav-label{font-size:10px;font-weight:700;color:var(--text3);transition:color .2s;}
-        .nav-item.active .nav-icon-wrap{background:linear-gradient(135deg,var(--gold),var(--gold-dim));box-shadow:0 4px 16px rgba(245,200,66,.4);}
+        .nav-item.active .nav-icon-wrap{background:linear-gradient(135deg,var(--gold),var(--gold-dim));box-shadow:0 4px 14px rgba(245,200,66,.35);}
         .nav-item.active .nav-icon-wrap .ni{transform:translateY(-2px);}
         .nav-item.active .nav-label{color:var(--gold);}
-        .nav-item.game-center .nav-icon-wrap{width:54px;height:54px;background:linear-gradient(135deg,var(--purple),var(--purple2));border-radius:18px;margin-top:-16px;box-shadow:0 6px 20px rgba(123,97,255,.5);}
-        .nav-item.game-center .nav-icon-wrap .ni{font-size:30px;}
+        .nav-item.game-center .nav-icon-wrap{
+            width:52px;height:52px;
+            background:linear-gradient(135deg,var(--purple),var(--purple2));
+            border-radius:17px;margin-top:-16px;
+            box-shadow:0 6px 20px rgba(123,97,255,.5);
+        }
+        .nav-item.game-center .nav-icon-wrap .ni{font-size:27px;}
         .nav-item.game-center.active .nav-icon-wrap{background:linear-gradient(135deg,var(--gold),var(--gold-dim));}
 
-        /* MODALS */
-        .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:300;overflow-y:auto;padding:20px 14px calc(var(--nav)+20px);display:none;animation:slideUp .25s ease;}
-        @keyframes slideUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
-        .modal.open{display:block;}
-        .modal-hdr{display:flex;align-items:center;gap:14px;margin-bottom:24px;}
-        .back-btn{width:44px;height:44px;background:var(--bg3);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;border:1px solid var(--border);flex-shrink:0;}
+        /* === MODALS === */
+        .modal{
+            position:fixed;top:0;left:0;right:0;bottom:0;
+            background:var(--bg);z-index:300;
+            overflow-y:auto;
+            -webkit-overflow-scrolling:touch;
+            padding:0 14px calc(var(--nav-h) + env(safe-area-inset-bottom) + 30px);
+            display:none;
+        }
+        .modal.open{display:block;animation:slideUp .25s ease;}
+        @keyframes slideUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+        .modal-hdr{
+            display:flex;align-items:center;gap:14px;
+            padding:14px 0 16px;
+            position:sticky;top:0;z-index:10;
+            background:var(--bg);
+        }
+        .back-btn{
+            width:42px;height:42px;background:var(--bg3);border-radius:13px;
+            display:flex;align-items:center;justify-content:center;
+            font-size:22px;cursor:pointer;border:1px solid var(--border);flex-shrink:0;
+        }
         .back-btn:active{background:var(--gold);color:#000;}
-        .modal-title{font-family:'Baloo 2',sans-serif;font-size:26px;font-weight:900;color:var(--gold);}
+        .modal-title{font-family:'Baloo 2',sans-serif;font-size:24px;font-weight:900;color:var(--gold);}
 
-        /* INPUT */
-        .inp{width:100%;padding:14px 16px;background:var(--bg3);border:1.5px solid var(--border);border-radius:14px;color:var(--text);font-size:15px;font-family:inherit;margin:8px 0;transition:border-color .2s;}
+        /* === INPUTS / BUTTONS === */
+        .inp{
+            width:100%;padding:13px 15px;background:var(--bg3);
+            border:1.5px solid var(--border);border-radius:13px;
+            color:var(--text);font-size:14px;font-family:inherit;margin:7px 0;transition:border-color .2s;
+        }
         .inp:focus{border-color:var(--gold);outline:none;}
-        .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;padding:16px;border-radius:40px;font-weight:900;font-size:17px;width:100%;cursor:pointer;margin:12px 0;font-family:inherit;transition:transform .15s,box-shadow .15s;box-shadow:0 6px 20px rgba(245,200,66,.3);}
+        .btn-gold{
+            background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;
+            padding:15px;border-radius:40px;font-weight:900;font-size:16px;width:100%;
+            cursor:pointer;margin:10px 0;font-family:inherit;transition:transform .15s,box-shadow .15s;
+            box-shadow:0 6px 20px rgba(245,200,66,.25);
+        }
         .btn-gold:active{transform:scale(.97);}
-        .btn-purple{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;padding:16px;border-radius:40px;font-weight:900;font-size:17px;width:100%;cursor:pointer;margin:8px 0;font-family:inherit;transition:transform .15s;box-shadow:0 6px 20px rgba(123,97,255,.3);}
+        .btn-purple{
+            background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;
+            padding:15px;border-radius:40px;font-weight:900;font-size:16px;width:100%;
+            cursor:pointer;margin:8px 0;font-family:inherit;
+            box-shadow:0 6px 20px rgba(123,97,255,.25);
+        }
         .btn-purple:active{transform:scale(.97);}
-        .btn-red{background:linear-gradient(135deg,var(--red),#c0392b);color:#fff;border:none;padding:14px;border-radius:40px;font-weight:800;font-size:16px;width:100%;cursor:pointer;margin:6px 0;font-family:inherit;}
+        .btn-red{background:linear-gradient(135deg,var(--red),#c0392b);color:#fff;border:none;padding:13px;border-radius:40px;font-weight:800;font-size:15px;width:100%;cursor:pointer;margin:5px 0;font-family:inherit;}
 
-        /* TOAST */
-        .toast{position:fixed;bottom:calc(var(--nav)+20px);left:14px;right:14px;background:#1e2535;color:var(--text);padding:14px 20px;border-radius:50px;text-align:center;font-weight:700;z-index:999;display:none;border:1px solid var(--border);box-shadow:0 8px 30px rgba(0,0,0,.5);animation:toastIn .3s ease;}
-        @keyframes toastIn{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+        /* === TOAST === */
+        .toast{
+            position:fixed;
+            bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 14px);
+            left:14px;right:14px;
+            background:#1a2235;color:var(--text);
+            padding:13px 18px;border-radius:50px;text-align:center;
+            font-weight:700;font-size:14px;z-index:999;display:none;
+            border:1px solid var(--border);box-shadow:0 8px 30px rgba(0,0,0,.6);
+        }
+        .toast.show{display:block;animation:toastIn .3s ease;}
+        @keyframes toastIn{from{transform:translateY(16px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 
-        /* BONUS OVERLAY */
-        .bonus-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:400;display:none;align-items:flex-end;justify-content:center;padding:20px;}
+        /* === BONUS OVERLAY === */
+        .bonus-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:400;display:none;align-items:flex-end;justify-content:center;padding:20px;}
         .bonus-overlay.show{display:flex;}
-        .bonus-card{background:var(--bg2);border-radius:30px 30px 24px 24px;width:100%;max-width:440px;padding:28px 24px;text-align:center;border:1px solid var(--border);box-shadow:0 -20px 60px rgba(0,0,0,.6);animation:bonusSlide .4s ease;}
+        .bonus-card{
+            background:var(--bg2);border-radius:28px 28px 22px 22px;width:100%;max-width:440px;
+            padding:26px 22px;text-align:center;border:1px solid var(--border);
+            box-shadow:0 -20px 60px rgba(0,0,0,.7);animation:bonusSlide .4s ease;
+        }
         @keyframes bonusSlide{from{transform:translateY(100%);}to{transform:translateY(0);}}
-        .bonus-emoji{font-size:72px;margin-bottom:10px;animation:bonusBounce .6s ease;}
-        @keyframes bonusBounce{0%,100%{transform:scale(1);}50%{transform:scale(1.2);}}
-        .bonus-title{font-family:'Baloo 2',sans-serif;font-size:28px;font-weight:900;color:var(--gold);margin-bottom:6px;}
-        .bonus-amt{font-family:'Baloo 2',sans-serif;font-size:56px;font-weight:900;color:var(--green);margin:10px 0;}
-        .bonus-pass-info{background:rgba(123,97,255,.1);border:1px solid rgba(123,97,255,.3);border-radius:16px;padding:14px;margin-top:12px;text-align:center;font-size:13px;color:var(--purple2);font-weight:700;}
 
-        /* DAILY BONUS PAGE - TRAIN CHAIN */
-        .daily-bonus-page{padding:20px 14px calc(var(--nav)+20px);}
-        .daily-train-header{text-align:center;padding:20px 0 10px;}
-        .daily-train-title{font-family:'Baloo 2',sans-serif;font-size:28px;font-weight:900;color:var(--gold);}
-        .daily-train-sub{font-size:13px;color:var(--text2);margin-top:4px;}
-        .train-track{position:relative;overflow-x:auto;padding:30px 20px 20px;-webkit-overflow-scrolling:touch;}
-        .train-track::-webkit-scrollbar{height:4px;}
-        .train-chain{display:flex;align-items:flex-end;gap:0;min-width:max-content;position:relative;}
-        .train-chain::before{content:'';position:absolute;bottom:24px;left:40px;right:40px;height:4px;background:var(--border);border-radius:2px;}
+        /* === DAILY BONUS MODAL === */
+        .train-track{overflow-x:auto;padding:24px 10px 16px;-webkit-overflow-scrolling:touch;}
+        .train-track::-webkit-scrollbar{height:3px;}
+        .train-chain{display:flex;align-items:flex-end;min-width:max-content;}
         .train-car{display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;}
-        .train-node{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;border:3px solid var(--border);background:var(--bg3);transition:all .3s;cursor:pointer;position:relative;}
-        .train-node.claimed{background:linear-gradient(135deg,var(--gold),var(--gold-dim));border-color:var(--gold);box-shadow:0 4px 16px rgba(245,200,66,.4);color:#000;}
-        .train-node.today{background:linear-gradient(135deg,var(--green),#059669);border-color:var(--green);box-shadow:0 4px 20px rgba(34,211,160,.5);animation:todayPulse 1.5s infinite;}
-        @keyframes todayPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
-        .train-node.future{opacity:.5;}
-        .train-connector{width:40px;height:4px;background:var(--border);margin-bottom:24px;border-radius:2px;}
+        .train-node{
+            width:46px;height:46px;border-radius:50%;
+            display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;
+            border:3px solid var(--border);background:var(--bg3);transition:all .3s;cursor:pointer;
+        }
+        .train-node.claimed{background:linear-gradient(135deg,var(--gold),var(--gold-dim));border-color:var(--gold);box-shadow:0 4px 14px rgba(245,200,66,.35);color:#000;}
+        .train-node.today{background:linear-gradient(135deg,var(--green),#059669);border-color:var(--green);box-shadow:0 4px 18px rgba(34,211,160,.45);animation:todayPulse 1.5s infinite;}
+        @keyframes todayPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.07);}}
+        .train-node.future{opacity:.4;}
+        .train-connector{width:36px;height:4px;background:var(--border);margin-bottom:23px;border-radius:2px;}
         .train-connector.filled{background:linear-gradient(90deg,var(--gold),var(--gold-dim));}
-        .train-date{font-size:10px;color:var(--text3);margin-top:6px;font-weight:700;text-align:center;}
-        .train-reward{font-size:11px;color:var(--gold);font-weight:800;}
-        .today-claim-box{background:linear-gradient(135deg,#0d2a40,#1a1060);border:1px solid rgba(34,211,160,.3);border-radius:24px;padding:24px;margin-top:20px;text-align:center;}
-        .today-claim-amt{font-family:'Baloo 2',sans-serif;font-size:48px;font-weight:900;color:var(--green);}
-        .streak-row{background:var(--bg3);border-radius:16px;padding:14px;margin:16px 0;display:flex;justify-content:space-around;}
+        .train-date{font-size:9px;color:var(--text3);margin-top:5px;font-weight:700;text-align:center;}
+        .train-reward{font-size:10px;color:var(--gold);font-weight:800;}
+        .today-claim-box{
+            background:linear-gradient(135deg,#0d2a40,#1a1060);
+            border:1px solid rgba(34,211,160,.25);border-radius:22px;
+            padding:22px;margin-top:16px;text-align:center;
+        }
+        .today-claim-amt{font-family:'Baloo 2',sans-serif;font-size:44px;font-weight:900;color:var(--green);}
+        .streak-row{background:var(--bg3);border-radius:14px;padding:12px;margin:14px 0;display:flex;justify-content:space-around;}
         .streak-item{text-align:center;}
-        .streak-val{font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:900;color:var(--gold);}
-        .streak-lbl{font-size:11px;color:var(--text3);font-weight:600;}
+        .streak-val{font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:900;color:var(--gold);}
+        .streak-lbl{font-size:10px;color:var(--text3);font-weight:600;}
 
-        /* EARN PASSES PAGE */
-        .earn-passes-hero{background:linear-gradient(135deg,#2a1a5e,#1a0d35);border:1px solid rgba(123,97,255,.3);border-radius:28px;padding:24px;margin-bottom:18px;text-align:center;}
-        .earn-passes-hero h2{font-family:'Baloo 2',sans-serif;font-size:26px;font-weight:900;color:var(--purple2);}
-        .ep-count{font-family:'Baloo 2',sans-serif;font-size:52px;font-weight:900;color:var(--gold);margin:8px 0;}
-        .ep-method{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px 18px;margin-bottom:12px;display:flex;align-items:center;gap:14px;}
-        .ep-method-icon{width:48px;height:48px;border-radius:16px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+        /* === EARN PASSES === */
+        .earn-passes-hero{background:linear-gradient(135deg,#1e1050,#100830);border:1px solid rgba(123,97,255,.25);border-radius:24px;padding:22px;margin-bottom:16px;text-align:center;}
+        .earn-passes-hero h2{font-family:'Baloo 2',sans-serif;font-size:24px;font-weight:900;color:var(--purple2);}
+        .ep-count{font-family:'Baloo 2',sans-serif;font-size:48px;font-weight:900;color:var(--gold);margin:6px 0;}
+        .ep-method{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;}
+        .ep-method-icon{width:44px;height:44px;border-radius:14px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
         .ep-method-info{flex:1;}
-        .ep-method-title{font-weight:800;font-size:15px;}
-        .ep-method-desc{font-size:12px;color:var(--text2);margin-top:2px;}
-        .ep-method-badge{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;padding:6px 14px;border-radius:30px;font-weight:900;font-size:13px;flex-shrink:0;}
-        .buy-passes-section{margin-top:20px;}
-        .buy-passes-title{font-family:'Baloo 2',sans-serif;font-size:18px;font-weight:800;color:var(--gold);margin-bottom:12px;}
-        .pass-pkg{background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .2s;}
+        .ep-method-title{font-weight:800;font-size:14px;}
+        .ep-method-desc{font-size:11px;color:var(--text2);margin-top:2px;}
+        .ep-method-badge{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;padding:6px 12px;border-radius:30px;font-weight:900;font-size:12px;flex-shrink:0;}
+        .pass-pkg{
+            background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:14px;
+            margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .2s;position:relative;
+        }
         .pass-pkg:active{transform:scale(.97);}
-        .pass-pkg.popular{border-color:var(--gold);background:rgba(245,200,66,.05);}
-        .pass-pkg-left{display:flex;align-items:center;gap:12px;}
-        .pass-pkg-icon{font-size:28px;}
-        .pass-pkg-passes{font-family:'Baloo 2',sans-serif;font-size:24px;font-weight:900;color:var(--purple2);}
-        .pass-pkg-lbl{font-size:12px;color:var(--text2);}
-        .pass-pkg-price{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:10px 18px;border-radius:30px;font-weight:900;font-size:15px;}
-        .popular-tag{position:absolute;top:-8px;right:14px;background:var(--red);color:#fff;font-size:10px;padding:3px 10px;border-radius:20px;font-weight:800;}
+        .pass-pkg.popular{border-color:var(--gold);background:rgba(245,200,66,.04);}
+        .pass-pkg-left{display:flex;align-items:center;gap:10px;}
+        .pass-pkg-passes{font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:900;color:var(--purple2);}
+        .pass-pkg-lbl{font-size:11px;color:var(--text2);}
+        .pass-pkg-price{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:9px 16px;border-radius:30px;font-weight:900;font-size:14px;}
+        .popular-tag{position:absolute;top:-8px;right:12px;background:var(--red);color:#fff;font-size:10px;padding:3px 9px;border-radius:20px;font-weight:800;}
 
-        /* PROFILE PAGE */
-        .profile-hero{background:linear-gradient(135deg,var(--bg3),var(--bg2));border-radius:24px;padding:24px;margin-bottom:16px;text-align:center;border:1px solid var(--border);}
-        .profile-dp{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--purple));margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:900;border:3px solid var(--gold);overflow:hidden;}
+        /* === PROFILE PAGE === */
+        .profile-hero{
+            background:linear-gradient(135deg,var(--bg3),var(--bg2));
+            border-radius:22px;padding:22px;margin-bottom:14px;text-align:center;border:1px solid var(--border);
+        }
+        .profile-dp{
+            width:82px;height:82px;border-radius:50%;
+            background:linear-gradient(135deg,var(--gold),var(--purple));
+            margin:0 auto 12px;display:flex;align-items:center;justify-content:center;
+            font-size:36px;font-weight:900;border:3px solid var(--gold);overflow:hidden;
+        }
         .profile-dp img{width:100%;height:100%;object-fit:cover;}
-        .profile-name{font-family:'Baloo 2',sans-serif;font-size:26px;font-weight:900;margin-bottom:6px;}
-        .profile-tier{display:inline-block;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:5px 18px;border-radius:30px;font-weight:800;font-size:13px;}
-        .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px;}
-        .stat-box{background:var(--bg3);border-radius:16px;padding:14px 10px;text-align:center;border:1px solid var(--border);}
-        .stat-val{font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:900;color:var(--gold);}
-        .stat-lbl{font-size:11px;color:var(--text3);margin-top:2px;font-weight:600;}
-        .stats-grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px;}
-        .ref-activity-section{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:18px;margin-top:14px;}
-        .ref-activity-title{font-weight:800;margin-bottom:12px;color:var(--gold);}
-        .ref-act-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+        .profile-name{font-family:'Baloo 2',sans-serif;font-size:24px;font-weight:900;margin-bottom:5px;}
+        .profile-tier{display:inline-block;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:5px 16px;border-radius:30px;font-weight:800;font-size:12px;}
+        .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;}
+        .stat-box{background:var(--bg3);border-radius:14px;padding:12px 8px;text-align:center;border:1px solid var(--border);}
+        .stat-val{font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:900;color:var(--gold);}
+        .stat-lbl{font-size:10px;color:var(--text3);margin-top:2px;font-weight:600;}
+        .stats-grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px;}
+        .ref-activity-section{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin-top:12px;}
+        .ref-activity-title{font-weight:800;margin-bottom:10px;color:var(--gold);}
+        .ref-act-item{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);}
         .ref-act-item:last-child{border-bottom:none;}
-        .ref-act-dp{width:34px;height:34px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;}
+        .ref-act-dp{width:32px;height:32px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;}
         .ref-act-info{flex:1;}
         .ref-act-name{font-weight:700;font-size:13px;}
         .ref-act-detail{font-size:11px;color:var(--text2);}
@@ -248,137 +427,154 @@
         .badge-active{background:rgba(34,211,160,.15);color:var(--green);}
         .badge-pending{background:rgba(245,200,66,.15);color:var(--gold);}
 
-        /* LEADERBOARD */
-        .lb-tabs{display:flex;gap:8px;margin-bottom:18px;}
-        .lb-tab{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center;font-weight:800;cursor:pointer;transition:all .2s;}
+        /* === LEADERBOARD === */
+        .lb-tabs{display:flex;gap:8px;margin-bottom:16px;}
+        .lb-tab{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:13px;padding:11px;text-align:center;font-weight:800;cursor:pointer;transition:all .2s;font-size:14px;}
         .lb-tab.active{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;}
-        .lb-podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:20px 0 30px;padding:0 20px;}
-        .podium-slot{display:flex;flex-direction:column;align-items:center;gap:6px;}
-        .podium-slot.p1{order:2;}
-        .podium-slot.p2{order:1;}
-        .podium-slot.p3{order:3;}
-        .podium-dp{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--purple));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;border:3px solid var(--gold);}
-        .podium-slot.p2 .podium-dp,.podium-slot.p3 .podium-dp{width:50px;height:50px;font-size:20px;}
-        .podium-name{font-weight:800;font-size:12px;text-align:center;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .podium-bar{border-radius:10px 10px 0 0;}
-        .podium-slot.p1 .podium-bar{width:80px;height:90px;background:linear-gradient(to top,var(--gold-dim),var(--gold));display:flex;align-items:center;justify-content:center;font-size:32px;}
-        .podium-slot.p2 .podium-bar{width:68px;height:65px;background:linear-gradient(to top,#94a3b8,#cbd5e1);display:flex;align-items:center;justify-content:center;font-size:26px;}
-        .podium-slot.p3 .podium-bar{width:68px;height:50px;background:linear-gradient(to top,#c97c3a,#f5a55a);display:flex;align-items:center;justify-content:center;font-size:26px;}
+        .lb-podium{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin:16px 0 24px;padding:0 10px;}
+        .podium-slot{display:flex;flex-direction:column;align-items:center;gap:5px;}
+        .podium-slot.p1{order:2;}.podium-slot.p2{order:1;}.podium-slot.p3{order:3;}
+        .podium-dp{width:55px;height:55px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--purple));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;border:3px solid var(--gold);}
+        .podium-slot.p2 .podium-dp,.podium-slot.p3 .podium-dp{width:46px;height:46px;font-size:18px;}
+        .podium-name{font-weight:800;font-size:11px;text-align:center;max-width:65px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .podium-bar{border-radius:9px 9px 0 0;}
+        .podium-slot.p1 .podium-bar{width:75px;height:85px;background:linear-gradient(to top,var(--gold-dim),var(--gold));display:flex;align-items:center;justify-content:center;font-size:30px;}
+        .podium-slot.p2 .podium-bar{width:64px;height:62px;background:linear-gradient(to top,#94a3b8,#cbd5e1);display:flex;align-items:center;justify-content:center;font-size:24px;}
+        .podium-slot.p3 .podium-bar{width:64px;height:48px;background:linear-gradient(to top,#c97c3a,#f5a55a);display:flex;align-items:center;justify-content:center;font-size:24px;}
         .lb-list{display:flex;flex-direction:column;gap:8px;}
-        .lb-item{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;}
-        .lb-rank{width:32px;height:32px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;flex-shrink:0;}
-        .lb-info{flex:1;}
-        .lb-name{font-weight:800;font-size:15px;}
-        .lb-refs{font-size:12px;color:var(--text2);margin-top:2px;}
-        .lb-prize{font-weight:900;color:var(--gold);}
-        .lb-info-card{background:var(--bg3);border-radius:18px;padding:16px;margin-top:16px;border:1px solid var(--border);}
+        .lb-item{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px 14px;display:flex;align-items:center;gap:11px;}
+        .lb-rank{width:30px;height:30px;border-radius:9px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;}
+        .lb-info{flex:1;}.lb-name{font-weight:800;font-size:14px;}
+        .lb-refs{font-size:11px;color:var(--text2);margin-top:2px;}
+        .lb-prize{font-weight:900;color:var(--gold);font-size:14px;}
+        .lb-info-card{background:var(--bg3);border-radius:16px;padding:14px;margin-top:14px;border:1px solid var(--border);}
 
-        /* GAMES PAGE */
-        .games-hero{background:linear-gradient(135deg,#1a0d40,#0d1535);border:1px solid rgba(123,97,255,.3);border-radius:28px;padding:26px 20px;margin-bottom:18px;text-align:center;position:relative;overflow:hidden;}
-        .games-hero::before{content:'🎮';position:absolute;right:-20px;top:-20px;font-size:120px;opacity:.08;}
-        .games-hero h2{font-family:'Baloo 2',sans-serif;font-size:32px;font-weight:900;color:var(--purple2);margin-bottom:6px;}
-        .games-hero p{font-size:14px;color:var(--text2);}
-        .games-hero-badge{display:inline-block;background:rgba(123,97,255,.15);border:1px solid rgba(123,97,255,.3);border-radius:30px;padding:8px 20px;margin-top:12px;font-weight:800;color:var(--purple2);font-size:13px;}
-        .games-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
-        .gstat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 10px;text-align:center;}
-        .gstat-val{font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:900;color:var(--purple2);}
-        .gstat-lbl{font-size:11px;color:var(--text3);margin-top:2px;}
-        .games-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
-        .game-card{background:var(--card);border:1.5px solid var(--border);border-radius:22px;padding:22px 14px 18px;text-align:center;cursor:pointer;transition:transform .18s;position:relative;overflow:hidden;}
+        /* === GAMES PAGE === */
+        .games-hero{
+            background:linear-gradient(135deg,#100830,#0a0d25);
+            border:1px solid rgba(123,97,255,.25);border-radius:26px;
+            padding:22px 18px;margin-bottom:16px;text-align:center;position:relative;overflow:hidden;
+        }
+        .games-hero::before{content:'🎮';position:absolute;right:-18px;top:-18px;font-size:110px;opacity:.07;}
+        .games-hero h2{font-family:'Baloo 2',sans-serif;font-size:28px;font-weight:900;color:var(--purple2);margin-bottom:4px;}
+        .games-hero p{font-size:13px;color:var(--text2);}
+        .games-hero-badge{
+            display:inline-block;background:rgba(123,97,255,.12);border:1px solid rgba(123,97,255,.25);
+            border-radius:30px;padding:7px 18px;margin-top:10px;font-weight:800;color:var(--purple2);font-size:13px;
+        }
+        .games-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+        .gstat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 8px;text-align:center;}
+        .gstat-val{font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:900;color:var(--purple2);}
+        .gstat-lbl{font-size:10px;color:var(--text3);margin-top:2px;}
+        .games-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+        .game-card{
+            background:var(--card);border:1.5px solid var(--border);border-radius:20px;
+            padding:20px 12px 16px;text-align:center;cursor:pointer;
+            transition:transform .18s,border-color .2s;position:relative;overflow:hidden;
+        }
+        .game-card:hover{border-color:rgba(123,97,255,.4);}
         .game-card:active{transform:scale(.94);}
-        .game-emoji{font-size:64px;display:block;margin-bottom:14px;}
-        .game-name{font-family:'Baloo 2',sans-serif;font-size:17px;font-weight:800;margin-bottom:3px;}
-        .game-desc{font-size:11px;color:var(--text2);margin-bottom:12px;}
-        .game-reward{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;padding:6px 14px;border-radius:30px;font-size:12px;font-weight:800;display:inline-block;}
+        .game-card::before{
+            content:'';position:absolute;inset:0;
+            background:linear-gradient(135deg,rgba(123,97,255,.05),transparent);
+            opacity:0;transition:opacity .2s;
+        }
+        .game-card:hover::before{opacity:1;}
+        .game-emoji{font-size:58px;display:block;margin-bottom:12px;}
+        .game-name{font-family:'Baloo 2',sans-serif;font-size:16px;font-weight:800;margin-bottom:3px;}
+        .game-desc{font-size:10px;color:var(--text2);margin-bottom:10px;}
+        .game-reward{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;padding:5px 12px;border-radius:30px;font-size:11px;font-weight:800;display:inline-block;}
+        .games-info-banner{
+            background:rgba(123,97,255,.08);border:1px solid rgba(123,97,255,.2);
+            border-radius:14px;padding:12px 14px;text-align:center;font-size:12px;color:var(--purple2);font-weight:700;margin-bottom:14px;
+        }
 
-        /* SPIN */
-        .spin-wrap{text-align:center;padding:10px 0;}
-        .spin-stats{display:flex;justify-content:space-around;background:var(--bg3);border-radius:18px;padding:16px;margin-bottom:20px;border:1px solid var(--border);}
-        .ss-item .ss-val{font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:900;color:var(--purple2);}
-        .ss-item .ss-lbl{font-size:11px;color:var(--text3);margin-top:2px;}
-        .wheel-outer{position:relative;display:inline-block;margin:10px auto;}
-        .wheel-ptr{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:32px;z-index:5;}
-        #spinCanvas{border-radius:50%;box-shadow:0 0 0 6px var(--gold),0 0 0 10px rgba(245,200,66,.2),0 16px 50px rgba(245,200,66,.3);cursor:pointer;width:270px;height:270px;}
-        .spin-result{background:linear-gradient(135deg,var(--green),#059669);border-radius:18px;padding:18px;margin:16px 0;display:none;animation:bounceIn .4s;}
+        /* === SPIN === */
+        .spin-wrap{text-align:center;padding:8px 0;}
+        .spin-stats{display:flex;justify-content:space-around;background:var(--bg3);border-radius:16px;padding:14px;margin-bottom:18px;border:1px solid var(--border);}
+        .ss-item .ss-val{font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:900;color:var(--purple2);}
+        .ss-item .ss-lbl{font-size:10px;color:var(--text3);margin-top:2px;}
+        .wheel-outer{position:relative;display:inline-block;margin:8px auto;}
+        .wheel-ptr{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:28px;z-index:5;}
+        #spinCanvas{border-radius:50%;box-shadow:0 0 0 5px var(--gold),0 0 0 9px rgba(245,200,66,.15),0 14px 44px rgba(245,200,66,.25);cursor:pointer;width:260px;height:260px;}
+        .spin-result{background:linear-gradient(135deg,var(--green),#059669);border-radius:16px;padding:16px;margin:14px 0;display:none;animation:bounceIn .4s;}
         @keyframes bounceIn{0%{transform:scale(.5);opacity:0;}80%{transform:scale(1.06);}100%{transform:scale(1);opacity:1;}}
-        .spin-result-amt{font-family:'Baloo 2',sans-serif;font-size:44px;font-weight:900;color:#fff;}
+        .spin-result-amt{font-family:'Baloo 2',sans-serif;font-size:40px;font-weight:900;color:#fff;}
 
-        /* GUESS */
-        .guess-display{background:linear-gradient(135deg,#0d1535,#1a0d40);border-radius:22px;padding:28px;text-align:center;margin-bottom:14px;}
-        .guess-num{font-family:'Baloo 2',sans-serif;font-size:100px;font-weight:900;color:var(--gold);line-height:1;}
-        .guess-hint{font-size:15px;color:var(--text2);margin-top:8px;}
-        .num-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0;}
-        .num-btn{background:var(--bg3);border:1.5px solid var(--border);border-radius:14px;padding:14px 4px;font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:900;cursor:pointer;transition:all .15s;color:var(--text);}
+        /* === GUESS === */
+        .guess-display{background:linear-gradient(135deg,#0d1535,#1a0d40);border-radius:20px;padding:24px;text-align:center;margin-bottom:12px;}
+        .guess-num{font-family:'Baloo 2',sans-serif;font-size:90px;font-weight:900;color:var(--gold);line-height:1;}
+        .guess-hint{font-size:14px;color:var(--text2);margin-top:6px;}
+        .num-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:12px 0;}
+        .num-btn{background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;padding:13px 4px;font-family:'Baloo 2',sans-serif;font-size:18px;font-weight:900;cursor:pointer;transition:all .15s;color:var(--text);}
         .num-btn:active{transform:scale(.88);}
         .num-btn.correct{background:var(--green);color:#fff;border-color:var(--green);}
         .num-btn.wrong{background:var(--red);color:#fff;border-color:var(--red);}
-        .num-btn:disabled{opacity:.45;}
-        .bet-row{display:flex;gap:8px;margin:10px 0;}
-        .bet-chip{flex:1;background:var(--bg3);border:1.5px solid var(--border);border-radius:14px;padding:12px 4px;text-align:center;cursor:pointer;font-weight:800;font-size:13px;transition:all .15s;color:var(--text);}
+        .num-btn:disabled{opacity:.4;}
+        .bet-row{display:flex;gap:7px;margin:9px 0;}
+        .bet-chip{flex:1;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;padding:11px 4px;text-align:center;cursor:pointer;font-weight:800;font-size:13px;transition:all .15s;color:var(--text);}
         .bet-chip.sel{background:var(--gold);border-color:var(--gold);color:#000;}
 
-        /* COIN */
+        /* === COIN === */
         .coin-game-wrap{text-align:center;}
-        .coin-outer{margin:20px auto;display:inline-block;perspective:800px;}
-        .coin{width:130px;height:130px;position:relative;transform-style:preserve-3d;transition:transform 1.2s cubic-bezier(.4,0,.2,1);cursor:pointer;margin:0 auto;}
-        .coin-face{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:60px;backface-visibility:hidden;box-shadow:inset 0 -8px 20px rgba(0,0,0,.3);}
+        .coin-outer{margin:18px auto;display:inline-block;perspective:800px;}
+        .coin{width:120px;height:120px;position:relative;transform-style:preserve-3d;transition:transform 1.2s cubic-bezier(.4,0,.2,1);cursor:pointer;margin:0 auto;}
+        .coin-face{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:54px;backface-visibility:hidden;box-shadow:inset 0 -8px 20px rgba(0,0,0,.3);}
         .coin-h{background:radial-gradient(circle at 35% 35%,#fde68a,var(--gold),var(--gold-dim));}
         .coin-t{background:radial-gradient(circle at 35% 35%,#e2e8f0,#94a3b8,#64748b);transform:rotateY(180deg);}
-        .coin-choices{display:flex;gap:12px;margin:16px 0;}
-        .coin-choice{flex:1;padding:18px;border-radius:18px;font-size:26px;font-weight:900;cursor:pointer;border:2px solid var(--border);background:var(--bg3);transition:all .18s;}
+        .coin-choices{display:flex;gap:10px;margin:14px 0;}
+        .coin-choice{flex:1;padding:16px;border-radius:16px;font-size:24px;font-weight:900;cursor:pointer;border:2px solid var(--border);background:var(--bg3);transition:all .18s;color:var(--text);font-family:inherit;}
         .coin-choice.sel{border-color:var(--gold);background:rgba(245,200,66,.1);transform:translateY(-4px);}
-        .coin-res-win{background:linear-gradient(135deg,var(--green),#059669);color:#fff;border-radius:18px;padding:18px;text-align:center;display:none;animation:bounceIn .4s;}
-        .coin-res-lose{background:linear-gradient(135deg,var(--red),#dc2626);color:#fff;border-radius:18px;padding:18px;text-align:center;display:none;animation:bounceIn .4s;}
-        .coin-res-big{font-family:'Baloo 2',sans-serif;font-size:48px;font-weight:900;}
+        .coin-res-win{background:linear-gradient(135deg,var(--green),#059669);color:#fff;border-radius:16px;padding:16px;text-align:center;display:none;animation:bounceIn .4s;}
+        .coin-res-lose{background:linear-gradient(135deg,var(--red),#dc2626);color:#fff;border-radius:16px;padding:16px;text-align:center;display:none;animation:bounceIn .4s;}
+        .coin-res-big{font-family:'Baloo 2',sans-serif;font-size:42px;font-weight:900;}
 
-        /* SCRATCH */
-        .scratch-area{position:relative;width:100%;max-width:340px;height:180px;margin:18px auto;border-radius:22px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.4);cursor:crosshair;touch-action:none;}
-        .scratch-reward-layer{position:absolute;inset:0;background:linear-gradient(135deg,var(--gold),var(--gold-dim));display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1;border-radius:22px;}
-        .scratch-amt{font-family:'Baloo 2',sans-serif;font-size:56px;font-weight:900;color:#000;line-height:1;}
-        #scratchCanvas{position:absolute;inset:0;z-index:2;border-radius:22px;width:100%;height:100%;}
-        .scratch-prog{background:var(--bg3);border-radius:10px;height:8px;margin:10px 0;overflow:hidden;}
-        .scratch-prog-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--purple2));border-radius:10px;transition:width .2s;}
+        /* === SCRATCH === */
+        .scratch-area{position:relative;width:100%;max-width:340px;height:175px;margin:16px auto;border-radius:20px;overflow:hidden;box-shadow:0 10px 36px rgba(0,0,0,.4);cursor:crosshair;touch-action:none;}
+        .scratch-reward-layer{position:absolute;inset:0;background:linear-gradient(135deg,var(--gold),var(--gold-dim));display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1;border-radius:20px;}
+        .scratch-amt{font-family:'Baloo 2',sans-serif;font-size:52px;font-weight:900;color:#000;line-height:1;}
+        #scratchCanvas{position:absolute;inset:0;z-index:2;border-radius:20px;width:100%;height:100%;}
+        .scratch-prog{background:var(--bg3);border-radius:9px;height:7px;margin:8px 0;overflow:hidden;}
+        .scratch-prog-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--purple2));border-radius:9px;transition:width .2s;}
 
-        /* HISTORY */
-        .hist-item{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:10px;}
+        /* === HISTORY === */
+        .hist-item{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:9px;}
         .hist-top{display:flex;justify-content:space-between;align-items:center;}
-        .hist-amt{font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:900;color:var(--gold);}
-        .hist-status{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800;}
+        .hist-amt{font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:900;color:var(--gold);}
+        .hist-status{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:800;}
         .status-pending{background:rgba(245,200,66,.15);color:var(--gold);}
         .status-completed{background:rgba(34,211,160,.15);color:var(--green);}
         .status-rejected{background:rgba(255,91,107,.15);color:var(--red);}
-        .hist-bot{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--text3);}
+        .hist-bot{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--text3);}
 
-        /* WITHDRAW */
-        .avail-balance{text-align:center;padding:20px;background:var(--bg3);border-radius:20px;margin-bottom:16px;border:1px solid var(--border);}
-        .avail-amt{font-family:'Baloo 2',sans-serif;font-size:52px;font-weight:900;color:var(--gold);}
-        .method-btn{background:var(--bg3);border:2px solid var(--border);border-radius:16px;padding:16px;margin:8px 0;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .2s;}
+        /* === WITHDRAW === */
+        .avail-balance{text-align:center;padding:18px;background:var(--bg3);border-radius:18px;margin-bottom:14px;border:1px solid var(--border);}
+        .avail-amt{font-family:'Baloo 2',sans-serif;font-size:48px;font-weight:900;color:var(--gold);}
+        .method-btn{background:var(--bg3);border:2px solid var(--border);border-radius:14px;padding:14px;margin:7px 0;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .2s;}
         .method-btn.sel{border-color:var(--gold);}
+        .card-section{background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:9px;border:1px solid var(--border);}
 
-        /* CARD SECTION */
-        .card-section{background:var(--bg3);border-radius:16px;padding:16px;margin-bottom:10px;border:1px solid var(--border);}
-
-        /* CONGRATS POPUP */
-        .congrats-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:600;display:none;align-items:center;justify-content:center;padding:20px;}
+        /* === CONGRATS POPUP === */
+        .congrats-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:600;display:none;align-items:center;justify-content:center;padding:20px;}
         .congrats-overlay.show{display:flex;}
-        .congrats-card{background:var(--bg2);border-radius:28px;padding:30px 24px;text-align:center;border:1px solid var(--gold);box-shadow:0 0 60px rgba(245,200,66,.3);max-width:360px;width:100%;animation:congratsPop .5s cubic-bezier(.175,.885,.32,1.275);}
+        .congrats-card{background:var(--bg2);border-radius:26px;padding:28px 22px;text-align:center;border:1px solid var(--gold);box-shadow:0 0 60px rgba(245,200,66,.25);max-width:340px;width:100%;animation:congratsPop .5s cubic-bezier(.175,.885,.32,1.275);}
         @keyframes congratsPop{0%{transform:scale(.3);opacity:0;}100%{transform:scale(1);opacity:1;}}
-        .confetti{font-size:60px;animation:spin 1s linear infinite;}
-        @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+        .confetti{font-size:56px;animation:spinAnim 1s linear infinite;}
+        @keyframes spinAnim{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
 
-        /* SETTINGS MODAL */
-        .settings-group{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:14px;}
-        .setting-row{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--border);}
+        /* === SETTINGS === */
+        .settings-group{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:12px;}
+        .setting-row{display:flex;justify-content:space-between;align-items:center;padding:15px 16px;border-bottom:1px solid var(--border);}
         .setting-row:last-child{border-bottom:none;}
-        .setting-lbl{font-weight:700;font-size:15px;}
+        .setting-lbl{font-weight:700;font-size:14px;}
 
-        /* USER PROFILE */
-        .user-profile-card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:24px;margin-bottom:14px;text-align:center;}
-        .user-profile-dp-lg{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--purple));margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:900;overflow:hidden;}
+        /* === USER PROFILE MODAL === */
+        .user-profile-card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:22px;margin-bottom:12px;text-align:center;}
+        .user-profile-dp-lg{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--purple));margin:0 auto 11px;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;overflow:hidden;}
     </style>
 </head>
 <body>
-    <!-- SIDEBAR OVERLAY -->
+    <!-- SIDEBAR -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -413,119 +609,166 @@
         <div class="hamburger-btn" onclick="openSidebar()">
             <span></span><span></span><span></span>
         </div>
-        <div style="font-family:'Baloo 2',sans-serif;font-size:18px;font-weight:900;color:var(--gold);">💰 EarnZone</div>
-        <div style="width:42px;height:42px;"></div>
+        <div class="topbar-logo">💰 EarnZone</div>
+        <div class="topbar-balance" id="topbarBalance">₹0.00</div>
     </div>
 
     <!-- HOME PAGE -->
     <div class="page active" id="homePage">
-        <div class="balance-card">
-            <div class="balance-label">💰 Aapka Balance</div>
-            <div class="balance-main" id="balAmt">₹0.00</div>
-            <div class="balance-sub">
-                <div class="bsub-item">
-                    <div class="bsub-label">Aaj Kamaya</div>
-                    <div class="bsub-val" id="todayEarned">₹0</div>
-                </div>
-                <div class="bsub-item">
-                    <div class="bsub-label">Active Refs</div>
-                    <div class="bsub-val" id="activeRefs">0</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="passes-card">
-            <div class="passes-info">
-                <div class="passes-icon">🎟️</div>
-                <div class="passes-text">
-                    <div class="passes-count" id="passCount">0</div>
-                    <div class="passes-lbl">Game Passes</div>
+        <div class="page-inner">
+            <div class="balance-card">
+                <div class="balance-label">💰 Aapka Balance</div>
+                <div class="balance-main" id="balAmt">₹0.00</div>
+                <div class="balance-sub">
+                    <div class="bsub-item">
+                        <div class="bsub-label">Aaj Kamaya</div>
+                        <div class="bsub-val" id="todayEarned">₹0</div>
+                    </div>
+                    <div class="bsub-item">
+                        <div class="bsub-label">Active Refs</div>
+                        <div class="bsub-val" id="activeRefs">0</div>
+                    </div>
                 </div>
             </div>
-            <button class="passes-earn-btn" onclick="openModal('earnPasses')">+ Earn Passes</button>
-        </div>
 
-        <!-- DAILY BONUS CARD -->
-        <div style="background:linear-gradient(135deg,#1a3a20,#0d2010);border:1px solid rgba(34,211,160,.3);border-radius:20px;padding:16px 18px;margin-bottom:16px;display:flex;align-items:center;gap:14px;cursor:pointer;" onclick="openModal('dailyBonus')" id="dailyBonusCard">
-            <div style="font-size:36px;" id="dailyBonusIcon">🎁</div>
-            <div style="flex:1;">
-                <div style="font-weight:800;font-size:15px;">Daily Bonus</div>
-                <div style="font-size:12px;color:var(--text2);margin-top:2px;" id="dailyBonusSubtitle">Aaj ka bonus claim karo!</div>
+            <div class="passes-card">
+                <div class="passes-info">
+                    <div class="passes-icon">🎟️</div>
+                    <div class="passes-text">
+                        <div class="passes-count" id="passCount">0</div>
+                        <div class="passes-lbl">Game Passes</div>
+                    </div>
+                </div>
+                <button class="passes-earn-btn" onclick="openModal('earnPasses')">+ Earn Passes</button>
             </div>
-            <div style="background:linear-gradient(135deg,var(--green),#059669);color:#fff;padding:8px 16px;border-radius:30px;font-weight:900;font-size:13px;" id="dailyBonusBtn">Claim</div>
-        </div>
 
-        <!-- MISSIONS -->
-        <div class="mission-card" onclick="openModal('missions')">
-            <div class="mission-top">
-                <div class="mission-t">🎯 Daily Missions</div>
-                <div class="mission-reward">₹5 Reward</div>
+            <!-- DAILY BONUS -->
+            <div class="daily-bonus-card" onclick="openModal('dailyBonus')" id="dailyBonusCard">
+                <div style="font-size:34px;" id="dailyBonusIcon">🎁</div>
+                <div style="flex:1;">
+                    <div style="font-weight:800;font-size:15px;">Daily Bonus</div>
+                    <div style="font-size:12px;color:var(--text2);margin-top:2px;" id="dailyBonusSubtitle">Aaj ka bonus claim karo!</div>
+                </div>
+                <div style="background:linear-gradient(135deg,var(--green),#059669);color:#fff;padding:8px 14px;border-radius:30px;font-weight:900;font-size:12px;" id="dailyBonusBtn">Claim</div>
             </div>
-            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;">
-                <span>Complete karo ₹5 pao!</span>
-                <span><b id="missionsDone">0</b>/4</span>
-            </div>
-            <div class="mission-bar-bg"><div class="mission-bar-fill" id="missionBarFill"></div></div>
-        </div>
 
-        <!-- REFERRAL -->
-        <div class="ref-card">
-            <div class="ref-title">👥 Refer & Earn</div>
-            <div class="ref-desc">Dost ko invite karo • 3 Passes + ₹ bonus pao!</div>
-            <div class="ref-link-box">
-                <span class="ref-link-text" id="refLinkText">https://t.me/...</span>
-                <button class="ref-copy-btn" onclick="copyRef()">Copy</button>
+            <!-- MISSIONS -->
+            <div class="mission-card" onclick="openModal('missions')">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                    <div style="font-family:'Baloo 2',sans-serif;font-size:17px;font-weight:900;">🎯 Daily Missions</div>
+                    <div style="background:rgba(0,0,0,.2);padding:5px 12px;border-radius:30px;font-size:12px;font-weight:800;">₹5 Reward</div>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;">
+                    <span>Complete karo ₹5 pao!</span>
+                    <span><b id="missionsDone">0</b>/4</span>
+                </div>
+                <div class="mission-bar-bg"><div class="mission-bar-fill" id="missionBarFill"></div></div>
             </div>
-            <div class="share-grid">
-                <div class="share-btn" onclick="shareOn('telegram')"><span>📱</span><span>Telegram</span></div>
-                <div class="share-btn" onclick="shareOn('whatsapp')"><span>💬</span><span>WhatsApp</span></div>
-                <div class="share-btn" onclick="shareOn('other')"><span>🔗</span><span>More</span></div>
-            </div>
-        </div>
 
-        <!-- ADS -->
-        <div class="section-head">
-            <h3>💎 Sponsored Offers</h3>
-            <button class="admin-add-btn" id="addOfferBtn" onclick="openAdminCreateOffer()" style="display:none;">➕ Create Offer</button>
-        </div>
-        <div id="adsContainer"></div>
-
-        <!-- LIVE ACTIVITY - BOTTOM -->
-        <div class="section-head" style="margin-top:8px;">
-            <h3>⚡ Live Activity</h3>
-            <span style="font-size:12px;color:var(--text3);">Real-time</span>
-        </div>
-        <div class="live-section" style="margin-bottom:16px;">
-            <div class="live-header">
-                <div class="live-title"><div class="live-dot"></div> Users Online</div>
+            <!-- REFERRAL -->
+            <div class="ref-card">
+                <div style="font-family:'Baloo 2',sans-serif;font-size:18px;font-weight:800;margin-bottom:4px;">👥 Refer & Earn</div>
+                <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Dost ko invite karo • 3 Passes + ₹ bonus pao!</div>
+                <div class="ref-link-box">
+                    <span class="ref-link-text" id="refLinkText">https://t.me/...</span>
+                    <button class="ref-copy-btn" onclick="copyRef()">Copy</button>
+                </div>
+                <div class="share-grid">
+                    <div class="share-btn" onclick="shareOn('telegram')"><span>📱</span><span>Telegram</span></div>
+                    <div class="share-btn" onclick="shareOn('whatsapp')"><span>💬</span><span>WhatsApp</span></div>
+                    <div class="share-btn" onclick="shareOn('other')"><span>🔗</span><span>More</span></div>
+                </div>
             </div>
-            <div class="live-list" id="liveList">
-                <div style="text-align:center;padding:20px;color:var(--text3)">Loading...</div>
+
+            <!-- ADS -->
+            <div class="section-head">
+                <h3>💎 Sponsored Offers</h3>
+                <button class="admin-add-btn" id="addOfferBtn" onclick="openAdminCreateOffer()" style="display:none;">➕ Add Offer</button>
+            </div>
+            <div id="adsContainer"></div>
+
+            <!-- LIVE ACTIVITY -->
+            <div class="section-head" style="margin-top:6px;">
+                <h3>⚡ Live Activity</h3>
+                <span style="font-size:11px;color:var(--text3);">Real-time</span>
+            </div>
+            <div class="live-section">
+                <div class="live-header">
+                    <div class="live-title"><div class="live-dot"></div> Users Online</div>
+                </div>
+                <div class="live-list" id="liveList">
+                    <div style="text-align:center;padding:18px;color:var(--text3)">Loading...</div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- LEADERBOARD PAGE -->
     <div class="page" id="rankPage">
-        <div style="padding-top:10px;">
-            <div style="font-family:'Baloo 2',sans-serif;font-size:28px;font-weight:900;color:var(--gold);margin-bottom:18px;">🏆 Leaderboard</div>
+        <div class="page-inner">
+            <div style="font-family:'Baloo 2',sans-serif;font-size:26px;font-weight:900;color:var(--gold);margin-bottom:16px;">🏆 Leaderboard</div>
             <div class="lb-tabs">
                 <div class="lb-tab active" id="lbWeeklyTab" onclick="switchLB('weekly')">Weekly</div>
                 <div class="lb-tab" id="lbMonthlyTab" onclick="switchLB('monthly')">Monthly</div>
             </div>
             <div id="lbContent"></div>
             <div class="lb-info-card">
-                <div style="font-weight:800;font-size:15px;margin-bottom:10px;color:var(--gold);">📋 Rules</div>
-                <div style="font-size:13px;color:var(--text2);">🏅 <b style="color:var(--gold)">Weekly:</b> 1st ₹150 • 2nd ₹65 • 3rd ₹30 • 4-10 ₹10</div>
-                <div style="font-size:13px;color:var(--text2);margin-top:6px;">🏅 <b style="color:var(--gold)">Monthly:</b> 1st ₹300 • 2nd ₹200 • 3rd ₹200 • 4-10 ₹30</div>
-                <div style="margin-top:10px;font-size:12px;color:var(--text3);background:var(--bg);border-radius:10px;padding:10px;">⚡ Refer karo + Group pe movie search karao + Shortlink karwao = Active ref!</div>
+                <div style="font-weight:800;font-size:14px;margin-bottom:9px;color:var(--gold);">📋 Rules</div>
+                <div style="font-size:12px;color:var(--text2);">🏅 <b style="color:var(--gold)">Weekly:</b> 1st ₹150 • 2nd ₹65 • 3rd ₹30 • 4-10 ₹10</div>
+                <div style="font-size:12px;color:var(--text2);margin-top:5px;">🏅 <b style="color:var(--gold)">Monthly:</b> 1st ₹300 • 2nd ₹200 • 3rd ₹200 • 4-10 ₹30</div>
+                <div style="margin-top:9px;font-size:11px;color:var(--text3);background:var(--bg);border-radius:9px;padding:9px;">⚡ Refer karo + Group pe movie search karao + Shortlink karwao = Active ref!</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAMES PAGE -->
+    <div class="page" id="gamesPage">
+        <div class="page-inner">
+            <div class="games-hero">
+                <h2>🎮 Play & Earn</h2>
+                <p>Passes use karo, paise jeeto!</p>
+                <div class="games-hero-badge">🎟️ Passes: <span id="gameBadgePasses">0</span></div>
+            </div>
+            <div class="games-info-banner">
+                🎟️ 1 Pass = 1 Game • Jitne bhi passes ho utne khelo!
+            </div>
+            <div class="games-stats">
+                <div class="gstat"><div class="gstat-val" id="gameWins">0</div><div class="gstat-lbl">Total Wins</div></div>
+                <div class="gstat"><div class="gstat-val" id="gameTodayEarned">₹0</div><div class="gstat-lbl">Today Earned</div></div>
+                <div class="gstat"><div class="gstat-val" id="gameStreak">0🔥</div><div class="gstat-lbl">Win Streak</div></div>
+            </div>
+            <div class="games-grid">
+                <div class="game-card" onclick="openGame('spin')">
+                    <span class="game-emoji">🎰</span>
+                    <div class="game-name">Spin & Earn</div>
+                    <div class="game-desc">Wheel ghumao, inaam pao</div>
+                    <span class="game-reward">1 Pass/spin</span>
+                </div>
+                <div class="game-card" onclick="openGame('guess')">
+                    <span class="game-emoji">🔢</span>
+                    <div class="game-name">Number Guess</div>
+                    <div class="game-desc">1-10 mein guess karo</div>
+                    <span class="game-reward">8x Reward</span>
+                </div>
+                <div class="game-card" onclick="openGame('coin')">
+                    <span class="game-emoji">🪙</span>
+                    <div class="game-name">Coin Flip</div>
+                    <div class="game-desc">Heads ya Tails?</div>
+                    <span class="game-reward">2x Multiplier</span>
+                </div>
+                <div class="game-card" onclick="openGame('scratch')">
+                    <span class="game-emoji">🎫</span>
+                    <div class="game-name">Scratch Card</div>
+                    <div class="game-desc">Khurcho aur jeeto</div>
+                    <span class="game-reward">Up to ₹10</span>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- PROFILE PAGE -->
     <div class="page" id="profilePage">
-        <div style="padding-top:10px;">
+        <div class="page-inner">
             <div class="profile-hero">
                 <div class="profile-dp" id="profileDp">👤</div>
                 <div class="profile-name" id="profileName">Loading...</div>
@@ -535,7 +778,7 @@
                     <div class="stat-box"><div class="stat-val" id="pTotal">₹0</div><div class="stat-lbl">Total Earned</div></div>
                     <div class="stat-box"><div class="stat-val" id="pStreak">0🔥</div><div class="stat-lbl">Streak</div></div>
                 </div>
-                <div class="stats-grid2" style="margin-top:10px;">
+                <div class="stats-grid2" style="margin-top:8px;">
                     <div class="stat-box"><div class="stat-val" id="pTotalRefs">0</div><div class="stat-lbl">Total Refs</div></div>
                     <div class="stat-box"><div class="stat-val" id="pActiveRefs">0</div><div class="stat-lbl">Active</div></div>
                     <div class="stat-box"><div class="stat-val" id="pPendingRefs">0</div><div class="stat-lbl">Pending</div></div>
@@ -546,10 +789,10 @@
                 <div class="ref-activity-title">👥 Referred Users</div>
                 <div id="refActivityList"><div style="color:var(--text3);font-size:13px;">Loading...</div></div>
             </div>
-            <div style="background:var(--bg3);border-radius:18px;padding:16px;margin-top:14px;border:1px solid var(--border);">
-                <div style="font-size:13px;color:var(--text2);margin-bottom:10px;">Referral Link:</div>
-                <div style="background:var(--bg);border-radius:12px;padding:10px 14px;font-size:12px;word-break:break-all;color:var(--text2);" id="pRefLink"></div>
-                <button class="btn-gold" style="margin-top:12px;" onclick="copyRef()">📋 Copy Link</button>
+            <div style="background:var(--bg3);border-radius:16px;padding:14px;margin-top:12px;border:1px solid var(--border);">
+                <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Referral Link:</div>
+                <div style="background:var(--bg);border-radius:10px;padding:9px 12px;font-size:11px;word-break:break-all;color:var(--text2);" id="pRefLink"></div>
+                <button class="btn-gold" style="margin-top:10px;" onclick="copyRef()">📋 Copy Link</button>
             </div>
             <button class="btn-gold" onclick="openModal('withdraw')">💰 Withdraw Balance</button>
         </div>
@@ -557,94 +800,62 @@
 
     <!-- HISTORY PAGE -->
     <div class="page" id="historyPage">
-        <div style="padding-top:10px;">
-            <div style="font-family:'Baloo 2',sans-serif;font-size:28px;font-weight:900;color:var(--gold);margin-bottom:18px;">📜 Withdrawal History</div>
-            <button class="btn-gold" onclick="openModal('withdraw')" style="margin-bottom:18px;">💰 New Withdrawal</button>
-            <div id="histContainer"><div style="color:var(--text3);text-align:center;padding:20px;">Loading...</div></div>
-        </div>
-    </div>
-
-    <!-- GAMES PAGE -->
-    <div class="page" id="gamesPage">
-        <div class="games-hero">
-            <h2>🎮 Play & Earn</h2>
-            <p>Passes use karo, paise jeeto!</p>
-            <div class="games-hero-badge">🎟️ Passes: <span id="gameBadgePasses">0</span></div>
-        </div>
-        <div style="background:rgba(123,97,255,.1);border:1px solid rgba(123,97,255,.3);border-radius:16px;padding:14px;text-align:center;font-size:13px;color:var(--purple2);font-weight:700;margin-bottom:16px;">
-            🎟️ 1 Pass = 1 Game • Jitne bhi passes ho utne khelo!
-        </div>
-        <div class="games-stats">
-            <div class="gstat"><div class="gstat-val" id="gameWins">0</div><div class="gstat-lbl">Total Wins</div></div>
-            <div class="gstat"><div class="gstat-val" id="gameTodayEarned">₹0</div><div class="gstat-lbl">Today Earned</div></div>
-            <div class="gstat"><div class="gstat-val" id="gameStreak">0🔥</div><div class="gstat-lbl">Win Streak</div></div>
-        </div>
-        <div class="games-grid">
-            <div class="game-card" onclick="openGame('spin')">
-                <span class="game-emoji">🎰</span>
-                <div class="game-name">Spin & Earn</div>
-                <div class="game-desc">Wheel ghumao, inaam pao</div>
-                <span class="game-reward">1 Pass/spin</span>
-            </div>
-            <div class="game-card" onclick="openGame('guess')">
-                <span class="game-emoji">🔢</span>
-                <div class="game-name">Number Guess</div>
-                <div class="game-desc">1-10 mein guess karo</div>
-                <span class="game-reward">8x Reward</span>
-            </div>
-            <div class="game-card" onclick="openGame('coin')">
-                <span class="game-emoji">🪙</span>
-                <div class="game-name">Coin Flip</div>
-                <div class="game-desc">Heads ya Tails?</div>
-                <span class="game-reward">2x Multiplier</span>
-            </div>
-            <div class="game-card" onclick="openGame('scratch')">
-                <span class="game-emoji">🎫</span>
-                <div class="game-name">Scratch Card</div>
-                <div class="game-desc">Khurcho aur jeeto</div>
-                <span class="game-reward">Up to ₹10</span>
-            </div>
+        <div class="page-inner">
+            <div style="font-family:'Baloo 2',sans-serif;font-size:26px;font-weight:900;color:var(--gold);margin-bottom:16px;">📜 Withdrawal History</div>
+            <button class="btn-gold" onclick="openModal('withdraw')" style="margin-bottom:16px;">💰 New Withdrawal</button>
+            <div id="histContainer"><div style="color:var(--text3);text-align:center;padding:18px;">Loading...</div></div>
         </div>
     </div>
 
     <!-- BOTTOM NAV -->
     <div class="bottom-nav">
         <div class="nav-wrap">
-            <div class="nav-item active" id="nav0" onclick="switchTab(0)"><div class="nav-icon-wrap"><div class="ni">🏠</div></div><div class="nav-label">Home</div></div>
-            <div class="nav-item" id="nav1" onclick="switchTab(1)"><div class="nav-icon-wrap"><div class="ni">🏆</div></div><div class="nav-label">Ranks</div></div>
-            <div class="nav-item game-center" id="nav2" onclick="switchTab(2)"><div class="nav-icon-wrap"><div class="ni">🎮</div></div><div class="nav-label">Games</div></div>
-            <div class="nav-item" id="nav3" onclick="switchTab(3)"><div class="nav-icon-wrap"><div class="ni">👤</div></div><div class="nav-label">Profile</div></div>
-            <div class="nav-item" id="nav4" onclick="switchTab(4)"><div class="nav-icon-wrap"><div class="ni">📜</div></div><div class="nav-label">History</div></div>
+            <div class="nav-item active" id="nav0" onclick="switchTab(0)">
+                <div class="nav-icon-wrap"><div class="ni">🏠</div></div>
+                <div class="nav-label">Home</div>
+            </div>
+            <div class="nav-item" id="nav1" onclick="switchTab(1)">
+                <div class="nav-icon-wrap"><div class="ni">🏆</div></div>
+                <div class="nav-label">Ranks</div>
+            </div>
+            <div class="nav-item game-center" id="nav2" onclick="switchTab(2)">
+                <div class="nav-icon-wrap"><div class="ni">🎮</div></div>
+                <div class="nav-label">Games</div>
+            </div>
+            <div class="nav-item" id="nav3" onclick="switchTab(3)">
+                <div class="nav-icon-wrap"><div class="ni">👤</div></div>
+                <div class="nav-label">Profile</div>
+            </div>
+            <div class="nav-item" id="nav4" onclick="switchTab(4)">
+                <div class="nav-icon-wrap"><div class="ni">📜</div></div>
+                <div class="nav-label">History</div>
+            </div>
         </div>
     </div>
 
-    <!-- ===== MODALS ===== -->
+    <!-- ======= MODALS ======= -->
 
     <!-- DAILY BONUS MODAL -->
     <div class="modal" id="dailyBonusModal">
         <div class="modal-hdr"><div class="back-btn" onclick="closeModal('dailyBonus')">←</div><div class="modal-title">🎁 Daily Bonus</div></div>
-        <div class="daily-train-header">
-            <div class="daily-train-sub">Roz claim karo, streak badhao, zyada pao!</div>
-        </div>
-        <!-- TRAIN CHAIN -->
+        <div style="text-align:center;font-size:12px;color:var(--text2);margin-bottom:6px;">Roz claim karo, streak badhao, zyada pao!</div>
         <div class="train-track" id="trainTrack">
             <div class="train-chain" id="trainChain"></div>
         </div>
-        <!-- TODAY CLAIM BOX -->
         <div class="today-claim-box" id="todayClaimBox">
-            <div style="font-size:14px;color:var(--text2);margin-bottom:6px;">Aaj ka bonus</div>
+            <div style="font-size:13px;color:var(--text2);margin-bottom:5px;">Aaj ka bonus</div>
             <div class="today-claim-amt" id="todayBonusAmt">₹0.05</div>
-            <div style="font-size:13px;color:var(--purple2);margin:8px 0;">🎟️ +1 Game Pass bhi milega!</div>
+            <div style="font-size:12px;color:var(--purple2);margin:7px 0;">🎟️ +1 Game Pass bhi milega!</div>
             <div class="streak-row">
                 <div class="streak-item"><div class="streak-val" id="streakDays2">0</div><div class="streak-lbl">Day Streak</div></div>
                 <div class="streak-item"><div class="streak-val" id="bonusTotal">₹0</div><div class="streak-lbl">Total Earned</div></div>
             </div>
-            <button class="btn-gold" id="claimBonusBtn2" onclick="claimBonus()" style="margin-top:12px;">🎉 CLAIM NOW</button>
+            <button class="btn-gold" id="claimBonusBtn2" onclick="claimBonus()">🎉 CLAIM NOW</button>
         </div>
-        <div id="alreadyClaimedMsg" style="display:none;text-align:center;padding:20px;background:rgba(34,211,160,.1);border-radius:16px;border:1px solid rgba(34,211,160,.3);margin-top:16px;">
-            <div style="font-size:32px;margin-bottom:8px;">✅</div>
+        <div id="alreadyClaimedMsg" style="display:none;text-align:center;padding:18px;background:rgba(34,211,160,.08);border-radius:14px;border:1px solid rgba(34,211,160,.25);margin-top:14px;">
+            <div style="font-size:30px;margin-bottom:6px;">✅</div>
             <div style="font-weight:800;color:var(--green);">Aaj ka bonus claim ho gaya!</div>
-            <div style="font-size:13px;color:var(--text2);margin-top:4px;">Kal wapas aao</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:4px;">Kal wapas aao</div>
         </div>
     </div>
 
@@ -654,75 +865,27 @@
         <div class="earn-passes-hero">
             <h2>Game Passes</h2>
             <div class="ep-count" id="epPassCount">0</div>
-            <div style="font-size:13px;color:var(--purple2);">Passes se khelo, paise jeeto!</div>
+            <div style="font-size:12px;color:var(--purple2);">Passes se khelo, paise jeeto!</div>
         </div>
-        <div style="font-family:'Baloo 2',sans-serif;font-size:18px;font-weight:800;color:var(--gold);margin-bottom:12px;">📌 Kaise mile Passes?</div>
-        <div class="ep-method">
-            <div class="ep-method-icon">👥</div>
-            <div class="ep-method-info">
-                <div class="ep-method-title">Dost ko Refer karo</div>
-                <div class="ep-method-desc">Har ek active referral pe 3 passes milenge</div>
-            </div>
-            <div class="ep-method-badge">+3 Pass</div>
-        </div>
-        <div class="ep-method">
-            <div class="ep-method-icon">🎁</div>
-            <div class="ep-method-info">
-                <div class="ep-method-title">Daily Bonus Claim karo</div>
-                <div class="ep-method-desc">Roz bonus claim karo, 1 pass milega</div>
-            </div>
-            <div class="ep-method-badge">+1 Pass</div>
-        </div>
-        <div class="ep-method">
-            <div class="ep-method-icon">🔗</div>
-            <div class="ep-method-info">
-                <div class="ep-method-title">Shortlink complete karo</div>
-                <div class="ep-method-desc">Apne refer kiye dost se group pe movie search karwao aur shortlink poori karwao</div>
-            </div>
-            <div class="ep-method-badge">+1 Pass</div>
-        </div>
-        <div class="ep-method">
-            <div class="ep-method-icon">🎯</div>
-            <div class="ep-method-info">
-                <div class="ep-method-title">Daily Missions complete karo</div>
-                <div class="ep-method-desc">Sab missions pore karo extra passes pao</div>
-            </div>
-            <div class="ep-method-badge">+2 Pass</div>
-        </div>
-
-        <!-- BUY PASSES -->
-        <div class="buy-passes-section">
-            <div class="buy-passes-title">🛒 Passes Kharido</div>
-            <div style="font-size:13px;color:var(--text2);margin-bottom:14px;">UPI se seedha kharido, turant milenge!</div>
+        <div style="font-family:'Baloo 2',sans-serif;font-size:17px;font-weight:800;color:var(--gold);margin-bottom:10px;">📌 Kaise milte hain Passes?</div>
+        <div class="ep-method"><div class="ep-method-icon">👥</div><div class="ep-method-info"><div class="ep-method-title">Dost ko Refer karo</div><div class="ep-method-desc">Har ek active referral pe 3 passes milenge</div></div><div class="ep-method-badge">+3 Pass</div></div>
+        <div class="ep-method"><div class="ep-method-icon">🎁</div><div class="ep-method-info"><div class="ep-method-title">Daily Bonus Claim karo</div><div class="ep-method-desc">Roz bonus claim karo, 1 pass milega</div></div><div class="ep-method-badge">+1 Pass</div></div>
+        <div class="ep-method"><div class="ep-method-icon">🔗</div><div class="ep-method-info"><div class="ep-method-title">Shortlink complete karo</div><div class="ep-method-desc">Apne referred dost se movie search karwao aur shortlink poori karwao</div></div><div class="ep-method-badge">+1 Pass</div></div>
+        <div class="ep-method"><div class="ep-method-icon">🎯</div><div class="ep-method-info"><div class="ep-method-title">Daily Missions complete karo</div><div class="ep-method-desc">Sab missions pore karo extra passes pao</div></div><div class="ep-method-badge">+2 Pass</div></div>
+        <div style="margin-top:18px;">
+            <div style="font-family:'Baloo 2',sans-serif;font-size:17px;font-weight:800;color:var(--gold);margin-bottom:5px;">🛒 Passes Kharido</div>
+            <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">UPI se seedha kharido, turant milenge!</div>
             <div class="pass-pkg" onclick="buyPasses(5,20)">
-                <div class="pass-pkg-left">
-                    <div class="pass-pkg-icon">🎟️</div>
-                    <div>
-                        <div class="pass-pkg-passes">5 Passes</div>
-                        <div class="pass-pkg-lbl">₹4 per pass</div>
-                    </div>
-                </div>
+                <div class="pass-pkg-left"><div style="font-size:26px;">🎟️</div><div><div class="pass-pkg-passes">5 Passes</div><div class="pass-pkg-lbl">₹4 per pass</div></div></div>
                 <div class="pass-pkg-price">₹20</div>
             </div>
             <div class="pass-pkg popular" style="position:relative;" onclick="buyPasses(15,50)">
                 <div class="popular-tag">🔥 Best Value</div>
-                <div class="pass-pkg-left">
-                    <div class="pass-pkg-icon">🎟️🎟️</div>
-                    <div>
-                        <div class="pass-pkg-passes">15 Passes</div>
-                        <div class="pass-pkg-lbl">₹3.3 per pass</div>
-                    </div>
-                </div>
+                <div class="pass-pkg-left"><div style="font-size:26px;">🎟️</div><div><div class="pass-pkg-passes">15 Passes</div><div class="pass-pkg-lbl">₹3.3 per pass</div></div></div>
                 <div class="pass-pkg-price">₹50</div>
             </div>
             <div class="pass-pkg" onclick="buyPasses(35,100)">
-                <div class="pass-pkg-left">
-                    <div class="pass-pkg-icon">💎</div>
-                    <div>
-                        <div class="pass-pkg-passes">35 Passes</div>
-                        <div class="pass-pkg-lbl">₹2.8 per pass</div>
-                    </div>
-                </div>
+                <div class="pass-pkg-left"><div style="font-size:26px;">💎</div><div><div class="pass-pkg-passes">35 Passes</div><div class="pass-pkg-lbl">₹2.8 per pass</div></div></div>
                 <div class="pass-pkg-price">₹100</div>
             </div>
         </div>
@@ -731,10 +894,10 @@
     <!-- MISSIONS MODAL -->
     <div class="modal" id="missionsModal">
         <div class="modal-hdr"><div class="back-btn" onclick="closeModal('missions')">←</div><div class="modal-title">🎯 Missions</div></div>
-        <div style="background:linear-gradient(135deg,var(--gold-dim),var(--gold));border-radius:20px;padding:20px;text-align:center;margin-bottom:16px;color:#000;">
-            <div style="font-size:48px;">🎯</div>
-            <div style="font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:900;">Daily Challenge</div>
-            <div style="font-family:'Baloo 2',sans-serif;font-size:36px;font-weight:900;">₹5 REWARD</div>
+        <div style="background:linear-gradient(135deg,var(--gold-dim),var(--gold));border-radius:18px;padding:18px;text-align:center;margin-bottom:14px;color:#000;">
+            <div style="font-size:42px;">🎯</div>
+            <div style="font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:900;">Daily Challenge</div>
+            <div style="font-family:'Baloo 2',sans-serif;font-size:32px;font-weight:900;">₹5 REWARD</div>
         </div>
         <div id="missionsContainer"></div>
         <button class="btn-gold" id="claimMissionBtn" onclick="claimMission()" style="display:none;">✅ CLAIM ₹5</button>
@@ -744,14 +907,8 @@
     <div class="modal" id="settingsModal">
         <div class="modal-hdr"><div class="back-btn" onclick="closeModal('settings')">←</div><div class="modal-title">⚙️ Settings</div></div>
         <div class="settings-group">
-            <div class="setting-row">
-                <span class="setting-lbl">🌙 Dark Mode</span>
-                <div class="toggle on" id="themeToggleEl2" onclick="toggleTheme()"><div class="toggle-knob"></div></div>
-            </div>
-            <div class="setting-row">
-                <span class="setting-lbl">🔊 Sound Effects</span>
-                <div class="toggle on" id="soundToggleEl2" onclick="toggleSound()"><div class="toggle-knob"></div></div>
-            </div>
+            <div class="setting-row"><span class="setting-lbl">🌙 Dark Mode</span><div class="toggle on" id="themeToggleEl2" onclick="toggleTheme()"><div class="toggle-knob"></div></div></div>
+            <div class="setting-row"><span class="setting-lbl">🔊 Sound Effects</span><div class="toggle on" id="soundToggleEl2" onclick="toggleSound()"><div class="toggle-knob"></div></div></div>
         </div>
     </div>
 
@@ -759,8 +916,8 @@
     <div class="modal" id="supportModal">
         <div class="modal-hdr"><div class="back-btn" onclick="closeModal('support')">←</div><div class="modal-title">📩 Support</div></div>
         <div class="card-section">
-            <p style="margin-bottom:14px;font-size:14px;">Seedha contact: <a href="https://t.me/asbhiabsr" style="color:var(--blue);font-weight:800;" target="_blank">@asbhiabsr</a></p>
-            <textarea id="supportMsg" class="inp" placeholder="Apna message likho (min 10 chars)..." style="height:130px;resize:none;"></textarea>
+            <p style="margin-bottom:12px;font-size:13px;">Seedha contact: <a href="https://t.me/asbhiabsr" style="color:var(--blue);font-weight:800;" target="_blank">@asbhiabsr</a></p>
+            <textarea id="supportMsg" class="inp" placeholder="Apna message likho (min 10 chars)..." style="height:120px;resize:none;"></textarea>
             <button class="btn-gold" onclick="sendSupport()">📤 SEND MESSAGE</button>
         </div>
     </div>
@@ -768,44 +925,38 @@
     <!-- REFERRAL MODAL -->
     <div class="modal" id="referralModal">
         <div class="modal-hdr"><div class="back-btn" onclick="closeModal('referral')">←</div><div class="modal-title">👥 Refer & Earn</div></div>
-        <div style="background:linear-gradient(135deg,#0d2a5e,#1a1060);border-radius:24px;padding:20px;margin-bottom:16px;">
-            <div style="text-align:center;margin-bottom:16px;">
-                <div style="font-size:48px;margin-bottom:8px;">👥</div>
-                <div style="font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:900;color:var(--gold);">Har Referral Pe</div>
-                <div style="font-family:'Baloo 2',sans-serif;font-size:36px;font-weight:900;color:var(--green);">3 Passes + ₹ Bonus!</div>
+        <div style="background:linear-gradient(135deg,#0b1e45,#10104a);border-radius:22px;padding:18px;margin-bottom:14px;">
+            <div style="text-align:center;margin-bottom:14px;">
+                <div style="font-size:44px;margin-bottom:6px;">👥</div>
+                <div style="font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:900;color:var(--gold);">Har Referral Pe</div>
+                <div style="font-family:'Baloo 2',sans-serif;font-size:32px;font-weight:900;color:var(--green);">3 Passes + ₹ Bonus!</div>
             </div>
-            <div class="ref-link-box">
-                <span class="ref-link-text" id="refLinkText2">Loading...</span>
-                <button class="ref-copy-btn" onclick="copyRef()">Copy</button>
-            </div>
-            <div class="share-grid" style="margin-top:10px;">
+            <div class="ref-link-box"><span class="ref-link-text" id="refLinkText2">Loading...</span><button class="ref-copy-btn" onclick="copyRef()">Copy</button></div>
+            <div class="share-grid" style="margin-top:9px;">
                 <div class="share-btn" onclick="shareOn('telegram')"><span>📱</span><span>Telegram</span></div>
                 <div class="share-btn" onclick="shareOn('whatsapp')"><span>💬</span><span>WhatsApp</span></div>
                 <div class="share-btn" onclick="shareOn('other')"><span>🔗</span><span>More</span></div>
             </div>
         </div>
         <div class="card-section">
-            <div style="font-weight:800;margin-bottom:10px;color:var(--gold);">📋 Kaise active hoga referral?</div>
-            <div style="font-size:13px;color:var(--text2);line-height:1.7;">
+            <div style="font-weight:800;margin-bottom:9px;color:var(--gold);">📋 Kaise active hoga referral?</div>
+            <div style="font-size:13px;color:var(--text2);line-height:1.8;">
                 1️⃣ Dost ko apna link bhejo<br>
                 2️⃣ Wo bot join kare<br>
                 3️⃣ Movie Group pe movie search kare<br>
                 4️⃣ Shortlink poori kare<br>
-                5️⃣ <b style="color:var(--gold);">Referral active!</b> Aapko 3 passes + ₹ bonus milega
+                5️⃣ <b style="color:var(--gold);">Referral active!</b> 3 passes + ₹ bonus milega
             </div>
         </div>
-        <div class="card-section" style="margin-top:10px;">
-            <div style="font-weight:800;margin-bottom:6px;color:var(--gold);">💰 Daily Earnings</div>
-            <div style="font-size:13px;color:var(--text2);">Har roz jab aapka referred user movie search karega, aapko ₹ milega!</div>
+        <div class="card-section" style="margin-top:8px;">
+            <div style="font-weight:800;margin-bottom:5px;color:var(--gold);">💰 Daily Earnings</div>
+            <div style="font-size:12px;color:var(--text2);">Har roz jab aapka referred user movie search karega, aapko ₹ milega!</div>
         </div>
     </div>
 
     <!-- ADMIN CREATE OFFER MODAL -->
     <div class="modal" id="createOfferModal">
         <div class="modal-hdr"><div class="back-btn" onclick="closeModal('createOffer')">←</div><div class="modal-title">➕ Create Offer</div></div>
-        <div class="card-section" style="text-align:center;margin-bottom:16px;">
-            <div style="font-size:13px;color:var(--text2);">Admin Only • Offer ek baar hi claim ho sakta hai jab tak edit na karo</div>
-        </div>
         <input id="promoTitle" class="inp" placeholder="Offer Title" type="text">
         <input id="promoDesc" class="inp" placeholder="Description" type="text">
         <input id="promoReward" class="inp" placeholder="Reward Amount (₹)" type="number" step="0.1">
@@ -832,13 +983,13 @@
     <div class="modal" id="withdrawModal">
         <div class="modal-hdr"><div class="back-btn" onclick="closeModal('withdraw')">←</div><div class="modal-title">💰 Withdraw</div></div>
         <div class="avail-balance">
-            <div style="font-size:13px;color:var(--text2);margin-bottom:4px;">Available Balance</div>
+            <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">Available Balance</div>
             <div class="avail-amt" id="wdrawBal">₹0</div>
-            <div style="font-size:13px;color:var(--text2);margin-top:4px;">Minimum: ₹40</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:4px;">Minimum: ₹40</div>
         </div>
         <input id="wdrawAmt" class="inp" placeholder="Amount (min ₹40)" type="number" min="40">
-        <div class="method-btn" onclick="selMethod('upi')" id="methodUpi"><span style="font-size:28px;">📱</span><div><div style="font-weight:800;">UPI</div><div style="font-size:12px;color:var(--text2);">Instant</div></div></div>
-        <div class="method-btn" onclick="selMethod('bank')" id="methodBank"><span style="font-size:28px;">🏦</span><div><div style="font-weight:800;">Bank Transfer</div><div style="font-size:12px;color:var(--text2);">1-2 working days</div></div></div>
+        <div class="method-btn" onclick="selMethod('upi')" id="methodUpi"><span style="font-size:26px;">📱</span><div><div style="font-weight:800;">UPI</div><div style="font-size:11px;color:var(--text2);">Instant</div></div></div>
+        <div class="method-btn" onclick="selMethod('bank')" id="methodBank"><span style="font-size:26px;">🏦</span><div><div style="font-weight:800;">Bank Transfer</div><div style="font-size:11px;color:var(--text2);">1-2 working days</div></div></div>
         <div id="upiFields" style="display:none;"><input id="upiId" class="inp" placeholder="UPI ID" type="text"></div>
         <div id="bankFields" style="display:none;">
             <input id="accNo" class="inp" placeholder="Account Number" type="text">
@@ -859,14 +1010,14 @@
             </div>
             <div class="wheel-outer">
                 <div class="wheel-ptr">▼</div>
-                <canvas id="spinCanvas" width="270" height="270"></canvas>
+                <canvas id="spinCanvas" width="260" height="260"></canvas>
             </div>
             <div class="spin-result" id="spinResultBox">
                 <div class="spin-result-amt" id="spinResultAmt">+₹0</div>
-                <div style="font-size:14px;color:rgba(255,255,255,.8);margin-top:4px;" id="spinResultTxt">Badhaai ho!</div>
+                <div style="font-size:13px;color:rgba(255,255,255,.8);margin-top:4px;" id="spinResultTxt">Badhaai ho!</div>
             </div>
             <button class="btn-purple" id="spinBtn" onclick="doSpin()">🎰 SPIN (1 Pass)</button>
-            <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:6px;">Jitne passes hain utne spin karo!</p>
+            <p style="text-align:center;font-size:11px;color:var(--text3);margin-top:4px;">Jitne passes hain utne spin karo!</p>
         </div>
     </div>
 
@@ -877,11 +1028,11 @@
             <div class="guess-num" id="guessDisp">?</div>
             <div class="guess-hint" id="guessHint">1 se 10 ke beech guess karo</div>
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0;">
-            <span style="font-weight:700;">Bet:</span>
-            <span style="font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:900;color:var(--gold);" id="guessBetDisp">₹1</span>
-            <span style="font-size:13px;color:var(--text2);">Passes: <b style="color:var(--purple2);" id="guessPassLeft">0</b></span>
-            <span style="font-size:13px;color:var(--text2);">Bal: <b style="color:var(--gold);" id="guessBal">₹0</b></span>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:9px 0;">
+            <span style="font-weight:700;font-size:13px;">Bet:</span>
+            <span style="font-family:'Baloo 2',sans-serif;font-size:18px;font-weight:900;color:var(--gold);" id="guessBetDisp">₹1</span>
+            <span style="font-size:12px;color:var(--text2);">Passes: <b style="color:var(--purple2);" id="guessPassLeft">0</b></span>
+            <span style="font-size:12px;color:var(--text2);">Bal: <b style="color:var(--gold);" id="guessBal">₹0</b></span>
         </div>
         <div class="bet-row">
             <div class="bet-chip sel" onclick="selGuessBet(1,this)">₹1</div>
@@ -890,7 +1041,7 @@
             <div class="bet-chip" onclick="selGuessBet(10,this)">₹10</div>
         </div>
         <div class="num-grid" id="numGrid"></div>
-        <div style="text-align:center;background:var(--bg3);border-radius:14px;padding:12px;margin:8px 0;font-size:13px;">
+        <div style="text-align:center;background:var(--bg3);border-radius:12px;padding:10px;margin:7px 0;font-size:12px;">
             ✅ Sahi guess = <b style="color:var(--green);">8x reward</b> • Galat = ek hint milega aur try karo!
         </div>
     </div>
@@ -899,17 +1050,17 @@
     <div class="modal" id="coinModal">
         <div class="modal-hdr"><div class="back-btn" onclick="closeModal('coin')">←</div><div class="modal-title">🪙 Coin Flip</div></div>
         <div class="coin-game-wrap">
-            <div style="display:flex;justify-content:space-between;background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:14px;">
-                <span>Passes: <b style="color:var(--purple2);" id="coinPassesLeft">0</b></span>
-                <span>Bal: <b style="color:var(--gold);" id="coinBal">₹0</b></span>
+            <div style="display:flex;justify-content:space-between;background:var(--bg3);border-radius:13px;padding:12px;margin-bottom:12px;">
+                <span style="font-size:13px;">Passes: <b style="color:var(--purple2);" id="coinPassesLeft">0</b></span>
+                <span style="font-size:13px;">Bal: <b style="color:var(--gold);" id="coinBal">₹0</b></span>
             </div>
             <div class="coin-outer">
                 <div class="coin" id="theCoin"><div class="coin-face coin-h">👑</div><div class="coin-face coin-t">⚡</div></div>
             </div>
-            <p style="text-align:center;color:var(--text2);font-size:14px;margin:12px 0;">Pehle choose karo, phir flip:</p>
+            <p style="text-align:center;color:var(--text2);font-size:13px;margin:10px 0;">Pehle choose karo, phir flip:</p>
             <div class="coin-choices">
-                <button class="coin-choice" id="coinChoiceH" onclick="chooseCoin('heads')">👑<br><span style="font-size:14px;">Heads</span></button>
-                <button class="coin-choice" id="coinChoiceT" onclick="chooseCoin('tails')">⚡<br><span style="font-size:14px;">Tails</span></button>
+                <button class="coin-choice" id="coinChoiceH" onclick="chooseCoin('heads')">👑<br><span style="font-size:13px;">Heads</span></button>
+                <button class="coin-choice" id="coinChoiceT" onclick="chooseCoin('tails')">⚡<br><span style="font-size:13px;">Tails</span></button>
             </div>
             <div class="bet-row">
                 <div class="bet-chip sel" onclick="selCoinBet(1,this)">₹1</div>
@@ -917,8 +1068,8 @@
                 <div class="bet-chip" onclick="selCoinBet(5,this)">₹5</div>
                 <div class="bet-chip" onclick="selCoinBet(10,this)">₹10</div>
             </div>
-            <div class="coin-res-win" id="coinResWin"><div class="coin-res-big">🎉 JEETE!</div><div id="coinWinAmt" style="font-family:'Baloo 2',sans-serif;font-size:36px;font-weight:900;margin-top:6px;">+₹0</div></div>
-            <div class="coin-res-lose" id="coinResLose"><div class="coin-res-big">😢 HARE!</div><div id="coinLoseAmt" style="font-size:22px;margin-top:6px;">-₹0</div></div>
+            <div class="coin-res-win" id="coinResWin"><div class="coin-res-big">🎉 JEETE!</div><div id="coinWinAmt" style="font-family:'Baloo 2',sans-serif;font-size:32px;font-weight:900;margin-top:5px;">+₹0</div></div>
+            <div class="coin-res-lose" id="coinResLose"><div class="coin-res-big">😢 HARE!</div><div id="coinLoseAmt" style="font-size:20px;margin-top:5px;">-₹0</div></div>
             <button class="btn-gold" id="flipBtn" onclick="doFlip()">🪙 FLIP KARO!</button>
         </div>
     </div>
@@ -926,16 +1077,16 @@
     <!-- SCRATCH MODAL -->
     <div class="modal" id="scratchModal">
         <div class="modal-hdr"><div class="back-btn" onclick="closeModal('scratch')">←</div><div class="modal-title">🎫 Scratch Card</div></div>
-        <div style="display:flex;justify-content:space-between;background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;background:var(--bg3);border-radius:13px;padding:12px;margin-bottom:10px;font-size:13px;">
             <span>Cards Left: <b style="color:var(--purple2);" id="scratchCardsLeft">2</b></span>
             <span>Passes: <b style="color:var(--gold);" id="scratchPassesLeft">0</b></span>
             <span>Bal: <b style="color:var(--gold);" id="scratchBal">₹0</b></span>
         </div>
-        <div style="text-align:center;font-size:13px;color:var(--text2);margin-bottom:8px;" id="scratchHintTxt">👆 Yahan finger se khurcho!</div>
+        <div style="text-align:center;font-size:12px;color:var(--text2);margin-bottom:6px;" id="scratchHintTxt">👆 Yahan finger se khurcho!</div>
         <div class="scratch-area" id="scratchArea">
             <div class="scratch-reward-layer" id="scratchRewardLayer">
                 <div class="scratch-amt" id="scratchAmt">?</div>
-                <div style="font-size:15px;color:rgba(0,0,0,.6);margin-top:6px;font-weight:700;" id="scratchLbl">Khurcho aur jaano!</div>
+                <div style="font-size:14px;color:rgba(0,0,0,.6);margin-top:5px;font-weight:700;" id="scratchLbl">Khurcho aur jaano!</div>
             </div>
             <canvas id="scratchCanvas"></canvas>
         </div>
@@ -943,13 +1094,13 @@
         <button class="btn-purple" id="newScratchBtn" onclick="newScratch()" disabled>🎫 NEW CARD (1 Pass)</button>
     </div>
 
-    <!-- USER PROFILE CLICK MODAL -->
+    <!-- USER PROFILE MODAL -->
     <div class="modal" id="userProfileModal">
         <div class="modal-hdr"><div class="back-btn" onclick="closeModal('userProfile')">←</div><div class="modal-title">👤 User Profile</div></div>
         <div class="user-profile-card">
             <div class="user-profile-dp-lg" id="upDp">👤</div>
-            <div style="font-family:'Baloo 2',sans-serif;font-size:24px;font-weight:900;" id="upName">User</div>
-            <div style="color:var(--text2);font-size:13px;margin-top:4px;" id="upId">ID: -</div>
+            <div style="font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:900;" id="upName">User</div>
+            <div style="color:var(--text2);font-size:12px;margin-top:4px;" id="upId">ID: -</div>
         </div>
         <div class="stats-grid">
             <div class="stat-box"><div class="stat-val" id="upBal">₹0</div><div class="stat-lbl">Balance</div></div>
@@ -961,12 +1112,12 @@
     <!-- TOAST -->
     <div id="toast" class="toast"></div>
 
-    <!-- CONGRATS POPUP (new referral) -->
+    <!-- CONGRATS POPUP -->
     <div class="congrats-overlay" id="congratsOverlay">
         <div class="congrats-card">
             <div class="confetti">🎊</div>
-            <div style="font-family:'Baloo 2',sans-serif;font-size:26px;font-weight:900;color:var(--gold);margin:12px 0 6px;">Congratulations!</div>
-            <div id="congratsMsg" style="font-size:14px;color:var(--text2);margin-bottom:20px;">Naya referral aaya!</div>
+            <div style="font-family:'Baloo 2',sans-serif;font-size:24px;font-weight:900;color:var(--gold);margin:10px 0 5px;">Congratulations!</div>
+            <div id="congratsMsg" style="font-size:13px;color:var(--text2);margin-bottom:18px;">Naya referral aaya!</div>
             <button class="btn-gold" onclick="document.getElementById('congratsOverlay').classList.remove('show')">🎉 Awesome!</button>
         </div>
     </div>
@@ -984,10 +1135,10 @@
     let missions={m1:{p:0,done:false,total:10,label:'📢 10 Active Refs karo'},m2:{p:0,done:false,total:5,label:'📅 5 Daily Bonus claim karo'},m3:{p:0,done:false,total:1,label:'🎮 Aaj koi game khelo'},m4:{p:0,done:false,total:1,label:'💎 Koi offer claim karo'}};
     let soundOn=true,currentTheme='dark',lbMode='weekly';
     let spinAngle=0,isSpinning=false;
-    let guessBet=1,guessActive=false,guessSecret=null,guessAttempts=0;
+    let guessBet=1,guessActive=false,guessSecret=null;
     let coinChoice=null,coinBet=1,coinFlipping=false;
     let scratchRevealed=false,scratchCtx=null,scratchDrawing=false;
-    let audioCtx=null,prevActiveRefs=0;
+    let audioCtx=null;
 
     const SEGS=[
         {l:'₹0.50',v:.5,c:'#f59e0b'},{l:'₹1',v:1,c:'#3b82f6'},
@@ -1010,7 +1161,7 @@
             userData={...userData,...d,user_id:uid,first_name:tg?.initDataUnsafe?.user?.first_name||d.first_name||'User',photo_url:tg?.initDataUnsafe?.user?.photo_url||null};
             userStreak=userData.daily_streak||0;
             if(userData.is_admin){document.getElementById('adminSidebarBtn').style.display='flex';document.getElementById('addOfferBtn').style.display='flex';}
-            if((userData.active_refs||0)>oldRefs&&oldRefs>0){showCongratsPopup();}
+            if((userData.active_refs||0)>oldRefs&&oldRefs>0)showCongratsPopup();
             updateUI();
         }
     }
@@ -1055,17 +1206,18 @@
 
     // ========== UI UPDATE ==========
     function updateUI(){
-        document.getElementById('balAmt').textContent=`₹${(userData.balance||0).toFixed(2)}`;
+        const bal=`₹${(userData.balance||0).toFixed(2)}`;
+        document.getElementById('balAmt').textContent=bal;
+        document.getElementById('topbarBalance').textContent=bal;
         document.getElementById('todayEarned').textContent=`₹${(userData.today_earned||0).toFixed(2)}`;
         document.getElementById('activeRefs').textContent=userData.active_refs||0;
         document.getElementById('passCount').textContent=userData.passes||0;
-        document.getElementById('wdrawBal').textContent=`₹${(userData.balance||0).toFixed(2)}`;
+        document.getElementById('wdrawBal').textContent=bal;
         document.getElementById('epPassCount').textContent=userData.passes||0;
-        // Profile
         const fname=userData.first_name||'Guest';
         document.getElementById('profileName').textContent=fname;
         document.getElementById('profileTier').textContent=getTierName(userData.tier||1);
-        document.getElementById('pBal').textContent=`₹${(userData.balance||0).toFixed(2)}`;
+        document.getElementById('pBal').textContent=bal;
         document.getElementById('pTotal').textContent=`₹${(userData.total_earned||0).toFixed(2)}`;
         document.getElementById('pStreak').textContent=`${userStreak}🔥`;
         document.getElementById('pTotalRefs').textContent=userData.total_refs||0;
@@ -1075,26 +1227,22 @@
         document.getElementById('pRefLink').textContent=getRefLink();
         document.getElementById('refLinkText').textContent=getRefLink();
         document.getElementById('refLinkText2').textContent=getRefLink();
-        // Profile DP (only in profile page)
-        const iniChar=fname.charAt(0).toUpperCase();
-        const tgPhoto=userData.photo_url;
         const profDp=document.getElementById('profileDp');
-        if(tgPhoto){profDp.innerHTML=`<img src="${tgPhoto}" alt="${iniChar}" onerror="this.parentNode.textContent='${iniChar}'">`;}
-        else{profDp.textContent=iniChar;}
-        // Games
+        if(userData.photo_url){profDp.innerHTML=`<img src="${userData.photo_url}" alt="${fname.charAt(0)}" onerror="this.parentNode.textContent='${fname.charAt(0).toUpperCase()}'">`;} 
+        else{profDp.textContent=fname.charAt(0).toUpperCase();}
         document.getElementById('gameBadgePasses').textContent=userData.passes||0;
         document.getElementById('gameWins').textContent=gameState.wins||0;
         document.getElementById('gameTodayEarned').textContent=`₹${(gameState.today_game_earned||0).toFixed(2)}`;
         document.getElementById('gameStreak').textContent=`${gameState.win_streak||0}🔥`;
-        // Spin/game modals
-        ['spinBal','spinPassesLeft'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=id==='spinBal'?`₹${(userData.balance||0).toFixed(2)}`:userData.passes||0;});
-        document.getElementById('spinTodayEarned').textContent=`₹${(gameState.today_game_earned||0).toFixed(2)}`;
-        document.getElementById('guessPassLeft').textContent=userData.passes||0;
-        document.getElementById('guessBal').textContent=`₹${(userData.balance||0).toFixed(2)}`;
-        document.getElementById('coinPassesLeft').textContent=userData.passes||0;
-        document.getElementById('coinBal').textContent=`₹${(userData.balance||0).toFixed(2)}`;
-        document.getElementById('scratchPassesLeft').textContent=userData.passes||0;
-        document.getElementById('scratchBal').textContent=`₹${(userData.balance||0).toFixed(2)}`;
+        const spinBalEl=document.getElementById('spinBal');if(spinBalEl)spinBalEl.textContent=bal;
+        const spinPassEl=document.getElementById('spinPassesLeft');if(spinPassEl)spinPassEl.textContent=userData.passes||0;
+        const spinTodayEl=document.getElementById('spinTodayEarned');if(spinTodayEl)spinTodayEl.textContent=`₹${(gameState.today_game_earned||0).toFixed(2)}`;
+        const guessPassEl=document.getElementById('guessPassLeft');if(guessPassEl)guessPassEl.textContent=userData.passes||0;
+        const guessBalEl=document.getElementById('guessBal');if(guessBalEl)guessBalEl.textContent=bal;
+        const coinPassEl=document.getElementById('coinPassesLeft');if(coinPassEl)coinPassEl.textContent=userData.passes||0;
+        const coinBalEl=document.getElementById('coinBal');if(coinBalEl)coinBalEl.textContent=bal;
+        const scrPassEl=document.getElementById('scratchPassesLeft');if(scrPassEl)scrPassEl.textContent=userData.passes||0;
+        const scrBalEl=document.getElementById('scratchBal');if(scrBalEl)scrBalEl.textContent=bal;
     }
     function getTierName(t){return t>=4?'💎 DIAMOND':t===3?'🥇 GOLD':t===2?'🥈 SILVER':'🥉 BASIC';}
     function getRefLink(){return `https://t.me/${BOT_USERNAME}?start=ref_${userData.user_id||'xxx'}`;}
@@ -1103,7 +1251,7 @@
     function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('sidebarOverlay').classList.add('show');playSound('tap');}
     function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');}
 
-    // ========== DAILY BONUS CARD ==========
+    // ========== DAILY BONUS ==========
     function updateDailyBonusCard(){
         const today=new Date().toISOString().split('T')[0];
         const claimed=claimedDates.includes(today);
@@ -1112,7 +1260,6 @@
         const sub=document.getElementById('dailyBonusSubtitle');
         if(claimed){btn.textContent='Claimed ✅';btn.style.background='var(--bg3)';btn.style.color='var(--text3)';icon.textContent='✅';sub.textContent='Kal wapas aao!';}
         else{btn.textContent='Claim';btn.style.background='linear-gradient(135deg,var(--green),#059669)';btn.style.color='#fff';icon.textContent='🎁';sub.textContent='Aaj ka bonus claim karo!';}
-        // Update daily bonus modal
         buildTrainChain();
     }
 
@@ -1120,36 +1267,29 @@
         const chain=document.getElementById('trainChain');
         if(!chain)return;
         const today=new Date().toISOString().split('T')[0];
-        // Show last 7 days + next 7 days
         let days=[];
-        for(let i=-7;i<=7;i++){
-            const d=new Date();d.setDate(d.getDate()+i);
-            days.push(d.toISOString().split('T')[0]);
-        }
+        for(let i=-6;i<=8;i++){const d=new Date();d.setDate(d.getDate()+i);days.push(d.toISOString().split('T')[0]);}
         chain.innerHTML='';
         days.forEach((day,idx)=>{
             const isClaimed=claimedDates.includes(day);
             const isToday=day===today;
             const isPast=day<today;
-            const isFuture=day>today;
             const dayNum=new Date(day).getDate();
-            const mon=new Date(day).toLocaleString('hi',{month:'short'});
-            const car=document.createElement('div');
-            car.className='train-car';
-            const bonus=0.05+Math.min((claimedDates.length)*0.02,0.15);
+            const mon=new Date(day).toLocaleString('en',{month:'short'});
+            const bonus=(0.05+Math.min((claimedDates.length)*0.02,0.15)).toFixed(2);
+            const car=document.createElement('div');car.className='train-car';
+            const connFilled=isClaimed&&idx>0&&claimedDates.includes(days[idx-1]);
             car.innerHTML=`
-                ${idx>0?`<div class="train-connector ${isClaimed&&days[idx-1]&&claimedDates.includes(days[idx-1])?'filled':''}"></div>`:'<div style="width:20px;margin-bottom:24px;"></div>'}
-                <div class="train-node ${isClaimed?'claimed':isToday?'today':'future'}" onclick="${isToday&&!isClaimed?'claimBonusFromModal()':''}">
+                ${idx>0?`<div class="train-connector ${connFilled?'filled':''}"></div>`:'<div style="width:18px;margin-bottom:23px;"></div>'}
+                <div class="train-node ${isClaimed?'claimed':isToday?'today':'future'}" onclick="${isToday&&!isClaimed?'claimBonus()':''}">
                     ${isClaimed?'✅':isToday?'🎁':isPast?'⭕':'🔒'}
                 </div>
                 <div class="train-date">${dayNum} ${mon}</div>
-                <div class="train-reward">${isClaimed?'+₹'+bonus.toFixed(2):isToday?'₹'+bonus.toFixed(2):'--'}</div>
+                <div class="train-reward">${isClaimed||isToday?'₹'+bonus:'--'}</div>
             `;
             chain.appendChild(car);
         });
-        // Scroll to today
-        setTimeout(()=>{const todayNode=chain.querySelector('.today');if(todayNode)todayNode.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});},100);
-        // Update today claim box
+        setTimeout(()=>{const node=chain.querySelector('.today');if(node)node.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});},100);
         const claimed=claimedDates.includes(today);
         const base=0.05,extra=Math.min(userStreak*.02,.15);
         document.getElementById('todayBonusAmt').textContent=`₹${(base+extra).toFixed(2)}`;
@@ -1157,10 +1297,6 @@
         document.getElementById('bonusTotal').textContent=`₹${(userData.total_earned||0).toFixed(2)}`;
         document.getElementById('todayClaimBox').style.display=claimed?'none':'block';
         document.getElementById('alreadyClaimedMsg').style.display=claimed?'block':'none';
-    }
-
-    function claimBonusFromModal(){
-        claimBonus();
     }
 
     async function claimBonus(){
@@ -1180,13 +1316,13 @@
             playSound('earn');
             showToast(`🎉 +₹${r.bonus.toFixed(2)} + 1 Pass! Streak: ${userStreak}🔥`);
             setTimeout(()=>closeModal('dailyBonus'),1500);
-        }else{showToast('❌ '+(r?.message||'Failed'));}
+        }else showToast('❌ '+(r?.message||'Failed'));
     }
 
     // ========== LIVE ACTIVITY ==========
     function renderLiveActivity(acts){
         const el=document.getElementById('liveList');
-        if(!acts||!acts.length){el.innerHTML='<div style="text-align:center;padding:18px;color:var(--text3);">Koi activity nahi abhi</div>';return;}
+        if(!acts||!acts.length){el.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3);">Koi activity nahi abhi</div>';return;}
         el.innerHTML=acts.slice(0,10).map(a=>{
             const dpEl=a.photo_url?`<div class="live-dp"><img src="${a.photo_url}" onerror="this.parentNode.textContent='${(a.user_name||'?')[0]}'"></div>`:`<div class="live-dp">${a.avatar||'👤'}</div>`;
             const amtEl=a.amount?`<div class="live-amount">${a.amount>0?'+':''}₹${parseFloat(a.amount).toFixed(2)}</div>`:'';
@@ -1204,31 +1340,21 @@
         document.getElementById('upName').textContent=name;
         document.getElementById('upId').textContent=`ID: ${userId}`;
         document.getElementById('upDp').textContent=name.charAt(0).toUpperCase();
-        document.getElementById('upBal').textContent='...';
-        document.getElementById('upRefs').textContent='...';
-        document.getElementById('upActiveRefs').textContent='...';
+        document.getElementById('upBal').textContent='...';document.getElementById('upRefs').textContent='...';document.getElementById('upActiveRefs').textContent='...';
         const d=await apiGet(`/api/user/${userId}`);
-        if(d&&!d.error){
-            document.getElementById('upBal').textContent=`₹${(d.balance||0).toFixed(2)}`;
-            document.getElementById('upRefs').textContent=d.total_refs||0;
-            document.getElementById('upActiveRefs').textContent=d.active_refs||0;
-        }
+        if(d&&!d.error){document.getElementById('upBal').textContent=`₹${(d.balance||0).toFixed(2)}`;document.getElementById('upRefs').textContent=d.total_refs||0;document.getElementById('upActiveRefs').textContent=d.active_refs||0;}
     }
 
     function renderRefActivity(acts){
         const el=document.getElementById('refActivityList');
-        if(!acts||!acts.length){el.innerHTML=`<div style="color:var(--text3);font-size:13px;text-align:center;padding:16px;">Koi referred user nahi abhi<br><span style="font-size:11px;display:block;margin-top:4px;">Apne dosto ko group pe movie search karao!</span></div>`;return;}
+        if(!acts||!acts.length){el.innerHTML=`<div style="color:var(--text3);font-size:12px;text-align:center;padding:14px;">Koi referred user nahi abhi</div>`;return;}
         el.innerHTML=acts.map(u=>`<div class="ref-act-item">
             <div class="ref-act-dp">${(u.first_name||'U').charAt(0)}</div>
-            <div class="ref-act-info">
-                <div class="ref-act-name">${u.first_name||'User'}</div>
-                <div class="ref-act-detail">${u.last_search||'No activity'}</div>
-            </div>
+            <div class="ref-act-info"><div class="ref-act-name">${u.first_name||'User'}</div><div class="ref-act-detail">${u.last_search||'No activity'}</div></div>
             <span class="ref-act-badge ${u.is_active?'badge-active':'badge-pending'}">${u.is_active?'Active':'Pending'}</span>
         </div>`).join('');
     }
 
-    // ========== CONGRATS ==========
     function showCongratsPopup(){
         document.getElementById('congratsMsg').textContent=`${userData.active_refs} active referral! +3 Passes mile!`;
         document.getElementById('congratsOverlay').classList.add('show');
@@ -1238,23 +1364,21 @@
 
     // ========== MISSIONS ==========
     function updateMissionsUI(){
-        const container=document.getElementById('missionsContainer');
-        if(!container)return;
+        const c=document.getElementById('missionsContainer');
+        if(!c)return;
         const mArr=[
             {key:'m1',label:'📢 10 Active Refs karo',p:missions.m1.p,total:10,done:missions.m1.done},
             {key:'m2',label:'📅 5 Daily Bonus claim karo',p:missions.m2.p,total:5,done:missions.m2.done},
             {key:'m3',label:'🎮 Aaj koi game khelo',p:missions.m3.p,total:1,done:missions.m3.done},
             {key:'m4',label:'💎 Koi offer claim karo',p:missions.m4.p,total:1,done:missions.m4.done},
         ];
-        container.innerHTML=mArr.map(m=>`
-            <div class="card-section" style="margin-bottom:10px;">
-                <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-                    <span style="font-weight:800;">${m.label}</span>
-                    <span style="background:${m.done?'rgba(34,211,160,.2)':'rgba(245,200,66,.2)'};color:${m.done?'var(--green)':'var(--gold)'};padding:3px 10px;border-radius:20px;font-size:12px;font-weight:800;">${m.done?'✅ Done':m.p+'/'+m.total}</span>
-                </div>
-                <div class="mission-bar-bg"><div class="mission-bar-fill" style="width:${Math.min((m.p/m.total)*100,100)}%;background:${m.done?'var(--green)':'#fff'};"></div></div>
+        c.innerHTML=mArr.map(m=>`<div class="card-section" style="margin-bottom:9px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:7px;">
+                <span style="font-weight:800;font-size:13px;">${m.label}</span>
+                <span style="background:${m.done?'rgba(34,211,160,.18)':'rgba(245,200,66,.18)'};color:${m.done?'var(--green)':'var(--gold)'};padding:3px 9px;border-radius:20px;font-size:11px;font-weight:800;">${m.done?'✅ Done':m.p+'/'+m.total}</span>
             </div>
-        `).join('');
+            <div class="mission-bar-bg"><div class="mission-bar-fill" style="width:${Math.min((m.p/m.total)*100,100)}%;background:${m.done?'var(--green)':'var(--gold)'};height:8px;"></div></div>
+        </div>`).join('');
         const done=mArr.filter(m=>m.done).length;
         document.getElementById('missionsDone').textContent=done;
         document.getElementById('missionBarFill').style.width=`${(done/4)*100}%`;
@@ -1269,13 +1393,13 @@
             missions={m1:{p:0,done:false,total:10,label:''},m2:{p:0,done:false,total:5,label:''},m3:{p:0,done:false,total:1,label:''},m4:{p:0,done:false,total:1,label:''}};
             updateUI();updateMissionsUI();closeModal('missions');
             showToast('✅ ₹5 claimed!');playSound('earn');
-        }else{showToast('❌ '+(r?.message||'Failed'));}
+        }else showToast('❌ '+(r?.message||'Failed'));
     }
 
     // ========== ADS ==========
     function renderAds(claimedIds=[]){
         const c=document.getElementById('adsContainer');
-        if(!adminAds.length){c.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);">No offers yet</div>';return;}
+        if(!adminAds.length){c.innerHTML='<div style="text-align:center;padding:18px;color:var(--text3);">No offers yet</div>';return;}
         c.innerHTML=adminAds.map(ad=>{
             const isClaimed=claimedIds.includes(ad.id);
             return `<div class="ad-card ${adminEditMode?'admin-mode':''} ${isClaimed&&!adminEditMode?'ad-claimed':''}" onclick="handleAdClick(${ad.id})">
@@ -1290,55 +1414,44 @@
     async function handleAdClick(adId){
         if(adminEditMode)return;
         const ad=adminAds.find(a=>a.id===adId);if(!ad)return;
-        playSound('tap');
-        window.open(ad.link,'_blank');
+        playSound('tap');window.open(ad.link,'_blank');
         const r=await apiPost('/api/claim-ad',{user_id:userData.user_id,ad_id:adId,reward:ad.reward});
         if(r&&r.success){
             userData.balance+=ad.reward;userData.today_earned+=ad.reward;
             missions.m4.p=1;missions.m4.done=true;
-            updateUI();updateMissionsUI();
-            showToast(`✅ +₹${ad.reward} earned!`);playSound('earn');
-            await loadAds();
-        }else{showToast('❌ '+(r?.message||'Already claimed'));}
+            updateUI();updateMissionsUI();showToast(`✅ +₹${ad.reward} earned!`);playSound('earn');await loadAds();
+        }else showToast('❌ '+(r?.message||'Already claimed'));
     }
 
-    function openAdminCreateOffer(){if(!userData.is_admin){return;}openModal('createOffer');}
+    function openAdminCreateOffer(){if(!userData.is_admin)return;openModal('createOffer');}
 
     async function submitAdminOffer(){
-        const t=document.getElementById('promoTitle').value,d=document.getElementById('promoDesc').value,rw=document.getElementById('promoReward').value,l=document.getElementById('promoLink').value,ic=document.getElementById('promoIcon').value||'📢',m=document.getElementById('promoMeta').value||'';
+        const t=document.getElementById('promoTitle').value,rw=document.getElementById('promoReward').value,l=document.getElementById('promoLink').value,ic=document.getElementById('promoIcon').value||'📢',m=document.getElementById('promoMeta').value||'';
         if(!t||!rw||!l){showToast('❌ Title, Reward aur Link zaruri hain');return;}
         const newId=Date.now()%100000;
         const r=await apiPost('/api/update-ad',{ad_id:newId,admin_id:userData.user_id,title:t,reward:parseFloat(rw),link:l,meta:m,icon:ic});
-        if(r&&r.success){showToast('✅ Offer created!');loadAds();closeModal('createOffer');['promoTitle','promoDesc','promoReward','promoLink','promoIcon','promoMeta'].forEach(i=>document.getElementById(i).value='');}
+        if(r&&r.success){showToast('✅ Offer created!');loadAds();closeModal('createOffer');['promoTitle','promoDesc','promoReward','promoLink','promoIcon','promoMeta'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});}
         else showToast('❌ '+(r?.message||'Failed'));
     }
 
     function editAd(id){
         const ad=adminAds.find(a=>a.id===id);if(!ad)return;
-        document.getElementById('editAdId').value=ad.id;
-        document.getElementById('editAdTitle').value=ad.title;
-        document.getElementById('editAdReward').value=ad.reward;
-        document.getElementById('editAdLink').value=ad.link;
-        document.getElementById('editAdMeta').value=ad.meta||'';
-        document.getElementById('editAdIcon').value=ad.icon||'';
+        document.getElementById('editAdId').value=ad.id;document.getElementById('editAdTitle').value=ad.title;document.getElementById('editAdReward').value=ad.reward;document.getElementById('editAdLink').value=ad.link;document.getElementById('editAdMeta').value=ad.meta||'';document.getElementById('editAdIcon').value=ad.icon||'';
         openModal('editAd');
     }
     async function saveAd(){
         const id=parseInt(document.getElementById('editAdId').value);
         const r=await apiPost('/api/update-ad',{ad_id:id,admin_id:userData.user_id,title:document.getElementById('editAdTitle').value,reward:parseFloat(document.getElementById('editAdReward').value),link:document.getElementById('editAdLink').value,meta:document.getElementById('editAdMeta').value,icon:document.getElementById('editAdIcon').value});
-        if(r&&r.success){showToast('✅ Updated + Claims Reset!');loadAds();closeModal('editAd');}
-        else showToast('❌ '+(r?.message||'Failed'));
+        if(r&&r.success){showToast('✅ Updated!');loadAds();closeModal('editAd');}else showToast('❌ '+(r?.message||'Failed'));
     }
     async function delAd(id){
         if(!confirm('Delete this offer?'))return;
         const r=await apiPost('/api/delete-ad',{ad_id:id,admin_id:userData.user_id});
-        if(r&&r.success){showToast('✅ Deleted');loadAds();}
-        else showToast('❌ '+(r?.message||'Failed'));
+        if(r&&r.success){showToast('✅ Deleted');loadAds();}else showToast('❌ '+(r?.message||'Failed'));
     }
     function deleteAdFromEdit(){delAd(parseInt(document.getElementById('editAdId').value));closeModal('editAd');}
     function toggleAdminEdit(){adminEditMode=!adminEditMode;loadAds();showToast(adminEditMode?'✏️ Edit Mode ON':'✅ Edit Mode OFF');}
 
-    // ========== BUY PASSES ==========
     function buyPasses(passes,price){
         if(!userData.user_id){showToast('❌ Login required');return;}
         const msg=`Namaskar! Main ${passes} Game Passes kharidna chahta hoon (₹${price}). Mera User ID: ${userData.user_id}`;
@@ -1346,7 +1459,6 @@
         showToast(`📩 Admin ko message bheja! Payment ke baad passes milenge.`);
     }
 
-    // ========== SHARE / REFER ==========
     function copyRef(){navigator.clipboard.writeText(getRefLink()).then(()=>showToast('✅ Link copied!'));playSound('tap');}
     function shareOn(platform){
         const link=getRefLink(),text=`EarnZone se paise kamao! 💰 ${link}`;
@@ -1366,16 +1478,16 @@
     }
     function renderLeaderboard(data){
         const el=document.getElementById('lbContent');
-        if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--text3);">No data yet</div>';return;}
+        if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:28px;color:var(--text3);">No data yet</div>';return;}
         const minRefs=lbMode==='weekly'?50:200;
         const qualified=data.filter(u=>(u.active_refs||0)>=minRefs);
         const prizes=lbMode==='weekly'?[150,65,30,10,10,10,10,10,10,10]:[300,200,200,30,30,30,30,30,30,30];
         let html='';
         if(qualified.length>=1){
             html+=`<div class="lb-podium">`;
-            if(qualified.length>=2)html+=`<div class="podium-slot p2"><div class="podium-dp">${(qualified[1].name||'U')[0]}</div><div class="podium-name">${qualified[1].name||'User'}</div><div style="font-size:11px;color:var(--text2)">${qualified[1].active_refs||0} refs</div><div class="podium-bar">🥈</div></div>`;
-            html+=`<div class="podium-slot p1"><div class="podium-dp">${(qualified[0].name||'U')[0]}</div><div class="podium-name">${qualified[0].name||'User'}</div><div style="font-size:11px;color:var(--text2)">${qualified[0].active_refs||0} refs</div><div class="podium-bar">🥇</div></div>`;
-            if(qualified.length>=3)html+=`<div class="podium-slot p3"><div class="podium-dp">${(qualified[2].name||'U')[0]}</div><div class="podium-name">${qualified[2].name||'User'}</div><div style="font-size:11px;color:var(--text2)">${qualified[2].active_refs||0} refs</div><div class="podium-bar">🥉</div></div>`;
+            if(qualified.length>=2)html+=`<div class="podium-slot p2"><div class="podium-dp">${(qualified[1].name||'U')[0]}</div><div class="podium-name">${qualified[1].name||'User'}</div><div style="font-size:10px;color:var(--text2)">${qualified[1].active_refs||0} refs</div><div class="podium-bar">🥈</div></div>`;
+            html+=`<div class="podium-slot p1"><div class="podium-dp">${(qualified[0].name||'U')[0]}</div><div class="podium-name">${qualified[0].name||'User'}</div><div style="font-size:10px;color:var(--text2)">${qualified[0].active_refs||0} refs</div><div class="podium-bar">🥇</div></div>`;
+            if(qualified.length>=3)html+=`<div class="podium-slot p3"><div class="podium-dp">${(qualified[2].name||'U')[0]}</div><div class="podium-name">${qualified[2].name||'User'}</div><div style="font-size:10px;color:var(--text2)">${qualified[2].active_refs||0} refs</div><div class="podium-bar">🥉</div></div>`;
             html+=`</div>`;
         }
         if(qualified.length>3){
@@ -1383,18 +1495,15 @@
             qualified.slice(3,10).forEach((u,i)=>{html+=`<div class="lb-item"><div class="lb-rank">${i+4}</div><div class="lb-info"><div class="lb-name">${u.name||'User'}</div><div class="lb-refs">${u.active_refs||0} active refs</div></div><div class="lb-prize">₹${prizes[i+3]||0}</div></div>`;});
             html+=`</div>`;
         }
-        if(!qualified.length)html=`<div style="text-align:center;padding:20px;background:var(--bg3);border-radius:18px;"><div style="font-size:48px;margin-bottom:10px;">🏆</div><div style="font-weight:800;">Min ${minRefs} refs chahiye</div></div>`;
+        if(!qualified.length)html=`<div style="text-align:center;padding:18px;background:var(--bg3);border-radius:16px;"><div style="font-size:44px;margin-bottom:9px;">🏆</div><div style="font-weight:800;">Min ${minRefs} refs chahiye</div></div>`;
         el.innerHTML=html;
     }
 
     // ========== HISTORY ==========
     function renderHistory(data){
         const el=document.getElementById('histContainer');
-        if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);">No withdrawals yet</div>';return;}
-        el.innerHTML=data.map(h=>`<div class="hist-item">
-            <div class="hist-top"><span class="hist-amt">₹${h.amount}</span><span class="hist-status status-${h.status||'pending'}">${h.status||'pending'}</span></div>
-            <div class="hist-bot"><span>${h.request_date?new Date(h.request_date).toLocaleDateString():'-'}</span><span>${h.method||'UPI'}</span></div>
-        </div>`).join('');
+        if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:22px;color:var(--text3);">No withdrawals yet</div>';return;}
+        el.innerHTML=data.map(h=>`<div class="hist-item"><div class="hist-top"><span class="hist-amt">₹${h.amount}</span><span class="hist-status status-${h.status||'pending'}">${h.status||'pending'}</span></div><div class="hist-bot"><span>${h.request_date?new Date(h.request_date).toLocaleDateString():'-'}</span><span>${h.method||'UPI'}</span></div></div>`).join('');
     }
 
     // ========== WITHDRAW ==========
@@ -1419,7 +1528,6 @@
         else showToast('❌ '+(r?.message||'Failed'));
     }
 
-    // ========== SUPPORT ==========
     async function sendSupport(){
         const msg=document.getElementById('supportMsg').value.trim();
         if(!msg||msg.length<10){showToast('❌ Message too short');return;}
@@ -1429,35 +1537,34 @@
     }
 
     // ========== GAMES ==========
-
-    // --- SPIN ---
     function drawWheel(angle){
         const cv=document.getElementById('spinCanvas');if(!cv)return;
-        const ctx=cv.getContext('2d'),cx=135,cy=135,r=125,n=SEGS.length,seg=(2*Math.PI)/n;
-        ctx.clearRect(0,0,270,270);
+        const ctx=cv.getContext('2d'),cx=130,cy=130,r=122,n=SEGS.length,seg=(2*Math.PI)/n;
+        ctx.clearRect(0,0,260,260);
         SEGS.forEach((s,i)=>{
             const sa=angle+i*seg,ea=sa+seg;
             ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,sa,ea);ctx.closePath();
-            ctx.fillStyle=s.c;ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+            ctx.fillStyle=s.c;ctx.fill();ctx.strokeStyle='rgba(255,255,255,.15)';ctx.lineWidth=1.5;ctx.stroke();
             ctx.save();ctx.translate(cx,cy);ctx.rotate(sa+seg/2);ctx.textAlign='right';
-            ctx.fillStyle='#fff';ctx.font='bold 14px Nunito';ctx.fillText(s.l,r-12,5);ctx.restore();
+            ctx.fillStyle='#fff';ctx.font='bold 13px Nunito';ctx.fillText(s.l,r-10,5);ctx.restore();
         });
-        ctx.beginPath();ctx.arc(cx,cy,20,0,2*Math.PI);ctx.fillStyle='#fff';ctx.fill();
-        ctx.fillStyle='#000';ctx.font='bold 11px Nunito';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('SPIN',cx,cy);
+        ctx.beginPath();ctx.arc(cx,cy,22,0,2*Math.PI);
+        const g=ctx.createRadialGradient(cx,cy,0,cx,cy,22);g.addColorStop(0,'#fff');g.addColorStop(1,'#f0f0f0');
+        ctx.fillStyle=g;ctx.fill();
+        ctx.fillStyle='#1a1a1a';ctx.font='bold 10px Nunito';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('SPIN',cx,cy);
     }
 
     async function doSpin(){
         if(isSpinning)return;
         if((userData.passes||0)<=0){showToast('❌ Passes nahi! Refer karo ya daily bonus lo');return;}
         isSpinning=true;
-        const btn=document.getElementById('spinBtn');
-        btn.disabled=true;btn.textContent='⏳ Spinning...';
+        const btn=document.getElementById('spinBtn');btn.disabled=true;btn.textContent='⏳ Spinning...';
         document.getElementById('spinResultBox').style.display='none';
         playSound('tap');
         const r=await apiPost('/api/game/spin',{user_id:userData.user_id});
         if(!r||!r.success){isSpinning=false;btn.disabled=false;btn.textContent='🎰 SPIN (1 Pass)';showToast('❌ '+(r?.message||'Error'));return;}
         const sel=r.segment_index!==undefined?r.segment_index:Math.floor(Math.random()*SEGS.length);
-        const n=SEGS.length,seg=(2*Math.PI)/n,target=-Math.PI/2-(sel*seg+seg/2),extra=(5+Math.floor(Math.random()*4))*2*Math.PI,final=extra+target,dur=3000,startA=spinAngle,startT=performance.now();
+        const n=SEGS.length,seg=(2*Math.PI)/n,target=-Math.PI/2-(sel*seg+seg/2),extra=(5+Math.floor(Math.random()*4))*2*Math.PI,final=extra+target,dur=3200,startA=spinAngle,startT=performance.now();
         function anim(now){
             const el=now-startT,prog=Math.min(el/dur,1),ease=1-Math.pow(1-prog,4);
             spinAngle=startA+final*ease;drawWheel(spinAngle);
@@ -1471,97 +1578,61 @@
             document.getElementById('spinResultAmt').textContent=`+₹${parseFloat(r.reward||0).toFixed(2)}`;
             document.getElementById('spinResultTxt').textContent=(r.reward||0)>=2?'🎉 Jackpot!':'✅ Badhaai ho!';
             document.getElementById('spinResultBox').style.display='block';
-            playSound('earn');
-            btn.disabled=false;btn.textContent='🎰 SPIN (1 Pass)';
+            playSound('earn');btn.disabled=false;btn.textContent='🎰 SPIN (1 Pass)';
         }
         requestAnimationFrame(anim);
     }
 
-    // --- GUESS ---
     function startGuess(){
-        guessActive=true;guessAttempts=0;guessSecret=Math.floor(Math.random()*10)+1;
-        document.getElementById('guessDisp').textContent='?';
-        document.getElementById('guessDisp').style.color='var(--gold)';
+        guessActive=true;guessSecret=Math.floor(Math.random()*10)+1;
+        document.getElementById('guessDisp').textContent='?';document.getElementById('guessDisp').style.color='var(--gold)';
         document.getElementById('guessHint').textContent='1 se 10 ke beech guess karo';
         renderNumGrid();
     }
-    function renderNumGrid(){
-        document.getElementById('numGrid').innerHTML=[...Array(10)].map((_,i)=>`<button class="num-btn" id="nb${i+1}" onclick="makeGuess(${i+1})">${i+1}</button>`).join('');
-    }
-    function selGuessBet(a,el){
-        if(a>userData.balance){showToast('❌ Balance kam hai!');return;}
-        guessBet=a;
-        document.querySelectorAll('#guessModal .bet-chip').forEach(c=>c.classList.remove('sel'));
-        el.classList.add('sel');
-        document.getElementById('guessBetDisp').textContent=`₹${guessBet}`;
-    }
+    function renderNumGrid(){document.getElementById('numGrid').innerHTML=[...Array(10)].map((_,i)=>`<button class="num-btn" id="nb${i+1}" onclick="makeGuess(${i+1})">${i+1}</button>`).join('');}
+    function selGuessBet(a,el){if(a>userData.balance){showToast('❌ Balance kam hai!');return;}guessBet=a;document.querySelectorAll('#guessModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');document.getElementById('guessBetDisp').textContent=`₹${guessBet}`;}
+
     async function makeGuess(num){
         if(!guessActive)return;
         if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
         if(userData.balance<guessBet){showToast('❌ Balance kam hai!');return;}
-        playSound('tap');
-        document.querySelectorAll('.num-btn').forEach(b=>b.disabled=true);
+        playSound('tap');document.querySelectorAll('.num-btn').forEach(b=>b.disabled=true);
         const r=await apiPost('/api/game/guess',{user_id:userData.user_id,guess:num,bet:guessBet});
         if(!r||!r.success){
-            // Fallback local logic
-            guessAttempts++;
             const btn=document.getElementById(`nb${num}`);
             if(num===guessSecret){
-                btn.classList.add('correct');
-                const reward=guessBet*8;
-                userData.balance+=reward-guessBet;userData.passes=Math.max(0,(userData.passes||1)-1);
+                btn.classList.add('correct');const reward=guessBet*8;userData.balance+=reward-guessBet;userData.passes=Math.max(0,(userData.passes||1)-1);
                 document.getElementById('guessDisp').textContent=num;document.getElementById('guessDisp').style.color='var(--green)';
                 document.getElementById('guessHint').textContent=`🎉 Sahi! +₹${reward.toFixed(2)}`;
                 gameState.wins=(gameState.wins||0)+1;missions.m3.p=1;missions.m3.done=true;
-                updateUI();updateMissionsUI();playSound('earn');showToast(`🎉 +₹${reward.toFixed(2)}`);
-                guessActive=false;setTimeout(startGuess,2000);
+                updateUI();updateMissionsUI();playSound('earn');showToast(`🎉 +₹${reward.toFixed(2)}`);guessActive=false;setTimeout(startGuess,2000);
             }else{
-                btn.classList.add('wrong');
-                const diff=Math.abs(num-guessSecret);
-                let hint=diff<=1?'🔥 Bahut paas!':diff<=3?'♨️ Kaafi paas':diff<=5?'🌡️ Thoda door':'❄️ Bahut door!';
+                btn.classList.add('wrong');const diff=Math.abs(num-guessSecret);
+                let hint=diff<=1?'🔥 Bahut paas!':diff<=3?'♨️ Kaafi paas':'❄️ Door!';
                 hint+=' '+(num>guessSecret?'(Kam karo)':'(Zyada karo)');
-                document.getElementById('guessHint').textContent=hint;
-                playSound('lose');
+                document.getElementById('guessHint').textContent=hint;playSound('lose');
                 document.querySelectorAll('.num-btn').forEach(b=>{if(!b.classList.contains('wrong'))b.disabled=false;});
             }
             return;
         }
         const btn=document.getElementById(`nb${num}`);
         if(r.correct){
-            btn.classList.add('correct');
-            document.getElementById('guessDisp').textContent=num;document.getElementById('guessDisp').style.color='var(--green)';
+            btn.classList.add('correct');document.getElementById('guessDisp').textContent=num;document.getElementById('guessDisp').style.color='var(--green)';
             document.getElementById('guessHint').textContent=`🎉 Sahi! +₹${parseFloat(r.reward||0).toFixed(2)}`;
-            userData.passes=Math.max(0,(userData.passes||1)-1);
-            gameState.wins=(gameState.wins||0)+1;missions.m3.p=1;missions.m3.done=true;
-            playSound('earn');showToast(`🎉 +₹${parseFloat(r.reward||0).toFixed(2)}`);
-            updateUI();updateMissionsUI();guessActive=false;await loadUser();
-            setTimeout(startGuess,2000);
-        }else if(r.secret!==null&&r.secret!==undefined){
-            btn.classList.add('wrong');
-            document.getElementById('guessDisp').textContent=r.secret;document.getElementById('guessDisp').style.color='var(--red)';
-            document.getElementById('guessHint').textContent=`❌ Number tha: ${r.secret}`;
-            userData.passes=Math.max(0,(userData.passes||1)-1);
-            playSound('lose');guessActive=false;await loadUser();
-            setTimeout(startGuess,2000);
+            userData.passes=Math.max(0,(userData.passes||1)-1);gameState.wins=(gameState.wins||0)+1;missions.m3.p=1;missions.m3.done=true;
+            playSound('earn');showToast(`🎉 +₹${parseFloat(r.reward||0).toFixed(2)}`);updateUI();updateMissionsUI();guessActive=false;await loadUser();setTimeout(startGuess,2000);
+        }else if(r.secret!=null){
+            btn.classList.add('wrong');document.getElementById('guessDisp').textContent=r.secret;document.getElementById('guessDisp').style.color='var(--red)';
+            document.getElementById('guessHint').textContent=`❌ Number tha: ${r.secret}`;userData.passes=Math.max(0,(userData.passes||1)-1);
+            playSound('lose');guessActive=false;await loadUser();setTimeout(startGuess,2000);
         }else{
-            btn.classList.add('wrong');
-            document.getElementById('guessHint').textContent=r.hint||'Try again!';
-            playSound('lose');
+            btn.classList.add('wrong');document.getElementById('guessHint').textContent=r.hint||'Try again!';playSound('lose');
             document.querySelectorAll('.num-btn').forEach(b=>{if(!b.classList.contains('wrong'))b.disabled=false;});
         }
-        document.getElementById('guessPassLeft').textContent=userData.passes||0;
-        document.getElementById('guessBal').textContent=`₹${userData.balance.toFixed(2)}`;
         updateUI();
     }
 
-    // --- COIN ---
-    function resetCoinUI(){
-        coinChoice=null;coinBet=1;coinFlipping=false;
-        document.getElementById('coinChoiceH').classList.remove('sel');document.getElementById('coinChoiceT').classList.remove('sel');
-        document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';
-        const btn=document.getElementById('flipBtn');btn.disabled=false;btn.textContent='🪙 FLIP KARO!';
-        document.getElementById('theCoin').style.transform='rotateY(0deg)';
-    }
+    function resetCoinUI(){coinChoice=null;coinBet=1;coinFlipping=false;document.getElementById('coinChoiceH').classList.remove('sel');document.getElementById('coinChoiceT').classList.remove('sel');document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';const btn=document.getElementById('flipBtn');if(btn){btn.disabled=false;btn.textContent='🪙 FLIP KARO!';}document.getElementById('theCoin').style.transform='rotateY(0deg)';}
     function chooseCoin(s){if(coinFlipping)return;coinChoice=s;document.getElementById('coinChoiceH').classList.toggle('sel',s==='heads');document.getElementById('coinChoiceT').classList.toggle('sel',s==='tails');playSound('tap');}
     function selCoinBet(a,el){if(a>userData.balance){showToast('❌ Balance kam hai!');return;}coinBet=a;document.querySelectorAll('#coinModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
 
@@ -1574,64 +1645,40 @@
         document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';
         playSound('tap');
         const r=await apiPost('/api/game/coin',{user_id:userData.user_id,choice:coinChoice,bet:coinBet});
+        const coin=document.getElementById('theCoin');
         if(!r||!r.success){
-            // Fallback local
-            coinFlipping=false;document.getElementById('flipBtn').disabled=false;
-            const actualResult=Math.random()<0.5?'heads':'tails';
-            const won=coinChoice===actualResult;
-            const coin=document.getElementById('theCoin');
-            const deg=actualResult==='heads'?5*360:5*360+180;
-            coin.style.transition='transform 1.2s cubic-bezier(.4,0,.2,1)';coin.style.transform=`rotateY(${deg}deg)`;
+            const actualResult=Math.random()<.5?'heads':'tails';const won=coinChoice===actualResult;
+            const deg=actualResult==='heads'?5*360:5*360+180;coin.style.transition='transform 1.2s cubic-bezier(.4,0,.2,1)';coin.style.transform=`rotateY(${deg}deg)`;
             setTimeout(()=>{
                 userData.passes=Math.max(0,(userData.passes||1)-1);
-                if(won){
-                    const reward=coinBet*2;userData.balance+=coinBet;
-                    document.getElementById('coinWinAmt').textContent=`+₹${reward.toFixed(2)}`;
-                    document.getElementById('coinResWin').style.display='block';playSound('earn');showToast(`🎉 +₹${reward.toFixed(2)}`);
-                    gameState.wins=(gameState.wins||0)+1;missions.m3.p=1;missions.m3.done=true;
-                }else{
-                    userData.balance=Math.max(0,userData.balance-coinBet);
-                    document.getElementById('coinLoseAmt').textContent=`-₹${coinBet}`;
-                    document.getElementById('coinResLose').style.display='block';playSound('lose');
-                }
+                if(won){const reward=coinBet*2;userData.balance+=coinBet;document.getElementById('coinWinAmt').textContent=`+₹${reward.toFixed(2)}`;document.getElementById('coinResWin').style.display='block';playSound('earn');showToast(`🎉 +₹${reward.toFixed(2)}`);gameState.wins=(gameState.wins||0)+1;missions.m3.p=1;missions.m3.done=true;}
+                else{userData.balance=Math.max(0,userData.balance-coinBet);document.getElementById('coinLoseAmt').textContent=`-₹${coinBet}`;document.getElementById('coinResLose').style.display='block';playSound('lose');}
                 updateUI();updateMissionsUI();coinFlipping=false;
-                setTimeout(()=>{resetCoinUI();document.getElementById('flipBtn').disabled=false;coin.style.transition='none';coin.style.transform='rotateY(0deg)';},2000);
-            },1300);
-            return;
+                setTimeout(()=>{resetCoinUI();coin.style.transition='none';coin.style.transform='rotateY(0deg)';},2000);
+            },1300);return;
         }
-        const coin=document.getElementById('theCoin');
-        const deg=r.result==='heads'?5*360:5*360+180;
-        coin.style.transition='transform 1.2s cubic-bezier(.4,0,.2,1)';coin.style.transform=`rotateY(${deg}deg)`;
+        const deg=r.result==='heads'?5*360:5*360+180;coin.style.transition='transform 1.2s cubic-bezier(.4,0,.2,1)';coin.style.transform=`rotateY(${deg}deg)`;
         setTimeout(async()=>{
             coinFlipping=false;userData.passes=Math.max(0,(userData.passes||1)-1);
-            if(r.won){
-                document.getElementById('coinWinAmt').textContent=`+₹${parseFloat(r.reward||0).toFixed(2)}`;
-                document.getElementById('coinResWin').style.display='block';playSound('earn');
-                showToast(`🎉 +₹${parseFloat(r.reward||0).toFixed(2)}`);
-                gameState.wins=(gameState.wins||0)+1;missions.m3.p=1;missions.m3.done=true;
-            }else{
-                document.getElementById('coinLoseAmt').textContent=`-₹${coinBet}`;
-                document.getElementById('coinResLose').style.display='block';playSound('lose');showToast('😢 Haar gaye!');
-            }
+            if(r.won){document.getElementById('coinWinAmt').textContent=`+₹${parseFloat(r.reward||0).toFixed(2)}`;document.getElementById('coinResWin').style.display='block';playSound('earn');showToast(`🎉 +₹${parseFloat(r.reward||0).toFixed(2)}`);gameState.wins=(gameState.wins||0)+1;missions.m3.p=1;missions.m3.done=true;}
+            else{document.getElementById('coinLoseAmt').textContent=`-₹${coinBet}`;document.getElementById('coinResLose').style.display='block';playSound('lose');showToast('😢 Haar gaye!');}
             await loadUser();updateUI();updateMissionsUI();
             setTimeout(()=>{document.getElementById('flipBtn').disabled=false;document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';coinChoice=null;document.getElementById('coinChoiceH').classList.remove('sel');document.getElementById('coinChoiceT').classList.remove('sel');coin.style.transition='none';coin.style.transform='rotateY(0deg)';},2500);
         },1300);
     }
 
-    // --- SCRATCH ---
     function initScratch(){
         scratchRevealed=false;scratchDrawing=false;
         document.getElementById('scratchAmt').textContent='?';document.getElementById('scratchLbl').textContent='Khurcho aur jaano!';
         document.getElementById('scratchProgFill').style.width='0%';document.getElementById('scratchHintTxt').textContent='👆 Yahan finger se khurcho!';
-        document.getElementById('newScratchBtn').disabled=true;document.getElementById('newScratchBtn').textContent='🎫 NEW CARD (1 Pass)';
+        document.getElementById('newScratchBtn').disabled=true;
         const area=document.getElementById('scratchArea'),cv=document.getElementById('scratchCanvas');
-        cv.width=area.offsetWidth||340;cv.height=180;scratchCtx=cv.getContext('2d');
+        cv.width=area.offsetWidth||320;cv.height=175;scratchCtx=cv.getContext('2d');
         const g=scratchCtx.createLinearGradient(0,0,cv.width,cv.height);
-        g.addColorStop(0,'#475569');g.addColorStop(.5,'#64748b');g.addColorStop(1,'#334155');
+        g.addColorStop(0,'#334155');g.addColorStop(.5,'#475569');g.addColorStop(1,'#1e293b');
         scratchCtx.fillStyle=g;scratchCtx.fillRect(0,0,cv.width,cv.height);
-        scratchCtx.fillStyle='rgba(255,255,255,.5)';scratchCtx.font='bold 20px Nunito';scratchCtx.textAlign='center';scratchCtx.textBaseline='middle';
-        scratchCtx.fillText('✨ KHURCHO ✨',cv.width/2,cv.height/2-16);
-        scratchCtx.font='14px Nunito';scratchCtx.fillText('Apni luck azmaao!',cv.width/2,cv.height/2+16);
+        scratchCtx.fillStyle='rgba(255,255,255,.45)';scratchCtx.font='bold 18px Nunito';scratchCtx.textAlign='center';scratchCtx.textBaseline='middle';
+        scratchCtx.fillText('✨ KHURCHO ✨',cv.width/2,cv.height/2-14);scratchCtx.font='13px Nunito';scratchCtx.fillText('Apni luck azmaao!',cv.width/2,cv.height/2+14);
         scratchCtx.globalCompositeOperation='destination-out';
         cv.onmousedown=e=>{scratchDrawing=true;doScratch(e);};cv.onmousemove=e=>{if(scratchDrawing)doScratch(e);};cv.onmouseup=()=>scratchDrawing=false;
         cv.ontouchstart=e=>{scratchDrawing=true;doScratch(e.touches[0]);e.preventDefault();};
@@ -1642,25 +1689,22 @@
     async function doScratch(e){
         if(scratchRevealed)return;
         const cv=document.getElementById('scratchCanvas'),rect=cv.getBoundingClientRect();
-        scratchCtx.beginPath();scratchCtx.arc(e.clientX-rect.left,e.clientY-rect.top,28,0,Math.PI*2);scratchCtx.fill();
+        scratchCtx.beginPath();scratchCtx.arc(e.clientX-rect.left,e.clientY-rect.top,26,0,Math.PI*2);scratchCtx.fill();
         const d=scratchCtx.getImageData(0,0,cv.width,cv.height).data;
         let cl=0;for(let i=3;i<d.length;i+=4)if(d[i]===0)cl++;
         const pct=(cl/(cv.width*cv.height))*100;
         document.getElementById('scratchProgFill').style.width=`${Math.min(pct*1.2,100)}%`;
         if(pct>50&&!scratchRevealed){
-            scratchRevealed=true;scratchCtx.clearRect(0,0,cv.width,cv.height);
-            document.getElementById('scratchProgFill').style.width='100%';
+            scratchRevealed=true;scratchCtx.clearRect(0,0,cv.width,cv.height);document.getElementById('scratchProgFill').style.width='100%';
             document.getElementById('scratchHintTxt').textContent='⏳ Processing...';
             if((userData.passes||0)<=0){document.getElementById('scratchHintTxt').textContent='❌ Passes nahi!';showToast('❌ Passes nahi!');return;}
             const r=await apiPost('/api/game/scratch',{user_id:userData.user_id});
             if(r&&r.success){
-                gameState.scratch_left=r.scratch_left;
                 document.getElementById('scratchAmt').textContent=`₹${r.reward}`;
                 document.getElementById('scratchLbl').textContent=r.reward>=2?'🎉 Jackpot!':'Aapka inaam!';
-                document.getElementById('scratchCardsLeft').textContent=gameState.scratch_left||'∞';
+                document.getElementById('scratchCardsLeft').textContent=r.scratch_left||'∞';
                 document.getElementById('scratchHintTxt').textContent='🎊 Reveal!';
-                userData.passes=Math.max(0,(userData.passes||1)-1);
-                missions.m3.p=1;missions.m3.done=true;
+                userData.passes=Math.max(0,(userData.passes||1)-1);missions.m3.p=1;missions.m3.done=true;
                 playSound('earn');showToast(`🎫 +₹${r.reward}!`);await loadUser();updateUI();updateMissionsUI();
                 document.getElementById('newScratchBtn').disabled=false;
             }else{document.getElementById('scratchHintTxt').textContent='❌ '+(r?.message||'Error');showToast('❌ '+(r?.message||'Error'));}
@@ -1668,14 +1712,13 @@
     }
     function newScratch(){if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}initScratch();playSound('tap');}
 
-    // ========== GAME MODAL OPEN ==========
     function openGame(g){
         playSound('tap');
         if((userData.passes||0)<=0){showToast('❌ Passes nahi! Refer karo ya daily bonus lo');return;}
         if(g==='spin'){drawWheel(spinAngle);openModal('spin');}
         else if(g==='guess'){startGuess();openModal('guess');}
         else if(g==='coin'){resetCoinUI();openModal('coin');}
-        else if(g==='scratch'){openModal('scratch');setTimeout(initScratch,100);}
+        else if(g==='scratch'){openModal('scratch');setTimeout(initScratch,120);}
     }
 
     // ========== TAB SWITCH ==========
@@ -1685,21 +1728,17 @@
         document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
         document.getElementById(pageIds[idx]).classList.add('active');
         document.getElementById(`nav${idx}`).classList.add('active');
-        playSound('tap');
+        playSound('tap');window.scrollTo(0,0);
         if(idx===1)loadLeaderboard();
         else if(idx===3){updateUI();loadRefActivity();}
         else if(idx===4)loadWithdrawalHistory();
-        // Scroll to top
-        window.scrollTo(0,0);
     }
 
     // ========== MODAL SYSTEM ==========
     function openModal(id){
-        const el=document.getElementById(id+'Modal');
-        if(!el)return;
+        const el=document.getElementById(id+'Modal');if(!el)return;
         el.classList.add('open');
         if(id==='missions')updateMissionsUI();
-        if(id==='profile')updateUI();
         if(id==='dailyBonus')buildTrainChain();
     }
     function closeModal(id){const el=document.getElementById(id+'Modal');if(el)el.classList.remove('open');}
@@ -1707,15 +1746,15 @@
     // ========== THEME ==========
     function toggleTheme(){
         const html=document.documentElement;
-        if(currentTheme==='dark'){html.setAttribute('data-theme','light');currentTheme='light';[document.getElementById('themeToggleEl'),document.getElementById('themeToggleEl2')].forEach(el=>{if(el)el.classList.remove('on');});}
-        else{html.removeAttribute('data-theme');currentTheme='dark';[document.getElementById('themeToggleEl'),document.getElementById('themeToggleEl2')].forEach(el=>{if(el)el.classList.add('on');});}
+        if(currentTheme==='dark'){html.setAttribute('data-theme','light');currentTheme='light';['themeToggleEl','themeToggleEl2'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('on');});}
+        else{html.removeAttribute('data-theme');currentTheme='dark';['themeToggleEl','themeToggleEl2'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('on');});}
         playSound('tap');
     }
 
     // ========== SOUND ==========
     function toggleSound(){
         soundOn=!soundOn;
-        [document.getElementById('soundToggleEl'),document.getElementById('soundToggleEl2')].forEach(el=>{if(el)el.classList.toggle('on',soundOn);});
+        ['soundToggleEl','soundToggleEl2'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',soundOn);});
         if(soundOn)playSound('tap');
     }
     function playSound(type){
@@ -1724,15 +1763,18 @@
             if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
             if(audioCtx.state==='suspended')audioCtx.resume();
             const now=audioCtx.currentTime;
-            if(type==='tap'){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=600;g.gain.value=.06;o.start(now);o.stop(now+.05);}
-            else if(type==='earn'){[400,500,600,700,900].forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=f;g.gain.value=.1;o.start(now+i*.08);o.stop(now+i*.08+.12);});}
-            else if(type==='lose'){[300,250,200].forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=f;g.gain.value=.07;o.start(now+i*.1);o.stop(now+i*.1+.1);});}
+            if(type==='tap'){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=600;g.gain.value=.05;o.start(now);o.stop(now+.05);}
+            else if(type==='earn'){[400,500,600,700,900].forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=f;g.gain.value=.09;o.start(now+i*.08);o.stop(now+i*.08+.11);});}
+            else if(type==='lose'){[300,250,200].forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=f;g.gain.value=.06;o.start(now+i*.1);o.stop(now+i*.1+.1);});}
         }catch(e){}
     }
 
     // ========== TOAST ==========
     let toastTimer;
-    function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.style.display='none',2800);}
+    function showToast(msg){
+        const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+        clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
+    }
 
     // ========== INIT ==========
     async function init(){
@@ -1748,7 +1790,6 @@
         await Promise.all([loadUser(),loadGameState(),loadBonusDays(),loadMissions(),loadAds(),loadLiveActivity()]);
         drawWheel(0);updateUI();updateMissionsUI();
         showToast('✅ Ready!');
-        // Auto-refresh
         setInterval(loadLiveActivity,30000);
         setInterval(async()=>{await loadUser();await loadGameState();},60000);
     }
