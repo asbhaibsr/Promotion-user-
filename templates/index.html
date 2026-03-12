@@ -16,8 +16,7 @@
             --text:#eef0fb;--text2:#6d7a9f;--text3:#3d4560;
             --border:rgba(255,255,255,0.05);
             --shadow:0 8px 32px rgba(0,0,0,0.6);
-            --nav-h:68px;
-            --r:16px;
+            --nav-h:68px;--r:16px;
         }
         [data-theme="light"]{
             --bg:#f2f5ff;--bg2:#e8ecfb;--bg3:#dde3f7;--card:#fff;
@@ -29,49 +28,42 @@
         ::-webkit-scrollbar{width:3px;height:3px;}
         ::-webkit-scrollbar-thumb{background:var(--gold);border-radius:4px;}
 
-        /* LANG SWITCH */
-        .lang-fab{
-            position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);right:14px;z-index:300;
-            background:linear-gradient(135deg,var(--purple),var(--purple2));
-            color:#fff;border:none;border-radius:30px;padding:7px 13px;
-            font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;
-            box-shadow:0 4px 14px rgba(124,92,252,.45);display:none;
-        }
+        /* ONBOARDING POPUP */
+        .onboard-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9000;display:flex;align-items:center;justify-content:center;padding:14px;}
+        .onboard-card{background:var(--bg2);border-radius:24px;width:100%;max-width:440px;border:1.5px solid rgba(240,192,64,.25);box-shadow:0 0 60px rgba(124,92,252,.2);overflow:hidden;display:flex;flex-direction:column;max-height:90vh;}
+        .onboard-header{background:linear-gradient(135deg,var(--purple),var(--gold));padding:18px 18px 14px;text-align:center;flex-shrink:0;}
+        .onboard-header h2{font-family:'Oxanium',sans-serif;font-size:20px;font-weight:900;color:#000;margin-bottom:4px;}
+        .onboard-header p{font-size:11px;color:rgba(0,0,0,.7);font-weight:600;}
+        .onboard-lang-row{display:flex;gap:8px;padding:12px 14px;background:var(--bg3);flex-shrink:0;}
+        .onboard-lang-btn{flex:1;padding:9px;border-radius:10px;background:var(--bg2);border:1.5px solid var(--border);text-align:center;cursor:pointer;font-size:12px;font-weight:700;transition:all .2s;}
+        .onboard-lang-btn.active{border-color:var(--gold);background:rgba(240,192,64,.1);color:var(--gold);}
+        .onboard-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px;flex:1;}
+        .onboard-section{margin-bottom:14px;}
+        .onboard-section-title{font-family:'Oxanium',sans-serif;font-size:13px;font-weight:900;color:var(--gold);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+        .onboard-item{display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);}
+        .onboard-item:last-child{border-bottom:none;}
+        .onboard-item-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+        .onboard-item-text{font-size:11px;color:var(--text2);line-height:1.6;}
+        .onboard-item-text b{color:var(--text);}
+        .onboard-footer{padding:12px 14px;flex-shrink:0;border-top:1px solid var(--border);background:var(--bg2);}
+        .onboard-confirm-btn{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;padding:14px;border-radius:36px;font-weight:900;font-size:14px;width:100%;cursor:pointer;font-family:inherit;box-shadow:0 5px 18px rgba(240,192,64,.3);}
+        .onboard-confirm-btn:active{transform:scale(.97);}
+
+        /* LANG FAB */
+        .lang-fab{position:fixed;top:calc(env(safe-area-inset-top,0px)+10px);right:14px;z-index:300;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:30px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(124,92,252,.45);display:none;}
 
         /* TOPBAR */
-        .topbar{
-            position:sticky;top:0;z-index:200;
-            padding:10px 14px;
-            display:flex;justify-content:space-between;align-items:center;
-            background:linear-gradient(to bottom,var(--bg) 80%,transparent);
-            backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-        }
+        .topbar{position:sticky;top:0;z-index:200;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(to bottom,var(--bg) 80%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
         .topbar-logo{font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--gold);letter-spacing:.5px;}
-        .hamburger-btn{
-            width:40px;height:40px;border-radius:12px;
-            background:var(--bg3);border:1px solid var(--border);
-            display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
-            cursor:pointer;transition:transform .15s;
-        }
+        .hamburger-btn{width:40px;height:40px;border-radius:12px;background:var(--bg3);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:transform .15s;}
         .hamburger-btn span{width:16px;height:2px;background:var(--text);border-radius:2px;transition:all .3s;}
         .hamburger-btn:active{transform:scale(.9);}
-        .topbar-balance{
-            background:linear-gradient(135deg,rgba(240,192,64,.14),rgba(240,192,64,.04));
-            border:1px solid rgba(240,192,64,.22);
-            border-radius:28px;padding:7px 14px;
-            font-family:'Oxanium',sans-serif;font-weight:800;font-size:14px;color:var(--gold);
-        }
+        .topbar-balance{background:linear-gradient(135deg,rgba(240,192,64,.14),rgba(240,192,64,.04));border:1px solid rgba(240,192,64,.22);border-radius:28px;padding:7px 14px;font-family:'Oxanium',sans-serif;font-weight:800;font-size:14px;color:var(--gold);}
 
         /* SIDEBAR */
         .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;opacity:0;transition:opacity .3s;}
         .sidebar-overlay.show{display:block;opacity:1;}
-        .sidebar{
-            position:fixed;left:0;top:0;bottom:0;width:272px;
-            background:var(--bg2);z-index:501;
-            transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
-            padding-top:max(env(safe-area-inset-top,0),10px);
-            overflow-y:auto;border-right:1px solid var(--border);
-        }
+        .sidebar{position:fixed;left:0;top:0;bottom:0;width:272px;background:var(--bg2);z-index:501;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding-top:max(env(safe-area-inset-top,0),10px);overflow-y:auto;border-right:1px solid var(--border);}
         .sidebar.open{transform:translateX(0);}
         .sidebar-header{padding:16px 18px 14px;border-bottom:1px solid var(--border);margin-bottom:6px;}
         .sidebar-logo{font-family:'Oxanium',sans-serif;font-size:20px;font-weight:900;color:var(--gold);}
@@ -92,11 +84,7 @@
         .page-inner{padding-top:6px;}
 
         /* BALANCE CARD */
-        .balance-card{
-            background:linear-gradient(140deg,#101840,#0b0f28,#14094a);
-            border:1px solid rgba(240,192,64,.18);border-radius:26px;
-            padding:22px 18px 18px;margin-bottom:12px;position:relative;overflow:hidden;
-        }
+        .balance-card{background:linear-gradient(140deg,#101840,#0b0f28,#14094a);border:1px solid rgba(240,192,64,.18);border-radius:26px;padding:22px 18px 18px;margin-bottom:12px;position:relative;overflow:hidden;}
         .balance-card::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(240,192,64,.1),transparent 65%);pointer-events:none;}
         .balance-card::after{content:'';position:absolute;bottom:-40px;left:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(124,92,252,.09),transparent 65%);pointer-events:none;}
         .balance-label{font-size:11px;color:var(--text2);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px;}
@@ -107,12 +95,7 @@
         .bsub-val{font-size:17px;font-weight:800;color:var(--gold);margin-top:2px;font-family:'Oxanium',sans-serif;}
 
         /* PASSES CARD */
-        .passes-card{
-            background:linear-gradient(135deg,#180d50,#120932);
-            border:1px solid rgba(124,92,252,.22);border-radius:18px;
-            padding:13px 15px;margin-bottom:12px;
-            display:flex;align-items:center;justify-content:space-between;
-        }
+        .passes-card{background:linear-gradient(135deg,#180d50,#120932);border:1px solid rgba(124,92,252,.22);border-radius:18px;padding:13px 15px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
         .passes-info{display:flex;align-items:center;gap:9px;}
         .passes-icon{font-size:24px;}
         .passes-text .passes-count{font-family:'Oxanium',sans-serif;font-size:24px;font-weight:900;color:var(--purple2);}
@@ -120,30 +103,17 @@
         .passes-earn-btn{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;padding:9px 15px;border-radius:28px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;}
 
         /* DAILY BONUS */
-        .daily-bonus-card{
-            background:linear-gradient(135deg,#0c2218,#0b1230);
-            border:1px solid rgba(25,216,158,.18);border-radius:18px;
-            padding:13px 15px;margin-bottom:12px;
-            display:flex;align-items:center;gap:12px;cursor:pointer;transition:transform .15s;
-        }
+        .daily-bonus-card{background:linear-gradient(135deg,#0c2218,#0b1230);border:1px solid rgba(25,216,158,.18);border-radius:18px;padding:13px 15px;margin-bottom:12px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:transform .15s;}
         .daily-bonus-card:active{transform:scale(.97);}
 
         /* MISSION */
-        .mission-card{
-            background:linear-gradient(135deg,var(--gold-dim),var(--gold));
-            border-radius:18px;padding:14px 16px;margin-bottom:12px;
-            cursor:pointer;color:#000;position:relative;overflow:hidden;transition:transform .15s;
-        }
+        .mission-card{background:linear-gradient(135deg,var(--gold-dim),var(--gold));border-radius:18px;padding:14px 16px;margin-bottom:12px;cursor:pointer;color:#000;position:relative;overflow:hidden;transition:transform .15s;}
         .mission-card:active{transform:scale(.97);}
         .mission-bar-bg{height:7px;background:rgba(0,0,0,.18);border-radius:8px;overflow:hidden;margin-top:9px;}
         .mission-bar-fill{height:100%;background:#fff;border-radius:8px;transition:width .4s;}
 
         /* REF CARD */
-        .ref-card{
-            background:linear-gradient(135deg,#09183a,#0d0d3c);
-            border:1px solid rgba(54,182,245,.12);border-radius:22px;
-            padding:16px;margin-bottom:12px;
-        }
+        .ref-card{background:linear-gradient(135deg,#09183a,#0d0d3c);border:1px solid rgba(54,182,245,.12);border-radius:22px;padding:16px;margin-bottom:12px;}
         .ref-link-box{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:9px;margin-bottom:9px;}
         .ref-link-text{flex:1;font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .ref-copy-btn{background:var(--gold);color:#000;border:none;padding:7px 13px;border-radius:28px;font-weight:800;font-size:11px;cursor:pointer;flex-shrink:0;font-family:inherit;}
@@ -171,13 +141,20 @@
         .ad-reward{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:6px 11px;border-radius:28px;font-weight:800;font-size:12px;flex-shrink:0;}
         .ad-claimed-badge{background:var(--bg3);color:var(--text3);padding:6px 9px;border-radius:28px;font-weight:700;font-size:10px;flex-shrink:0;}
 
+        /* CODE INPUT OVERLAY */
+        .code-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:none;align-items:flex-end;justify-content:center;padding:18px;}
+        .code-overlay.show{display:flex;}
+        .code-card{background:var(--bg2);border-radius:26px 26px 20px 20px;width:100%;max-width:440px;padding:24px 20px;text-align:center;border:1px solid var(--border);animation:bonusSlide .4s ease;}
+        .code-card h3{font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--gold);margin-bottom:8px;}
+        .code-card p{font-size:12px;color:var(--text2);margin-bottom:14px;}
+
         /* LIVE ACTIVITY */
         .live-section{background:var(--card);border:1px solid var(--border);border-radius:16px;margin-bottom:12px;overflow:hidden;}
         .live-header{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border-bottom:1px solid var(--border);}
         .live-title{display:flex;align-items:center;gap:7px;font-weight:700;font-size:13px;}
         .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
         @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(25,216,158,.4);}50%{opacity:.8;box-shadow:0 0 0 5px transparent;}}
-        .live-list{max-height:210px;overflow-y:auto;}
+        .live-list{max-height:260px;overflow-y:auto;}
         .live-item{display:flex;align-items:center;gap:9px;padding:9px 13px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
         .live-item:last-child{border-bottom:none;}
         .live-item:active{background:rgba(255,255,255,.04);}
@@ -189,24 +166,8 @@
         .live-time{font-size:10px;color:var(--text3);}
         .live-amount{font-weight:800;font-size:13px;color:var(--green);}
 
-        /* HOW TO EARN SECTION */
-        .how-earn-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:12px;}
-        .how-earn-card h3{font-family:'Oxanium',sans-serif;font-size:16px;font-weight:800;color:var(--gold);margin-bottom:12px;}
-        .earn-step{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
-        .earn-step:last-child{border-bottom:none;padding-bottom:0;}
-        .earn-step-num{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;margin-top:1px;}
-        .earn-step-text{font-size:12px;color:var(--text2);line-height:1.6;}
-        .earn-step-text b{color:var(--text);}
-
         /* BOTTOM NAV */
-        .bottom-nav{
-            position:fixed;bottom:0;left:0;right:0;z-index:200;
-            background:rgba(7,8,15,.94);
-            border-top:1px solid var(--border);
-            padding-top:7px;
-            padding-bottom:calc(env(safe-area-inset-bottom) + 7px);
-            backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-        }
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(7,8,15,.94);border-top:1px solid var(--border);padding-top:7px;padding-bottom:calc(env(safe-area-inset-bottom) + 7px);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
         .nav-wrap{display:grid;grid-template-columns:repeat(5,1fr);max-width:480px;margin:0 auto;}
         .nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;cursor:pointer;position:relative;}
         .nav-icon-wrap{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
@@ -248,7 +209,7 @@
         .bonus-card{background:var(--bg2);border-radius:26px 26px 20px 20px;width:100%;max-width:440px;padding:24px 20px;text-align:center;border:1px solid var(--border);box-shadow:0 -18px 50px rgba(0,0,0,.7);animation:bonusSlide .4s ease;}
         @keyframes bonusSlide{from{transform:translateY(100%);}to{transform:translateY(0);}}
 
-        /* DAILY BONUS MODAL */
+        /* DAILY BONUS */
         .train-track{overflow-x:auto;padding:20px 8px 14px;-webkit-overflow-scrolling:touch;}
         .train-chain{display:flex;align-items:flex-end;min-width:max-content;}
         .train-car{display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;}
@@ -267,6 +228,7 @@
         .streak-item{text-align:center;}
         .streak-val{font-family:'Oxanium',sans-serif;font-size:19px;font-weight:900;color:var(--gold);}
         .streak-lbl{font-size:10px;color:var(--text3);font-weight:600;}
+        .streak-broken-msg{background:rgba(255,78,106,.1);border:1px solid rgba(255,78,106,.3);border-radius:12px;padding:10px;margin-top:9px;font-size:11px;color:var(--red);text-align:center;}
 
         /* EARN PASSES */
         .earn-passes-hero{background:linear-gradient(135deg,#1c0e4a,#0f0624);border:1px solid rgba(124,92,252,.22);border-radius:22px;padding:20px;margin-bottom:14px;text-align:center;}
@@ -278,14 +240,6 @@
         .ep-method-title{font-weight:700;font-size:13px;}
         .ep-method-desc{font-size:11px;color:var(--text2);margin-top:2px;}
         .ep-method-badge{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;padding:5px 11px;border-radius:28px;font-weight:800;font-size:11px;flex-shrink:0;}
-        .pass-pkg{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:13px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .18s;position:relative;}
-        .pass-pkg:active{transform:scale(.97);}
-        .pass-pkg.popular{border-color:var(--gold);background:rgba(240,192,64,.03);}
-        .pass-pkg-left{display:flex;align-items:center;gap:9px;}
-        .pass-pkg-passes{font-family:'Oxanium',sans-serif;font-size:21px;font-weight:900;color:var(--purple2);}
-        .pass-pkg-lbl{font-size:11px;color:var(--text2);}
-        .pass-pkg-price{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:8px 15px;border-radius:28px;font-weight:800;font-size:13px;}
-        .popular-tag{position:absolute;top:-7px;right:11px;background:var(--red);color:#fff;font-size:9px;padding:2px 8px;border-radius:18px;font-weight:800;}
 
         /* PROFILE */
         .profile-hero{background:linear-gradient(135deg,var(--bg3),var(--bg2));border-radius:20px;padding:20px;margin-bottom:12px;text-align:center;border:1px solid var(--border);}
@@ -331,6 +285,10 @@
         .lb-refs{font-size:10px;color:var(--text2);margin-top:1px;}
         .lb-prize{font-weight:800;color:var(--gold);font-size:13px;}
         .lb-info-card{background:var(--bg3);border-radius:14px;padding:13px;margin-top:12px;border:1px solid var(--border);}
+        .lb-stat-row{display:flex;gap:7px;margin-bottom:7px;}
+        .lb-stat{flex:1;background:var(--bg2);border-radius:10px;padding:9px;text-align:center;border:1px solid var(--border);}
+        .lb-stat-val{font-family:'Oxanium',sans-serif;font-size:16px;font-weight:900;color:var(--gold);}
+        .lb-stat-lbl{font-size:9px;color:var(--text3);}
 
         /* GAMES */
         .games-hero{background:linear-gradient(135deg,#0f0624,#08091d);border:1px solid rgba(124,92,252,.22);border-radius:24px;padding:20px 16px;margin-bottom:14px;text-align:center;position:relative;overflow:hidden;}
@@ -392,20 +350,10 @@
         .coin-res-lose{background:linear-gradient(135deg,var(--red),#dc2626);color:#fff;border-radius:14px;padding:14px;text-align:center;display:none;animation:bounceIn .4s;}
         .coin-res-big{font-family:'Oxanium',sans-serif;font-size:40px;font-weight:900;}
 
-        /* SCRATCH - FIXED */
+        /* SCRATCH */
         .scratch-wrap{text-align:center;}
-        .scratch-area{
-            position:relative;width:100%;max-width:340px;height:170px;
-            margin:14px auto;border-radius:18px;overflow:hidden;
-            box-shadow:0 9px 32px rgba(0,0,0,.4);cursor:crosshair;touch-action:none;
-            user-select:none;-webkit-user-select:none;
-        }
-        .scratch-reward-layer{
-            position:absolute;inset:0;
-            background:linear-gradient(135deg,var(--gold),var(--gold-dim));
-            display:flex;flex-direction:column;align-items:center;justify-content:center;
-            z-index:1;border-radius:18px;
-        }
+        .scratch-area{position:relative;width:100%;max-width:340px;height:170px;margin:14px auto;border-radius:18px;overflow:hidden;box-shadow:0 9px 32px rgba(0,0,0,.4);cursor:crosshair;touch-action:none;user-select:none;-webkit-user-select:none;}
+        .scratch-reward-layer{position:absolute;inset:0;background:linear-gradient(135deg,var(--gold),var(--gold-dim));display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1;border-radius:18px;}
         .scratch-amt{font-family:'Oxanium',sans-serif;font-size:50px;font-weight:900;color:#000;line-height:1;}
         #scratchCanvas{position:absolute;inset:0;z-index:2;border-radius:18px;width:100%;height:100%;display:block;}
         .scratch-prog{background:var(--bg3);border-radius:8px;height:6px;margin:7px 0;overflow:hidden;}
@@ -442,11 +390,22 @@
         .setting-row:last-child{border-bottom:none;}
         .setting-lbl{font-weight:700;font-size:13px;}
 
-        /* USER PROFILE MODAL */
+        /* MISSION CARDS */
+        .mission-item{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px;margin-bottom:9px;position:relative;overflow:hidden;}
+        .mission-item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+        .mission-item-title{font-weight:700;font-size:13px;}
+        .mission-item-reward{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:4px 10px;border-radius:18px;font-size:10px;font-weight:800;}
+        .mission-item-bar{height:6px;background:rgba(255,255,255,.06);border-radius:6px;overflow:hidden;}
+        .mission-item-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--gold),var(--gold-dim));transition:width .4s;}
+        .mission-claim-btn{margin-top:9px;background:linear-gradient(135deg,var(--green),#059669);color:#fff;border:none;padding:9px 16px;border-radius:28px;font-weight:800;font-size:12px;cursor:pointer;width:100%;font-family:inherit;}
+        .mission-claimed-badge{margin-top:7px;background:rgba(25,216,158,.1);color:var(--green);padding:7px;border-radius:10px;font-size:11px;font-weight:700;text-align:center;}
+        .mission-progress-text{font-size:10px;color:var(--text3);margin-top:4px;}
+
+        /* USER PROFILE */
         .user-profile-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px;margin-bottom:11px;text-align:center;}
         .user-profile-dp-lg{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--purple));margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;overflow:hidden;}
 
-        /* ADMIN SUPPORT PANEL */
+        /* ADMIN SUPPORT */
         .support-item{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:9px;}
         .support-item-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
         .support-item-user{font-weight:700;font-size:13px;}
@@ -459,43 +418,48 @@
 </head>
 <body>
 
-<!-- LANGUAGE FAB (shown when inside app) -->
+<!-- ====== ONBOARDING POPUP ====== -->
+<div class="onboard-overlay" id="onboardOverlay">
+    <div class="onboard-card">
+        <div class="onboard-header">
+            <div style="font-size:36px;margin-bottom:6px;">💰</div>
+            <h2>EarnZone - Swagat Hai!</h2>
+            <p>Pehle yeh zarur padho — samjho kaise use karna hai</p>
+        </div>
+        <div class="onboard-lang-row">
+            <div class="onboard-lang-btn active" id="ob_hi" onclick="setOnboardLang('hi')">🇮🇳 हिंदी</div>
+            <div class="onboard-lang-btn" id="ob_en" onclick="setOnboardLang('en')">🇬🇧 English</div>
+        </div>
+        <div class="onboard-body" id="onboardBody">
+            <!-- filled by JS -->
+        </div>
+        <div class="onboard-footer">
+            <button class="onboard-confirm-btn" onclick="confirmOnboard()">
+                ✅ <span id="onboardBtnText">Samajh Gaya! Shuru Karo</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- LANG FAB -->
 <button class="lang-fab" id="langFab" onclick="toggleLang()">🌐 EN/HI</button>
 
 <!-- SIDEBAR -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <div class="sidebar-logo">💰 EarnZone</div>
-    </div>
-    <div class="sidebar-item" onclick="closeSidebar();openModal('settings')">
-        <div class="si-icon">⚙️</div><span data-t="settings">Settings</span>
-    </div>
-    <div class="sidebar-item" onclick="closeSidebar();openModal('support')">
-        <div class="si-icon">📩</div><span data-t="help_support">Help & Support</span>
-    </div>
+    <div class="sidebar-header"><div class="sidebar-logo">💰 EarnZone</div></div>
+    <div class="sidebar-item" onclick="closeSidebar();openModal('settings')"><div class="si-icon">⚙️</div><span data-t="settings">Settings</span></div>
+    <div class="sidebar-item" onclick="closeSidebar();openModal('support')"><div class="si-icon">📩</div><span data-t="help_support">Help & Support</span></div>
     <div class="sidebar-divider"></div>
-    <div class="sidebar-toggle-row">
-        <div class="sidebar-toggle-lbl"><span>🌙</span> <span data-t="dark_mode">Dark Mode</span></div>
-        <div class="toggle on" id="themeToggleEl" onclick="toggleTheme()"><div class="toggle-knob"></div></div>
-    </div>
-    <div class="sidebar-toggle-row">
-        <div class="sidebar-toggle-lbl"><span>🔊</span> <span data-t="sounds">Sounds</span></div>
-        <div class="toggle on" id="soundToggleEl" onclick="toggleSound()"><div class="toggle-knob"></div></div>
-    </div>
+    <div class="sidebar-toggle-row"><div class="sidebar-toggle-lbl"><span>🌙</span> <span data-t="dark_mode">Dark Mode</span></div><div class="toggle on" id="themeToggleEl" onclick="toggleTheme()"><div class="toggle-knob"></div></div></div>
+    <div class="sidebar-toggle-row"><div class="sidebar-toggle-lbl"><span>🔊</span> <span data-t="sounds">Sounds</span></div><div class="toggle on" id="soundToggleEl" onclick="toggleSound()"><div class="toggle-knob"></div></div></div>
     <div class="sidebar-divider"></div>
-    <div class="sidebar-item" id="adminSidebarBtn" style="display:none;" onclick="closeSidebar();toggleAdminEdit()">
-        <div class="si-icon">✏️</div><span data-t="admin_edit">Admin Edit Mode</span>
-    </div>
-    <div class="sidebar-item" id="adminSupportBtn" style="display:none;" onclick="closeSidebar();openAdminSupport()">
-        <div class="si-icon">🛡️</div><span>Admin: Support Msgs</span>
-    </div>
-    <div class="sidebar-item" onclick="closeSidebar();openModal('referral')">
-        <div class="si-icon">👥</div><span data-t="refer_earn">Refer & Earn</span>
-    </div>
+    <div class="sidebar-item" id="adminSidebarBtn" style="display:none;" onclick="closeSidebar();toggleAdminEdit()"><div class="si-icon">✏️</div><span data-t="admin_edit">Admin Edit Mode</span></div>
+    <div class="sidebar-item" id="adminSupportBtn" style="display:none;" onclick="closeSidebar();openAdminSupport()"><div class="si-icon">🛡️</div><span>Admin: Support</span></div>
+    <div class="sidebar-item" onclick="closeSidebar();openModal('referral')"><div class="si-icon">👥</div><span data-t="refer_earn">Refer & Earn</span></div>
     <div class="sidebar-divider"></div>
     <div style="padding:12px 18px;">
-        <div style="font-size:11px;color:var(--text3);margin-bottom:7px;font-weight:700;" data-t="language">Language / भाषा</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:7px;font-weight:700;" data-t="language">Language</div>
         <div style="display:flex;gap:7px;">
             <div onclick="setLang('hi')" id="langHiBtn" style="flex:1;padding:9px;border-radius:9px;background:var(--bg3);border:1.5px solid var(--border);text-align:center;cursor:pointer;font-size:12px;font-weight:700;">🇮🇳 हिंदी</div>
             <div onclick="setLang('en')" id="langEnBtn" style="flex:1;padding:9px;border-radius:9px;background:var(--bg3);border:1.5px solid var(--border);text-align:center;cursor:pointer;font-size:12px;font-weight:700;">🇬🇧 English</div>
@@ -505,9 +469,7 @@
 
 <!-- TOP BAR -->
 <div class="topbar">
-    <div class="hamburger-btn" onclick="openSidebar()">
-        <span></span><span></span><span></span>
-    </div>
+    <div class="hamburger-btn" onclick="openSidebar()"><span></span><span></span><span></span></div>
     <div class="topbar-logo">💰 EarnZone</div>
     <div class="topbar-balance" id="topbarBalance">₹0.00</div>
 </div>
@@ -519,28 +481,17 @@
             <div class="balance-label" data-t="your_balance">💰 Aapka Balance</div>
             <div class="balance-main" id="balAmt">₹0.00</div>
             <div class="balance-sub">
-                <div class="bsub-item">
-                    <div class="bsub-label" data-t="today_earned">Aaj Kamaya</div>
-                    <div class="bsub-val" id="todayEarned">₹0</div>
-                </div>
-                <div class="bsub-item">
-                    <div class="bsub-label" data-t="active_refs">Active Refs</div>
-                    <div class="bsub-val" id="activeRefs">0</div>
-                </div>
+                <div class="bsub-item"><div class="bsub-label" data-t="today_earned">Aaj Kamaya</div><div class="bsub-val" id="todayEarned">₹0</div></div>
+                <div class="bsub-item"><div class="bsub-label" data-t="active_refs">Active Refs</div><div class="bsub-val" id="activeRefs">0</div></div>
             </div>
         </div>
-
         <div class="passes-card">
             <div class="passes-info">
                 <div class="passes-icon">🎟️</div>
-                <div class="passes-text">
-                    <div class="passes-count" id="passCount">0</div>
-                    <div class="passes-lbl" data-t="game_passes">Game Passes</div>
-                </div>
+                <div class="passes-text"><div class="passes-count" id="passCount">0</div><div class="passes-lbl" data-t="game_passes">Game Passes</div></div>
             </div>
             <button class="passes-earn-btn" onclick="openModal('earnPasses')" data-t="earn_passes">+ Earn Passes</button>
         </div>
-
         <div class="daily-bonus-card" onclick="openModal('dailyBonus')" id="dailyBonusCard">
             <div style="font-size:32px;" id="dailyBonusIcon">🎁</div>
             <div style="flex:1;">
@@ -549,22 +500,20 @@
             </div>
             <div style="background:linear-gradient(135deg,var(--green),#059669);color:#fff;padding:7px 13px;border-radius:28px;font-weight:800;font-size:11px;" id="dailyBonusBtn" data-t="claim">Claim</div>
         </div>
-
         <div class="mission-card" onclick="openModal('missions')">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;">
                 <div style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:900;" data-t="daily_missions">🎯 Daily Missions</div>
-                <div style="background:rgba(0,0,0,.18);padding:4px 11px;border-radius:28px;font-size:11px;font-weight:800;">₹5 Reward</div>
+                <div style="background:rgba(0,0,0,.18);padding:4px 11px;border-radius:28px;font-size:11px;font-weight:800;" data-t="mission_total_reward">₹6+ Reward</div>
             </div>
             <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;">
-                <span data-t="complete_earn">Complete karo ₹5 pao!</span>
-                <span><b id="missionsDone">0</b>/4</span>
+                <span data-t="complete_earn">Missions complete karo, paise pao!</span>
+                <span><b id="missionsDone">0</b>/<b id="missionsTotal">6</b></span>
             </div>
             <div class="mission-bar-bg"><div class="mission-bar-fill" id="missionBarFill" style="width:0%"></div></div>
         </div>
-
         <div class="ref-card">
             <div style="font-family:'Oxanium',sans-serif;font-size:17px;font-weight:800;margin-bottom:4px;" data-t="refer_earn_title">👥 Refer & Earn</div>
-            <div style="font-size:11px;color:var(--text2);margin-bottom:11px;" data-t="refer_sub">Dost ko invite karo • 3 Passes + ₹ bonus pao!</div>
+            <div style="font-size:11px;color:var(--text2);margin-bottom:11px;" data-t="refer_sub">Dost ko invite karo • 3 Passes + ₹0.40 bonus pao!</div>
             <div class="ref-link-box">
                 <span class="ref-link-text" id="refLinkText">https://t.me/...</span>
                 <button class="ref-copy-btn" onclick="copyRef()" data-t="copy">Copy</button>
@@ -572,37 +521,14 @@
             <div class="share-grid">
                 <div class="share-btn" onclick="shareOn('telegram')"><span>📱</span><span>Telegram</span></div>
                 <div class="share-btn" onclick="shareOn('whatsapp')"><span>💬</span><span>WhatsApp</span></div>
-                <div class="share-btn" onclick="shareOn('other')"><span>🔗</span><span data-t="more">More</span></div>
+                <div class="share-btn" onclick="shareOn('other')"><span>🔗</span><span data-t="share_more">Share</span></div>
             </div>
         </div>
-
-        <!-- HOW TO EARN -->
-        <div class="how-earn-card">
-            <h3 data-t="how_earn">💡 Paise Kaise Kamayein?</h3>
-            <div class="earn-step">
-                <div class="earn-step-num">1</div>
-                <div class="earn-step-text" data-t="step1"><b>Apna referral link share karo</b> — dosto ko bhejo Telegram ya WhatsApp pe</div>
-            </div>
-            <div class="earn-step">
-                <div class="earn-step-num">2</div>
-                <div class="earn-step-text" data-t="step2"><b>Dost movie group mein jaake movie search kare</b> — Movie Bot shortlink dega</div>
-            </div>
-            <div class="earn-step">
-                <div class="earn-step-num">3</div>
-                <div class="earn-step-text" data-t="step3"><b>Shortlink complete karo</b> — Log Channel pe #NewUser message aayega</div>
-            </div>
-            <div class="earn-step">
-                <div class="earn-step-num">4</div>
-                <div class="earn-step-text" data-t="step4"><b>Referral auto-verify!</b> Tumhe <b style="color:var(--gold)">3 Passes + ₹ Bonus</b> milega ✅</div>
-            </div>
-        </div>
-
         <div class="section-head">
             <h3 data-t="sponsored">💎 Sponsored Offers</h3>
             <button class="admin-add-btn" id="addOfferBtn" onclick="openAdminCreateOffer()" style="display:none;">➕ <span data-t="add_offer">Add</span></button>
         </div>
         <div id="adsContainer"></div>
-
         <div class="section-head" style="margin-top:5px;">
             <h3 data-t="live_activity">⚡ Live Activity</h3>
             <span style="font-size:10px;color:var(--text3)">Real-time</span>
@@ -611,9 +537,7 @@
             <div class="live-header">
                 <div class="live-title"><div class="live-dot"></div> <span data-t="users_online">Users Online</span></div>
             </div>
-            <div class="live-list" id="liveList">
-                <div style="text-align:center;padding:16px;color:var(--text3)">Loading...</div>
-            </div>
+            <div class="live-list" id="liveList"><div style="text-align:center;padding:16px;color:var(--text3)">Loading...</div></div>
         </div>
     </div>
 </div>
@@ -629,8 +553,9 @@
         <div id="lbContent"></div>
         <div class="lb-info-card">
             <div style="font-weight:800;font-size:13px;margin-bottom:8px;color:var(--gold);">📋 <span data-t="rules">Rules</span></div>
-            <div style="font-size:11px;color:var(--text2);">🏅 <b style="color:var(--gold)" data-t="weekly">Weekly:</b> 1st ₹150 • 2nd ₹65 • 3rd ₹30 • 4-10 ₹10</div>
-            <div style="font-size:11px;color:var(--text2);margin-top:4px;">🏅 <b style="color:var(--gold)" data-t="monthly">Monthly:</b> 1st ₹300 • 2nd ₹200 • 3rd ₹200 • 4-10 ₹30</div>
+            <div style="font-size:11px;color:var(--text2);">🏅 <b style="color:var(--gold)">Weekly (50+ refs):</b> 1st ₹150 • 2nd ₹65 • 3rd ₹30</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:4px;">🏅 <b style="color:var(--gold)">Monthly (200+ refs):</b> 1st ₹300 • 2nd ₹200 • 3rd ₹200</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:6px;" data-t="lb_note">📌 50+ active refs = weekly prize • 200+ = monthly prize</div>
         </div>
     </div>
 </div>
@@ -643,37 +568,17 @@
             <p data-t="use_passes">Passes use karo, paise jeeto!</p>
             <div class="games-hero-badge">🎟️ <span data-t="passes">Passes</span>: <span id="gameBadgePasses">0</span></div>
         </div>
-        <div class="games-info-banner">🎟️ 1 Pass = 1 Game</div>
+        <div class="games-info-banner">🎟️ 1 Pass = 1 Game • Passes earn karo refer karke!</div>
         <div class="games-stats">
             <div class="gstat"><div class="gstat-val" id="gameWins">0</div><div class="gstat-lbl" data-t="total_wins">Wins</div></div>
             <div class="gstat"><div class="gstat-val" id="gameTodayEarned">₹0</div><div class="gstat-lbl" data-t="today">Today</div></div>
             <div class="gstat"><div class="gstat-val" id="gameStreak">0🔥</div><div class="gstat-lbl" data-t="streak">Streak</div></div>
         </div>
         <div class="games-grid">
-            <div class="game-card" onclick="openGame('spin')">
-                <span class="game-emoji">🎰</span>
-                <div class="game-name" data-t="spin_earn">Spin & Earn</div>
-                <div class="game-desc" data-t="spin_desc">Wheel ghumao</div>
-                <span class="game-reward">1 Pass/spin</span>
-            </div>
-            <div class="game-card" onclick="openGame('guess')">
-                <span class="game-emoji">🔢</span>
-                <div class="game-name" data-t="number_guess">Number Guess</div>
-                <div class="game-desc" data-t="guess_desc">1-10 mein guess karo</div>
-                <span class="game-reward">8x Reward</span>
-            </div>
-            <div class="game-card" onclick="openGame('coin')">
-                <span class="game-emoji">🪙</span>
-                <div class="game-name" data-t="coin_flip">Coin Flip</div>
-                <div class="game-desc" data-t="coin_desc">Heads ya Tails?</div>
-                <span class="game-reward">2x Win</span>
-            </div>
-            <div class="game-card" onclick="openGame('scratch')">
-                <span class="game-emoji">🎫</span>
-                <div class="game-name" data-t="scratch_card">Scratch Card</div>
-                <div class="game-desc" data-t="scratch_desc">Khurcho aur jeeto</div>
-                <span class="game-reward">Up to ₹10</span>
-            </div>
+            <div class="game-card" onclick="openGame('spin')"><span class="game-emoji">🎰</span><div class="game-name">Spin & Earn</div><div class="game-desc">Wheel ghumao</div><span class="game-reward">1 Pass/spin</span></div>
+            <div class="game-card" onclick="openGame('guess')"><span class="game-emoji">🔢</span><div class="game-name">Number Guess</div><div class="game-desc">1-10 guess karo</div><span class="game-reward">8x Reward</span></div>
+            <div class="game-card" onclick="openGame('coin')"><span class="game-emoji">🪙</span><div class="game-name">Coin Flip</div><div class="game-desc">Heads ya Tails?</div><span class="game-reward">2x Win</span></div>
+            <div class="game-card" onclick="openGame('scratch')"><span class="game-emoji">🎫</span><div class="game-name">Scratch Card</div><div class="game-desc">Khurcho aur jeeto</div><span class="game-reward">Up to ₹10</span></div>
         </div>
     </div>
 </div>
@@ -698,7 +603,7 @@
             </div>
         </div>
         <div class="ref-activity-section">
-            <div class="ref-activity-title" data-t="referred_users">👥 Referred Users</div>
+            <div class="ref-activity-title" data-t="referred_users">👥 Referred Users Activity</div>
             <div id="refActivityList"><div style="color:var(--text3);font-size:12px;">Loading...</div></div>
         </div>
         <div style="background:var(--bg3);border-radius:14px;padding:13px;margin-top:11px;border:1px solid var(--border);">
@@ -722,26 +627,11 @@
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
     <div class="nav-wrap">
-        <div class="nav-item active" id="nav0" onclick="switchTab(0)">
-            <div class="nav-icon-wrap"><div class="ni">🏠</div></div>
-            <div class="nav-label" data-t="home">Home</div>
-        </div>
-        <div class="nav-item" id="nav1" onclick="switchTab(1)">
-            <div class="nav-icon-wrap"><div class="ni">🏆</div></div>
-            <div class="nav-label" data-t="ranks">Ranks</div>
-        </div>
-        <div class="nav-item game-center" id="nav2" onclick="switchTab(2)">
-            <div class="nav-icon-wrap"><div class="ni">🎮</div></div>
-            <div class="nav-label" data-t="games">Games</div>
-        </div>
-        <div class="nav-item" id="nav3" onclick="switchTab(3)">
-            <div class="nav-icon-wrap"><div class="ni">👤</div></div>
-            <div class="nav-label" data-t="profile">Profile</div>
-        </div>
-        <div class="nav-item" id="nav4" onclick="switchTab(4)">
-            <div class="nav-icon-wrap"><div class="ni">📜</div></div>
-            <div class="nav-label" data-t="history">History</div>
-        </div>
+        <div class="nav-item active" id="nav0" onclick="switchTab(0)"><div class="nav-icon-wrap"><div class="ni">🏠</div></div><div class="nav-label" data-t="home">Home</div></div>
+        <div class="nav-item" id="nav1" onclick="switchTab(1)"><div class="nav-icon-wrap"><div class="ni">🏆</div></div><div class="nav-label" data-t="ranks">Ranks</div></div>
+        <div class="nav-item game-center" id="nav2" onclick="switchTab(2)"><div class="nav-icon-wrap"><div class="ni">🎮</div></div><div class="nav-label" data-t="games">Games</div></div>
+        <div class="nav-item" id="nav3" onclick="switchTab(3)"><div class="nav-icon-wrap"><div class="ni">👤</div></div><div class="nav-label" data-t="profile">Profile</div></div>
+        <div class="nav-item" id="nav4" onclick="switchTab(4)"><div class="nav-icon-wrap"><div class="ni">📜</div></div><div class="nav-label" data-t="history">History</div></div>
     </div>
 </div>
 
@@ -753,146 +643,135 @@
     <div style="text-align:center;font-size:11px;color:var(--text2);margin-bottom:5px;" data-t="bonus_subtitle">Roz claim karo, streak badhao, zyada pao!</div>
     <div class="train-track"><div class="train-chain" id="trainChain"></div></div>
     <div class="today-claim-box" id="todayClaimBox">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:4px;" data-t="todays_bonus">Aaj ka bonus</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">Aaj ka bonus</div>
         <div class="today-claim-amt" id="todayBonusAmt">₹0.05</div>
-        <div style="font-size:11px;color:var(--purple2);margin:6px 0;">🎟️ +1 <span data-t="pass_also">Game Pass bhi milega!</span></div>
+        <div style="font-size:11px;color:var(--purple2);margin:6px 0;">🎟️ +1 Game Pass bhi milega!</div>
         <div class="streak-row">
-            <div class="streak-item"><div class="streak-val" id="streakDays2">0</div><div class="streak-lbl" data-t="day_streak">Day Streak</div></div>
-            <div class="streak-item"><div class="streak-val" id="bonusTotal">₹0</div><div class="streak-lbl" data-t="total_earned">Total</div></div>
+            <div class="streak-item"><div class="streak-val" id="streakDays2">0</div><div class="streak-lbl">Day Streak</div></div>
+            <div class="streak-item"><div class="streak-val" id="bonusTotal">₹0</div><div class="streak-lbl">Total Earned</div></div>
         </div>
-        <button class="btn-gold" id="claimBonusBtn2" onclick="claimBonus()">🎉 <span data-t="claim_now">CLAIM NOW</span></button>
+        <button class="btn-gold" id="claimBonusBtn2" onclick="claimBonus()">🎉 CLAIM NOW</button>
     </div>
+    <div id="streakBrokenMsg" style="display:none;" class="streak-broken-msg">⚠️ Kal bonus nahi liya — streak toot gayi! Ab ₹0.05 se shuru hoga.</div>
     <div id="alreadyClaimedMsg" style="display:none;text-align:center;padding:16px;background:rgba(25,216,158,.07);border-radius:12px;border:1px solid rgba(25,216,158,.22);margin-top:12px;">
         <div style="font-size:28px;margin-bottom:5px;">✅</div>
         <div style="font-weight:800;color:var(--green);" data-t="already_claimed">Aaj ka bonus claim ho gaya!</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:3px;" data-t="come_tomorrow">Kal wapas aao</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:3px;">Kal wapas aao</div>
     </div>
 </div>
 
 <!-- EARN PASSES -->
 <div class="modal" id="earnPassesModal">
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('earnPasses')">←</div><div class="modal-title">🎟️ <span data-t="earn_passes">Earn Passes</span></div></div>
-    <div class="earn-passes-hero">
-        <h2 data-t="game_passes">Game Passes</h2>
-        <div class="ep-count" id="epPassCount">0</div>
-        <div style="font-size:11px;color:var(--purple2);" data-t="passes_sub">Passes se khelo, paise jeeto!</div>
+    <div class="earn-passes-hero"><h2>Game Passes</h2><div class="ep-count" id="epPassCount">0</div><div style="font-size:11px;color:var(--purple2);">Passes se khelo, paise jeeto!</div></div>
+    <div style="background:rgba(240,192,64,.07);border:1px solid rgba(240,192,64,.2);border-radius:14px;padding:13px;margin-bottom:14px;">
+        <div style="font-size:12px;color:var(--gold);font-weight:800;margin-bottom:6px;">💡 Apne referred users ko batao:</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.8;">
+            📱 <b style="color:var(--text);">Roz movie search karo</b> group pe aur ek shortlink puri karo<br>
+            → Tumhe <b style="color:var(--gold);">₹0.10 daily bonus</b> milega ek user se<br>
+            → Is tarah ek user se roz kama sakte ho!
+        </div>
     </div>
-    <div style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:800;color:var(--gold);margin-bottom:9px;" data-t="how_get_passes">📌 Kaise milte hain Passes?</div>
-    <div class="ep-method"><div class="ep-method-icon">👥</div><div class="ep-method-info"><div class="ep-method-title" data-t="refer_friend">Dost ko Refer karo</div><div class="ep-method-desc" data-t="ref_pass_desc">Har ek active referral pe 3 passes milenge</div></div><div class="ep-method-badge">+3 Pass</div></div>
-    <div class="ep-method"><div class="ep-method-icon">🎁</div><div class="ep-method-info"><div class="ep-method-title" data-t="daily_bonus_claim">Daily Bonus Claim karo</div><div class="ep-method-desc" data-t="daily_pass_desc">Roz bonus claim karo, 1 pass milega</div></div><div class="ep-method-badge">+1 Pass</div></div>
-    <div class="ep-method"><div class="ep-method-icon">💎</div><div class="ep-method-info"><div class="ep-method-title" data-t="complete_offer">Offer complete karo</div><div class="ep-method-desc" data-t="offer_pass_desc">Sponsored offer claim karo, 1 pass milega</div></div><div class="ep-method-badge">+1 Pass</div></div>
-    <div class="ep-method"><div class="ep-method-icon">🎯</div><div class="ep-method-info"><div class="ep-method-title" data-t="daily_missions">Daily Missions</div><div class="ep-method-desc" data-t="mission_pass_desc">Sab missions complete karo extra passes pao</div></div><div class="ep-method-badge">+1 Pass</div></div>
-    <div style="margin-top:16px;">
-        <div style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:800;color:var(--gold);margin-bottom:4px;" data-t="buy_passes">🛒 Passes Kharido</div>
-        <div style="font-size:11px;color:var(--text2);margin-bottom:11px;" data-t="buy_passes_desc">UPI se seedha kharido, turant milenge!</div>
-        <div class="pass-pkg" onclick="buyPasses(5,20)"><div class="pass-pkg-left"><div style="font-size:24px;">🎟️</div><div><div class="pass-pkg-passes">5 Passes</div><div class="pass-pkg-lbl">₹4 per pass</div></div></div><div class="pass-pkg-price">₹20</div></div>
-        <div class="pass-pkg popular" onclick="buyPasses(15,50)"><div class="popular-tag">🔥 Best</div><div class="pass-pkg-left"><div style="font-size:24px;">🎟️</div><div><div class="pass-pkg-passes">15 Passes</div><div class="pass-pkg-lbl">₹3.3 per pass</div></div></div><div class="pass-pkg-price">₹50</div></div>
-        <div class="pass-pkg" onclick="buyPasses(35,100)"><div class="pass-pkg-left"><div style="font-size:24px;">💎</div><div><div class="pass-pkg-passes">35 Passes</div><div class="pass-pkg-lbl">₹2.8 per pass</div></div></div><div class="pass-pkg-price">₹100</div></div>
-    </div>
+    <div style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:800;color:var(--gold);margin-bottom:9px;">📌 Kaise milte hain Passes?</div>
+    <div class="ep-method"><div class="ep-method-icon">👥</div><div class="ep-method-info"><div class="ep-method-title">Dost ko Refer karo</div><div class="ep-method-desc">Har active referral pe 3 passes + ₹0.40</div></div><div class="ep-method-badge">+3 Pass</div></div>
+    <div class="ep-method"><div class="ep-method-icon">🎁</div><div class="ep-method-info"><div class="ep-method-title">Daily Bonus Claim karo</div><div class="ep-method-desc">Roz claim karo, 1 pass milega</div></div><div class="ep-method-badge">+1 Pass</div></div>
+    <div class="ep-method"><div class="ep-method-icon">💎</div><div class="ep-method-info"><div class="ep-method-title">Offer claim karo</div><div class="ep-method-desc">Sponsored offer claim karo, 1 pass milega</div></div><div class="ep-method-badge">+1 Pass</div></div>
 </div>
 
 <!-- MISSIONS -->
 <div class="modal" id="missionsModal">
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('missions')">←</div><div class="modal-title">🎯 <span data-t="missions">Missions</span></div></div>
-    <div style="background:linear-gradient(135deg,var(--gold-dim),var(--gold));border-radius:16px;padding:16px;text-align:center;margin-bottom:12px;color:#000;">
-        <div style="font-size:40px;">🎯</div>
-        <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;" data-t="daily_challenge">Daily Challenge</div>
-        <div style="font-family:'Oxanium',sans-serif;font-size:30px;font-weight:900;">₹5 REWARD</div>
+    <div style="background:linear-gradient(135deg,#0a1628,#0d0d3c);border:1px solid rgba(240,192,64,.18);border-radius:16px;padding:14px;margin-bottom:14px;text-align:center;">
+        <div style="font-size:11px;color:var(--text2);">Har mission alag claim karo • 24 ghante mein expire</div>
     </div>
     <div id="missionsContainer"></div>
-    <button class="btn-gold" id="claimMissionBtn" onclick="claimMission()" style="display:none;">✅ <span data-t="claim_5">CLAIM ₹5</span></button>
 </div>
 
 <!-- SETTINGS -->
 <div class="modal" id="settingsModal">
-    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('settings')">←</div><div class="modal-title">⚙️ <span data-t="settings">Settings</span></div></div>
+    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('settings')">←</div><div class="modal-title">⚙️ Settings</div></div>
     <div class="settings-group">
-        <div class="setting-row"><span class="setting-lbl">🌙 <span data-t="dark_mode">Dark Mode</span></span><div class="toggle on" id="themeToggleEl2" onclick="toggleTheme()"><div class="toggle-knob"></div></div></div>
-        <div class="setting-row"><span class="setting-lbl">🔊 <span data-t="sounds">Sounds</span></span><div class="toggle on" id="soundToggleEl2" onclick="toggleSound()"><div class="toggle-knob"></div></div></div>
+        <div class="setting-row"><span class="setting-lbl">🌙 Dark Mode</span><div class="toggle on" id="themeToggleEl2" onclick="toggleTheme()"><div class="toggle-knob"></div></div></div>
+        <div class="setting-row"><span class="setting-lbl">🔊 Sounds</span><div class="toggle on" id="soundToggleEl2" onclick="toggleSound()"><div class="toggle-knob"></div></div></div>
     </div>
 </div>
 
 <!-- SUPPORT -->
 <div class="modal" id="supportModal">
-    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('support')">←</div><div class="modal-title">📩 <span data-t="help_support">Support</span></div></div>
+    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('support')">←</div><div class="modal-title">📩 Support</div></div>
     <div class="card-section">
-        <p style="margin-bottom:11px;font-size:12px;" data-t="direct_contact">Seedha contact: <a href="https://t.me/asbhiabsr" style="color:var(--blue);font-weight:800;" target="_blank">@asbhiabsr</a></p>
-        <textarea id="supportMsg" class="inp" data-placeholder-t="support_placeholder" placeholder="Apna message likho (min 10 chars)..." style="height:110px;resize:none;"></textarea>
-        <button class="btn-gold" onclick="sendSupport()">📤 <span data-t="send_message">SEND MESSAGE</span></button>
+        <p style="margin-bottom:11px;font-size:12px;">Seedha contact: <a href="https://t.me/asbhiabsr" style="color:var(--blue);font-weight:800;" target="_blank">@asbhiabsr</a></p>
+        <textarea id="supportMsg" class="inp" placeholder="Apna message likho (min 10 chars)..." style="height:110px;resize:none;"></textarea>
+        <button class="btn-gold" onclick="sendSupport()">📤 SEND MESSAGE</button>
     </div>
 </div>
 
 <!-- REFERRAL -->
 <div class="modal" id="referralModal">
-    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('referral')">←</div><div class="modal-title">👥 <span data-t="refer_earn">Refer & Earn</span></div></div>
+    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('referral')">←</div><div class="modal-title">👥 Refer & Earn</div></div>
     <div style="background:linear-gradient(135deg,#081530,#0a0a30);border-radius:20px;padding:16px;margin-bottom:12px;">
         <div style="text-align:center;margin-bottom:12px;">
             <div style="font-size:42px;margin-bottom:5px;">👥</div>
-            <div style="font-family:'Oxanium',sans-serif;font-size:19px;font-weight:900;color:var(--gold);" data-t="per_referral">Har Referral Pe</div>
-            <div style="font-family:'Oxanium',sans-serif;font-size:30px;font-weight:900;color:var(--green);">3 Passes + ₹ Bonus!</div>
+            <div style="font-family:'Oxanium',sans-serif;font-size:19px;font-weight:900;color:var(--gold);">Har Referral Pe</div>
+            <div style="font-family:'Oxanium',sans-serif;font-size:30px;font-weight:900;color:var(--green);">3 Passes + ₹0.40!</div>
         </div>
-        <div class="ref-link-box"><span class="ref-link-text" id="refLinkText2">Loading...</span><button class="ref-copy-btn" onclick="copyRef()" data-t="copy">Copy</button></div>
+        <div class="ref-link-box"><span class="ref-link-text" id="refLinkText2">Loading...</span><button class="ref-copy-btn" onclick="copyRef()">Copy</button></div>
         <div class="share-grid" style="margin-top:8px;">
             <div class="share-btn" onclick="shareOn('telegram')"><span>📱</span><span>Telegram</span></div>
             <div class="share-btn" onclick="shareOn('whatsapp')"><span>💬</span><span>WhatsApp</span></div>
-            <div class="share-btn" onclick="shareOn('other')"><span>🔗</span><span data-t="more">More</span></div>
+            <div class="share-btn" onclick="shareOn('other')"><span>🔗</span><span>Share</span></div>
         </div>
     </div>
     <div class="card-section">
-        <div style="font-weight:800;margin-bottom:8px;color:var(--gold);" data-t="how_ref_active">📋 Kaise active hoga referral?</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.9;" data-t="ref_steps">
+        <div style="font-weight:800;margin-bottom:8px;color:var(--gold);">📋 Kaise active hoga referral?</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.9;">
             1️⃣ Dost ko apna link bhejo<br>
             2️⃣ Wo bot join kare<br>
             3️⃣ Movie Group pe movie search kare<br>
             4️⃣ Shortlink poori kare (Movie Bot pe)<br>
-            5️⃣ <b style="color:var(--gold);">Referral auto-active!</b> 3 passes + ₹ bonus milega
+            5️⃣ <b style="color:var(--gold);">Referral auto-active!</b> 3 passes + ₹0.40 milega<br>
+            🔁 Har roz movie search kare → Tumhe <b style="color:var(--green);">₹0.10</b> milega
         </div>
     </div>
 </div>
 
 <!-- CREATE OFFER -->
 <div class="modal" id="createOfferModal">
-    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('createOffer')">←</div><div class="modal-title">➕ <span data-t="create_offer">Create Offer</span></div></div>
+    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('createOffer')">←</div><div class="modal-title">➕ Create Offer</div></div>
     <input id="promoTitle" class="inp" placeholder="Offer Title" type="text">
     <input id="promoDesc" class="inp" placeholder="Description" type="text">
     <input id="promoReward" class="inp" placeholder="Reward Amount (₹)" type="number" step="0.1">
     <input id="promoLink" class="inp" placeholder="Link URL" type="url">
     <input id="promoIcon" class="inp" placeholder="Icon emoji (e.g. 📱)" type="text">
     <input id="promoMeta" class="inp" placeholder="Meta text (e.g. ⏱️ 2 min)" type="text">
-    <button class="btn-gold" onclick="submitAdminOffer()">✅ <span data-t="create_offer">CREATE OFFER</span></button>
+    <input id="promoCode" class="inp" placeholder="Claim Code (optional, leave empty for no code)" type="text">
+    <button class="btn-gold" onclick="submitAdminOffer()">✅ CREATE OFFER</button>
 </div>
 
 <!-- EDIT AD -->
 <div class="modal" id="editAdModal">
-    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('editAd')">←</div><div class="modal-title">✏️ <span data-t="edit_offer">Edit Offer</span></div></div>
+    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('editAd')">←</div><div class="modal-title">✏️ Edit Offer</div></div>
     <input type="hidden" id="editAdId">
     <input id="editAdTitle" class="inp" placeholder="Title" type="text">
     <input id="editAdReward" class="inp" placeholder="Reward (₹)" type="number" step="0.1">
     <input id="editAdLink" class="inp" placeholder="Link URL" type="url">
     <input id="editAdMeta" class="inp" placeholder="Meta text" type="text">
     <input id="editAdIcon" class="inp" placeholder="Icon emoji" type="text">
-    <button class="btn-gold" onclick="saveAd()">✅ <span data-t="update_offer">UPDATE OFFER</span></button>
-    <button class="btn-red" onclick="deleteAdFromEdit()">🗑️ <span data-t="delete_offer">DELETE OFFER</span></button>
+    <input id="editAdCode" class="inp" placeholder="Claim Code (empty = no code required)" type="text">
+    <button class="btn-gold" onclick="saveAd()">✅ UPDATE OFFER</button>
+    <button class="btn-red" onclick="deleteAdFromEdit()">🗑️ DELETE OFFER</button>
 </div>
 
 <!-- WITHDRAW -->
 <div class="modal" id="withdrawModal">
-    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('withdraw')">←</div><div class="modal-title">💰 <span data-t="withdraw">Withdraw</span></div></div>
-    <div class="avail-balance">
-        <div style="font-size:11px;color:var(--text2);margin-bottom:3px;" data-t="available_balance">Available Balance</div>
-        <div class="avail-amt" id="wdrawBal">₹0</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:3px;" data-t="min_withdraw">Minimum: ₹40</div>
-    </div>
+    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('withdraw')">←</div><div class="modal-title">💰 Withdraw</div></div>
+    <div class="avail-balance"><div style="font-size:11px;color:var(--text2);margin-bottom:3px;">Available Balance</div><div class="avail-amt" id="wdrawBal">₹0</div><div style="font-size:11px;color:var(--text2);margin-top:3px;">Minimum: ₹40</div></div>
     <input id="wdrawAmt" class="inp" placeholder="Amount (min ₹40)" type="number" min="40">
-    <div class="method-btn" onclick="selMethod('upi')" id="methodUpi"><span style="font-size:24px;">📱</span><div><div style="font-weight:700;">UPI</div><div style="font-size:10px;color:var(--text2);" data-t="instant">Instant</div></div></div>
-    <div class="method-btn" onclick="selMethod('bank')" id="methodBank"><span style="font-size:24px;">🏦</span><div><div style="font-weight:700;" data-t="bank_transfer">Bank Transfer</div><div style="font-size:10px;color:var(--text2);" data-t="bank_days">1-2 working days</div></div></div>
+    <div class="method-btn" onclick="selMethod('upi')" id="methodUpi"><span style="font-size:24px;">📱</span><div><div style="font-weight:700;">UPI</div><div style="font-size:10px;color:var(--text2);">Instant</div></div></div>
+    <div class="method-btn" onclick="selMethod('bank')" id="methodBank"><span style="font-size:24px;">🏦</span><div><div style="font-weight:700;">Bank Transfer</div><div style="font-size:10px;color:var(--text2);">1-2 working days</div></div></div>
     <div id="upiFields" style="display:none;"><input id="upiId" class="inp" placeholder="UPI ID" type="text"></div>
-    <div id="bankFields" style="display:none;">
-        <input id="accNo" class="inp" placeholder="Account Number" type="text">
-        <input id="ifsc" class="inp" placeholder="IFSC Code" type="text">
-        <input id="accName" class="inp" placeholder="Account Holder Name" type="text">
-    </div>
-    <button class="btn-gold" onclick="doWithdraw()">💸 <span data-t="withdraw_now">WITHDRAW</span></button>
+    <div id="bankFields" style="display:none;"><input id="accNo" class="inp" placeholder="Account Number" type="text"><input id="ifsc" class="inp" placeholder="IFSC Code" type="text"><input id="accName" class="inp" placeholder="Account Holder Name" type="text"></div>
+    <button class="btn-gold" onclick="doWithdraw()">💸 WITHDRAW</button>
 </div>
 
 <!-- SPIN MODAL -->
@@ -900,18 +779,12 @@
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('spin')">←</div><div class="modal-title">🎰 Spin & Earn</div></div>
     <div class="spin-wrap">
         <div class="spin-stats">
-            <div class="ss-item"><div class="ss-val" id="spinBal">₹0</div><div class="ss-lbl" data-t="balance">Balance</div></div>
-            <div class="ss-item"><div class="ss-val" id="spinPassesLeft">0</div><div class="ss-lbl" data-t="passes">Passes</div></div>
-            <div class="ss-item"><div class="ss-val" id="spinTodayEarned">₹0</div><div class="ss-lbl" data-t="today">Today</div></div>
+            <div class="ss-item"><div class="ss-val" id="spinBal">₹0</div><div class="ss-lbl">Balance</div></div>
+            <div class="ss-item"><div class="ss-val" id="spinPassesLeft">0</div><div class="ss-lbl">Passes</div></div>
+            <div class="ss-item"><div class="ss-val" id="spinTodayEarned">₹0</div><div class="ss-lbl">Today</div></div>
         </div>
-        <div class="wheel-outer">
-            <div class="wheel-ptr">▼</div>
-            <canvas id="spinCanvas" width="255" height="255"></canvas>
-        </div>
-        <div class="spin-result" id="spinResultBox">
-            <div class="spin-result-amt" id="spinResultAmt">+₹0</div>
-            <div style="font-size:12px;color:rgba(255,255,255,.8);margin-top:3px;" id="spinResultTxt">Badhaai ho!</div>
-        </div>
+        <div class="wheel-outer"><div class="wheel-ptr">▼</div><canvas id="spinCanvas" width="255" height="255"></canvas></div>
+        <div class="spin-result" id="spinResultBox"><div class="spin-result-amt" id="spinResultAmt">+₹0</div><div style="font-size:12px;color:rgba(255,255,255,.8);margin-top:3px;" id="spinResultTxt">Badhaai ho!</div></div>
         <button class="btn-purple" id="spinBtn" onclick="doSpin()">🎰 SPIN (1 Pass)</button>
     </div>
 </div>
@@ -919,14 +792,11 @@
 <!-- GUESS MODAL -->
 <div class="modal" id="guessModal">
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('guess')">←</div><div class="modal-title">🔢 Number Guess</div></div>
-    <div class="guess-display">
-        <div class="guess-num" id="guessDisp">?</div>
-        <div class="guess-hint" id="guessHint" data-t="guess_hint">1 se 10 ke beech guess karo</div>
-    </div>
+    <div class="guess-display"><div class="guess-num" id="guessDisp">?</div><div class="guess-hint" id="guessHint">1 se 10 ke beech guess karo</div></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0;">
-        <span style="font-weight:700;font-size:12px;" data-t="bet">Bet:</span>
+        <span style="font-weight:700;font-size:12px;">Bet:</span>
         <span style="font-family:'Oxanium',sans-serif;font-size:17px;font-weight:900;color:var(--gold);" id="guessBetDisp">₹1</span>
-        <span style="font-size:11px;color:var(--text2);" data-t="passes">Passes: <b style="color:var(--purple2);" id="guessPassLeft">0</b></span>
+        <span style="font-size:11px;color:var(--text2);">Passes: <b style="color:var(--purple2);" id="guessPassLeft">0</b></span>
         <span style="font-size:11px;color:var(--text2);">Bal: <b style="color:var(--gold);" id="guessBal">₹0</b></span>
     </div>
     <div class="bet-row">
@@ -936,9 +806,7 @@
         <div class="bet-chip" onclick="selGuessBet(10,this)">₹10</div>
     </div>
     <div class="num-grid" id="numGrid"></div>
-    <div style="text-align:center;background:var(--bg3);border-radius:11px;padding:9px;margin:6px 0;font-size:11px;" data-t="guess_info">
-        ✅ Sahi = <b style="color:var(--green);">8x reward</b> • Galat = hint milega!
-    </div>
+    <div style="text-align:center;background:var(--bg3);border-radius:11px;padding:9px;margin:6px 0;font-size:11px;">✅ Sahi = <b style="color:var(--green);">8x reward</b> • Galat = hint milega!</div>
 </div>
 
 <!-- COIN MODAL -->
@@ -946,11 +814,11 @@
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('coin')">←</div><div class="modal-title">🪙 Coin Flip</div></div>
     <div class="coin-game-wrap">
         <div style="display:flex;justify-content:space-between;background:var(--bg3);border-radius:12px;padding:11px;margin-bottom:11px;">
-            <span style="font-size:12px;" data-t="passes">Passes: <b style="color:var(--purple2);" id="coinPassesLeft">0</b></span>
+            <span style="font-size:12px;">Passes: <b style="color:var(--purple2);" id="coinPassesLeft">0</b></span>
             <span style="font-size:12px;">Bal: <b style="color:var(--gold);" id="coinBal">₹0</b></span>
         </div>
         <div class="coin-outer"><div class="coin" id="theCoin"><div class="coin-face coin-h">👑</div><div class="coin-face coin-t">⚡</div></div></div>
-        <p style="text-align:center;color:var(--text2);font-size:12px;margin:9px 0;" data-t="coin_choose">Pehle choose karo, phir flip:</p>
+        <p style="text-align:center;color:var(--text2);font-size:12px;margin:9px 0;">Pehle choose karo, phir flip:</p>
         <div class="coin-choices">
             <button class="coin-choice" id="coinChoiceH" onclick="chooseCoin('heads')">👑<br><span style="font-size:12px;">Heads</span></button>
             <button class="coin-choice" id="coinChoiceT" onclick="chooseCoin('tails')">⚡<br><span style="font-size:12px;">Tails</span></button>
@@ -967,20 +835,20 @@
     </div>
 </div>
 
-<!-- SCRATCH MODAL - FIXED -->
+<!-- SCRATCH MODAL -->
 <div class="modal" id="scratchModal">
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('scratch')">←</div><div class="modal-title">🎫 Scratch Card</div></div>
     <div class="scratch-wrap">
         <div style="display:flex;justify-content:space-between;background:var(--bg3);border-radius:12px;padding:11px;margin-bottom:9px;font-size:12px;">
             <span>Cards: <b style="color:var(--purple2);" id="scratchCardsLeft">2</b></span>
-            <span data-t="passes">Passes: <b style="color:var(--gold);" id="scratchPassesLeft">0</b></span>
+            <span>Passes: <b style="color:var(--gold);" id="scratchPassesLeft">0</b></span>
             <span>Bal: <b style="color:var(--gold);" id="scratchBal">₹0</b></span>
         </div>
-        <div style="text-align:center;font-size:11px;color:var(--text2);margin-bottom:5px;" id="scratchHintTxt">👆 <span data-t="scratch_hint">Yahan finger se khurcho!</span></div>
+        <div style="text-align:center;font-size:11px;color:var(--text2);margin-bottom:5px;" id="scratchHintTxt">👆 Yahan finger se khurcho!</div>
         <div class="scratch-area" id="scratchArea">
             <div class="scratch-reward-layer" id="scratchRewardLayer">
                 <div class="scratch-amt" id="scratchAmt">?</div>
-                <div style="font-size:13px;color:rgba(0,0,0,.55);margin-top:4px;font-weight:700;" id="scratchLbl" data-t="scratch_lbl">Khurcho aur jaano!</div>
+                <div style="font-size:13px;color:rgba(0,0,0,.55);margin-top:4px;font-weight:700;" id="scratchLbl">Khurcho aur jaano!</div>
             </div>
             <canvas id="scratchCanvas"></canvas>
         </div>
@@ -998,16 +866,28 @@
         <div style="color:var(--text2);font-size:11px;margin-top:3px;" id="upId">ID: -</div>
     </div>
     <div class="stats-grid">
-        <div class="stat-box"><div class="stat-val" id="upBal">₹0</div><div class="stat-lbl" data-t="balance">Balance</div></div>
-        <div class="stat-box"><div class="stat-val" id="upRefs">0</div><div class="stat-lbl" data-t="total_refs">Total Refs</div></div>
-        <div class="stat-box"><div class="stat-val" id="upActiveRefs">0</div><div class="stat-lbl" data-t="active_refs">Active</div></div>
+        <div class="stat-box"><div class="stat-val" id="upBal">₹0</div><div class="stat-lbl">Balance</div></div>
+        <div class="stat-box"><div class="stat-val" id="upRefs">0</div><div class="stat-lbl">Total Refs</div></div>
+        <div class="stat-box"><div class="stat-val" id="upActiveRefs">0</div><div class="stat-lbl">Active</div></div>
     </div>
 </div>
 
-<!-- ADMIN SUPPORT PANEL -->
+<!-- ADMIN SUPPORT -->
 <div class="modal" id="adminSupportModal">
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('adminSupport')">←</div><div class="modal-title">🛡️ Support Msgs</div></div>
     <div id="adminSupportList"><div style="text-align:center;padding:18px;color:var(--text3);">Loading...</div></div>
+</div>
+
+<!-- CODE INPUT OVERLAY -->
+<div class="code-overlay" id="codeOverlay">
+    <div class="code-card">
+        <div style="font-size:36px;margin-bottom:8px;">🔑</div>
+        <h3>Claim Code Daalo</h3>
+        <p>Is offer ko claim karne ke liye admin ka code daalna hoga</p>
+        <input type="text" id="codeInput" class="inp" placeholder="Code yahan daalo..." style="text-align:center;font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">
+        <button class="btn-gold" onclick="submitCode()">✅ Submit Code</button>
+        <button class="btn-red" style="margin-top:4px;" onclick="closeCodeOverlay()">Cancel</button>
+    </div>
 </div>
 
 <!-- TOAST -->
@@ -1017,60 +897,148 @@
 <div class="congrats-overlay" id="congratsOverlay">
     <div class="congrats-card">
         <div class="confetti">🎊</div>
-        <div style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--gold);margin:9px 0 4px;" data-t="congratulations">Congratulations!</div>
+        <div style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--gold);margin:9px 0 4px;">Congratulations!</div>
         <div id="congratsMsg" style="font-size:12px;color:var(--text2);margin-bottom:16px;">Naya referral aaya!</div>
         <button class="btn-gold" onclick="document.getElementById('congratsOverlay').classList.remove('show')">🎉 Awesome!</button>
     </div>
 </div>
 
 <script>
-// ===== TRANSLATIONS =====
+// ============================================================
+// TRANSLATIONS
+// ============================================================
 const T={
     hi:{
         settings:'Settings',help_support:'Help & Support',dark_mode:'Dark Mode',sounds:'Sounds',admin_edit:'Admin Edit Mode',refer_earn:'Refer & Earn',language:'Language / भाषा',
-        your_balance:'💰 Aapka Balance',today_earned:'Aaj Kamaya',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Aaj ka bonus claim karo!',claim:'Claim',daily_missions:'🎯 Daily Missions',complete_earn:'Complete karo ₹5 pao!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Dost ko invite karo • 3 Passes + ₹ bonus pao!',copy:'Copy',more:'More',how_earn:'💡 Paise Kaise Kamayein?',step1:'<b>Apna referral link share karo</b> — dosto ko bhejo Telegram ya WhatsApp pe',step2:'<b>Dost movie group mein jaake movie search kare</b> — Movie Bot shortlink dega',step3:'<b>Shortlink complete karo</b> — Log Channel pe #NewUser message aayega',step4:'<b>Referral auto-verify!</b> Tumhe <b style="color:var(--gold)">3 Passes + ₹ Bonus</b> milega ✅',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',use_passes:'Passes use karo, paise jeeto!',passes:'Passes',total_wins:'Total Wins',today:'Aaj',streak:'Streak',spin_earn:'Spin & Earn',spin_desc:'Wheel ghumao',number_guess:'Number Guess',guess_desc:'1-10 mein guess karo',coin_flip:'Coin Flip',coin_desc:'Heads ya Tails?',scratch_card:'Scratch Card',scratch_desc:'Khurcho aur jeeto',balance:'Balance',total_earned:'Total Kamaya',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Paise Nikalo',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'Naya Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',bonus_subtitle:'Roz claim karo, streak badhao, zyada pao!',todays_bonus:'Aaj ka bonus',pass_also:'Game Pass bhi milega!',day_streak:'Day Streak',claim_now:'CLAIM NOW',already_claimed:'Aaj ka bonus claim ho gaya!',come_tomorrow:'Kal wapas aao',game_passes_title:'Game Passes',passes_sub:'Passes se khelo, paise jeeto!',how_get_passes:'📌 Kaise milte hain Passes?',refer_friend:'Dost ko Refer karo',ref_pass_desc:'Har ek active referral pe 3 passes milenge',daily_bonus_claim:'Daily Bonus Claim karo',daily_pass_desc:'Roz bonus claim karo, 1 pass milega',complete_offer:'Offer complete karo',offer_pass_desc:'Sponsored offer claim karo, 1 pass milega',daily_missions:'Daily Missions',mission_pass_desc:'Sab missions complete karo extra passes pao',buy_passes:'🛒 Passes Kharido',buy_passes_desc:'UPI se seedha kharido, turant milenge!',missions:'Missions',daily_challenge:'Daily Challenge',claim_5:'CLAIM ₹5',direct_contact:'Seedha contact:',support_placeholder:'Apna message likho (min 10 chars)...',send_message:'SEND MESSAGE',per_referral:'Har Referral Pe',how_ref_active:'📋 Kaise active hoga referral?',ref_steps:'1️⃣ Dost ko apna link bhejo\n2️⃣ Wo bot join kare\n3️⃣ Movie Group pe movie search kare\n4️⃣ Shortlink poori kare (Movie Bot pe)\n5️⃣ <b style="color:var(--gold);">Referral auto-active!</b> 3 passes + ₹ bonus milega',create_offer:'Create Offer',edit_offer:'Edit Offer',update_offer:'UPDATE OFFER',delete_offer:'DELETE OFFER',available_balance:'Available Balance',min_withdraw:'Minimum: ₹40',instant:'Instant',bank_transfer:'Bank Transfer',bank_days:'1-2 working days',withdraw_now:'WITHDRAW',withdraw:'Withdraw',bet:'Bet:',guess_hint:'1 se 10 ke beech guess karo',guess_info:'✅ Sahi = <b style="color:var(--green);">8x reward</b> • Galat = hint milega!',coin_choose:'Pehle choose karo, phir flip:',scratch_hint:'Yahan finger se khurcho!',scratch_lbl:'Khurcho aur jaano!',referred_users:'👥 Referred Users',congratulations:'Congratulations!',missions_progress:'0/4 Complete',mission1_lbl:'📢 10 Active Refs karo',mission2_lbl:'📅 5 Daily Bonus claim karo',mission3_lbl:'🎮 Aaj koi game khelo',mission4_lbl:'💎 Koi offer claim karo'
+        your_balance:'💰 Aapka Balance',today_earned:'Aaj Kamaya',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Aaj ka bonus claim karo!',claim:'Claim',daily_missions:'🎯 Daily Missions',mission_total_reward:'₹6+ Reward',complete_earn:'Missions complete karo, paise pao!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Dost ko invite karo • 3 Passes + ₹0.40!',copy:'Copy',share_more:'Share',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',lb_note:'📌 50+ active refs = weekly prize • 200+ = monthly prize',use_passes:'Passes use karo, paise jeeto!',passes:'Passes',total_wins:'Total Wins',today:'Aaj',streak:'Streak',balance:'Balance',total_earned:'Total Kamaya',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Paise Nikalo',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'Naya Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',already_claimed:'Aaj ka bonus claim ho gaya!',referred_users:'👥 Referred Users Activity',missions:'Missions',
+        onboard_confirm:'Samajh Gaya! Shuru Karo',
+        ob_title:'EarnZone kya hai?',ob_earning_title:'💰 Paise Kaise Kamayein',ob_daily_title:'📅 Daily Karna Kya Hai',ob_pass_title:'🎟️ Passes System',ob_withdraw_title:'💸 Paise Withdraw Karna',ob_bot_title:'🤖 Bot ka Kaam',
     },
     en:{
-        settings:'Settings',help_support:'Help & Support',dark_mode:'Dark Mode',sounds:'Sounds',admin_edit:'Admin Edit Mode',refer_earn:'Refer & Earn',language:'Language / भाषा',
-        your_balance:'💰 Your Balance',today_earned:'Today Earned',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Claim your daily bonus!',claim:'Claim',daily_missions:'🎯 Daily Missions',complete_earn:'Complete all to earn ₹5!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Invite friends • Get 3 Passes + ₹ bonus!',copy:'Copy',more:'More',how_earn:'💡 How to Earn Money?',step1:'<b>Share your referral link</b> — send to friends on Telegram or WhatsApp',step2:'<b>Friend goes to movie group and searches a movie</b> — Movie Bot gives a shortlink',step3:'<b>Complete the shortlink</b> — #NewUser message appears on Log Channel',step4:'<b>Referral auto-verified!</b> You get <b style="color:var(--gold)">3 Passes + ₹ Bonus</b> ✅',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',use_passes:'Use passes, win money!',passes:'Passes',total_wins:'Total Wins',today:'Today',streak:'Streak',spin_earn:'Spin & Earn',spin_desc:'Spin the wheel',number_guess:'Number Guess',guess_desc:'Guess 1-10',coin_flip:'Coin Flip',coin_desc:'Heads or Tails?',scratch_card:'Scratch Card',scratch_desc:'Scratch & win',balance:'Balance',total_earned:'Total Earned',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Withdraw Balance',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'New Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',bonus_subtitle:'Claim daily, build streak, earn more!',todays_bonus:"Today's Bonus",pass_also:'Game Pass included!',day_streak:'Day Streak',claim_now:'CLAIM NOW',already_claimed:"Today's bonus claimed!",come_tomorrow:'Come back tomorrow',game_passes_title:'Game Passes',passes_sub:'Play with passes, win money!',how_get_passes:'📌 How to get Passes?',refer_friend:'Refer a Friend',ref_pass_desc:'3 passes per active referral',daily_bonus_claim:'Claim Daily Bonus',daily_pass_desc:'1 pass per daily claim',complete_offer:'Complete an Offer',offer_pass_desc:'1 pass per sponsored offer',daily_missions:'Daily Missions',mission_pass_desc:'Complete all missions for extra passes',buy_passes:'🛒 Buy Passes',buy_passes_desc:'Buy instantly via UPI!',missions:'Missions',daily_challenge:'Daily Challenge',claim_5:'CLAIM ₹5',direct_contact:'Direct contact:',support_placeholder:'Write your message (min 10 chars)...',send_message:'SEND MESSAGE',per_referral:'Per Referral',how_ref_active:'📋 How does referral activate?',ref_steps:'1️⃣ Share your link with friend\n2️⃣ Friend joins the bot\n3️⃣ Friend searches a movie in Movie Group\n4️⃣ Friend completes the shortlink\n5️⃣ <b style="color:var(--gold);">Referral auto-active!</b> 3 passes + ₹ bonus',create_offer:'Create Offer',edit_offer:'Edit Offer',update_offer:'UPDATE OFFER',delete_offer:'DELETE OFFER',available_balance:'Available Balance',min_withdraw:'Minimum: ₹40',instant:'Instant',bank_transfer:'Bank Transfer',bank_days:'1-2 working days',withdraw_now:'WITHDRAW',withdraw:'Withdraw',bet:'Bet:',guess_hint:'Guess a number between 1-10',guess_info:'✅ Correct = <b style="color:var(--green);">8x reward</b> • Wrong = get a hint!',coin_choose:'Choose first, then flip:',scratch_hint:'Scratch here with your finger!',scratch_lbl:'Scratch to reveal!',referred_users:'👥 Referred Users',congratulations:'Congratulations!',missions_progress:'0/4 Complete',mission1_lbl:'📢 Get 10 Active Refs',mission2_lbl:'📅 Claim Daily Bonus 5 times',mission3_lbl:'🎮 Play any game today',mission4_lbl:'💎 Claim any offer'
+        settings:'Settings',help_support:'Help & Support',dark_mode:'Dark Mode',sounds:'Sounds',admin_edit:'Admin Edit Mode',refer_earn:'Refer & Earn',language:'Language',
+        your_balance:'💰 Your Balance',today_earned:'Today Earned',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Claim your daily bonus!',claim:'Claim',daily_missions:'🎯 Daily Missions',mission_total_reward:'₹6+ Reward',complete_earn:'Complete missions, earn money!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Invite friends • 3 Passes + ₹0.40!',copy:'Copy',share_more:'Share',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',lb_note:'📌 50+ active refs = weekly prize • 200+ = monthly prize',use_passes:'Use passes, win money!',passes:'Passes',total_wins:'Total Wins',today:'Today',streak:'Streak',balance:'Balance',total_earned:'Total Earned',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Withdraw Balance',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'New Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',already_claimed:"Today's bonus claimed!",referred_users:'👥 Referred Users Activity',missions:'Missions',
+        onboard_confirm:'Got it! Let\'s Start',
+        ob_title:'What is EarnZone?',ob_earning_title:'💰 How to Earn Money',ob_daily_title:'📅 Daily Tasks',ob_pass_title:'🎟️ Passes System',ob_withdraw_title:'💸 Withdraw Money',ob_bot_title:'🤖 How the Bot Works',
     }
 };
 let lang='hi';
-function t(key){return T[lang][key]||T.hi[key]||key;}
+function t(key){return(T[lang]&&T[lang][key])||T.hi[key]||key;}
 function setLang(l){
     lang=l;
-    localStorage.setItem('ez_lang',l);
+    try{localStorage.setItem('ez_lang',l);}catch(e){}
     document.getElementById('langHiBtn').style.borderColor=l==='hi'?'var(--gold)':'var(--border)';
     document.getElementById('langEnBtn').style.borderColor=l==='en'?'var(--gold)':'var(--border)';
-    document.querySelectorAll('[data-t]').forEach(el=>{
-        const key=el.getAttribute('data-t');
-        if(T[lang][key])el.innerHTML=T[lang][key];
-    });
-    document.querySelectorAll('[data-placeholder-t]').forEach(el=>{
-        const key=el.getAttribute('data-placeholder-t');
-        if(T[lang][key])el.placeholder=T[lang][key];
-    });
-    updateMissionsUI();
+    document.querySelectorAll('[data-t]').forEach(el=>{const k=el.getAttribute('data-t');if(T[lang][k])el.innerHTML=T[lang][k];});
     closeSidebar();
 }
 function toggleLang(){setLang(lang==='hi'?'en':'hi');}
 
-// ===== TELEGRAM INIT =====
+// ============================================================
+// ONBOARDING
+// ============================================================
+const ONBOARD_CONTENT={
+    hi:`
+<div class="onboard-section">
+<div class="onboard-section-title">💡 EarnZone Kya Hai?</div>
+<div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">EarnZone ek <b>Telegram Mini App</b> hai jahan aap refer karke, daily bonus lekar aur games khelkar <b>asli paise kama sakte ho</b>.</div></div>
+</div>
+<div class="onboard-section">
+<div class="onboard-section-title">💰 Paise Kaise Kamayein?</div>
+<div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Apna referral link share karo</b> — jab koi aapke link se join kare, movie group pe jakar movie search kare aur shortlink complete kare, to aapko <b>3 Passes + ₹0.40</b> milega.</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">🔁</div><div class="onboard-item-text"><b>Daily ₹0.10 per active user</b> — jo user roz movie search kare aur shortlink complete kare, us har user se tumhe roz ₹0.10 milega!</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — roz login karke bonus claim karo. Streak badhao to bonus amount bhi badhega!</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — har din missions complete karo, alag-alag paise aur passes jeetenge.</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — offers claim karo, paise aur passes pao.</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Games Khelo</b> — Passes use karke Spin, Guess, Coin Flip ya Scratch Card khelke aur paise jeeto.</div></div>
+</div>
+<div class="onboard-section">
+<div class="onboard-section-title">📅 Daily Kya Karna Hai?</div>
+<div class="onboard-item"><div class="onboard-item-icon">✅</div><div class="onboard-item-text"><b>Daily bonus claim karo</b> — streak mat totne do, warna ₹0.05 se shuru karna hoga.</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily missions complete karo</b> — har mission alag claim karo, ek bhi pure hone par claim kar sakte ho.</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">📱</div><div class="onboard-item-text"><b>Apne referred users ko daily yaad dilao</b> — movie search karo aur shortlink puri karo → tumhe ₹0.10 milega.</div></div>
+</div>
+<div class="onboard-section">
+<div class="onboard-section-title">🎟️ Passes System</div>
+<div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Passes earn karo: refer karke (+3), daily bonus (+1), offers claim karke (+1).</div></div>
+</div>
+<div class="onboard-section">
+<div class="onboard-section-title">💸 Paise Withdraw Karna</div>
+<div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Minimum <b>₹40</b> hone par UPI ya Bank Transfer se withdraw kar sakte ho. Admin 24-48 ghante mein process karega.</div></div>
+</div>`,
+    en:`
+<div class="onboard-section">
+<div class="onboard-section-title">💡 What is EarnZone?</div>
+<div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">EarnZone is a <b>Telegram Mini App</b> where you can earn <b>real money</b> by referring friends, claiming daily bonuses, and playing games.</div></div>
+</div>
+<div class="onboard-section">
+<div class="onboard-section-title">💰 How to Earn Money?</div>
+<div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Share your referral link</b> — when someone joins via your link, searches a movie in movie group & completes shortlink, you get <b>3 Passes + ₹0.40</b>.</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">🔁</div><div class="onboard-item-text"><b>Daily ₹0.10 per active user</b> — for each referred user who searches a movie and completes shortlink daily, you earn ₹0.10 every day!</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — claim bonus every day. Maintain your streak to increase bonus amount!</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — complete missions every day, claim each one separately for money and passes.</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — claim offers to earn money and passes.</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Play Games</b> — use Passes to play Spin, Guess, Coin Flip or Scratch Card to win more money.</div></div>
+</div>
+<div class="onboard-section">
+<div class="onboard-section-title">📅 Daily Tasks</div>
+<div class="onboard-item"><div class="onboard-item-icon">✅</div><div class="onboard-item-text"><b>Claim daily bonus</b> — don't break your streak or you'll restart from ₹0.05.</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Complete daily missions</b> — claim each mission separately as soon as it's done.</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">📱</div><div class="onboard-item-text"><b>Remind your referred users daily</b> — search movie and complete shortlink → you get ₹0.10.</div></div>
+</div>
+<div class="onboard-section">
+<div class="onboard-section-title">🎟️ Passes System</div>
+<div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Earn passes by: referring (+3), daily bonus (+1), claiming offers (+1).</div></div>
+</div>
+<div class="onboard-section">
+<div class="onboard-section-title">💸 Withdrawals</div>
+<div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Withdraw via UPI or Bank Transfer with minimum <b>₹40</b>. Admin processes within 24-48 hours.</div></div>
+</div>`
+};
+
+let obLang='hi';
+function setOnboardLang(l){
+    obLang=l;
+    document.getElementById('ob_hi').classList.toggle('active',l==='hi');
+    document.getElementById('ob_en').classList.toggle('active',l==='en');
+    document.getElementById('onboardBody').innerHTML=ONBOARD_CONTENT[l];
+    document.getElementById('onboardBtnText').textContent=l==='hi'?'Samajh Gaya! Shuru Karo':"Got it! Let's Start";
+}
+function confirmOnboard(){
+    try{localStorage.setItem('ez_onboarded','1');}catch(e){}
+    document.getElementById('onboardOverlay').style.display='none';
+    setLang(obLang);
+}
+function checkOnboard(){
+    let shown=false;
+    try{shown=localStorage.getItem('ez_onboarded')==='1';}catch(e){}
+    if(!shown){
+        document.getElementById('onboardBody').innerHTML=ONBOARD_CONTENT['hi'];
+        document.getElementById('onboardOverlay').style.display='flex';
+    }else{
+        document.getElementById('onboardOverlay').style.display='none';
+    }
+}
+
+// ============================================================
+// TELEGRAM & STATE
+// ============================================================
 const tg=window.Telegram?.WebApp;
 if(tg){tg.expand();tg.ready();}
 const BOT_USERNAME='LinkProviderRobot';
 
-// ===== STATE =====
 let userData={user_id:null,first_name:'Guest',username:'',balance:0,total_earned:0,tier:1,total_refs:0,active_refs:0,pending_refs:0,daily_streak:0,today_earned:0,is_admin:false,games_won:0,passes:0,photo_url:null};
 let gameState={today_game_earned:0,wins:0,win_streak:0};
 let claimedDates=[],userStreak=0,adminAds=[],adminEditMode=false,selectedMethod=null;
-let missions={m1:{p:0,done:false,total:10},m2:{p:0,done:false,total:5},m3:{p:0,done:false,total:1},m4:{p:0,done:false,total:1}};
 let soundOn=true,currentTheme='dark',lbMode='weekly';
 let spinAngle=0,isSpinning=false;
 let guessBet=1,guessActive=false;
 let coinChoice=null,coinBet=1,coinFlipping=false;
-let scratchRevealed=false,scratchCtx=null,scratchDrawing=false,scratchInitialized=false;
+let scratchRevealed=false,scratchCtx=null,scratchDrawing=false;
 let audioCtx=null;
+let currentAdForCode=null;
+
+// MISSIONS: each mission has its own claimed state
+let missionStates={};
 
 const SEGS=[
     {l:'₹0.50',v:.5,c:'#f59e0b'},{l:'₹1',v:1,c:'#3b82f6'},
@@ -1079,11 +1047,25 @@ const SEGS=[
     {l:'₹0.50',v:.5,c:'#38bdf8'},{l:'₹1',v:1,c:'#ec4899'}
 ];
 
-// ===== API =====
+const MISSIONS_DEF=[
+    {id:'m_refer5',   icon:'👥', hi:'5 Active User Refer karo', en:'Refer 5 active users',      reward:2,   passes:0, total:5,  track:'active_refs'},
+    {id:'m_search5',  icon:'🎬', hi:'5 Users movie search karein', en:'5 users search movie',    reward:1,   passes:0, total:5,  track:'daily_search'},
+    {id:'m_shortlink',icon:'🔗', hi:'Shortlink puri karo (1 user)', en:'1 user completes shortlink', reward:1, passes:0, total:1, track:'shortlink'},
+    {id:'m_game',     icon:'🎮', hi:'10 Passes se game khelo', en:'Play game with 10 passes',    reward:1,   passes:0, total:10, track:'game_plays'},
+    {id:'m_passes',   icon:'🎟️', hi:'1 baar Passes karido', en:'Purchase passes once',          reward:1,   passes:0, total:1,  track:'pass_purchase'},
+    {id:'m_daily',    icon:'🎁', hi:'Daily bonus claim karo', en:'Claim daily bonus',             reward:0.10,passes:0, total:1,  track:'daily_bonus'},
+    {id:'m_withdraw', icon:'💸', hi:'Aaj 1 baar withdraw karo', en:'Withdraw once today',        reward:1,   passes:0, total:1,  track:'withdraw'},
+];
+
+// ============================================================
+// API
+// ============================================================
 async function apiGet(url){try{const r=await fetch(url);if(!r.ok)throw new Error();return await r.json();}catch(e){return null;}}
 async function apiPost(url,body){try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw new Error();return await r.json();}catch(e){return{success:false,message:'Network error'};}}
 
-// ===== LOAD DATA =====
+// ============================================================
+// LOAD DATA
+// ============================================================
 async function loadUser(){
     const uid=tg?.initDataUnsafe?.user?.id||new URLSearchParams(location.search).get('user_id');
     if(!uid)return;
@@ -1115,8 +1097,18 @@ async function loadMissions(){
     if(!userData.user_id)return;
     const d=await apiGet(`/api/user/${userData.user_id}/missions`);
     if(d){
-        if(d.mission1){missions.m1={...missions.m1,p:d.mission1.progress||0,done:d.mission1.completed||false};}
-        if(d.mission2){missions.m2={...missions.m2,p:d.mission2.progress||0,done:d.mission2.completed||false};}
+        // Each mission gets its own state
+        MISSIONS_DEF.forEach(m=>{
+            const sv=d[m.id];
+            if(sv){missionStates[m.id]={progress:sv.progress||0,completed:sv.completed||false,claimed:sv.claimed||false};}
+            else{missionStates[m.id]={progress:0,completed:false,claimed:false};}
+        });
+        // Special auto-fill from user data
+        if(userData.active_refs){
+            const m=missionStates['m_refer5'];
+            m.progress=Math.min(userData.active_refs,5);
+            m.completed=userData.active_refs>=5;
+        }
     }
     updateMissionsUI();
 }
@@ -1140,7 +1132,9 @@ async function loadRefActivity(){
     renderRefActivity(d||[]);
 }
 
-// ===== UI UPDATE =====
+// ============================================================
+// UI UPDATE
+// ============================================================
 function updateUI(){
     const bal=`₹${(userData.balance||0).toFixed(2)}`;
     document.getElementById('balAmt').textContent=bal;
@@ -1170,28 +1164,35 @@ function updateUI(){
     document.getElementById('gameWins').textContent=gameState.wins||0;
     document.getElementById('gameTodayEarned').textContent=`₹${(gameState.today_game_earned||0).toFixed(2)}`;
     document.getElementById('gameStreak').textContent=`${gameState.win_streak||0}🔥`;
-    const ids=['spinBal','spinPassesLeft','spinTodayEarned','guessPassLeft','guessBal','coinPassesLeft','coinBal','scratchPassesLeft','scratchBal'];
-    const vals=[bal,userData.passes||0,`₹${(gameState.today_game_earned||0).toFixed(2)}`,userData.passes||0,bal,userData.passes||0,bal,userData.passes||0,bal];
-    ids.forEach((id,i)=>{const el=document.getElementById(id);if(el)el.textContent=vals[i];});
+    ['spinBal','spinPassesLeft','spinTodayEarned','guessPassLeft','guessBal','coinPassesLeft','coinBal','scratchPassesLeft','scratchBal'].forEach((id,i)=>{
+        const vals=[bal,userData.passes||0,`₹${(gameState.today_game_earned||0).toFixed(2)}`,userData.passes||0,bal,userData.passes||0,bal,userData.passes||0,bal];
+        const el=document.getElementById(id);if(el)el.textContent=vals[i];
+    });
 }
 function getTierName(t){return t>=4?'💎 DIAMOND':t===3?'🥇 GOLD':t===2?'🥈 SILVER':'🥉 BASIC';}
-function getRefLink(){return `https://t.me/${BOT_USERNAME}?start=ref_${userData.user_id||'xxx'}`;}
+function getRefLink(){return`https://t.me/${BOT_USERNAME}?start=ref_${userData.user_id||'xxx'}`;}
 
-// ===== SIDEBAR =====
+// ============================================================
+// SIDEBAR
+// ============================================================
 function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('sidebarOverlay').classList.add('show');playSound('tap');}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');}
 
-// ===== DAILY BONUS =====
+// ============================================================
+// DAILY BONUS (streak breaks if missed)
+// ============================================================
 function updateDailyBonusCard(){
     const today=new Date().toISOString().split('T')[0];
+    const yesterday=new Date(Date.now()-86400000).toISOString().split('T')[0];
     const claimed=claimedDates.includes(today);
+    // Streak broken check
+    const streakBroken=claimedDates.length>0&&!claimedDates.includes(yesterday)&&!claimed;
     const btn=document.getElementById('dailyBonusBtn');
     const icon=document.getElementById('dailyBonusIcon');
     const sub=document.getElementById('dailyBonusSubtitle');
     if(claimed){
-        btn.textContent=lang==='en'?'Claimed ✅':'Claimed ✅';
-        btn.style.background='var(--bg3)';btn.style.color='var(--text3)';
-        icon.textContent='✅';sub.textContent=t('come_tomorrow');
+        btn.textContent='Claimed ✅';btn.style.background='var(--bg3)';btn.style.color='var(--text3)';
+        icon.textContent='✅';sub.textContent='Kal wapas aao';
     }else{
         btn.textContent=t('claim');btn.style.background='linear-gradient(135deg,var(--green),#059669)';btn.style.color='#fff';
         icon.textContent='🎁';sub.textContent=t('claim_today');
@@ -1201,33 +1202,31 @@ function updateDailyBonusCard(){
 function buildTrainChain(){
     const chain=document.getElementById('trainChain');if(!chain)return;
     const today=new Date().toISOString().split('T')[0];
+    const yesterday=new Date(Date.now()-86400000).toISOString().split('T')[0];
     let days=[];
     for(let i=-6;i<=8;i++){const d=new Date();d.setDate(d.getDate()+i);days.push(d.toISOString().split('T')[0]);}
     chain.innerHTML='';
     days.forEach((day,idx)=>{
         const isClaimed=claimedDates.includes(day);const isToday=day===today;const isPast=day<today;
         const dayNum=new Date(day).getDate();const mon=new Date(day).toLocaleString('en',{month:'short'});
-        const bonus=(0.05+Math.min((claimedDates.length)*0.02,0.15)).toFixed(2);
+        const base=0.05,extra=Math.min((claimedDates.length)*0.02,0.15);
         const car=document.createElement('div');car.className='train-car';
         const connFilled=isClaimed&&idx>0&&claimedDates.includes(days[idx-1]);
-        car.innerHTML=`
-            ${idx>0?`<div class="train-connector ${connFilled?'filled':''}"></div>`:'<div style="width:16px;margin-bottom:22px;"></div>'}
-            <div class="train-node ${isClaimed?'claimed':isToday?'today':'future'}" onclick="${isToday&&!isClaimed?'claimBonus()':''}">
-                ${isClaimed?'✅':isToday?'🎁':isPast?'⭕':'🔒'}
-            </div>
-            <div class="train-date">${dayNum} ${mon}</div>
-            <div class="train-reward">${isClaimed||isToday?'₹'+bonus:'--'}</div>
-        `;
+        car.innerHTML=`${idx>0?`<div class="train-connector ${connFilled?'filled':''}"></div>`:'<div style="width:16px;margin-bottom:22px;"></div>'}<div class="train-node ${isClaimed?'claimed':isToday?'today':'future'}" onclick="${isToday&&!isClaimed?'claimBonus()':''}"><div>${isClaimed?'✅':isToday?'🎁':isPast?'⭕':'🔒'}</div></div><div class="train-date">${dayNum} ${mon}</div><div class="train-reward">${isClaimed||isToday?'₹'+(base+extra).toFixed(2):'--'}</div>`;
         chain.appendChild(car);
     });
     setTimeout(()=>{const node=chain.querySelector('.today');if(node)node.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});},100);
     const claimed=claimedDates.includes(today);
-    const base=0.05,extra=Math.min(userStreak*.02,.15);
+    const yesterday2=new Date(Date.now()-86400000).toISOString().split('T')[0];
+    const streakBroken=claimedDates.length>0&&!claimedDates.includes(yesterday2)&&!claimed;
+    const effectiveStreak=streakBroken?0:userStreak;
+    const base=0.05,extra=Math.min(effectiveStreak*.02,.15);
     document.getElementById('todayBonusAmt').textContent=`₹${(base+extra).toFixed(2)}`;
-    document.getElementById('streakDays2').textContent=userStreak;
+    document.getElementById('streakDays2').textContent=effectiveStreak;
     document.getElementById('bonusTotal').textContent=`₹${(userData.total_earned||0).toFixed(2)}`;
     document.getElementById('todayClaimBox').style.display=claimed?'none':'block';
     document.getElementById('alreadyClaimedMsg').style.display=claimed?'block':'none';
+    document.getElementById('streakBrokenMsg').style.display=streakBroken?'block':'none';
 }
 async function claimBonus(){
     const today=new Date().toISOString().split('T')[0];
@@ -1235,38 +1234,41 @@ async function claimBonus(){
     const btn=document.getElementById('claimBonusBtn2');
     if(btn){btn.disabled=true;btn.textContent='⏳...';}
     const r=await apiPost('/api/claim-day-bonus',{user_id:userData.user_id,date:today});
-    if(btn){btn.disabled=false;btn.innerHTML=`🎉 ${t('claim_now')}`;}
+    if(btn){btn.disabled=false;btn.innerHTML='🎉 CLAIM NOW';}
     if(r&&r.success){
         userData.balance+=r.bonus;userData.today_earned+=r.bonus;
         userData.passes=(userData.passes||0)+1;
         userStreak=r.streak;claimedDates.push(today);
-        missions.m2.p=Math.min(missions.m2.p+1,missions.m2.total);
-        if(missions.m2.p>=missions.m2.total)missions.m2.done=true;
+        // Update m_daily mission
+        if(missionStates['m_daily']){missionStates['m_daily'].progress=1;missionStates['m_daily'].completed=true;}
         updateUI();updateDailyBonusCard();updateMissionsUI();
         playSound('earn');showToast(`🎉 +₹${r.bonus.toFixed(2)} + 1 Pass! Streak: ${userStreak}🔥`);
         setTimeout(()=>closeModal('dailyBonus'),1600);
     }else showToast('❌ '+(r?.message||'Failed'));
 }
 
-// ===== LIVE ACTIVITY =====
+// ============================================================
+// LIVE ACTIVITY (with refer info)
+// ============================================================
 function renderLiveActivity(acts){
     const el=document.getElementById('liveList');
     if(!acts||!acts.length){el.innerHTML=`<div style="text-align:center;padding:14px;color:var(--text3);">No activity</div>`;return;}
-    el.innerHTML=acts.slice(0,10).map(a=>{
+    el.innerHTML=acts.slice(0,12).map(a=>{
         const dpEl=`<div class="live-dp">${a.avatar||'👤'}</div>`;
         const amtEl=a.amount?`<div class="live-amount">${a.amount>0?'+':''}₹${parseFloat(a.amount).toFixed(2)}</div>`:'';
+        // Show refer info if available
+        let desc=a.description||'active';
+        if(a.type==='referral'&&a.referred_name)desc=`referred ${a.referred_name}`;
+        if(a.type==='daily_search'&&a.referrer_name)desc=`searched movie (referred by ${a.referrer_name})`;
         return `<div class="live-item" onclick="viewUserProfile(${a.user_id||0},'${(a.user_name||'User').replace(/'/g,"\\'")}')">
-            ${dpEl}
-            <div class="live-info"><div class="live-name">${a.user_name||'User'}</div><div class="live-act">${a.description||'active'}</div></div>
+            ${dpEl}<div class="live-info"><div class="live-name">${a.user_name||'User'}</div><div class="live-act">${desc}</div></div>
             <div style="text-align:right;">${amtEl}<div class="live-time">${a.time||'now'}</div></div>
         </div>`;
     }).join('');
 }
 async function viewUserProfile(userId,name){
-    if(!userId)return;
-    openModal('userProfile');
-    document.getElementById('upName').textContent=name;
-    document.getElementById('upId').textContent=`ID: ${userId}`;
+    if(!userId)return;openModal('userProfile');
+    document.getElementById('upName').textContent=name;document.getElementById('upId').textContent=`ID: ${userId}`;
     document.getElementById('upDp').textContent=name.charAt(0).toUpperCase();
     document.getElementById('upBal').textContent='...';document.getElementById('upRefs').textContent='...';document.getElementById('upActiveRefs').textContent='...';
     const d=await apiGet(`/api/user/${userId}`);
@@ -1275,99 +1277,137 @@ async function viewUserProfile(userId,name){
 function renderRefActivity(acts){
     const el=document.getElementById('refActivityList');
     if(!acts||!acts.length){el.innerHTML=`<div style="color:var(--text3);font-size:11px;text-align:center;padding:12px;">${lang==='en'?'No referred users yet':'Koi referred user nahi abhi'}</div>`;return;}
-    el.innerHTML=acts.map(u=>`<div class="ref-act-item">
-        <div class="ref-act-dp">${(u.first_name||'U').charAt(0)}</div>
-        <div class="ref-act-info">
-            <div class="ref-act-name">${u.first_name||'User'}</div>
-            <div class="ref-act-detail">${u.username?'@'+u.username:''} ${u.join_date?'• Joined '+new Date(u.join_date).toLocaleDateString():''}</div>
-        </div>
-        <span class="ref-act-badge ${u.is_active?'badge-active':'badge-pending'}">${u.is_active?(lang==='en'?'Active':'Active'):(lang==='en'?'Pending':'Pending')}</span>
-    </div>`).join('');
+    el.innerHTML=acts.map(u=>{
+        const pendingEarning=u.pending_daily?`<span style="color:var(--gold);font-weight:700;">+₹0.10 pending</span>`:
+            u.today_searched?`<span style="color:var(--green);font-weight:700;">✅ ₹0.10 earned today</span>`:
+            `<span style="color:var(--text3);">Search nahi kiya aaj</span>`;
+        return`<div class="ref-act-item">
+            <div class="ref-act-dp">${(u.first_name||'U').charAt(0)}</div>
+            <div class="ref-act-info">
+                <div class="ref-act-name">${u.first_name||'User'} ${u.username?`<span style="color:var(--blue);font-size:9px;">@${u.username}</span>`:''}</div>
+                <div class="ref-act-detail">${pendingEarning}</div>
+            </div>
+            <span class="ref-act-badge ${u.is_active?'badge-active':'badge-pending'}">${u.is_active?'Active':'Pending'}</span>
+        </div>`;
+    }).join('');
 }
 function showCongratsPopup(){
     document.getElementById('congratsMsg').textContent=`${userData.active_refs} active referral! +3 Passes mile!`;
-    document.getElementById('congratsOverlay').classList.add('show');
-    playSound('earn');
+    document.getElementById('congratsOverlay').classList.add('show');playSound('earn');
     setTimeout(()=>document.getElementById('congratsOverlay').classList.remove('show'),5000);
 }
 
-// ===== MISSIONS =====
+// ============================================================
+// MISSIONS (each mission claimed separately)
+// ============================================================
 function updateMissionsUI(){
     const c=document.getElementById('missionsContainer');if(!c)return;
-    const lbls=[t('mission1_lbl'),t('mission2_lbl'),t('mission3_lbl'),t('mission4_lbl')];
-    const mArr=[
-        {key:'m1',label:lbls[0],p:missions.m1.p,total:10,done:missions.m1.done},
-        {key:'m2',label:lbls[1],p:missions.m2.p,total:5,done:missions.m2.done},
-        {key:'m3',label:lbls[2],p:missions.m3.p,total:1,done:missions.m3.done},
-        {key:'m4',label:lbls[3],p:missions.m4.p,total:1,done:missions.m4.done},
-    ];
-    c.innerHTML=mArr.map(m=>`<div class="card-section" style="margin-bottom:8px;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-            <span style="font-weight:700;font-size:12px;">${m.label}</span>
-            <span style="background:${m.done?'rgba(25,216,158,.16)':'rgba(240,192,64,.16)'};color:${m.done?'var(--green)':'var(--gold)'};padding:3px 8px;border-radius:18px;font-size:10px;font-weight:800;">${m.done?'✅'+(lang==='en'?' Done':' Done'):m.p+'/'+m.total}</span>
-        </div>
-        <div class="mission-bar-bg"><div class="mission-bar-fill" style="width:${Math.min((m.p/m.total)*100,100)}%;background:${m.done?'var(--green)':'var(--gold)'};height:7px;"></div></div>
-    </div>`).join('');
-    const done=mArr.filter(m=>m.done).length;
-    document.getElementById('missionsDone').textContent=done;
-    document.getElementById('missionBarFill').style.width=`${(done/4)*100}%`;
-    const claimBtn=document.getElementById('claimMissionBtn');
-    if(claimBtn)claimBtn.style.display=done>=4?'block':'none';
+    let doneCount=0;
+    c.innerHTML=MISSIONS_DEF.map(m=>{
+        const state=missionStates[m.id]||{progress:0,completed:false,claimed:false};
+        const prog=Math.min(state.progress||0,m.total);
+        const pct=(prog/m.total)*100;
+        const isDone=state.completed||prog>=m.total;
+        const isClaimed=state.claimed;
+        if(isClaimed)doneCount++;
+        const rewardTxt=m.reward>=1?`₹${m.reward}`:m.reward===0.10?'₹0.10':'₹'+m.reward;
+        return`<div class="mission-item">
+            <div class="mission-item-header">
+                <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">${m.icon}</span><span class="mission-item-title">${lang==='en'?m.en:m.hi}</span></div>
+                <div class="mission-item-reward">+${rewardTxt}</div>
+            </div>
+            <div class="mission-item-bar"><div class="mission-item-fill" style="width:${Math.min(pct,100)}%;background:${isClaimed?'var(--green)':isDone?'var(--gold)':'var(--purple2)'};"></div></div>
+            <div class="mission-progress-text">${prog}/${m.total} ${isClaimed?'✅':'•'} ${isClaimed?'Claimed!':isDone?'Claim karo!':''}</div>
+            ${isClaimed?`<div class="mission-claimed-badge">✅ ${lang==='en'?'Claimed!':'Claimed!'} +${rewardTxt}</div>`:isDone?`<button class="mission-claim-btn" onclick="claimSingleMission('${m.id}',${m.reward})">✅ Claim ${rewardTxt}</button>`:''}
+        </div>`;
+    }).join('');
+    document.getElementById('missionsDone').textContent=doneCount;
+    document.getElementById('missionsTotal').textContent=MISSIONS_DEF.length;
+    document.getElementById('missionBarFill').style.width=`${(doneCount/MISSIONS_DEF.length)*100}%`;
 }
-async function claimMission(){
-    const r=await apiPost('/api/claim-mission-reward',{user_id:userData.user_id});
+async function claimSingleMission(missionId,reward){
+    const state=missionStates[missionId];
+    if(!state||state.claimed){showToast('❌ Already claimed');return;}
+    if(!(state.completed||state.progress>=(MISSIONS_DEF.find(m=>m.id===missionId)?.total||1))){showToast('❌ Mission abhi pura nahi hua');return;}
+    const r=await apiPost('/api/claim-single-mission',{user_id:userData.user_id,mission_id:missionId,reward});
     if(r&&r.success){
-        userData.balance+=5;userData.total_earned+=5;
-        missions={m1:{p:0,done:false,total:10},m2:{p:0,done:false,total:5},m3:{p:0,done:false,total:1},m4:{p:0,done:false,total:1}};
-        updateUI();updateMissionsUI();closeModal('missions');
-        showToast('✅ ₹5 claimed!');playSound('earn');
+        missionStates[missionId].claimed=true;
+        userData.balance+=reward;userData.total_earned+=reward;
+        updateUI();updateMissionsUI();showToast(`✅ +₹${reward}!`);playSound('earn');
     }else showToast('❌ '+(r?.message||'Failed'));
 }
 
-// ===== ADS =====
+// ============================================================
+// ADS with code system
+// ============================================================
 function renderAds(claimedIds=[]){
     const c=document.getElementById('adsContainer');
-    if(!adminAds.length){c.innerHTML=`<div style="text-align:center;padding:16px;color:var(--text3);">${lang==='en'?'No offers yet':'No offers yet'}</div>`;return;}
+    if(!adminAds.length){c.innerHTML=`<div style="text-align:center;padding:16px;color:var(--text3);">No offers yet</div>`;return;}
     c.innerHTML=adminAds.map(ad=>{
         const isClaimed=claimedIds.includes(ad.id);
-        return `<div class="ad-card ${adminEditMode?'admin-mode':''} ${isClaimed&&!adminEditMode?'ad-claimed':''}" onclick="handleAdClick(${ad.id})">
+        return`<div class="ad-card ${adminEditMode?'admin-mode':''} ${isClaimed&&!adminEditMode?'ad-claimed':''}" onclick="handleAdClick(${ad.id})">
             ${adminEditMode?`<div class="ad-del-btn" onclick="event.stopPropagation();delAd(${ad.id})">✕</div><div class="ad-edit-btn" onclick="event.stopPropagation();editAd(${ad.id})">✎</div>`:''}
             <div class="ad-icon-box">${ad.icon||'📢'}</div>
-            <div class="ad-info"><div class="ad-title">${ad.title}</div><div class="ad-meta">${ad.meta||''}</div></div>
-            ${isClaimed&&!adminEditMode?`<div class="ad-claimed-badge">✅ ${lang==='en'?'Claimed':'Claimed'}</div>`:`<div class="ad-reward">+₹${ad.reward}</div>`}
+            <div class="ad-info"><div class="ad-title">${ad.title}${ad.claim_code?'  🔑':''}${adminEditMode&&ad.claim_code?` <span style="font-size:9px;color:var(--blue);background:rgba(54,182,245,.1);padding:2px 6px;border-radius:8px;">Code: ${ad.claim_code}</span>`:''}</div><div class="ad-meta">${ad.meta||''}</div></div>
+            ${isClaimed&&!adminEditMode?`<div class="ad-claimed-badge">✅ Claimed</div>`:`<div class="ad-reward">+₹${ad.reward}</div>`}
         </div>`;
     }).join('');
 }
 async function handleAdClick(adId){
     if(adminEditMode)return;
     const ad=adminAds.find(a=>a.id===adId);if(!ad)return;
-    playSound('tap');window.open(ad.link,'_blank');
-    const r=await apiPost('/api/claim-ad',{user_id:userData.user_id,ad_id:adId,reward:ad.reward});
+    playSound('tap');
+    // Open link first
+    window.open(ad.link,'_blank');
+    // If code required, show code overlay
+    if(ad.claim_code){
+        currentAdForCode=ad;
+        document.getElementById('codeInput').value='';
+        document.getElementById('codeOverlay').classList.add('show');
+        return;
+    }
+    // No code — direct claim
+    await doClaimAd(ad);
+}
+function closeCodeOverlay(){document.getElementById('codeOverlay').classList.remove('show');currentAdForCode=null;}
+async function submitCode(){
+    const code=document.getElementById('codeInput').value.trim().toUpperCase();
+    if(!code){showToast('❌ Code daalo pehle');return;}
+    if(!currentAdForCode){closeCodeOverlay();return;}
+    const ad=currentAdForCode;
+    if(code!==String(ad.claim_code).toUpperCase()){showToast('❌ Galat code!');return;}
+    closeCodeOverlay();
+    await doClaimAd(ad);
+}
+async function doClaimAd(ad){
+    const r=await apiPost('/api/claim-ad',{user_id:userData.user_id,ad_id:ad.id,reward:ad.reward});
     if(r&&r.success){
         userData.balance+=ad.reward;userData.today_earned+=ad.reward;
         userData.passes=(userData.passes||0)+1;
-        missions.m4.p=1;missions.m4.done=true;
-        updateUI();updateMissionsUI();showToast(`✅ +₹${ad.reward}!`);playSound('earn');await loadAds();
+        if(missionStates['m_passes']){missionStates['m_passes'].progress=1;missionStates['m_passes'].completed=true;}
+        updateUI();updateMissionsUI();showToast(`✅ +₹${ad.reward}! +1 Pass`);playSound('earn');
+        await loadAds();
     }else showToast('❌ '+(r?.message||'Already claimed'));
 }
 function openAdminCreateOffer(){if(!userData.is_admin)return;openModal('createOffer');}
 async function submitAdminOffer(){
-    const t2=document.getElementById('promoTitle').value,rw=document.getElementById('promoReward').value,l=document.getElementById('promoLink').value,ic=document.getElementById('promoIcon').value||'📢',m=document.getElementById('promoMeta').value||'';
-    if(!t2||!rw||!l){showToast('❌ Title, Reward aur Link zaruri hain');return;}
+    const title=document.getElementById('promoTitle').value,rw=document.getElementById('promoReward').value,l=document.getElementById('promoLink').value,ic=document.getElementById('promoIcon').value||'📢',m2=document.getElementById('promoMeta').value||'',code=document.getElementById('promoCode').value.trim().toUpperCase()||null;
+    if(!title||!rw||!l){showToast('❌ Title, Reward aur Link zaruri hain');return;}
     const newId=Date.now()%100000;
-    const r=await apiPost('/api/update-ad',{ad_id:newId,admin_id:userData.user_id,title:t2,reward:parseFloat(rw),link:l,meta:m,icon:ic});
-    if(r&&r.success){showToast('✅ Offer created!');loadAds();closeModal('createOffer');['promoTitle','promoDesc','promoReward','promoLink','promoIcon','promoMeta'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});}
+    const r=await apiPost('/api/update-ad',{ad_id:newId,admin_id:userData.user_id,title,reward:parseFloat(rw),link:l,meta:m2,icon:ic,claim_code:code});
+    if(r&&r.success){showToast('✅ Offer created!');loadAds();closeModal('createOffer');['promoTitle','promoDesc','promoReward','promoLink','promoIcon','promoMeta','promoCode'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});}
     else showToast('❌ '+(r?.message||'Failed'));
 }
 function editAd(id){
     const ad=adminAds.find(a=>a.id===id);if(!ad)return;
-    document.getElementById('editAdId').value=ad.id;document.getElementById('editAdTitle').value=ad.title;document.getElementById('editAdReward').value=ad.reward;document.getElementById('editAdLink').value=ad.link;document.getElementById('editAdMeta').value=ad.meta||'';document.getElementById('editAdIcon').value=ad.icon||'';
+    document.getElementById('editAdId').value=ad.id;document.getElementById('editAdTitle').value=ad.title;document.getElementById('editAdReward').value=ad.reward;document.getElementById('editAdLink').value=ad.link;document.getElementById('editAdMeta').value=ad.meta||'';document.getElementById('editAdIcon').value=ad.icon||'';document.getElementById('editAdCode').value=ad.claim_code||'';
     openModal('editAd');
 }
 async function saveAd(){
     const id=parseInt(document.getElementById('editAdId').value);
-    const r=await apiPost('/api/update-ad',{ad_id:id,admin_id:userData.user_id,title:document.getElementById('editAdTitle').value,reward:parseFloat(document.getElementById('editAdReward').value),link:document.getElementById('editAdLink').value,meta:document.getElementById('editAdMeta').value,icon:document.getElementById('editAdIcon').value});
-    if(r&&r.success){showToast('✅ Updated! Claims reset so users can reclaim.');loadAds();closeModal('editAd');}else showToast('❌ '+(r?.message||'Failed'));
+    const code=document.getElementById('editAdCode').value.trim().toUpperCase()||null;
+    const r=await apiPost('/api/update-ad',{ad_id:id,admin_id:userData.user_id,title:document.getElementById('editAdTitle').value,reward:parseFloat(document.getElementById('editAdReward').value),link:document.getElementById('editAdLink').value,meta:document.getElementById('editAdMeta').value,icon:document.getElementById('editAdIcon').value,claim_code:code});
+    if(r&&r.success){showToast('✅ Updated! Claims reset.');loadAds();closeModal('editAd');}else showToast('❌ '+(r?.message||'Failed'));
 }
 async function delAd(id){
     if(!confirm('Delete this offer?'))return;
@@ -1377,56 +1417,44 @@ async function delAd(id){
 function deleteAdFromEdit(){delAd(parseInt(document.getElementById('editAdId').value));closeModal('editAd');}
 function toggleAdminEdit(){adminEditMode=!adminEditMode;loadAds();showToast(adminEditMode?'✏️ Edit Mode ON':'✅ Edit Mode OFF');}
 
-// ===== ADMIN SUPPORT PANEL =====
 async function openAdminSupport(){
     openModal('adminSupport');
-    const el=document.getElementById('adminSupportList');
-    el.innerHTML='<div style="text-align:center;padding:18px;color:var(--text3);">Loading...</div>';
+    const el=document.getElementById('adminSupportList');el.innerHTML='<div style="text-align:center;padding:18px;color:var(--text3);">Loading...</div>';
     const r=await apiGet('/api/admin/support-messages?admin_id='+userData.user_id);
-    if(!r||!r.length){el.innerHTML='<div style="text-align:center;padding:18px;color:var(--text3);">No support messages</div>';return;}
-    el.innerHTML=r.map(msg=>`
-        <div class="support-item">
-            <div class="support-item-top">
-                <div>
-                    <div class="support-item-user">👤 ${msg.user_name||'User'} <span style="font-size:10px;color:var(--text3);">(ID: ${msg.user_id})</span></div>
-                    ${msg.username?`<div style="font-size:10px;color:var(--blue);">@${msg.username}</div>`:''}
-                </div>
-                <div class="support-item-time">${msg.timestamp?new Date(msg.timestamp).toLocaleString():'-'}</div>
-            </div>
-            <div class="support-item-msg">${msg.message}</div>
-            ${msg.admin_reply?`<div style="margin-top:7px;background:rgba(25,216,158,.08);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--green);">✅ Replied: ${msg.admin_reply}</div>`:`
-            <div class="support-reply-row">
-                <input class="support-reply-inp" id="reply_${msg._id}" placeholder="Type reply..." type="text">
-                <button class="support-reply-btn" onclick="replySupport('${msg._id}','${msg.user_id}')">Send</button>
-            </div>`}
-        </div>
-    `).join('');
+    if(!r||!r.length){el.innerHTML='<div style="text-align:center;padding:18px;color:var(--text3);">No messages</div>';return;}
+    el.innerHTML=r.map(msg=>`<div class="support-item"><div class="support-item-top"><div><div class="support-item-user">👤 ${msg.user_name||'User'} <span style="font-size:10px;color:var(--text3);">(ID:${msg.user_id})</span></div>${msg.username?`<div style="font-size:10px;color:var(--blue);">@${msg.username}</div>`:''}</div><div class="support-item-time">${msg.timestamp?new Date(msg.timestamp).toLocaleString():'-'}</div></div><div class="support-item-msg">${msg.message}</div>${msg.admin_reply?`<div style="margin-top:7px;background:rgba(25,216,158,.08);border-radius:8px;padding:8px;font-size:11px;color:var(--green);">✅ ${msg.admin_reply}</div>`:`<div class="support-reply-row"><input class="support-reply-inp" id="reply_${msg._id}" placeholder="Reply..." type="text"><button class="support-reply-btn" onclick="replySupport('${msg._id}','${msg.user_id}')">Send</button></div>`}</div>`).join('');
 }
 async function replySupport(msgId,userId){
-    const inp=document.getElementById('reply_'+msgId);
-    if(!inp||!inp.value.trim()){showToast('❌ Reply likhiye');return;}
+    const inp=document.getElementById('reply_'+msgId);if(!inp||!inp.value.trim()){showToast('❌ Reply likhiye');return;}
     const r=await apiPost('/api/admin/reply-support',{admin_id:userData.user_id,message_id:msgId,reply:inp.value.trim(),user_id:parseInt(userId)});
-    if(r&&r.success){showToast('✅ Reply sent!');openAdminSupport();}
-    else showToast('❌ '+(r?.message||'Failed'));
+    if(r&&r.success){showToast('✅ Reply sent!');openAdminSupport();}else showToast('❌ '+(r?.message||'Failed'));
 }
 
-function buyPasses(passes,price){
-    if(!userData.user_id){showToast('❌ Login required');return;}
-    const msg=`Hi! I want to buy ${passes} Game Passes (₹${price}). My User ID: ${userData.user_id}`;
-    window.open(`https://t.me/asbhiabsr?text=${encodeURIComponent(msg)}`,'_blank');
-    showToast(`📩 Admin ko message bheja!`);
+// ============================================================
+// SHARE (any platform)
+// ============================================================
+function copyRef(){
+    navigator.clipboard.writeText(getRefLink()).then(()=>showToast('✅ Link copied!'));playSound('tap');
 }
-function copyRef(){navigator.clipboard.writeText(getRefLink()).then(()=>showToast('✅ Link copied!'));playSound('tap');}
 function shareOn(platform){
-    const link=getRefLink(),text=`EarnZone se paise kamao! 💰 ${link}`;
-    if(platform==='telegram')window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('Paise kamao!')}`, '_blank');
-    else if(platform==='whatsapp')window.open(`https://wa.me/?text=${encodeURIComponent(text)}`,'_blank');
-    else if(navigator.share)navigator.share({title:'EarnZone',text,url:link});
-    else{navigator.clipboard.writeText(link);showToast('✅ Link copied!');}
+    const link=getRefLink();
+    const text=lang==='hi'?`EarnZone se paise kamao! 💰\nMere referral link se join karo:\n${link}`:`Earn money with EarnZone! 💰\nJoin using my referral link:\n${link}`;
+    if(platform==='telegram'){window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('EarnZone se paise kamao!')}`, '_blank');}
+    else if(platform==='whatsapp'){window.open(`https://wa.me/?text=${encodeURIComponent(text)}`,'_blank');}
+    else{
+        // Universal share — works on any platform
+        if(navigator.share){
+            navigator.share({title:'EarnZone - Earn Money',text,url:link}).catch(()=>{navigator.clipboard.writeText(link);showToast('✅ Link copied!');});
+        }else{
+            navigator.clipboard.writeText(link);showToast('✅ Link copied — paste anywhere!');
+        }
+    }
     playSound('tap');
 }
 
-// ===== LEADERBOARD =====
+// ============================================================
+// LEADERBOARD (show all users, filter prize for 50/200)
+// ============================================================
 function switchLB(mode){
     lbMode=mode;
     document.getElementById('lbWeeklyTab').classList.toggle('active',mode==='weekly');
@@ -1436,32 +1464,38 @@ function switchLB(mode){
 function renderLeaderboard(data){
     const el=document.getElementById('lbContent');
     if(!data||!data.length){el.innerHTML=`<div style="text-align:center;padding:26px;color:var(--text3);">No data yet</div>`;return;}
-    const minRefs=lbMode==='weekly'?50:200;
-    const qualified=data.filter(u=>(u.active_refs||0)>=minRefs);
+    const prizeMin=lbMode==='weekly'?50:200;
     const prizes=lbMode==='weekly'?[150,65,30,10,10,10,10,10,10,10]:[300,200,200,30,30,30,30,30,30,30];
+    // Sort by active_refs
+    const sorted=[...data].sort((a,b)=>(b.active_refs||0)-(a.active_refs||0));
     let html='';
-    if(qualified.length>=1){
+    if(sorted.length>=1){
         html+=`<div class="lb-podium">`;
-        if(qualified.length>=2)html+=`<div class="podium-slot p2"><div class="podium-dp">${(qualified[1].name||'U')[0]}</div><div class="podium-name">${qualified[1].name||'User'}</div><div style="font-size:9px;color:var(--text2)">${qualified[1].active_refs||0} refs</div><div class="podium-bar">🥈</div></div>`;
-        html+=`<div class="podium-slot p1"><div class="podium-dp">${(qualified[0].name||'U')[0]}</div><div class="podium-name">${qualified[0].name||'User'}</div><div style="font-size:9px;color:var(--text2)">${qualified[0].active_refs||0} refs</div><div class="podium-bar">🥇</div></div>`;
-        if(qualified.length>=3)html+=`<div class="podium-slot p3"><div class="podium-dp">${(qualified[2].name||'U')[0]}</div><div class="podium-name">${qualified[2].name||'User'}</div><div style="font-size:9px;color:var(--text2)">${qualified[2].active_refs||0} refs</div><div class="podium-bar">🥉</div></div>`;
+        if(sorted.length>=2)html+=`<div class="podium-slot p2"><div class="podium-dp">${(sorted[1].name||'U')[0]}</div><div class="podium-name">${sorted[1].name||'User'}</div><div style="font-size:9px;color:var(--text2)">${sorted[1].active_refs||0} refs • ₹${sorted[1].balance?.toFixed(2)||'0'}</div><div class="podium-bar">🥈</div>${(sorted[1].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">Prize: ₹${prizes[1]}</div>`:''}</div>`;
+        html+=`<div class="podium-slot p1"><div class="podium-dp">${(sorted[0].name||'U')[0]}</div><div class="podium-name">${sorted[0].name||'User'}</div><div style="font-size:9px;color:var(--text2)">${sorted[0].active_refs||0} refs • ₹${sorted[0].balance?.toFixed(2)||'0'}</div><div class="podium-bar">🥇</div>${(sorted[0].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">Prize: ₹${prizes[0]}</div>`:''}</div>`;
+        if(sorted.length>=3)html+=`<div class="podium-slot p3"><div class="podium-dp">${(sorted[2].name||'U')[0]}</div><div class="podium-name">${sorted[2].name||'User'}</div><div style="font-size:9px;color:var(--text2)">${sorted[2].active_refs||0} refs • ₹${sorted[2].balance?.toFixed(2)||'0'}</div><div class="podium-bar">🥉</div>${(sorted[2].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">Prize: ₹${prizes[2]}</div>`:''}</div>`;
         html+=`</div>`;
     }
-    if(qualified.length>3){
+    if(sorted.length>3){
         html+=`<div class="lb-list">`;
-        qualified.slice(3,10).forEach((u,i)=>{html+=`<div class="lb-item"><div class="lb-rank">${i+4}</div><div class="lb-info"><div class="lb-name">${u.name||'User'}</div><div class="lb-refs">${u.active_refs||0} active refs</div></div><div class="lb-prize">₹${prizes[i+3]||0}</div></div>`;});
+        sorted.slice(3).forEach((u,i)=>{
+            const hasPrize=(u.active_refs||0)>=prizeMin;
+            html+=`<div class="lb-item"><div class="lb-rank">${i+4}</div><div class="lb-info"><div class="lb-name">${u.name||'User'}</div><div class="lb-refs">${u.active_refs||0} active refs • ₹${u.balance?.toFixed(2)||'0'} • ${u.pending_refs||0} pending</div></div>${hasPrize?`<div class="lb-prize">₹${prizes[i+3]||0}</div>`:'<div style="font-size:10px;color:var(--text3);">${prizeMin}+ needed</div>'}</div>`;
+        });
         html+=`</div>`;
     }
-    if(!qualified.length)html=`<div style="text-align:center;padding:16px;background:var(--bg3);border-radius:14px;"><div style="font-size:40px;margin-bottom:8px;">🏆</div><div style="font-weight:800;">Min ${minRefs} refs needed</div></div>`;
     el.innerHTML=html;
 }
+
 function renderHistory(data){
     const el=document.getElementById('histContainer');
     if(!data||!data.length){el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--text3);">${lang==='en'?'No withdrawals yet':'Koi withdrawal nahi abhi'}</div>`;return;}
     el.innerHTML=data.map(h=>`<div class="hist-item"><div class="hist-top"><span class="hist-amt">₹${h.amount}</span><span class="hist-status status-${h.status||'pending'}">${h.status||'pending'}</span></div><div class="hist-bot"><span>${h.request_date?new Date(h.request_date).toLocaleDateString():'-'}</span><span>${h.method||'UPI'}</span></div></div>`).join('');
 }
 
-// ===== WITHDRAW =====
+// ============================================================
+// WITHDRAW
+// ============================================================
 function selMethod(m){
     selectedMethod=m;
     document.getElementById('methodUpi').classList.toggle('sel',m==='upi');
@@ -1479,8 +1513,12 @@ async function doWithdraw(){
     if(selectedMethod==='upi'){const u=document.getElementById('upiId').value;if(!u){showToast('❌ UPI ID bharo');return;}details=u;}
     else{const a=document.getElementById('accNo').value,i=document.getElementById('ifsc').value,n=document.getElementById('accName').value;if(!a||!i||!n){showToast('❌ Bank details bharo');return;}details=`${n}|${a}|${i}`;}
     const r=await apiPost('/api/withdraw',{user_id:userData.user_id,amount:amt,method:selectedMethod==='upi'?'UPI':'Bank',details});
-    if(r&&r.success){userData.balance-=amt;updateUI();closeModal('withdraw');showToast('✅ Withdrawal requested!');playSound('earn');}
-    else showToast('❌ '+(r?.message||'Failed'));
+    if(r&&r.success){
+        userData.balance-=amt;updateUI();closeModal('withdraw');showToast('✅ Withdrawal requested!');playSound('earn');
+        // Update withdraw mission
+        if(missionStates['m_withdraw']){missionStates['m_withdraw'].progress=1;missionStates['m_withdraw'].completed=true;}
+        updateMissionsUI();
+    }else showToast('❌ '+(r?.message||'Failed'));
 }
 async function sendSupport(){
     const msg=document.getElementById('supportMsg').value.trim();
@@ -1490,7 +1528,9 @@ async function sendSupport(){
     else showToast('❌ '+(r?.message||'Failed'));
 }
 
-// ===== GAMES =====
+// ============================================================
+// GAMES (no limit, just passes)
+// ============================================================
 function drawWheel(angle){
     const cv=document.getElementById('spinCanvas');if(!cv)return;
     const ctx=cv.getContext('2d'),cx=127,cy=127,r=120,n=SEGS.length,seg=(2*Math.PI)/n;
@@ -1509,14 +1549,15 @@ function drawWheel(angle){
 }
 async function doSpin(){
     if(isSpinning)return;
-    if((userData.passes||0)<=0){showToast('❌ '+(lang==='en'?'No passes! Refer friends or claim daily bonus':'Passes nahi! Refer karo ya daily bonus lo'));return;}
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi! Refer karo ya daily bonus lo');return;}
     isSpinning=true;
     const btn=document.getElementById('spinBtn');btn.disabled=true;btn.textContent='⏳...';
     document.getElementById('spinResultBox').style.display='none';
     playSound('tap');
     const r=await apiPost('/api/game/spin',{user_id:userData.user_id});
     if(!r||!r.success){isSpinning=false;btn.disabled=false;btn.textContent='🎰 SPIN (1 Pass)';showToast('❌ '+(r?.message||'Error'));return;}
-    const sel=r.segment_index!==undefined?r.segment_index:Math.floor(Math.random()*SEGS.length);
+    // FIXED: use actual reward segment matching
+    const sel=r.segment_index!==undefined?r.segment_index:SEGS.findIndex(s=>Math.abs(s.v-(r.reward||0.5))<0.01)||0;
     const n=SEGS.length,seg=(2*Math.PI)/n,target=-Math.PI/2-(sel*seg+seg/2),extra=(5+Math.floor(Math.random()*4))*2*Math.PI,final=extra+target,dur=3200,startA=spinAngle,startT=performance.now();
     function anim(now){
         const el=now-startT,prog=Math.min(el/dur,1),ease=1-Math.pow(1-prog,4);
@@ -1526,10 +1567,10 @@ async function doSpin(){
         userData.passes=Math.max(0,(userData.passes||1)-1);
         gameState.today_game_earned=(gameState.today_game_earned||0)+(r.reward||0);
         gameState.wins=(gameState.wins||0)+1;
-        missions.m3.p=1;missions.m3.done=true;
+        if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
         updateUI();updateMissionsUI();
         document.getElementById('spinResultAmt').textContent=`+₹${parseFloat(r.reward||0).toFixed(2)}`;
-        document.getElementById('spinResultTxt').textContent=(r.reward||0)>=2?'🎉 Jackpot!':'✅ '+(lang==='en'?'Congratulations!':'Badhaai ho!');
+        document.getElementById('spinResultTxt').textContent=(r.reward||0)>=2?'🎉 Jackpot!':'✅ Badhaai ho!';
         document.getElementById('spinResultBox').style.display='block';
         playSound('earn');btn.disabled=false;btn.textContent='🎰 SPIN (1 Pass)';
     }
@@ -1539,53 +1580,43 @@ async function doSpin(){
 function startGuess(){
     guessActive=true;
     document.getElementById('guessDisp').textContent='?';document.getElementById('guessDisp').style.color='var(--gold)';
-    document.getElementById('guessHint').textContent=t('guess_hint');
+    document.getElementById('guessHint').textContent='1 se 10 ke beech guess karo';
     renderNumGrid();
 }
 function renderNumGrid(){document.getElementById('numGrid').innerHTML=[...Array(10)].map((_,i)=>`<button class="num-btn" id="nb${i+1}" onclick="makeGuess(${i+1})">${i+1}</button>`).join('');}
 function selGuessBet(a,el){if(a>userData.balance){showToast('❌ Balance kam hai!');return;}guessBet=a;document.querySelectorAll('#guessModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');document.getElementById('guessBetDisp').textContent=`₹${guessBet}`;}
 async function makeGuess(num){
     if(!guessActive)return;
-    if((userData.passes||0)<=0){showToast('❌ '+(lang==='en'?'No passes!':'Passes nahi!'));return;}
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
     if(userData.balance<guessBet){showToast('❌ Balance kam hai!');return;}
     playSound('tap');document.querySelectorAll('.num-btn').forEach(b=>b.disabled=true);
     const r=await apiPost('/api/game/guess',{user_id:userData.user_id,guess:num,bet:guessBet});
-    if(!r||!r.success){
-        const btn=document.getElementById(`nb${num}`);btn.classList.add('wrong');
-        document.getElementById('guessHint').textContent=r?.message||'Error';playSound('lose');
-        document.querySelectorAll('.num-btn').forEach(b=>{if(!b.classList.contains('wrong'))b.disabled=false;});
-        return;
-    }
-    const btn=document.getElementById(`nb${num}`);
+    if(!r||!r.success){const btn2=document.getElementById(`nb${num}`);btn2.classList.add('wrong');document.getElementById('guessHint').textContent=r?.message||'Error';playSound('lose');document.querySelectorAll('.num-btn').forEach(b=>{if(!b.classList.contains('wrong'))b.disabled=false;});return;}
+    const btn2=document.getElementById(`nb${num}`);
     if(r.correct){
-        btn.classList.add('correct');document.getElementById('guessDisp').textContent=num;document.getElementById('guessDisp').style.color='var(--green)';
+        btn2.classList.add('correct');document.getElementById('guessDisp').textContent=num;document.getElementById('guessDisp').style.color='var(--green)';
         document.getElementById('guessHint').textContent=`🎉 +₹${parseFloat(r.reward||0).toFixed(2)}`;
-        userData.passes=Math.max(0,(userData.passes||1)-1);gameState.wins=(gameState.wins||0)+1;missions.m3.p=1;missions.m3.done=true;
+        userData.passes=Math.max(0,(userData.passes||1)-1);gameState.wins=(gameState.wins||0)+1;
+        if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
         playSound('earn');showToast(`🎉 +₹${parseFloat(r.reward||0).toFixed(2)}`);updateUI();updateMissionsUI();guessActive=false;await loadUser();setTimeout(startGuess,2000);
     }else if(r.secret!=null){
-        btn.classList.add('wrong');document.getElementById('guessDisp').textContent=r.secret;document.getElementById('guessDisp').style.color='var(--red)';
+        btn2.classList.add('wrong');document.getElementById('guessDisp').textContent=r.secret;document.getElementById('guessDisp').style.color='var(--red)';
         document.getElementById('guessHint').textContent=`❌ Number was: ${r.secret}`;userData.passes=Math.max(0,(userData.passes||1)-1);
         playSound('lose');guessActive=false;await loadUser();setTimeout(startGuess,2000);
     }else{
-        btn.classList.add('wrong');document.getElementById('guessHint').textContent=r.hint||'Try again!';playSound('lose');
+        btn2.classList.add('wrong');document.getElementById('guessHint').textContent=r.hint||'Try again!';playSound('lose');
         document.querySelectorAll('.num-btn').forEach(b=>{if(!b.classList.contains('wrong'))b.disabled=false;});
     }
     updateUI();
 }
 
-function resetCoinUI(){
-    coinChoice=null;coinBet=1;coinFlipping=false;
-    document.getElementById('coinChoiceH').classList.remove('sel');document.getElementById('coinChoiceT').classList.remove('sel');
-    document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';
-    const btn=document.getElementById('flipBtn');if(btn){btn.disabled=false;btn.textContent='🪙 FLIP!';}
-    document.getElementById('theCoin').style.transform='rotateY(0deg)';
-}
+function resetCoinUI(){coinChoice=null;coinBet=1;coinFlipping=false;document.getElementById('coinChoiceH').classList.remove('sel');document.getElementById('coinChoiceT').classList.remove('sel');document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';const btn=document.getElementById('flipBtn');if(btn){btn.disabled=false;btn.textContent='🪙 FLIP!';}document.getElementById('theCoin').style.transform='rotateY(0deg)';}
 function chooseCoin(s){if(coinFlipping)return;coinChoice=s;document.getElementById('coinChoiceH').classList.toggle('sel',s==='heads');document.getElementById('coinChoiceT').classList.toggle('sel',s==='tails');playSound('tap');}
 function selCoinBet(a,el){if(a>userData.balance){showToast('❌ Balance kam hai!');return;}coinBet=a;document.querySelectorAll('#coinModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
 async function doFlip(){
-    if(!coinChoice){showToast('❌ '+(lang==='en'?'Choose Heads or Tails first!':'Pehle Heads ya Tails choose karo!'));return;}
+    if(!coinChoice){showToast('❌ Pehle Heads ya Tails choose karo!');return;}
     if(coinFlipping)return;
-    if((userData.passes||0)<=0){showToast('❌ '+(lang==='en'?'No passes!':'Passes nahi!'));return;}
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
     if(userData.balance<coinBet){showToast('❌ Balance kam hai!');return;}
     coinFlipping=true;document.getElementById('flipBtn').disabled=true;
     document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';
@@ -1599,86 +1630,49 @@ async function doFlip(){
         coinFlipping=false;
         if(r&&r.success){
             userData.passes=Math.max(0,(userData.passes||1)-1);
-            if(r.won){document.getElementById('coinWinAmt').textContent=`+₹${parseFloat(r.reward||0).toFixed(2)}`;document.getElementById('coinResWin').style.display='block';playSound('earn');showToast(`🎉 +₹${parseFloat(r.reward||0).toFixed(2)}`);gameState.wins=(gameState.wins||0)+1;missions.m3.p=1;missions.m3.done=true;}
-            else{document.getElementById('coinLoseAmt').textContent=`-₹${coinBet}`;document.getElementById('coinResLose').style.display='block';playSound('lose');showToast('😢 '+(lang==='en'?'Lost!':'Haar gaye!'));}
+            if(r.won){document.getElementById('coinWinAmt').textContent=`+₹${parseFloat(r.reward||0).toFixed(2)}`;document.getElementById('coinResWin').style.display='block';playSound('earn');showToast(`🎉 +₹${parseFloat(r.reward||0).toFixed(2)}`);gameState.wins=(gameState.wins||0)+1;if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}}
+            else{document.getElementById('coinLoseAmt').textContent=`-₹${coinBet}`;document.getElementById('coinResLose').style.display='block';playSound('lose');showToast('😢 Haar gaye!');}
             await loadUser();updateUI();updateMissionsUI();
         }
         setTimeout(()=>{document.getElementById('flipBtn').disabled=false;document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';coinChoice=null;document.getElementById('coinChoiceH').classList.remove('sel');document.getElementById('coinChoiceT').classList.remove('sel');coin.style.transition='none';coin.style.transform='rotateY(0deg)';},2500);
     },1300);
 }
 
-// ===== SCRATCH CARD - FULLY FIXED =====
+// ============================================================
+// SCRATCH CARD - FIXED (shows correct reward, weighted)
+// ============================================================
 function initScratch(){
-    scratchRevealed=false;scratchDrawing=false;scratchInitialized=false;
+    scratchRevealed=false;scratchDrawing=false;
     document.getElementById('scratchAmt').textContent='?';
-    document.getElementById('scratchLbl').textContent=t('scratch_lbl');
+    document.getElementById('scratchLbl').textContent='Khurcho aur jaano!';
     document.getElementById('scratchProgFill').style.width='0%';
-    document.getElementById('scratchHintTxt').textContent='👆 '+t('scratch_hint');
+    document.getElementById('scratchHintTxt').textContent='👆 Yahan finger se khurcho!';
     document.getElementById('newScratchBtn').disabled=true;
-
     const area=document.getElementById('scratchArea');
     const cv=document.getElementById('scratchCanvas');
-
-    // Set proper dimensions
     const rect=area.getBoundingClientRect();
-    const W=rect.width||320;
-    const H=170;
-    cv.width=W;cv.height=H;
-    cv.style.width=W+'px';cv.style.height=H+'px';
-
+    const W=rect.width||320,H=170;
+    cv.width=W;cv.height=H;cv.style.width=W+'px';cv.style.height=H+'px';
     scratchCtx=cv.getContext('2d');
     scratchCtx.globalCompositeOperation='source-over';
-
-    // Draw cover layer
-    const grad=scratchCtx.createLinearGradient(0,0,W,H);
-    grad.addColorStop(0,'#2d3748');grad.addColorStop(.5,'#4a5568');grad.addColorStop(1,'#1a202c');
-    scratchCtx.fillStyle=grad;
-    scratchCtx.fillRect(0,0,W,H);
-
-    // Stars pattern
-    for(let i=0;i<20;i++){
-        scratchCtx.fillStyle=`rgba(255,255,255,${0.05+Math.random()*.1})`;
-        scratchCtx.beginPath();
-        scratchCtx.arc(Math.random()*W,Math.random()*H,Math.random()*2+1,0,Math.PI*2);
-        scratchCtx.fill();
-    }
-
-    scratchCtx.fillStyle='rgba(255,255,255,.55)';
-    scratchCtx.font=`bold 17px Space Grotesk`;
-    scratchCtx.textAlign='center';scratchCtx.textBaseline='middle';
-    scratchCtx.fillText('✨ '+t('scratch_hint')+' ✨',W/2,H/2-12);
-    scratchCtx.font='12px Space Grotesk';
-    scratchCtx.fillStyle='rgba(255,255,255,.35)';
-    scratchCtx.fillText(lang==='en'?'Scratch to reveal your reward!':'Apni luck azmaao!',W/2,H/2+14);
-
-    // Set composite for scratching
+    const grad=scratchCtx.createLinearGradient(0,0,W,H);grad.addColorStop(0,'#2d3748');grad.addColorStop(.5,'#4a5568');grad.addColorStop(1,'#1a202c');
+    scratchCtx.fillStyle=grad;scratchCtx.fillRect(0,0,W,H);
+    for(let i=0;i<20;i++){scratchCtx.fillStyle=`rgba(255,255,255,${0.05+Math.random()*.1})`;scratchCtx.beginPath();scratchCtx.arc(Math.random()*W,Math.random()*H,Math.random()*2+1,0,Math.PI*2);scratchCtx.fill();}
+    scratchCtx.fillStyle='rgba(255,255,255,.55)';scratchCtx.font='bold 16px Space Grotesk';scratchCtx.textAlign='center';scratchCtx.textBaseline='middle';scratchCtx.fillText('✨ Finger se khurcho! ✨',W/2,H/2-12);
+    scratchCtx.font='11px Space Grotesk';scratchCtx.fillStyle='rgba(255,255,255,.35)';scratchCtx.fillText('Apni luck azmaao!',W/2,H/2+14);
     scratchCtx.globalCompositeOperation='destination-out';
-    scratchInitialized=true;
-
-    // Remove old listeners by replacing canvas
-    const newCv=cv.cloneNode(true);
-    cv.parentNode.replaceChild(newCv,cv);
+    // Reset events
+    const newCv=cv.cloneNode(false);cv.parentNode.replaceChild(newCv,cv);
+    newCv.width=W;newCv.height=H;newCv.style.width=W+'px';newCv.style.height=H+'px';
     scratchCtx=newCv.getContext('2d');
-
-    // Redraw cover on new canvas
     scratchCtx.globalCompositeOperation='source-over';
     scratchCtx.fillStyle=grad;scratchCtx.fillRect(0,0,W,H);
     for(let i=0;i<20;i++){scratchCtx.fillStyle=`rgba(255,255,255,${0.05+Math.random()*.1})`;scratchCtx.beginPath();scratchCtx.arc(Math.random()*W,Math.random()*H,Math.random()*2+1,0,Math.PI*2);scratchCtx.fill();}
-    scratchCtx.fillStyle='rgba(255,255,255,.55)';scratchCtx.font=`bold 17px Space Grotesk`;scratchCtx.textAlign='center';scratchCtx.textBaseline='middle';scratchCtx.fillText('✨ '+t('scratch_hint')+' ✨',W/2,H/2-12);scratchCtx.font='12px Space Grotesk';scratchCtx.fillStyle='rgba(255,255,255,.35)';scratchCtx.fillText(lang==='en'?'Scratch to reveal!':'Apni luck azmaao!',W/2,H/2+14);
+    scratchCtx.fillStyle='rgba(255,255,255,.55)';scratchCtx.font='bold 16px Space Grotesk';scratchCtx.textAlign='center';scratchCtx.textBaseline='middle';scratchCtx.fillText('✨ Finger se khurcho! ✨',W/2,H/2-12);
+    scratchCtx.font='11px Space Grotesk';scratchCtx.fillStyle='rgba(255,255,255,.35)';scratchCtx.fillText('Apni luck azmaao!',W/2,H/2+14);
     scratchCtx.globalCompositeOperation='destination-out';
-
-    function getPos(e,canvas){
-        const r2=canvas.getBoundingClientRect();
-        if(e.touches){return{x:(e.touches[0].clientX-r2.left)*(canvas.width/r2.width),y:(e.touches[0].clientY-r2.top)*(canvas.height/r2.height)};}
-        return{x:(e.clientX-r2.left)*(canvas.width/r2.width),y:(e.clientY-r2.top)*(canvas.height/r2.height)};
-    }
-    function scratchAt(pos){
-        if(scratchRevealed)return;
-        scratchCtx.beginPath();
-        scratchCtx.arc(pos.x,pos.y,28,0,Math.PI*2);
-        scratchCtx.fill();
-        checkScratchProgress(newCv);
-    }
+    function getPos(e,c2){const r2=c2.getBoundingClientRect();if(e.touches)return{x:(e.touches[0].clientX-r2.left)*(c2.width/r2.width),y:(e.touches[0].clientY-r2.top)*(c2.height/r2.height)};return{x:(e.clientX-r2.left)*(c2.width/r2.width),y:(e.clientY-r2.top)*(c2.height/r2.height)};}
+    function scratchAt(pos){if(scratchRevealed)return;scratchCtx.beginPath();scratchCtx.arc(pos.x,pos.y,28,0,Math.PI*2);scratchCtx.fill();checkScratchProgress(newCv);}
     newCv.addEventListener('mousedown',e=>{scratchDrawing=true;scratchAt(getPos(e,newCv));});
     newCv.addEventListener('mousemove',e=>{if(scratchDrawing)scratchAt(getPos(e,newCv));});
     newCv.addEventListener('mouseup',()=>scratchDrawing=false);
@@ -1687,57 +1681,46 @@ function initScratch(){
     newCv.addEventListener('touchmove',e=>{e.preventDefault();if(scratchDrawing)scratchAt(getPos(e,newCv));},{passive:false});
     newCv.addEventListener('touchend',e=>{e.preventDefault();scratchDrawing=false;},{passive:false});
 }
-
 async function checkScratchProgress(cv){
     if(scratchRevealed)return;
     const data=scratchCtx.getImageData(0,0,cv.width,cv.height).data;
-    let cleared=0;
-    for(let i=3;i<data.length;i+=4)if(data[i]===0)cleared++;
+    let cleared=0;for(let i=3;i<data.length;i+=4)if(data[i]===0)cleared++;
     const pct=(cleared/(cv.width*cv.height))*100;
     document.getElementById('scratchProgFill').style.width=`${Math.min(pct*1.3,100)}%`;
-
     if(pct>45&&!scratchRevealed){
-        scratchRevealed=true;
-        // Clear remaining cover
-        scratchCtx.clearRect(0,0,cv.width,cv.height);
+        scratchRevealed=true;scratchCtx.clearRect(0,0,cv.width,cv.height);
         document.getElementById('scratchProgFill').style.width='100%';
-        document.getElementById('scratchHintTxt').textContent='⏳ '+(lang==='en'?'Processing...':'Processing...');
-
-        if((userData.passes||0)<=0){
-            document.getElementById('scratchHintTxt').textContent='❌ '+(lang==='en'?'No passes!':'Passes nahi!');
-            showToast('❌ Passes nahi!');return;
-        }
+        document.getElementById('scratchHintTxt').textContent='⏳ Processing...';
+        if((userData.passes||0)<=0){document.getElementById('scratchHintTxt').textContent='❌ Passes nahi!';showToast('❌ Passes nahi!');return;}
         const r=await apiPost('/api/game/scratch',{user_id:userData.user_id});
         if(r&&r.success){
-            document.getElementById('scratchAmt').textContent=`₹${r.reward}`;
-            document.getElementById('scratchLbl').textContent=r.reward>=2?'🎉 '+(lang==='en'?'Jackpot!':'Jackpot!'):(lang==='en'?'Your reward!':'Aapka inaam!');
+            // FIXED: Show actual reward amount correctly
+            const rewardVal=parseFloat(r.reward||0);
+            document.getElementById('scratchAmt').textContent=`₹${rewardVal.toFixed(rewardVal<1?2:1)}`;
+            document.getElementById('scratchLbl').textContent=rewardVal>=2?'🎉 Jackpot!':rewardVal>=1?'🎊 Achha!':`₹${rewardVal.toFixed(2)}`;
             document.getElementById('scratchCardsLeft').textContent=r.scratch_left||0;
-            document.getElementById('scratchHintTxt').textContent='🎊 '+(lang==='en'?'Revealed!':'Reveal!');
-            userData.passes=Math.max(0,(userData.passes||1)-1);missions.m3.p=1;missions.m3.done=true;
-            playSound('earn');showToast(`🎫 +₹${r.reward}!`);await loadUser();updateUI();updateMissionsUI();
+            document.getElementById('scratchHintTxt').textContent='🎊 Revealed!';
+            userData.passes=Math.max(0,(userData.passes||1)-1);
+            if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
+            playSound('earn');showToast(`🎫 +₹${rewardVal.toFixed(2)}!`);await loadUser();updateUI();updateMissionsUI();
             document.getElementById('newScratchBtn').disabled=false;
-        }else{
-            document.getElementById('scratchHintTxt').textContent='❌ '+(r?.message||'Error');
-            showToast('❌ '+(r?.message||'Error'));
-        }
+        }else{document.getElementById('scratchHintTxt').textContent='❌ '+(r?.message||'Error');showToast('❌ '+(r?.message||'Error'));}
     }
 }
-
-function newScratch(){
-    if((userData.passes||0)<=0){showToast('❌ '+(lang==='en'?'No passes!':'Passes nahi!'));return;}
-    initScratch();playSound('tap');
-}
+function newScratch(){if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}initScratch();playSound('tap');}
 
 function openGame(g){
     playSound('tap');
-    if((userData.passes||0)<=0){showToast('❌ '+(lang==='en'?'No passes! Refer friends or claim daily bonus':'Passes nahi! Refer karo ya daily bonus lo'));return;}
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi! Refer karo ya daily bonus lo');return;}
     if(g==='spin'){drawWheel(spinAngle);openModal('spin');}
     else if(g==='guess'){startGuess();openModal('guess');}
     else if(g==='coin'){resetCoinUI();openModal('coin');}
     else if(g==='scratch'){openModal('scratch');setTimeout(initScratch,200);}
 }
 
-// ===== TAB SWITCH =====
+// ============================================================
+// TAB & MODAL
+// ============================================================
 const pageIds=['homePage','rankPage','gamesPage','profilePage','historyPage'];
 function switchTab(idx){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -1749,70 +1732,51 @@ function switchTab(idx){
     else if(idx===3){updateUI();loadRefActivity();}
     else if(idx===4)loadWithdrawalHistory();
 }
-
-// ===== MODAL SYSTEM =====
-function openModal(id){
-    const el=document.getElementById(id+'Modal');if(!el)return;
-    el.classList.add('open');
-    if(id==='missions')updateMissionsUI();
-    if(id==='dailyBonus')buildTrainChain();
-}
+function openModal(id){const el=document.getElementById(id+'Modal');if(!el)return;el.classList.add('open');if(id==='missions')updateMissionsUI();if(id==='dailyBonus')buildTrainChain();}
 function closeModal(id){const el=document.getElementById(id+'Modal');if(el)el.classList.remove('open');}
 
-// ===== THEME =====
+// ============================================================
+// THEME & SOUND
+// ============================================================
 function toggleTheme(){
     const html=document.documentElement;
     if(currentTheme==='dark'){html.setAttribute('data-theme','light');currentTheme='light';['themeToggleEl','themeToggleEl2'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('on');});}
     else{html.removeAttribute('data-theme');currentTheme='dark';['themeToggleEl','themeToggleEl2'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('on');});}
     playSound('tap');
 }
-
-// ===== SOUND =====
-function toggleSound(){
-    soundOn=!soundOn;
-    ['soundToggleEl','soundToggleEl2'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',soundOn);});
-    if(soundOn)playSound('tap');
-}
+function toggleSound(){soundOn=!soundOn;['soundToggleEl','soundToggleEl2'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',soundOn);});if(soundOn)playSound('tap');}
+let audioCtx2=null;
 function playSound(type){
     if(!soundOn)return;
     try{
-        if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-        if(audioCtx.state==='suspended')audioCtx.resume();
-        const now=audioCtx.currentTime;
-        if(type==='tap'){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=600;g.gain.value=.04;o.start(now);o.stop(now+.05);}
-        else if(type==='earn'){[400,500,600,700,900].forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=f;g.gain.value=.08;o.start(now+i*.08);o.stop(now+i*.08+.1);});}
-        else if(type==='lose'){[300,250,200].forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=f;g.gain.value=.05;o.start(now+i*.1);o.stop(now+i*.1+.1);});}
+        if(!audioCtx2)audioCtx2=new(window.AudioContext||window.webkitAudioContext)();
+        if(audioCtx2.state==='suspended')audioCtx2.resume();
+        const now=audioCtx2.currentTime;
+        if(type==='tap'){const o=audioCtx2.createOscillator(),g=audioCtx2.createGain();o.connect(g);g.connect(audioCtx2.destination);o.frequency.value=600;g.gain.value=.04;o.start(now);o.stop(now+.05);}
+        else if(type==='earn'){[400,500,600,700,900].forEach((f,i)=>{const o=audioCtx2.createOscillator(),g=audioCtx2.createGain();o.connect(g);g.connect(audioCtx2.destination);o.frequency.value=f;g.gain.value=.08;o.start(now+i*.08);o.stop(now+i*.08+.1);});}
+        else if(type==='lose'){[300,250,200].forEach((f,i)=>{const o=audioCtx2.createOscillator(),g=audioCtx2.createGain();o.connect(g);g.connect(audioCtx2.destination);o.frequency.value=f;g.gain.value=.05;o.start(now+i*.1);o.stop(now+i*.1+.1);});}
     }catch(e){}
 }
 
-// ===== TOAST =====
+// ============================================================
+// TOAST
+// ============================================================
 let toastTimer;
-function showToast(msg){
-    const t2=document.getElementById('toast');t2.textContent=msg;t2.classList.add('show');
-    clearTimeout(toastTimer);toastTimer=setTimeout(()=>t2.classList.remove('show'),2800);
-}
+function showToast(msg){const t2=document.getElementById('toast');t2.textContent=msg;t2.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t2.classList.remove('show'),2800);}
 
-// ===== INIT =====
+// ============================================================
+// INIT
+// ============================================================
 async function init(){
-    // Load saved language
-    const savedLang=localStorage.getItem('ez_lang');
-    if(savedLang)lang=savedLang;
-    setLang(lang);
-
-    // Show lang fab
+    try{const sv=localStorage.getItem('ez_lang');if(sv)lang=sv;}catch(e){}
     document.getElementById('langFab').style.display='block';
-
+    checkOnboard();
+    if(tg?.initDataUnsafe?.user){userData.first_name=tg.initDataUnsafe.user.first_name||'User';userData.user_id=tg.initDataUnsafe.user.id;userData.photo_url=tg.initDataUnsafe.user.photo_url||null;}
+    else{const uid=new URLSearchParams(location.search).get('user_id');if(uid)userData.user_id=parseInt(uid);}
     showToast('⏳ Loading...');
-    if(tg?.initDataUnsafe?.user){
-        userData.first_name=tg.initDataUnsafe.user.first_name||'User';
-        userData.user_id=tg.initDataUnsafe.user.id;
-        userData.photo_url=tg.initDataUnsafe.user.photo_url||null;
-    }else{
-        const uid=new URLSearchParams(location.search).get('user_id');
-        if(uid)userData.user_id=parseInt(uid);
-    }
     await Promise.all([loadUser(),loadGameState(),loadBonusDays(),loadMissions(),loadAds(),loadLiveActivity()]);
     drawWheel(0);updateUI();updateMissionsUI();
+    setLang(lang);
     showToast('✅ Ready!');
     setInterval(loadLiveActivity,30000);
     setInterval(async()=>{await loadUser();await loadGameState();},60000);
@@ -1820,4 +1784,4 @@ async function init(){
 document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
-                </html>
+    </html>
