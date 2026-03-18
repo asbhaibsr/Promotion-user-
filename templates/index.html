@@ -310,7 +310,7 @@
         .game-reward{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;padding:4px 11px;border-radius:28px;font-size:10px;font-weight:700;display:inline-block;}
         .games-info-banner{background:rgba(124,92,252,.07);border:1px solid rgba(124,92,252,.18);border-radius:12px;padding:11px 13px;text-align:center;font-size:11px;color:var(--purple2);font-weight:700;margin-bottom:12px;}
 
-        /* SPIN */
+        /* SPIN - FIXED WEIGHTS */
         .spin-wrap{text-align:center;padding:6px 0;}
         .spin-stats{display:flex;justify-content:space-around;background:var(--bg3);border-radius:14px;padding:13px;margin-bottom:16px;border:1px solid var(--border);}
         .ss-item .ss-val{font-family:'Oxanium',sans-serif;font-size:19px;font-weight:900;color:var(--purple2);}
@@ -350,14 +350,43 @@
         .coin-res-lose{background:linear-gradient(135deg,var(--red),#dc2626);color:#fff;border-radius:14px;padding:14px;text-align:center;display:none;animation:bounceIn .4s;}
         .coin-res-big{font-family:'Oxanium',sans-serif;font-size:40px;font-weight:900;}
 
-        /* SCRATCH */
-        .scratch-wrap{text-align:center;}
-        .scratch-area{position:relative;width:100%;max-width:340px;height:170px;margin:14px auto;border-radius:18px;overflow:hidden;box-shadow:0 9px 32px rgba(0,0,0,.4);cursor:crosshair;touch-action:none;user-select:none;-webkit-user-select:none;}
-        .scratch-reward-layer{position:absolute;inset:0;background:linear-gradient(135deg,var(--gold),var(--gold-dim));display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1;border-radius:18px;}
-        .scratch-amt{font-family:'Oxanium',sans-serif;font-size:50px;font-weight:900;color:#000;line-height:1;}
-        #scratchCanvas{position:absolute;inset:0;z-index:2;border-radius:18px;width:100%;height:100%;display:block;}
-        .scratch-prog{background:var(--bg3);border-radius:8px;height:6px;margin:7px 0;overflow:hidden;}
-        .scratch-prog-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--purple2));border-radius:8px;transition:width .2s;}
+        /* ✅ SCRATCH CARD - COMPLETELY REMOVED */
+
+        /* ✅ NEW GAME - DICE ROLL (60% loss, 40% profit) */
+        .dice-wrap{text-align:center;}
+        .dice-stats{display:flex;justify-content:space-around;background:var(--bg3);border-radius:14px;padding:13px;margin-bottom:16px;border:1px solid var(--border);}
+        .ds-item .ds-val{font-family:'Oxanium',sans-serif;font-size:19px;font-weight:900;color:var(--purple2);}
+        .ds-item .ds-lbl{font-size:10px;color:var(--text3);margin-top:2px;}
+        .dice-display{font-size:120px;text-align:center;line-height:1;margin:20px 0;animation:diceRoll 0.5s;}
+        @keyframes diceRoll{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+        .dice-options{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:15px 0;}
+        .dice-opt{background:var(--bg3);border:2px solid var(--border);border-radius:16px;padding:15px;text-align:center;cursor:pointer;transition:all .17s;}
+        .dice-opt.sel{border-color:var(--gold);background:rgba(240,192,64,.09);transform:scale(1.05);}
+        .dice-opt span{font-size:40px;display:block;}
+        .dice-opt small{font-size:11px;color:var(--text2);}
+        .dice-result-win{background:linear-gradient(135deg,var(--green),#059669);color:#fff;border-radius:14px;padding:14px;margin:12px 0;display:none;}
+        .dice-result-lose{background:linear-gradient(135deg,var(--red),#dc2626);color:#fff;border-radius:14px;padding:14px;margin:12px 0;display:none;}
+        .dice-bet-row{display:flex;gap:6px;margin:8px 0;}
+        .dice-bet-chip{flex:1;background:var(--bg3);border:1.5px solid var(--border);border-radius:11px;padding:10px 4px;text-align:center;cursor:pointer;font-weight:700;font-size:12px;transition:all .15s;color:var(--text);}
+        .dice-bet-chip.sel{background:var(--gold);border-color:var(--gold);color:#000;}
+
+        /* ✅ NEW GAME - CARD BATTLE (60% loss, 40% profit) */
+        .card-wrap{text-align:center;}
+        .card-stats{display:flex;justify-content:space-around;background:var(--bg3);border-radius:14px;padding:13px;margin-bottom:16px;border:1px solid var(--border);}
+        .card-display{display:flex;justify-content:center;gap:30px;margin:30px 0;align-items:center;}
+        .player-card, .computer-card{width:100px;height:140px;background:linear-gradient(145deg,var(--bg3),var(--bg2));border:3px solid var(--border);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+        .player-card.sel{border-color:var(--gold);box-shadow:0 0 20px rgba(240,192,64,.4);}
+        .card-rank{font-size:36px;font-weight:900;color:var(--gold);}
+        .card-suit{font-size:40px;}
+        .vs-text{font-family:'Oxanium',sans-serif;font-size:24px;font-weight:900;color:var(--text3);}
+        .card-options{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:15px 0;}
+        .card-opt{background:var(--bg3);border:2px solid var(--border);border-radius:16px;padding:12px;text-align:center;cursor:pointer;transition:all .17s;}
+        .card-opt.sel{border-color:var(--gold);background:rgba(240,192,64,.09);transform:scale(1.05);}
+        .card-opt span{font-size:30px;}
+        .card-opt small{font-size:10px;color:var(--text2);display:block;}
+        .card-result-win{background:linear-gradient(135deg,var(--green),#059669);color:#fff;border-radius:14px;padding:14px;margin:12px 0;display:none;}
+        .card-result-lose{background:linear-gradient(135deg,var(--red),#dc2626);color:#fff;border-radius:14px;padding:14px;margin:12px 0;display:none;}
+        .card-result-tie{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border-radius:14px;padding:14px;margin:12px 0;display:none;}
 
         /* HISTORY */
         .hist-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:8px;}
@@ -369,12 +398,14 @@
         .status-rejected{background:rgba(255,78,106,.14);color:var(--red);}
         .hist-bot{display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:var(--text3);}
 
-        /* WITHDRAW */
+        /* WITHDRAW - WITH 20 USERS RULE */
         .avail-balance{text-align:center;padding:16px;background:var(--bg3);border-radius:16px;margin-bottom:12px;border:1px solid var(--border);}
         .avail-amt{font-family:'Oxanium',sans-serif;font-size:46px;font-weight:900;color:var(--gold);}
         .method-btn{background:var(--bg3);border:2px solid var(--border);border-radius:12px;padding:13px;margin:6px 0;display:flex;align-items:center;gap:11px;cursor:pointer;transition:border-color .2s;}
         .method-btn.sel{border-color:var(--gold);}
         .card-section{background:var(--bg3);border-radius:12px;padding:13px;margin-bottom:8px;border:1px solid var(--border);}
+        .withdraw-rule-notice{background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.3);border-radius:12px;padding:12px;margin:12px 0;text-align:center;font-size:12px;color:var(--purple2);}
+        .withdraw-rule-notice b{color:var(--gold);font-size:14px;}
 
         /* CONGRATS */
         .congrats-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:600;display:none;align-items:center;justify-content:center;padding:18px;}
@@ -465,6 +496,9 @@
             <div onclick="setLang('en')" id="langEnBtn" style="flex:1;padding:9px;border-radius:9px;background:var(--bg3);border:1.5px solid var(--border);text-align:center;cursor:pointer;font-size:12px;font-weight:700;">🇬🇧 English</div>
         </div>
     </div>
+    <!-- ✅ NEW: How to Earn Button in Settings -->
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-item" onclick="closeSidebar();showHowToEarn()"><div class="si-icon">💰</div><span data-t="how_to_earn">💡 How to Earn</span></div>
 </div>
 
 <!-- TOP BAR -->
@@ -578,7 +612,10 @@
             <div class="game-card" onclick="openGame('spin')"><span class="game-emoji">🎰</span><div class="game-name">Spin & Earn</div><div class="game-desc">Wheel ghumao</div><span class="game-reward">1 Pass/spin</span></div>
             <div class="game-card" onclick="openGame('guess')"><span class="game-emoji">🔢</span><div class="game-name">Number Guess</div><div class="game-desc">1-10 guess karo</div><span class="game-reward">8x Reward</span></div>
             <div class="game-card" onclick="openGame('coin')"><span class="game-emoji">🪙</span><div class="game-name">Coin Flip</div><div class="game-desc">Heads ya Tails?</div><span class="game-reward">2x Win</span></div>
-            <div class="game-card" onclick="openGame('scratch')"><span class="game-emoji">🎫</span><div class="game-name">Scratch Card</div><div class="game-desc">Khurcho aur jeeto</div><span class="game-reward">Up to ₹10</span></div>
+            <!-- ✅ SCRATCH CARD HATAYA - NAYA GAME: DICE ROLL -->
+            <div class="game-card" onclick="openGame('dice')"><span class="game-emoji">🎲</span><div class="game-name">Dice Roll</div><div class="game-desc">Apna number aaye to 6x!</div><span class="game-reward">6x Win</span></div>
+            <!-- ✅ NAYA GAME: CARD BATTLE -->
+            <div class="game-card" onclick="openGame('card')"><span class="game-emoji">🃏</span><div class="game-name">Card Battle</div><div class="game-desc">Computer se khelo</div><span class="game-reward">2x Win</span></div>
         </div>
     </div>
 </div>
@@ -694,6 +731,13 @@
         <div class="setting-row"><span class="setting-lbl">🌙 Dark Mode</span><div class="toggle on" id="themeToggleEl2" onclick="toggleTheme()"><div class="toggle-knob"></div></div></div>
         <div class="setting-row"><span class="setting-lbl">🔊 Sounds</span><div class="toggle on" id="soundToggleEl2" onclick="toggleSound()"><div class="toggle-knob"></div></div></div>
     </div>
+    <!-- ✅ NEW: How to Earn Button in Settings -->
+    <div class="settings-group" style="margin-top:15px;">
+        <div class="setting-row" style="cursor:pointer;" onclick="showHowToEarn()">
+            <span class="setting-lbl">💡 How to Earn</span>
+            <span style="color:var(--gold);">→</span>
+        </div>
+    </div>
 </div>
 
 <!-- SUPPORT -->
@@ -744,7 +788,18 @@
     <input id="promoLink" class="inp" placeholder="Link URL" type="url">
     <input id="promoIcon" class="inp" placeholder="Icon emoji (e.g. 📱)" type="text">
     <input id="promoMeta" class="inp" placeholder="Meta text (e.g. ⏱️ 2 min)" type="text">
-    <input id="promoCode" class="inp" placeholder="Claim Code (optional, leave empty for no code)" type="text">
+    <input id="promoCode" class="inp" placeholder="Claim Code (optional)" type="text">
+    <!-- ✅ NEW: Time option for offer -->
+    <div style="margin:10px 0; text-align:left;">
+        <label style="font-size:12px; color:var(--text2);">⏱️ Time before claim (seconds):</label>
+        <select id="promoTime" class="inp" style="padding:10px;">
+            <option value="0">No timer</option>
+            <option value="20">20 seconds</option>
+            <option value="30">30 seconds</option>
+            <option value="40">40 seconds</option>
+            <option value="60">60 seconds</option>
+        </select>
+    </div>
     <button class="btn-gold" onclick="submitAdminOffer()">✅ CREATE OFFER</button>
 </div>
 
@@ -757,7 +812,18 @@
     <input id="editAdLink" class="inp" placeholder="Link URL" type="url">
     <input id="editAdMeta" class="inp" placeholder="Meta text" type="text">
     <input id="editAdIcon" class="inp" placeholder="Icon emoji" type="text">
-    <input id="editAdCode" class="inp" placeholder="Claim Code (empty = no code required)" type="text">
+    <input id="editAdCode" class="inp" placeholder="Claim Code (empty = no code)" type="text">
+    <!-- ✅ NEW: Time option for offer edit -->
+    <div style="margin:10px 0; text-align:left;">
+        <label style="font-size:12px; color:var(--text2);">⏱️ Time before claim (seconds):</label>
+        <select id="editAdTime" class="inp" style="padding:10px;">
+            <option value="0">No timer</option>
+            <option value="20">20 seconds</option>
+            <option value="30">30 seconds</option>
+            <option value="40">40 seconds</option>
+            <option value="60">60 seconds</option>
+        </select>
+    </div>
     <button class="btn-gold" onclick="saveAd()">✅ UPDATE OFFER</button>
     <button class="btn-red" onclick="deleteAdFromEdit()">🗑️ DELETE OFFER</button>
 </div>
@@ -766,6 +832,12 @@
 <div class="modal" id="withdrawModal">
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('withdraw')">←</div><div class="modal-title">💰 Withdraw</div></div>
     <div class="avail-balance"><div style="font-size:11px;color:var(--text2);margin-bottom:3px;">Available Balance</div><div class="avail-amt" id="wdrawBal">₹0</div><div style="font-size:11px;color:var(--text2);margin-top:3px;">Minimum: ₹40</div></div>
+    
+    <!-- ✅ NEW: Withdrawal Rule Notice -->
+    <div class="withdraw-rule-notice" id="withdrawRuleNotice">
+        ⚠️ <b>Withdrawal Rule:</b> Is mahine 20 active users hone chahiye!
+    </div>
+    
     <input id="wdrawAmt" class="inp" placeholder="Amount (min ₹40)" type="number" min="40">
     <div class="method-btn" onclick="selMethod('upi')" id="methodUpi"><span style="font-size:24px;">📱</span><div><div style="font-weight:700;">UPI</div><div style="font-size:10px;color:var(--text2);">Instant</div></div></div>
     <div class="method-btn" onclick="selMethod('bank')" id="methodBank"><span style="font-size:24px;">🏦</span><div><div style="font-weight:700;">Bank Transfer</div><div style="font-size:10px;color:var(--text2);">1-2 working days</div></div></div>
@@ -835,25 +907,96 @@
     </div>
 </div>
 
-<!-- SCRATCH MODAL -->
-<div class="modal" id="scratchModal">
-    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('scratch')">←</div><div class="modal-title">🎫 Scratch Card</div></div>
-    <div class="scratch-wrap">
-        <div style="display:flex;justify-content:space-between;background:var(--bg3);border-radius:12px;padding:11px;margin-bottom:9px;font-size:12px;">
-            <span>Cards: <b style="color:var(--purple2);" id="scratchCardsLeft">2</b></span>
-            <span>Passes: <b style="color:var(--gold);" id="scratchPassesLeft">0</b></span>
-            <span>Bal: <b style="color:var(--gold);" id="scratchBal">₹0</b></span>
+<!-- ✅ SCRATCH CARD MODAL - COMPLETELY REMOVED -->
+
+<!-- ✅ NEW GAME: DICE ROLL MODAL -->
+<div class="modal" id="diceModal">
+    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('dice')">←</div><div class="modal-title">🎲 Dice Roll</div></div>
+    <div class="dice-wrap">
+        <div class="dice-stats">
+            <div class="ds-item"><div class="ds-val" id="diceBal">₹0</div><div class="ds-lbl">Balance</div></div>
+            <div class="ds-item"><div class="ds-val" id="dicePassesLeft">0</div><div class="ds-lbl">Passes</div></div>
+            <div class="ds-item"><div class="ds-val" id="diceTodayEarned">₹0</div><div class="ds-lbl">Today</div></div>
         </div>
-        <div style="text-align:center;font-size:11px;color:var(--text2);margin-bottom:5px;" id="scratchHintTxt">👆 Yahan finger se khurcho!</div>
-        <div class="scratch-area" id="scratchArea">
-            <div class="scratch-reward-layer" id="scratchRewardLayer">
-                <div class="scratch-amt" id="scratchAmt">?</div>
-                <div style="font-size:13px;color:rgba(0,0,0,.55);margin-top:4px;font-weight:700;" id="scratchLbl">Khurcho aur jaano!</div>
+        <div class="dice-display" id="diceDisplay">🎲</div>
+        <div style="font-size:12px;color:var(--text2);margin:10px 0;">Apna number select karo:</div>
+        <div class="dice-options" id="diceOptions">
+            <div class="dice-opt" onclick="selectDiceNumber(1,this)"><span>⚀</span><small>1</small></div>
+            <div class="dice-opt" onclick="selectDiceNumber(2,this)"><span>⚁</span><small>2</small></div>
+            <div class="dice-opt" onclick="selectDiceNumber(3,this)"><span>⚂</span><small>3</small></div>
+            <div class="dice-opt" onclick="selectDiceNumber(4,this)"><span>⚃</span><small>4</small></div>
+            <div class="dice-opt" onclick="selectDiceNumber(5,this)"><span>⚄</span><small>5</small></div>
+            <div class="dice-opt" onclick="selectDiceNumber(6,this)"><span>⚅</span><small>6</small></div>
+        </div>
+        <div class="dice-bet-row">
+            <div class="dice-bet-chip sel" onclick="selectDiceBet(1,this)">₹1</div>
+            <div class="dice-bet-chip" onclick="selectDiceBet(2,this)">₹2</div>
+            <div class="dice-bet-chip" onclick="selectDiceBet(5,this)">₹5</div>
+            <div class="dice-bet-chip" onclick="selectDiceBet(10,this)">₹10</div>
+        </div>
+        <div class="dice-result-win" id="diceResWin">
+            <div style="font-size:30px;">🎉 JEETE!</div>
+            <div style="font-size:24px;" id="diceWinAmt">+₹0</div>
+        </div>
+        <div class="dice-result-lose" id="diceResLose">
+            <div style="font-size:30px;">😢 HARE!</div>
+            <div style="font-size:20px;" id="diceLoseAmt">-₹0</div>
+        </div>
+        <button class="btn-gold" id="rollBtn" onclick="rollDice()">🎲 ROLL DICE!</button>
+    </div>
+</div>
+
+<!-- ✅ NEW GAME: CARD BATTLE MODAL -->
+<div class="modal" id="cardModal">
+    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('card')">←</div><div class="modal-title">🃏 Card Battle</div></div>
+    <div class="card-wrap">
+        <div class="card-stats">
+            <div class="ds-item"><div class="ds-val" id="cardBal">₹0</div><div class="ds-lbl">Balance</div></div>
+            <div class="ds-item"><div class="ds-val" id="cardPassesLeft">0</div><div class="ds-lbl">Passes</div></div>
+            <div class="ds-item"><div class="ds-val" id="cardTodayEarned">₹0</div><div class="ds-lbl">Today</div></div>
+        </div>
+        
+        <div class="card-display">
+            <div class="player-card" id="playerCard">
+                <span class="card-suit">🃏</span>
+                <span class="card-rank">?</span>
             </div>
-            <canvas id="scratchCanvas"></canvas>
+            <div class="vs-text">VS</div>
+            <div class="computer-card" id="computerCard">
+                <span class="card-suit">🃏</span>
+                <span class="card-rank">?</span>
+            </div>
         </div>
-        <div class="scratch-prog"><div class="scratch-prog-fill" id="scratchProgFill" style="width:0%"></div></div>
-        <button class="btn-purple" id="newScratchBtn" onclick="newScratch()" disabled>🎫 NEW CARD (1 Pass)</button>
+        
+        <div style="font-size:12px;color:var(--text2);margin:10px 0;">Apna card choose karo:</div>
+        <div class="card-options" id="cardOptions">
+            <div class="card-opt" onclick="selectCard('hearts',this)"><span>♥️</span><small>Hearts</small></div>
+            <div class="card-opt" onclick="selectCard('diamonds',this)"><span>♦️</span><small>Diamonds</small></div>
+            <div class="card-opt" onclick="selectCard('clubs',this)"><span>♣️</span><small>Clubs</small></div>
+            <div class="card-opt" onclick="selectCard('spades',this)"><span>♠️</span><small>Spades</small></div>
+        </div>
+        
+        <div class="dice-bet-row">
+            <div class="dice-bet-chip sel" onclick="selectCardBet(1,this)">₹1</div>
+            <div class="dice-bet-chip" onclick="selectCardBet(2,this)">₹2</div>
+            <div class="dice-bet-chip" onclick="selectCardBet(5,this)">₹5</div>
+            <div class="dice-bet-chip" onclick="selectCardBet(10,this)">₹10</div>
+        </div>
+        
+        <div class="card-result-win" id="cardResWin">
+            <div style="font-size:30px;">🎉 JEETE!</div>
+            <div style="font-size:24px;" id="cardWinAmt">+₹0</div>
+        </div>
+        <div class="card-result-lose" id="cardResLose">
+            <div style="font-size:30px;">😢 HARE!</div>
+            <div style="font-size:20px;" id="cardLoseAmt">-₹0</div>
+        </div>
+        <div class="card-result-tie" id="cardResTie">
+            <div style="font-size:30px;">🤝 TIE!</div>
+            <div style="font-size:18px;">Paise wapas</div>
+        </div>
+        
+        <button class="btn-gold" id="battleBtn" onclick="cardBattle()">🃏 BATTLE!</button>
     </div>
 </div>
 
@@ -890,6 +1033,19 @@
     </div>
 </div>
 
+<!-- ✅ NEW: TIME WAIT OVERLAY -->
+<div class="code-overlay" id="timeWaitOverlay">
+    <div class="code-card">
+        <div style="font-size:48px;margin-bottom:8px;">⏳</div>
+        <h3>Wait karo!</h3>
+        <p id="timeWaitMsg">Claim karne se pehle <span id="timeWaitSeconds">20</span> second ruko</p>
+        <div style="width:100%;height:8px;background:var(--bg3);border-radius:4px;margin:20px 0;overflow:hidden;">
+            <div id="timeWaitProgress" style="height:100%;width:0%;background:var(--gold);border-radius:4px;"></div>
+        </div>
+        <button class="btn-red" onclick="closeTimeWait()" style="margin-top:4px;">Cancel</button>
+    </div>
+</div>
+
 <!-- TOAST -->
 <div id="toast" class="toast"></div>
 
@@ -913,12 +1069,16 @@ const T={
         your_balance:'💰 Aapka Balance',today_earned:'Aaj Kamaya',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Aaj ka bonus claim karo!',claim:'Claim',daily_missions:'🎯 Daily Missions',mission_total_reward:'₹6+ Reward',complete_earn:'Missions complete karo, paise pao!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Dost ko invite karo • 3 Passes + ₹0.40!',copy:'Copy',share_more:'Share',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',lb_note:'📌 50+ active refs = weekly prize • 200+ = monthly prize',use_passes:'Passes use karo, paise jeeto!',passes:'Passes',total_wins:'Total Wins',today:'Aaj',streak:'Streak',balance:'Balance',total_earned:'Total Kamaya',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Paise Nikalo',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'Naya Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',already_claimed:'Aaj ka bonus claim ho gaya!',referred_users:'👥 Referred Users Activity',missions:'Missions',
         onboard_confirm:'Samajh Gaya! Shuru Karo',
         ob_title:'EarnZone kya hai?',ob_earning_title:'💰 Paise Kaise Kamayein',ob_daily_title:'📅 Daily Karna Kya Hai',ob_pass_title:'🎟️ Passes System',ob_withdraw_title:'💸 Paise Withdraw Karna',ob_bot_title:'🤖 Bot ka Kaam',
+        how_to_earn:'💡 How to Earn',
+        withdraw_rule:'Is mahine 20 active users hone chahiye!'
     },
     en:{
         settings:'Settings',help_support:'Help & Support',dark_mode:'Dark Mode',sounds:'Sounds',admin_edit:'Admin Edit Mode',refer_earn:'Refer & Earn',language:'Language',
         your_balance:'💰 Your Balance',today_earned:'Today Earned',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Claim your daily bonus!',claim:'Claim',daily_missions:'🎯 Daily Missions',mission_total_reward:'₹6+ Reward',complete_earn:'Complete missions, earn money!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Invite friends • 3 Passes + ₹0.40!',copy:'Copy',share_more:'Share',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',lb_note:'📌 50+ active refs = weekly prize • 200+ = monthly prize',use_passes:'Use passes, win money!',passes:'Passes',total_wins:'Total Wins',today:'Today',streak:'Streak',balance:'Balance',total_earned:'Total Earned',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Withdraw Balance',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'New Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',already_claimed:"Today's bonus claimed!",referred_users:'👥 Referred Users Activity',missions:'Missions',
         onboard_confirm:'Got it! Let\'s Start',
         ob_title:'What is EarnZone?',ob_earning_title:'💰 How to Earn Money',ob_daily_title:'📅 Daily Tasks',ob_pass_title:'🎟️ Passes System',ob_withdraw_title:'💸 Withdraw Money',ob_bot_title:'🤖 How the Bot Works',
+        how_to_earn:'💡 How to Earn',
+        withdraw_rule:'You need 20 active users this month!'
     }
 };
 let lang='hi';
@@ -949,7 +1109,7 @@ const ONBOARD_CONTENT={
 <div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — roz login karke bonus claim karo. Streak badhao to bonus amount bhi badhega!</div></div>
 <div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — har din missions complete karo, alag-alag paise aur passes jeetenge.</div></div>
 <div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — offers claim karo, paise aur passes pao.</div></div>
-<div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Games Khelo</b> — Passes use karke Spin, Guess, Coin Flip ya Scratch Card khelke aur paise jeeto.</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Games Khelo</b> — Passes use karke Spin, Guess, Coin Flip, Dice Roll aur Card Battle khelke aur paise jeeto.</div></div>
 </div>
 <div class="onboard-section">
 <div class="onboard-section-title">📅 Daily Kya Karna Hai?</div>
@@ -963,7 +1123,7 @@ const ONBOARD_CONTENT={
 </div>
 <div class="onboard-section">
 <div class="onboard-section-title">💸 Paise Withdraw Karna</div>
-<div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Minimum <b>₹40</b> hone par UPI ya Bank Transfer se withdraw kar sakte ho. Admin 24-48 ghante mein process karega.</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Minimum <b>₹40</b> hone par UPI ya Bank Transfer se withdraw kar sakte ho. <b>⚠️ Mahine mein 20 active users hone chahiye!</b> Admin 24-48 ghante mein process karega.</div></div>
 </div>`,
     en:`
 <div class="onboard-section">
@@ -977,7 +1137,7 @@ const ONBOARD_CONTENT={
 <div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — claim bonus every day. Maintain your streak to increase bonus amount!</div></div>
 <div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — complete missions every day, claim each one separately for money and passes.</div></div>
 <div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — claim offers to earn money and passes.</div></div>
-<div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Play Games</b> — use Passes to play Spin, Guess, Coin Flip or Scratch Card to win more money.</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Play Games</b> — use Passes to play Spin, Guess, Coin Flip, Dice Roll and Card Battle to win more money.</div></div>
 </div>
 <div class="onboard-section">
 <div class="onboard-section-title">📅 Daily Tasks</div>
@@ -991,7 +1151,7 @@ const ONBOARD_CONTENT={
 </div>
 <div class="onboard-section">
 <div class="onboard-section-title">💸 Withdrawals</div>
-<div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Withdraw via UPI or Bank Transfer with minimum <b>₹40</b>. Admin processes within 24-48 hours.</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Withdraw via UPI or Bank Transfer with minimum <b>₹40</b>. <b>⚠️ You need 20 active users this month!</b> Admin processes within 24-48 hours.</div></div>
 </div>`
 };
 
@@ -1033,19 +1193,32 @@ let soundOn=true,currentTheme='dark',lbMode='weekly';
 let spinAngle=0,isSpinning=false;
 let guessBet=1,guessActive=false;
 let coinChoice=null,coinBet=1,coinFlipping=false;
-let scratchRevealed=false,scratchCtx=null,scratchDrawing=false;
+// ✅ NEW GAME STATES
+let diceNumber=null,diceBet=1;
+let cardChoice=null,cardBet=1;
 let audioCtx=null;
 let currentAdForCode=null;
+
+// ✅ TIME WAIT FOR OFFERS
+let timeWaitTimer=null;
+let timeWaitAd=null;
 
 // MISSIONS: each mission has its own claimed state
 let missionStates={};
 
+// ✅ FIXED SPIN SEGMENTS WITH CORRECT PROBABILITIES
 const SEGS=[
-    {l:'₹0.50',v:.5,c:'#f59e0b'},{l:'₹1',v:1,c:'#3b82f6'},
-    {l:'₹0.25',v:.25,c:'#22d3a0'},{l:'₹2',v:2,c:'#ff5b6b'},
-    {l:'₹0.10',v:.1,c:'#a78bfa'},{l:'₹5',v:5,c:'#f97316'},
-    {l:'₹0.50',v:.5,c:'#38bdf8'},{l:'₹1',v:1,c:'#ec4899'}
+    {l:'₹5',v:5,c:'#f97316'},      // 1% chance
+    {l:'₹0.50',v:0.5,c:'#f59e0b'}, // 6% chance
+    {l:'₹1',v:1,c:'#3b82f6'},       // 3% chance
+    {l:'₹0.50',v:0.5,c:'#22d3a0'}, // 6% chance
+    {l:'₹1',v:1,c:'#ff5b6b'},       // 3% chance
+    {l:'₹0.25',v:0.25,c:'#a78bfa'}, // 15% chance
+    {l:'₹2',v:2,c:'#f97316'},       // 1% chance
+    {l:'₹0.10',v:0.1,c:'#38bdf8'}   // 65% chance
 ];
+
+const SPIN_WEIGHTS = [1, 6, 3, 6, 3, 15, 1, 65]; // Total 100%
 
 const MISSIONS_DEF=[
     {id:'m_refer5',   icon:'👥', hi:'5 Active User Refer karo', en:'Refer 5 active users',      reward:2,   passes:0, total:5,  track:'active_refs'},
@@ -1164,8 +1337,8 @@ function updateUI(){
     document.getElementById('gameWins').textContent=gameState.wins||0;
     document.getElementById('gameTodayEarned').textContent=`₹${(gameState.today_game_earned||0).toFixed(2)}`;
     document.getElementById('gameStreak').textContent=`${gameState.win_streak||0}🔥`;
-    ['spinBal','spinPassesLeft','spinTodayEarned','guessPassLeft','guessBal','coinPassesLeft','coinBal','scratchPassesLeft','scratchBal'].forEach((id,i)=>{
-        const vals=[bal,userData.passes||0,`₹${(gameState.today_game_earned||0).toFixed(2)}`,userData.passes||0,bal,userData.passes||0,bal,userData.passes||0,bal];
+    ['spinBal','spinPassesLeft','spinTodayEarned','guessPassLeft','guessBal','coinPassesLeft','coinBal','diceBal','dicePassesLeft','diceTodayEarned','cardBal','cardPassesLeft','cardTodayEarned'].forEach((id,i)=>{
+        const vals=[bal,userData.passes||0,`₹${(gameState.today_game_earned||0).toFixed(2)}`,userData.passes||0,bal,userData.passes||0,bal,userData.passes||0,bal,`₹${(gameState.today_game_earned||0).toFixed(2)}`,userData.passes||0,bal,`₹${(gameState.today_game_earned||0).toFixed(2)}`];
         const el=document.getElementById(id);if(el)el.textContent=vals[i];
     });
 }
@@ -1177,6 +1350,17 @@ function getRefLink(){return`https://t.me/${BOT_USERNAME}?start=ref_${userData.u
 // ============================================================
 function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('sidebarOverlay').classList.add('show');playSound('tap');}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');}
+
+// ============================================================
+// HOW TO EARN (reuse onboard content)
+// ============================================================
+function showHowToEarn(){
+    closeSidebar();
+    // Show onboard content again but without confirm button
+    document.getElementById('onboardOverlay').style.display='flex';
+    document.querySelector('.onboard-footer').style.display='none'; // Hide confirm button
+    setOnboardLang(lang);
+}
 
 // ============================================================
 // DAILY BONUS (streak breaks if missed)
@@ -1338,7 +1522,7 @@ async function claimSingleMission(missionId,reward){
 }
 
 // ============================================================
-// ADS with code system
+// ADS with code system and TIME WAIT
 // ============================================================
 function renderAds(claimedIds=[]){
     const c=document.getElementById('adsContainer');
@@ -1348,7 +1532,7 @@ function renderAds(claimedIds=[]){
         return`<div class="ad-card ${adminEditMode?'admin-mode':''} ${isClaimed&&!adminEditMode?'ad-claimed':''}" onclick="handleAdClick(${ad.id})">
             ${adminEditMode?`<div class="ad-del-btn" onclick="event.stopPropagation();delAd(${ad.id})">✕</div><div class="ad-edit-btn" onclick="event.stopPropagation();editAd(${ad.id})">✎</div>`:''}
             <div class="ad-icon-box">${ad.icon||'📢'}</div>
-            <div class="ad-info"><div class="ad-title">${ad.title}${ad.claim_code?'  🔑':''}${adminEditMode&&ad.claim_code?` <span style="font-size:9px;color:var(--blue);background:rgba(54,182,245,.1);padding:2px 6px;border-radius:8px;">Code: ${ad.claim_code}</span>`:''}</div><div class="ad-meta">${ad.meta||''}</div></div>
+            <div class="ad-info"><div class="ad-title">${ad.title}${ad.claim_code?'  🔑':''}${ad.claim_time?` ⏱️${ad.claim_time}s`:''}${adminEditMode&&ad.claim_code?` <span style="font-size:9px;color:var(--blue);background:rgba(54,182,245,.1);padding:2px 6px;border-radius:8px;">Code: ${ad.claim_code}</span>`:''}</div><div class="ad-meta">${ad.meta||''}</div></div>
             ${isClaimed&&!adminEditMode?`<div class="ad-claimed-badge">✅ Claimed</div>`:`<div class="ad-reward">+₹${ad.reward}</div>`}
         </div>`;
     }).join('');
@@ -1357,6 +1541,14 @@ async function handleAdClick(adId){
     if(adminEditMode)return;
     const ad=adminAds.find(a=>a.id===adId);if(!ad)return;
     playSound('tap');
+    
+    // ✅ Check if time wait required
+    if(ad.claim_time && ad.claim_time > 0){
+        // Show time wait overlay
+        showTimeWait(ad);
+        return;
+    }
+    
     // Open link first
     window.open(ad.link,'_blank');
     // If code required, show code overlay
@@ -1370,6 +1562,50 @@ async function handleAdClick(adId){
     await doClaimAd(ad);
 }
 function closeCodeOverlay(){document.getElementById('codeOverlay').classList.remove('show');currentAdForCode=null;}
+
+// ✅ NEW: Time wait functionality
+function showTimeWait(ad){
+    timeWaitAd=ad;
+    const timeSec = ad.claim_time || 20;
+    document.getElementById('timeWaitSeconds').textContent = timeSec;
+    document.getElementById('timeWaitProgress').style.width = '0%';
+    document.getElementById('timeWaitOverlay').classList.add('show');
+    
+    let elapsed = 0;
+    const interval = 100; // 100ms updates
+    const totalSteps = timeSec * 1000 / interval;
+    let step = 0;
+    
+    if(timeWaitTimer) clearInterval(timeWaitTimer);
+    
+    timeWaitTimer = setInterval(() => {
+        step++;
+        elapsed = step * interval / 1000;
+        const percent = (elapsed / timeSec) * 100;
+        document.getElementById('timeWaitProgress').style.width = Math.min(percent, 100) + '%';
+        
+        if(elapsed >= timeSec){
+            clearInterval(timeWaitTimer);
+            document.getElementById('timeWaitOverlay').classList.remove('show');
+            // Now open link and proceed
+            window.open(ad.link,'_blank');
+            if(ad.claim_code){
+                currentAdForCode=ad;
+                document.getElementById('codeInput').value='';
+                document.getElementById('codeOverlay').classList.add('show');
+            } else {
+                doClaimAd(ad);
+            }
+        }
+    }, interval);
+}
+
+function closeTimeWait(){
+    if(timeWaitTimer) clearInterval(timeWaitTimer);
+    document.getElementById('timeWaitOverlay').classList.remove('show');
+    timeWaitAd=null;
+}
+
 async function submitCode(){
     const code=document.getElementById('codeInput').value.trim().toUpperCase();
     if(!code){showToast('❌ Code daalo pehle');return;}
@@ -1392,21 +1628,25 @@ async function doClaimAd(ad){
 function openAdminCreateOffer(){if(!userData.is_admin)return;openModal('createOffer');}
 async function submitAdminOffer(){
     const title=document.getElementById('promoTitle').value,rw=document.getElementById('promoReward').value,l=document.getElementById('promoLink').value,ic=document.getElementById('promoIcon').value||'📢',m2=document.getElementById('promoMeta').value||'',code=document.getElementById('promoCode').value.trim().toUpperCase()||null;
+    // ✅ Get time from dropdown
+    const timeSec = parseInt(document.getElementById('promoTime').value) || 0;
     if(!title||!rw||!l){showToast('❌ Title, Reward aur Link zaruri hain');return;}
     const newId=Date.now()%100000;
-    const r=await apiPost('/api/update-ad',{ad_id:newId,admin_id:userData.user_id,title,reward:parseFloat(rw),link:l,meta:m2,icon:ic,claim_code:code});
+    const r=await apiPost('/api/update-ad',{ad_id:newId,admin_id:userData.user_id,title,reward:parseFloat(rw),link:l,meta:m2,icon:ic,claim_code:code,claim_time:timeSec});
     if(r&&r.success){showToast('✅ Offer created!');loadAds();closeModal('createOffer');['promoTitle','promoDesc','promoReward','promoLink','promoIcon','promoMeta','promoCode'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});}
     else showToast('❌ '+(r?.message||'Failed'));
 }
 function editAd(id){
     const ad=adminAds.find(a=>a.id===id);if(!ad)return;
     document.getElementById('editAdId').value=ad.id;document.getElementById('editAdTitle').value=ad.title;document.getElementById('editAdReward').value=ad.reward;document.getElementById('editAdLink').value=ad.link;document.getElementById('editAdMeta').value=ad.meta||'';document.getElementById('editAdIcon').value=ad.icon||'';document.getElementById('editAdCode').value=ad.claim_code||'';
+    document.getElementById('editAdTime').value = ad.claim_time || 0;
     openModal('editAd');
 }
 async function saveAd(){
     const id=parseInt(document.getElementById('editAdId').value);
     const code=document.getElementById('editAdCode').value.trim().toUpperCase()||null;
-    const r=await apiPost('/api/update-ad',{ad_id:id,admin_id:userData.user_id,title:document.getElementById('editAdTitle').value,reward:parseFloat(document.getElementById('editAdReward').value),link:document.getElementById('editAdLink').value,meta:document.getElementById('editAdMeta').value,icon:document.getElementById('editAdIcon').value,claim_code:code});
+    const timeSec = parseInt(document.getElementById('editAdTime').value) || 0;
+    const r=await apiPost('/api/update-ad',{ad_id:id,admin_id:userData.user_id,title:document.getElementById('editAdTitle').value,reward:parseFloat(document.getElementById('editAdReward').value),link:document.getElementById('editAdLink').value,meta:document.getElementById('editAdMeta').value,icon:document.getElementById('editAdIcon').value,claim_code:code,claim_time:timeSec});
     if(r&&r.success){showToast('✅ Updated! Claims reset.');loadAds();closeModal('editAd');}else showToast('❌ '+(r?.message||'Failed'));
 }
 async function delAd(id){
@@ -1480,7 +1720,7 @@ function renderLeaderboard(data){
         html+=`<div class="lb-list">`;
         sorted.slice(3).forEach((u,i)=>{
             const hasPrize=(u.active_refs||0)>=prizeMin;
-            html+=`<div class="lb-item"><div class="lb-rank">${i+4}</div><div class="lb-info"><div class="lb-name">${u.name||'User'}</div><div class="lb-refs">${u.active_refs||0} active refs • ₹${u.balance?.toFixed(2)||'0'} • ${u.pending_refs||0} pending</div></div>${hasPrize?`<div class="lb-prize">₹${prizes[i+3]||0}</div>`:'<div style="font-size:10px;color:var(--text3);">${prizeMin}+ needed</div>'}</div>`;
+            html+=`<div class="lb-item"><div class="lb-rank">${i+4}</div><div class="lb-info"><div class="lb-name">${u.name||'User'}</div><div class="lb-refs">${u.active_refs||0} active refs • ₹${u.balance?.toFixed(2)||'0'} • ${u.pending_refs||0} pending</div></div>${hasPrize?`<div class="lb-prize">₹${prizes[i+3]||0}</div>`:'<div style="font-size:10px;color:var(--text3);">'+prizeMin+'+ needed</div>'}</div>`;
         });
         html+=`</div>`;
     }
@@ -1494,7 +1734,7 @@ function renderHistory(data){
 }
 
 // ============================================================
-// WITHDRAW
+// WITHDRAW (with 20 users rule)
 // ============================================================
 function selMethod(m){
     selectedMethod=m;
@@ -1509,6 +1749,13 @@ async function doWithdraw(){
     if(!amt||amt<40){showToast('❌ Minimum ₹40');return;}
     if(amt>userData.balance){showToast('❌ Balance kam hai');return;}
     if(!selectedMethod){showToast('❌ Method select karo');return;}
+    
+    // ✅ NEW: Check 20 users rule
+    if((userData.active_refs||0) < 20){
+        showToast('❌ Is mahine 20 active users nahi hain! ' + (lang==='en'?'Need 20 active users this month!':'20 active users chahiye is mahine!'));
+        return;
+    }
+    
     let details='';
     if(selectedMethod==='upi'){const u=document.getElementById('upiId').value;if(!u){showToast('❌ UPI ID bharo');return;}details=u;}
     else{const a=document.getElementById('accNo').value,i=document.getElementById('ifsc').value,n=document.getElementById('accName').value;if(!a||!i||!n){showToast('❌ Bank details bharo');return;}details=`${n}|${a}|${i}`;}
@@ -1556,8 +1803,8 @@ async function doSpin(){
     playSound('tap');
     const r=await apiPost('/api/game/spin',{user_id:userData.user_id});
     if(!r||!r.success){isSpinning=false;btn.disabled=false;btn.textContent='🎰 SPIN (1 Pass)';showToast('❌ '+(r?.message||'Error'));return;}
-    // FIXED: use actual reward segment matching
-    const sel=r.segment_index!==undefined?r.segment_index:SEGS.findIndex(s=>Math.abs(s.v-(r.reward||0.5))<0.01)||0;
+    // FIXED: use actual reward segment matching with weights
+    const sel=r.segment_index!==undefined?r.segment_index:SEGS.findIndex(s=>Math.abs(s.v-(r.reward||0.1))<0.01)||0;
     const n=SEGS.length,seg=(2*Math.PI)/n,target=-Math.PI/2-(sel*seg+seg/2),extra=(5+Math.floor(Math.random()*4))*2*Math.PI,final=extra+target,dur=3200,startA=spinAngle,startT=performance.now();
     function anim(now){
         const el=now-startT,prog=Math.min(el/dur,1),ease=1-Math.pow(1-prog,4);
@@ -1638,76 +1885,150 @@ async function doFlip(){
     },1300);
 }
 
-// ============================================================
-// SCRATCH CARD - FIXED (shows correct reward, weighted)
-// ============================================================
-function initScratch(){
-    scratchRevealed=false;scratchDrawing=false;
-    document.getElementById('scratchAmt').textContent='?';
-    document.getElementById('scratchLbl').textContent='Khurcho aur jaano!';
-    document.getElementById('scratchProgFill').style.width='0%';
-    document.getElementById('scratchHintTxt').textContent='👆 Yahan finger se khurcho!';
-    document.getElementById('newScratchBtn').disabled=true;
-    const area=document.getElementById('scratchArea');
-    const cv=document.getElementById('scratchCanvas');
-    const rect=area.getBoundingClientRect();
-    const W=rect.width||320,H=170;
-    cv.width=W;cv.height=H;cv.style.width=W+'px';cv.style.height=H+'px';
-    scratchCtx=cv.getContext('2d');
-    scratchCtx.globalCompositeOperation='source-over';
-    const grad=scratchCtx.createLinearGradient(0,0,W,H);grad.addColorStop(0,'#2d3748');grad.addColorStop(.5,'#4a5568');grad.addColorStop(1,'#1a202c');
-    scratchCtx.fillStyle=grad;scratchCtx.fillRect(0,0,W,H);
-    for(let i=0;i<20;i++){scratchCtx.fillStyle=`rgba(255,255,255,${0.05+Math.random()*.1})`;scratchCtx.beginPath();scratchCtx.arc(Math.random()*W,Math.random()*H,Math.random()*2+1,0,Math.PI*2);scratchCtx.fill();}
-    scratchCtx.fillStyle='rgba(255,255,255,.55)';scratchCtx.font='bold 16px Space Grotesk';scratchCtx.textAlign='center';scratchCtx.textBaseline='middle';scratchCtx.fillText('✨ Finger se khurcho! ✨',W/2,H/2-12);
-    scratchCtx.font='11px Space Grotesk';scratchCtx.fillStyle='rgba(255,255,255,.35)';scratchCtx.fillText('Apni luck azmaao!',W/2,H/2+14);
-    scratchCtx.globalCompositeOperation='destination-out';
-    // Reset events
-    const newCv=cv.cloneNode(false);cv.parentNode.replaceChild(newCv,cv);
-    newCv.width=W;newCv.height=H;newCv.style.width=W+'px';newCv.style.height=H+'px';
-    scratchCtx=newCv.getContext('2d');
-    scratchCtx.globalCompositeOperation='source-over';
-    scratchCtx.fillStyle=grad;scratchCtx.fillRect(0,0,W,H);
-    for(let i=0;i<20;i++){scratchCtx.fillStyle=`rgba(255,255,255,${0.05+Math.random()*.1})`;scratchCtx.beginPath();scratchCtx.arc(Math.random()*W,Math.random()*H,Math.random()*2+1,0,Math.PI*2);scratchCtx.fill();}
-    scratchCtx.fillStyle='rgba(255,255,255,.55)';scratchCtx.font='bold 16px Space Grotesk';scratchCtx.textAlign='center';scratchCtx.textBaseline='middle';scratchCtx.fillText('✨ Finger se khurcho! ✨',W/2,H/2-12);
-    scratchCtx.font='11px Space Grotesk';scratchCtx.fillStyle='rgba(255,255,255,.35)';scratchCtx.fillText('Apni luck azmaao!',W/2,H/2+14);
-    scratchCtx.globalCompositeOperation='destination-out';
-    function getPos(e,c2){const r2=c2.getBoundingClientRect();if(e.touches)return{x:(e.touches[0].clientX-r2.left)*(c2.width/r2.width),y:(e.touches[0].clientY-r2.top)*(c2.height/r2.height)};return{x:(e.clientX-r2.left)*(c2.width/r2.width),y:(e.clientY-r2.top)*(c2.height/r2.height)};}
-    function scratchAt(pos){if(scratchRevealed)return;scratchCtx.beginPath();scratchCtx.arc(pos.x,pos.y,28,0,Math.PI*2);scratchCtx.fill();checkScratchProgress(newCv);}
-    newCv.addEventListener('mousedown',e=>{scratchDrawing=true;scratchAt(getPos(e,newCv));});
-    newCv.addEventListener('mousemove',e=>{if(scratchDrawing)scratchAt(getPos(e,newCv));});
-    newCv.addEventListener('mouseup',()=>scratchDrawing=false);
-    newCv.addEventListener('mouseleave',()=>scratchDrawing=false);
-    newCv.addEventListener('touchstart',e=>{e.preventDefault();scratchDrawing=true;scratchAt(getPos(e,newCv));},{passive:false});
-    newCv.addEventListener('touchmove',e=>{e.preventDefault();if(scratchDrawing)scratchAt(getPos(e,newCv));},{passive:false});
-    newCv.addEventListener('touchend',e=>{e.preventDefault();scratchDrawing=false;},{passive:false});
+// ✅ SCRATCH CARD - COMPLETELY REMOVED
+
+// ✅ NEW GAME: DICE ROLL (60% loss, 40% profit)
+function selectDiceNumber(num, el){
+    diceNumber=num;
+    document.querySelectorAll('#diceModal .dice-opt').forEach(o=>o.classList.remove('sel'));
+    el.classList.add('sel');
+    playSound('tap');
 }
-async function checkScratchProgress(cv){
-    if(scratchRevealed)return;
-    const data=scratchCtx.getImageData(0,0,cv.width,cv.height).data;
-    let cleared=0;for(let i=3;i<data.length;i+=4)if(data[i]===0)cleared++;
-    const pct=(cleared/(cv.width*cv.height))*100;
-    document.getElementById('scratchProgFill').style.width=`${Math.min(pct*1.3,100)}%`;
-    if(pct>45&&!scratchRevealed){
-        scratchRevealed=true;scratchCtx.clearRect(0,0,cv.width,cv.height);
-        document.getElementById('scratchProgFill').style.width='100%';
-        document.getElementById('scratchHintTxt').textContent='⏳ Processing...';
-        if((userData.passes||0)<=0){document.getElementById('scratchHintTxt').textContent='❌ Passes nahi!';showToast('❌ Passes nahi!');return;}
-        const r=await apiPost('/api/game/scratch',{user_id:userData.user_id});
-        if(r&&r.success){
-            // FIXED: Show actual reward amount correctly
-            const rewardVal=parseFloat(r.reward||0);
-            document.getElementById('scratchAmt').textContent=`₹${rewardVal.toFixed(rewardVal<1?2:1)}`;
-            document.getElementById('scratchLbl').textContent=rewardVal>=2?'🎉 Jackpot!':rewardVal>=1?'🎊 Achha!':`₹${rewardVal.toFixed(2)}`;
-            document.getElementById('scratchCardsLeft').textContent=r.scratch_left||0;
-            document.getElementById('scratchHintTxt').textContent='🎊 Revealed!';
-            userData.passes=Math.max(0,(userData.passes||1)-1);
+
+function selectDiceBet(amt, el){
+    if(amt>userData.balance){showToast('❌ Balance kam hai!');return;}
+    diceBet=amt;
+    document.querySelectorAll('#diceModal .dice-bet-chip').forEach(c=>c.classList.remove('sel'));
+    el.classList.add('sel');
+    playSound('tap');
+}
+
+async function rollDice(){
+    if(!diceNumber){showToast('❌ Pehle number choose karo!');return;}
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
+    if(userData.balance<diceBet){showToast('❌ Balance kam hai!');return;}
+    
+    document.getElementById('diceResWin').style.display='none';
+    document.getElementById('diceResLose').style.display='none';
+    document.getElementById('rollBtn').disabled=true;
+    document.getElementById('rollBtn').textContent='🎲 Rolling...';
+    
+    // Animation
+    const diceDisplay=document.getElementById('diceDisplay');
+    let rollCount=0;
+    const rollInterval=setInterval(()=>{
+        const rand=Math.floor(Math.random()*6)+1;
+        const symbols=['⚀','⚁','⚂','⚃','⚄','⚅'];
+        diceDisplay.textContent=symbols[rand-1];
+        rollCount++;
+        if(rollCount>10) clearInterval(rollInterval);
+    },100);
+    
+    playSound('tap');
+    const r=await apiPost('/api/game/dice',{user_id:userData.user_id,choice:diceNumber,bet:diceBet});
+    
+    clearInterval(rollInterval);
+    
+    if(r&&r.success){
+        const resultSymbols=['⚀','⚁','⚂','⚃','⚄','⚅'];
+        diceDisplay.textContent=resultSymbols[r.result-1];
+        
+        userData.passes=Math.max(0,(userData.passes||1)-1);
+        
+        if(r.won){
+            document.getElementById('diceWinAmt').textContent=`+₹${parseFloat(r.reward||0).toFixed(2)}`;
+            document.getElementById('diceResWin').style.display='block';
+            playSound('earn');
+            showToast(`🎉 +₹${parseFloat(r.reward||0).toFixed(2)}`);
+            gameState.wins=(gameState.wins||0)+1;
             if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
-            playSound('earn');showToast(`🎫 +₹${rewardVal.toFixed(2)}!`);await loadUser();updateUI();updateMissionsUI();
-            document.getElementById('newScratchBtn').disabled=false;
-        }else{document.getElementById('scratchHintTxt').textContent='❌ '+(r?.message||'Error');showToast('❌ '+(r?.message||'Error'));}
+        } else {
+            document.getElementById('diceLoseAmt').textContent=`-₹${diceBet}`;
+            document.getElementById('diceResLose').style.display='block';
+            playSound('lose');
+            showToast('😢 Haar gaye! Number tha: '+r.result);
+        }
+        await loadUser();
+        updateUI();
+        updateMissionsUI();
+    } else {
+        showToast('❌ '+(r?.message||'Error'));
+        diceDisplay.textContent='🎲';
     }
+    
+    document.getElementById('rollBtn').disabled=false;
+    document.getElementById('rollBtn').textContent='🎲 ROLL DICE!';
 }
-function newScratch(){if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}initScratch();playSound('tap');}
+
+// ✅ NEW GAME: CARD BATTLE (60% loss, 40% profit)
+function selectCard(card, el){
+    cardChoice=card;
+    document.querySelectorAll('#cardModal .card-opt').forEach(o=>o.classList.remove('sel'));
+    el.classList.add('sel');
+    playSound('tap');
+}
+
+function selectCardBet(amt, el){
+    if(amt>userData.balance){showToast('❌ Balance kam hai!');return;}
+    cardBet=amt;
+    document.querySelectorAll('#cardModal .dice-bet-chip').forEach(c=>c.classList.remove('sel'));
+    el.classList.add('sel');
+    playSound('tap');
+}
+
+async function cardBattle(){
+    if(!cardChoice){showToast('❌ Pehle card choose karo!');return;}
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
+    if(userData.balance<cardBet){showToast('❌ Balance kam hai!');return;}
+    
+    document.getElementById('cardResWin').style.display='none';
+    document.getElementById('cardResLose').style.display='none';
+    document.getElementById('cardResTie').style.display='none';
+    document.getElementById('battleBtn').disabled=true;
+    document.getElementById('battleBtn').textContent='🃏 Battling...';
+    
+    playSound('tap');
+    const r=await apiPost('/api/game/card',{user_id:userData.user_id,choice:cardChoice,bet:cardBet});
+    
+    if(r&&r.success){
+        // Display cards
+        const suits={hearts:'♥️',diamonds:'♦️',clubs:'♣️',spades:'♠️'};
+        const ranks=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+        const playerRank=ranks[r.player_rank-1];
+        const computerRank=ranks[r.computer_rank-1];
+        
+        document.getElementById('playerCard').innerHTML=`<span class="card-suit">${suits[r.player_suit]}</span><span class="card-rank">${playerRank}</span>`;
+        document.getElementById('computerCard').innerHTML=`<span class="card-suit">${suits[r.computer_suit]}</span><span class="card-rank">${computerRank}</span>`;
+        
+        userData.passes=Math.max(0,(userData.passes||1)-1);
+        
+        if(r.result==='win'){
+            document.getElementById('cardWinAmt').textContent=`+₹${parseFloat(r.reward||0).toFixed(2)}`;
+            document.getElementById('cardResWin').style.display='block';
+            playSound('earn');
+            showToast(`🎉 +₹${parseFloat(r.reward||0).toFixed(2)}`);
+            gameState.wins=(gameState.wins||0)+1;
+            if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
+        } else if(r.result==='lose'){
+            document.getElementById('cardLoseAmt').textContent=`-₹${cardBet}`;
+            document.getElementById('cardResLose').style.display='block';
+            playSound('lose');
+            showToast('😢 Computer jeet gaya!');
+        } else {
+            document.getElementById('cardResTie').style.display='block';
+            playSound('tap');
+            showToast('🤝 Tie! Paise wapas');
+        }
+        await loadUser();
+        updateUI();
+        updateMissionsUI();
+    } else {
+        showToast('❌ '+(r?.message||'Error'));
+    }
+    
+    document.getElementById('battleBtn').disabled=false;
+    document.getElementById('battleBtn').textContent='🃏 BATTLE!';
+}
 
 function openGame(g){
     playSound('tap');
@@ -1715,7 +2036,8 @@ function openGame(g){
     if(g==='spin'){drawWheel(spinAngle);openModal('spin');}
     else if(g==='guess'){startGuess();openModal('guess');}
     else if(g==='coin'){resetCoinUI();openModal('coin');}
-    else if(g==='scratch'){openModal('scratch');setTimeout(initScratch,200);}
+    else if(g==='dice'){openModal('dice');}
+    else if(g==='card'){openModal('card');}
 }
 
 // ============================================================
@@ -1784,4 +2106,4 @@ async function init(){
 document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
-    </html>
+</html>
