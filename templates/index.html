@@ -94,8 +94,8 @@
         .balance-card::after{content:'';position:absolute;bottom:-40px;left:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(124,92,252,.09),transparent 65%);pointer-events:none;}
         .balance-label{font-size:11px;color:var(--text2);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px;}
         .balance-main{font-family:'Oxanium',sans-serif;font-size:46px;font-weight:900;color:var(--gold);line-height:1.05;text-shadow:0 0 36px rgba(240,192,64,.22);}
-        .balance-sub{display:flex;gap:9px;margin-top:13px;}
-        .bsub-item{flex:1;background:rgba(255,255,255,.04);border-radius:12px;padding:9px 11px;border:1px solid var(--border);}
+        .balance-sub{display:flex;gap:7px;margin-top:13px;flex-wrap:wrap;}
+        .bsub-item{flex:1;min-width:80px;background:rgba(255,255,255,.04);border-radius:12px;padding:9px 11px;border:1px solid var(--border);}
         .bsub-label{font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
         .bsub-val{font-size:17px;font-weight:800;color:var(--gold);margin-top:2px;font-family:'Oxanium',sans-serif;}
 
@@ -570,6 +570,7 @@
             <div class="balance-sub">
                 <div class="bsub-item"><div class="bsub-label" data-t="today_earned">Aaj Kamaya</div><div class="bsub-val" id="todayEarned">₹0</div></div>
                 <div class="bsub-item"><div class="bsub-label" data-t="active_refs"><img src="https://i.postimg.cc/cCV72d3Z/refer-earn-concept-business-partnership-strategy-vector-illustration-185038-443.jpg" style="width:14px;height:14px;object-fit:cover;border-radius:3px;vertical-align:middle;margin-right:3px;"> Active Refs</div><div class="bsub-val" id="activeRefs">0</div></div>
+                <div class="bsub-item"><div class="bsub-label">📅 Month Refs</div><div class="bsub-val" id="monthRefsDisplay">0</div></div>
             </div>
         </div>
         <div class="passes-card">
@@ -1201,10 +1202,16 @@ async function loadUser(){
     const d=await apiGet(`/api/user/${uid}`);
     if(d&&!d.error){
         const oldRefs=userData.active_refs||0;
-        userData={...userData,...d,user_id:uid,first_name:tg?.initDataUnsafe?.user?.first_name||d.first_name||'User',photo_url:tg?.initDataUnsafe?.user?.photo_url||null};
+        userData={...userData,...d,
+            user_id:uid,
+            first_name:tg?.initDataUnsafe?.user?.first_name||d.first_name||'User',
+            photo_url:tg?.initDataUnsafe?.user?.photo_url||null,
+            // month_active_refs now comes directly from user API
+            month_active_refs:d.month_active_refs||0,
+            // today_earned comes from backend (resets each day)
+            today_earned:d.today_earned||0
+        };
         userStreak=userData.daily_streak||0;
-        // Load month_active_refs separately
-        await loadMonthRefs(uid);
         if(userData.is_admin){
             document.getElementById('adminSidebarBtn').style.display='flex';
             document.getElementById('adminSupportBtn').style.display='flex';
@@ -1214,17 +1221,6 @@ async function loadUser(){
         updateUI();
         updateWithdrawCondition();
     }
-}
-async function loadMonthRefs(uid){
-    // Try to get month_active_refs from API
-    const d=await apiGet(`/api/user/${uid}/month-refs`);
-    if(d&&d.month_active_refs!==undefined){
-        userData.month_active_refs=d.month_active_refs;
-    } else {
-        // Fallback: use active_refs as approximation
-        userData.month_active_refs=userData.month_active_refs||0;
-    }
-    updateWithdrawCondition();
 }
 async function loadGameState(){
     if(!userData.user_id)return;
@@ -1239,40 +1235,48 @@ async function loadBonusDays(){
 async function loadMissions(){
     if(!userData.user_id)return;
     const d=await apiGet(`/api/user/${userData.user_id}/missions`);
-    if(d){
-        MISSIONS_DEF.forEach(m=>{
-            const sv=d[m.id];
-            const localClaimed=missionStates[m.id]?.claimed||false; // preserve local claimed state
-            if(sv){
-                missionStates[m.id]={
-                    progress:sv.progress||0,
-                    completed:sv.completed||false,
-                    // If local says claimed OR server says claimed — keep claimed
-                    claimed: localClaimed || sv.claimed||false
-                };
-            }else{
-                missionStates[m.id]={progress:0,completed:false,claimed:localClaimed};
-            }
-        });
-        // Auto-fill m_refer5 from live user data
-        if(userData.active_refs){
-            const ms=missionStates['m_refer5'];
-            ms.progress=Math.min(userData.active_refs,5);
-            ms.completed=userData.active_refs>=5;
+    const today=new Date().toISOString().split('T')[0];
+
+    MISSIONS_DEF.forEach(m=>{
+        const sv=d?d[m.id]:null;
+        const localClaimed=missionStates[m.id]?.claimed||false;
+
+        if(sv){
+            missionStates[m.id]={
+                progress:sv.progress||0,
+                completed:sv.completed||false,
+                claimed: localClaimed||sv.claimed||false
+            };
+        }else{
+            missionStates[m.id]={progress:0,completed:false,claimed:localClaimed};
         }
-        // Auto-fill m_daily from claimedDates
-        if(claimedDates.length>0){
-            const today=new Date().toISOString().split('T')[0];
-            if(claimedDates.includes(today)){
-                missionStates['m_daily'].progress=1;
-                missionStates['m_daily'].completed=true;
-            }
-        }
-    } else {
-        MISSIONS_DEF.forEach(m=>{
-            if(!missionStates[m.id])missionStates[m.id]={progress:0,completed:false,claimed:false};
-        });
+    });
+
+    // Auto-fill m_refer5 — always use live active_refs count
+    if(!missionStates['m_refer5'])missionStates['m_refer5']={progress:0,completed:false,claimed:false};
+    const activeRefs=userData.active_refs||0;
+    missionStates['m_refer5'].progress=Math.min(activeRefs,5);
+    missionStates['m_refer5'].completed=activeRefs>=5;
+
+    // Auto-fill m_daily — from claimedDates
+    if(!missionStates['m_daily'])missionStates['m_daily']={progress:0,completed:false,claimed:false};
+    if(claimedDates.includes(today)){
+        missionStates['m_daily'].progress=1;
+        missionStates['m_daily'].completed=true;
     }
+
+    // Auto-fill m_game — from gameState wins today
+    if(!missionStates['m_game'])missionStates['m_game']={progress:0,completed:false,claimed:false};
+    const gameWinsToday=gameState.wins||0;
+    if(gameWinsToday>0){
+        const curProg=missionStates['m_game'].progress||0;
+        // Only update if gameState has more wins
+        if(gameWinsToday>curProg&&!missionStates['m_game'].claimed){
+            missionStates['m_game'].progress=Math.min(gameWinsToday,10);
+            missionStates['m_game'].completed=gameWinsToday>=10;
+        }
+    }
+
     updateMissionsUI();
 }
 async function loadAds(){
@@ -1300,10 +1304,16 @@ async function loadRefActivity(){
 // ============================================================
 function updateUI(){
     const bal=`₹${(userData.balance||0).toFixed(2)}`;
+    // Today earned — comes directly from backend (resets each day automatically)
+    // Backend add_balance() already tracks today_earned for ALL sources
+    const totalTodayEarned=userData.today_earned||0;
     document.getElementById('balAmt').textContent=bal;
     document.getElementById('topbarBalance').textContent=bal;
-    document.getElementById('todayEarned').textContent=`₹${(userData.today_earned||0).toFixed(2)}`;
+    document.getElementById('todayEarned').textContent=`₹${totalTodayEarned.toFixed(2)}`;
     document.getElementById('activeRefs').textContent=userData.active_refs||0;
+    // Month refs display in balance card
+    const monthRefsEl=document.getElementById('monthRefsDisplay');
+    if(monthRefsEl)monthRefsEl.textContent=userData.month_active_refs||0;
     document.getElementById('passCount').textContent=userData.passes||0;
     document.getElementById('wdrawBal').textContent=bal;
     document.getElementById('epPassCount').textContent=userData.passes||0;
@@ -1483,7 +1493,7 @@ function showCongratsPopup(){
 // ============================================================
 function updateMissionsUI(){
     const c=document.getElementById('missionsContainer');if(!c)return;
-    let doneCount=0;
+    let doneCount=0,compCount=0;
     c.innerHTML=MISSIONS_DEF.map(m=>{
         const state=missionStates[m.id]||{progress:0,completed:false,claimed:false};
         const prog=Math.min(state.progress||0,m.total);
@@ -1491,14 +1501,15 @@ function updateMissionsUI(){
         const isDone=state.completed||(prog>=m.total);
         const isClaimed=state.claimed;
         if(isClaimed)doneCount++;
+        if(isDone&&!isClaimed)compCount++;
         const rewardTxt=m.reward>=1?`₹${m.reward}`:`₹${m.reward.toFixed(2)}`;
-        return`<div class="mission-item">
+        return`<div class="mission-item" style="${isDone&&!isClaimed?'border-color:rgba(240,192,64,.4);box-shadow:0 0 12px rgba(240,192,64,.1);':''}">
             <div class="mission-item-header">
                 <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">${m.icon}</span><span class="mission-item-title">${lang==='en'?m.en:m.hi}</span></div>
                 <div class="mission-item-reward">+${rewardTxt}</div>
             </div>
             <div class="mission-item-bar"><div class="mission-item-fill" style="width:${Math.min(pct,100)}%;background:${isClaimed?'var(--green)':isDone?'var(--gold)':'var(--purple2)'};"></div></div>
-            <div class="mission-progress-text">${prog}/${m.total} ${isClaimed?'✅ Claimed!':isDone?'→ Claim karo!':''}</div>
+            <div class="mission-progress-text">${prog}/${m.total} ${isClaimed?'✅ Claimed!':isDone?'🎯 Ready to claim!':''}</div>
             ${isClaimed
                 ?`<div class="mission-claimed-badge">✅ Claimed! +${rewardTxt}</div>`
                 :isDone
@@ -1506,9 +1517,10 @@ function updateMissionsUI(){
                     :''}
         </div>`;
     }).join('');
-    document.getElementById('missionsDone').textContent=doneCount;
+    const totalDone=doneCount+compCount;
+    document.getElementById('missionsDone').textContent=totalDone;
     document.getElementById('missionsTotal').textContent=MISSIONS_DEF.length;
-    document.getElementById('missionBarFill').style.width=`${(doneCount/MISSIONS_DEF.length)*100}%`;
+    document.getElementById('missionBarFill').style.width=`${(totalDone/MISSIONS_DEF.length)*100}%`;
 }
 async function claimSingleMission(missionId,reward){
     // Init state if missing
@@ -1694,19 +1706,59 @@ function renderLeaderboard(data){
     const prizeMin=lbMode==='weekly'?50:200;
     const prizes=lbMode==='weekly'?[150,65,30,10,10,10,10,10,10,10]:[300,200,200,30,30,30,30,30,30,30];
     const sorted=[...data].sort((a,b)=>(b.active_refs||0)-(a.active_refs||0));
+
+    // Helper — show active + pending refs for each user
+    const refsLine=(u)=>{
+        const act=u.active_refs||0;
+        const pend=u.pending_refs||0;
+        return `<span style="color:var(--green);font-weight:700;">✅ ${act}</span>${pend>0?` <span style="color:var(--gold);">⏳ ${pend}</span>`:''}`;
+    };
+    const podiumRefsLine=(u)=>{
+        const act=u.active_refs||0;
+        const pend=u.pending_refs||0;
+        let s=`<div style="font-size:9px;color:var(--green);font-weight:700;">✅ ${act} active</div>`;
+        if(pend>0) s+=`<div style="font-size:9px;color:var(--gold);">⏳ ${pend} pending</div>`;
+        return s;
+    };
+
     let html='';
     if(sorted.length>=1){
         html+=`<div class="lb-podium">`;
-        if(sorted.length>=2)html+=`<div class="podium-slot p2"><div class="podium-dp">${(sorted[1].name||'U')[0]}</div><div class="podium-name">${sorted[1].name||'User'}</div><div style="font-size:9px;color:var(--text2)">${sorted[1].active_refs||0} refs</div><div class="podium-bar">🥈</div>${(sorted[1].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">₹${prizes[1]}</div>`:''}</div>`;
-        html+=`<div class="podium-slot p1"><div class="podium-dp">${(sorted[0].name||'U')[0]}</div><div class="podium-name">${sorted[0].name||'User'}</div><div style="font-size:9px;color:var(--text2)">${sorted[0].active_refs||0} refs</div><div class="podium-bar"><img src="https://i.postimg.cc/7Zp6zfyg/1773974341500.png" style="width:44px;height:44px;object-fit:contain;"></div>${(sorted[0].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">₹${prizes[0]}</div>`:''}</div>`;
-        if(sorted.length>=3)html+=`<div class="podium-slot p3"><div class="podium-dp">${(sorted[2].name||'U')[0]}</div><div class="podium-name">${sorted[2].name||'User'}</div><div style="font-size:9px;color:var(--text2)">${sorted[2].active_refs||0} refs</div><div class="podium-bar">🥉</div>${(sorted[2].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">₹${prizes[2]}</div>`:''}</div>`;
+        if(sorted.length>=2)html+=`<div class="podium-slot p2">
+            <div class="podium-dp">${(sorted[1].name||'U')[0]}</div>
+            <div class="podium-name">${sorted[1].name||'User'}</div>
+            ${podiumRefsLine(sorted[1])}
+            <div class="podium-bar">🥈</div>
+            ${(sorted[1].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">₹${prizes[1]}</div>`:''}
+        </div>`;
+        html+=`<div class="podium-slot p1">
+            <div class="podium-dp">${(sorted[0].name||'U')[0]}</div>
+            <div class="podium-name">${sorted[0].name||'User'}</div>
+            ${podiumRefsLine(sorted[0])}
+            <div class="podium-bar"><img src="https://i.postimg.cc/7Zp6zfyg/1773974341500.png" style="width:44px;height:44px;object-fit:contain;"></div>
+            ${(sorted[0].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">₹${prizes[0]}</div>`:''}
+        </div>`;
+        if(sorted.length>=3)html+=`<div class="podium-slot p3">
+            <div class="podium-dp">${(sorted[2].name||'U')[0]}</div>
+            <div class="podium-name">${sorted[2].name||'User'}</div>
+            ${podiumRefsLine(sorted[2])}
+            <div class="podium-bar">🥉</div>
+            ${(sorted[2].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">₹${prizes[2]}</div>`:''}
+        </div>`;
         html+=`</div>`;
     }
     if(sorted.length>3){
         html+=`<div class="lb-list">`;
         sorted.slice(3).forEach((u,i)=>{
             const hasPrize=(u.active_refs||0)>=prizeMin;
-            html+=`<div class="lb-item"><div class="lb-rank">${i+4}</div><div class="lb-info"><div class="lb-name">${u.name||'User'}</div><div class="lb-refs">${u.active_refs||0} refs • ₹${u.balance?.toFixed(2)||'0'}</div></div>${hasPrize?`<div class="lb-prize">₹${prizes[i+3]||0}</div>`:`<div style="font-size:10px;color:var(--text3);">${prizeMin}+ needed</div>`}</div>`;
+            html+=`<div class="lb-item">
+                <div class="lb-rank">${i+4}</div>
+                <div class="lb-info">
+                    <div class="lb-name">${u.name||'User'}</div>
+                    <div class="lb-refs">${refsLine(u)} refs</div>
+                </div>
+                ${hasPrize?`<div class="lb-prize">₹${prizes[i+3]||0}</div>`:`<div style="font-size:10px;color:var(--text3);">${prizeMin}+ needed</div>`}
+            </div>`;
         });
         html+=`</div>`;
     }
