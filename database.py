@@ -236,6 +236,17 @@ class Database:
             logger.error(f"Error marking support replied: {e}")
             return False
 
+    def delete_support_message(self, message_id):
+        """Delete a support message by ID."""
+        try:
+            from bson.objectid import ObjectId
+            result = self.issues.delete_one({'_id': ObjectId(message_id)})
+            return result.deleted_count > 0
+        except Exception as e:
+            logger.error(f"Error deleting support message: {e}")
+            return False
+
+
     # ========== USER MANAGEMENT ==========
 
     def get_user(self, user_id):
@@ -441,7 +452,9 @@ class Database:
                 {'$set': {'last_search_date': today, 'today_searched': True}}
             )
 
-            DAILY_SEARCH_EARNING = 0.10
+            # 60% of shortlink earning goes to referrer
+            # Based on ~₹0.50 per shortlink completion, 60% = ₹0.30
+            DAILY_SEARCH_EARNING = 0.30
             self.add_balance(referrer_id, DAILY_SEARCH_EARNING, f"Daily search earning from user {referred_user_id}")
             self.users.update_one({'user_id': referred_user_id}, {'$inc': {'total_searches': 1}})
 
@@ -727,17 +740,81 @@ class Database:
                 return {'success': False, 'message': 'Mission not found'}
 
             doc = self.missions.find_one({'user_id': user_id, 'date': today, 'mission_id': mission_id})
+
+            # If doc not found, create it by checking user data directly
             if not doc:
-                return {'success': False, 'message': 'Mission not started yet'}
+                user = self.get_user(user_id)
+                progress = 0
+                completed = False
+
+                # Auto-calculate progress from live user data
+                if mission_id == 'm_refer5' and user:
+                    progress = min(user.get('active_refs', 0), mdef['total'])
+                    completed = user.get('active_refs', 0) >= mdef['total']
+                elif mission_id == 'm_daily':
+                    bonus_today = self.daily_bonus.find_one({'user_id': user_id, 'date': today})
+                    progress = 1 if bonus_today else 0
+                    completed = bool(bonus_today)
+                elif mission_id == 'm_game' and user:
+                    # Check game states for today
+                    state = self.game_states.find_one({'user_id': user_id, 'date': today})
+                    progress = state.get('wins', 0) if state else 0
+                    completed = progress >= mdef['total']
+                elif mission_id == 'm_withdraw':
+                    wd_today = self.withdrawals.find_one({
+                        'user_id': user_id,
+                        'request_date': {'$gte': today}
+                    })
+                    progress = 1 if wd_today else 0
+                    completed = bool(wd_today)
+                elif mission_id == 'm_passes':
+                    claim_today = self.daily_claims.find_one({
+                        'user_id': user_id,
+                        'claimed_at': {'$gte': today}
+                    })
+                    progress = 1 if claim_today else 0
+                    completed = bool(claim_today)
+
+                if not completed:
+                    return {'success': False, 'message': 'Mission abhi puri nahi hui'}
+
+                # Create the doc so we can mark it claimed
+                try:
+                    self.missions.insert_one({
+                        'user_id': user_id, 'date': today,
+                        'mission_id': mission_id,
+                        'progress': progress, 'completed': True, 'claimed': False
+                    })
+                except:
+                    pass  # May already exist due to race condition
+
+                doc = self.missions.find_one({'user_id': user_id, 'date': today, 'mission_id': mission_id})
+                if not doc:
+                    # Still not found — just proceed with claim directly
+                    self.add_balance(user_id, float(reward), f"Mission {mission_id} reward")
+                    self.add_live_activity('mission', user_id, reward, f"claimed mission reward +₹{reward}")
+                    return {'success': True, 'message': f'Claimed! +₹{reward}'}
+
             if doc.get('claimed'):
                 return {'success': False, 'message': 'Already claimed'}
+
+            # Check completion — either from doc or from live data
             if not doc.get('completed') and doc.get('progress', 0) < mdef['total']:
-                return {'success': False, 'message': 'Mission not completed yet'}
+                # One more check: maybe progress was updated but doc wasn't
+                user = self.get_user(user_id)
+                real_complete = False
+                if mission_id == 'm_refer5' and user:
+                    real_complete = user.get('active_refs', 0) >= mdef['total']
+                elif mission_id == 'm_daily':
+                    real_complete = bool(self.daily_bonus.find_one({'user_id': user_id, 'date': today}))
+                if not real_complete:
+                    return {'success': False, 'message': 'Mission abhi puri nahi hui'}
 
             self.add_balance(user_id, float(reward), f"Mission {mission_id} reward")
             self.missions.update_one(
                 {'user_id': user_id, 'date': today, 'mission_id': mission_id},
-                {'$set': {'claimed': True}}
+                {'$set': {'claimed': True, 'completed': True}},
+                upsert=True
             )
             self.add_live_activity('mission', user_id, reward, f"claimed mission reward +₹{reward}")
             return {'success': True, 'message': f'Claimed! +₹{reward}'}
@@ -1318,6 +1395,100 @@ class Database:
             }
         except Exception as e:
             logger.error(f"Error processing scratch: {e}")
+            return {'success': False, 'message': str(e)}
+
+    # ========== COLOR PREDICTION GAME ==========
+
+    COLOR_CONFIG = {
+        'red':    {'mult': 2,  'prob': 0.30},
+        'green':  {'mult': 2,  'prob': 0.28},
+        'blue':   {'mult': 2,  'prob': 0.25},
+        'yellow': {'mult': 4,  'prob': 0.10},
+        'purple': {'mult': 4,  'prob': 0.05},
+        'orange': {'mult': 9,  'prob': 0.02},
+    }
+
+    def process_game_color(self, user_id, choice, bet):
+        """
+        Color Prediction. Red/Green/Blue=2x, Yellow/Purple=4x, Orange=9x
+        House edge ~40%.
+        """
+        try:
+            user_id = int(user_id)
+            bet = float(bet)
+            valid_colors = list(self.COLOR_CONFIG.keys())
+            if choice not in valid_colors:
+                return {'success': False, 'message': 'Invalid color'}
+            user = self.get_user(user_id)
+            if not user or user.get('passes', 0) <= 0:
+                return {'success': False, 'message': 'Passes nahi hain!'}
+            deduct_result = self.deduct_game_balance(user_id, bet, 'color')
+            if not deduct_result.get('success'):
+                return deduct_result
+            if not self.deduct_pass(user_id):
+                self.add_balance(user_id, bet, "Color refund")
+                return {'success': False, 'message': 'Pass deduct nahi hua'}
+            # Weighted color pick
+            probs = [self.COLOR_CONFIG[c]['prob'] for c in valid_colors]
+            total = sum(probs)
+            r = random.random() * total
+            result_color = valid_colors[-1]
+            for i, p in enumerate(probs):
+                r -= p
+                if r <= 0:
+                    result_color = valid_colors[i]
+                    break
+            won = (choice == result_color)
+            result = {'success': True, 'won': won, 'result_color': result_color, 'choice': choice, 'reward': 0}
+            if won:
+                mult = self.COLOR_CONFIG[result_color]['mult']
+                reward = round(bet * mult, 2)
+                earn_result = self.add_game_earning(user_id, reward, 'color', f"Color {result_color} {mult}x")
+                result['reward'] = earn_result.get('earned', reward)
+                result['multiplier'] = mult
+                result['today_earned'] = earn_result.get('today_total', 0)
+            return result
+        except Exception as e:
+            logger.error(f"Color game error: {e}")
+            return {'success': False, 'message': str(e)}
+
+    def process_crash_start(self, user_id, bet):
+        """Crash game — deduct pass AND bet amount from balance."""
+        try:
+            user_id = int(user_id)
+            bet = float(bet)
+            user = self.get_user(user_id)
+            if not user or user.get('passes', 0) <= 0:
+                return {'success': False, 'message': 'Passes nahi hain!'}
+            if user.get('balance', 0) < bet:
+                return {'success': False, 'message': f'Balance kam hai! ₹{user.get("balance",0):.2f} hai'}
+            # Deduct pass
+            if not self.deduct_pass(user_id):
+                return {'success': False, 'message': 'Pass deduct nahi hua'}
+            # Deduct bet from balance
+            self.users.update_one({'user_id': user_id}, {'$inc': {'balance': -bet}})
+            self.add_transaction(user_id, 'game_bet', -bet, f"Crash game bet ₹{bet}")
+            self.user_cache.pop(f"user_{user_id}", None)
+            return {'success': True}
+        except Exception as e:
+            logger.error(f"Crash start error: {e}")
+            return {'success': False, 'message': str(e)}
+
+    def process_crash_cashout(self, user_id, bet, multiplier, reward):
+        """Crash cashout — credit winnings."""
+        try:
+            user_id = int(user_id)
+            bet = float(bet)
+            multiplier = float(multiplier)
+            reward = float(reward)
+            if multiplier < 1.0:
+                return {'success': False, 'message': 'Invalid multiplier'}
+            if reward > bet * 10.5:
+                reward = round(bet * 10, 2)
+            earn_result = self.add_game_earning(user_id, reward, 'crash', f"Crash cashout {multiplier}x")
+            return {'success': True, 'reward': earn_result.get('earned', reward), 'multiplier': multiplier}
+        except Exception as e:
+            logger.error(f"Crash cashout error: {e}")
             return {'success': False, 'message': str(e)}
 
     # ========== SYSTEM & CLEANUP ==========
