@@ -140,9 +140,10 @@ def get_user_api(user_id):
         if user_id == 0:
             return jsonify({
                 'user_id': 0, 'first_name': 'Guest', 'balance': 0,
-                'total_earned': 0, 'tier': 1, 'total_refs': 0,
+                'total_earned': 0, 'today_earned': 0, 'tier': 1, 'total_refs': 0,
                 'active_refs': 0, 'pending_refs': 0, 'daily_streak': 0,
-                'channel_joined': False, 'is_admin': False, 'games_won': 0, 'passes': 0
+                'channel_joined': False, 'is_admin': False, 'games_won': 0,
+                'passes': 0, 'month_active_refs': 0
             })
         if not db or not db.ensure_connection():
             return jsonify({'error': 'Database not connected'}), 503
@@ -150,6 +151,20 @@ def get_user_api(user_id):
         if user_data:
             if '_id' in user_data:
                 user_data['_id'] = str(user_data['_id'])
+            # Auto-reset today_earned if new day
+            today = datetime.now().date().isoformat()
+            if user_data.get('today_date') != today:
+                user_data['today_earned'] = 0.0
+                db.users.update_one(
+                    {'user_id': user_id},
+                    {'$set': {'today_earned': 0.0, 'today_date': today}}
+                )
+                db.user_cache.pop(f"user_{user_id}", None)
+            # Include month_active_refs in main user call
+            user_data['month_active_refs'] = db.get_month_active_refs(user_id)
+            # Ensure today_earned field exists
+            if 'today_earned' not in user_data:
+                user_data['today_earned'] = 0.0
             return jsonify(user_data)
         return jsonify({'error': 'User not found'}), 404
     except Exception as e:
@@ -902,6 +917,13 @@ def run_bot():
         bot_app.add_handler(MessageHandler(
             filters.Chat(LOG_CHANNEL_ID) & filters.TEXT,
             handlers.handle_log_channel_message
+        ))
+
+        # ===== GROUP MESSAGE HANDLER — Daily search earning =====
+        # Jab referred users movie group mein message bhejte hain → daily earning credit
+        bot_app.add_handler(MessageHandler(
+            (filters.ChatType.GROUP | filters.ChatType.SUPERGROUP) & filters.TEXT & ~filters.COMMAND,
+            handlers.handle_group_message
         ))
 
         # Admin private messages
