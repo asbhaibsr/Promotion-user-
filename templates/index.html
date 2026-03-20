@@ -386,6 +386,49 @@
         .dice-res-big{font-family:'Oxanium',sans-serif;font-size:34px;font-weight:900;}
         .dice-odds-info{background:rgba(255,78,106,.07);border:1px solid rgba(255,78,106,.2);border-radius:12px;padding:10px 13px;text-align:center;font-size:11px;color:var(--text2);margin-top:8px;}
 
+        /* COLOR PREDICTION GAME */
+        .color-arena{background:linear-gradient(135deg,#0c1230,#1a0628);border-radius:20px;padding:20px 16px 14px;margin-bottom:12px;}
+        .color-result-display{width:88px;height:88px;border-radius:50%;margin:0 auto 10px;border:5px solid rgba(255,255,255,.15);transition:all .5s;display:flex;align-items:center;justify-content:center;font-size:32px;background:var(--bg3);}
+        .color-result-display.revealed{box-shadow:0 0 0 10px rgba(255,255,255,.07),0 12px 36px rgba(0,0,0,.4);}
+        .color-result-txt{font-family:Oxanium,sans-serif;font-size:14px;font-weight:900;color:var(--text2);min-height:24px;}
+        .color-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:12px 0;}
+        .color-btn{border:3px solid transparent;border-radius:14px;padding:13px 5px;font-weight:900;font-size:12px;cursor:pointer;transition:all .2s;font-family:inherit;color:#fff;line-height:1.3;}
+        .color-btn.sel{transform:translateY(-5px);box-shadow:0 10px 24px rgba(0,0,0,.5);border-color:rgba(255,255,255,.7);}
+        .color-btn.correct{outline:3px solid #fff;transform:scale(1.07);}
+        .color-btn.wrong{opacity:.35;}
+        .color-btn:disabled{cursor:not-allowed;}
+        .cb-red{background:linear-gradient(135deg,#ef4444,#b91c1c);}
+        .cb-green{background:linear-gradient(135deg,#22c55e,#15803d);}
+        .cb-blue{background:linear-gradient(135deg,#3b82f6,#1d4ed8);}
+        .cb-yellow{background:linear-gradient(135deg,#eab308,#a16207);}
+        .cb-purple{background:linear-gradient(135deg,#a855f7,#6d28d9);}
+        .cb-orange{background:linear-gradient(135deg,#f97316,#c2410c);}
+        .color-mult-row{display:flex;gap:5px;justify-content:center;font-size:10px;color:var(--text3);margin-bottom:8px;flex-wrap:wrap;}
+        .color-mult-badge{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:3px 8px;font-weight:700;}
+        .color-res-win{background:linear-gradient(135deg,var(--green),#059669);color:#fff;border-radius:14px;padding:14px;text-align:center;display:none;animation:bounceIn .4s;margin:8px 0;}
+        .color-res-lose{background:linear-gradient(135deg,var(--red),#dc2626);color:#fff;border-radius:14px;padding:14px;text-align:center;display:none;animation:bounceIn .4s;margin:8px 0;}
+        /* CRASH GAME */
+        .crash-arena{background:linear-gradient(160deg,#020b1a,#060d2a,#0c0520);border-radius:20px;padding:16px;margin-bottom:10px;position:relative;overflow:hidden;height:185px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+        .crash-arena::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(54,182,245,.07),transparent 70%);}
+        .crash-multiplier{font-family:Oxanium,sans-serif;font-size:68px;font-weight:900;line-height:1;transition:color .15s;z-index:2;}
+        .crash-multiplier.safe{color:var(--green);text-shadow:0 0 30px rgba(25,216,158,.4);}
+        .crash-multiplier.warning{color:var(--gold);text-shadow:0 0 30px rgba(240,192,64,.4);}
+        .crash-multiplier.crashed{color:var(--red);text-shadow:0 0 30px rgba(255,78,106,.4);}
+        .crash-multiplier.waiting{color:var(--text3);}
+        .crash-status{font-size:12px;font-weight:700;margin-top:5px;z-index:2;}
+        .crash-rocket{position:absolute;font-size:28px;z-index:3;transition:bottom .15s linear,left .1s linear;}
+        .crash-history{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin:7px 0;min-height:26px;}
+        .crash-hist-badge{padding:3px 9px;border-radius:16px;font-size:10px;font-weight:800;}
+        .crash-hist-badge.low{background:rgba(255,78,106,.14);color:var(--red);}
+        .crash-hist-badge.mid{background:rgba(240,192,64,.14);color:var(--gold);}
+        .crash-hist-badge.high{background:rgba(25,216,158,.14);color:var(--green);}
+        .crash-auto-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+        .crash-auto-label{font-size:11px;color:var(--text2);font-weight:700;white-space:nowrap;}
+        .crash-auto-inp{flex:1;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:9px 11px;color:var(--text);font-family:inherit;font-size:13px;}
+        .crash-cashout-btn{background:linear-gradient(135deg,#ff6b35,var(--red));color:#fff;border:none;padding:16px;border-radius:36px;font-weight:900;font-size:16px;width:100%;cursor:pointer;font-family:inherit;display:none;box-shadow:0 6px 20px rgba(255,78,106,.4);}
+        .crash-cashout-btn.show{display:block;animation:cashPulse .5s ease infinite alternate;}
+        @keyframes cashPulse{from{transform:scale(1);}to{transform:scale(1.03);}}
+
         /* HISTORY */
         .hist-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:8px;}
         .hist-top{display:flex;justify-content:space-between;align-items:center;}
@@ -556,7 +599,7 @@
         </div>
         <div class="ref-card">
             <div style="font-family:'Oxanium',sans-serif;font-size:17px;font-weight:800;margin-bottom:4px;" data-t="refer_earn_title">👥 Refer & Earn</div>
-            <div style="font-size:11px;color:var(--text2);margin-bottom:11px;" data-t="refer_sub">Dost ko invite karo • 3 Passes + ₹0.40 bonus pao!</div>
+            <div style="font-size:11px;color:var(--text2);margin-bottom:11px;" data-t="refer_sub">Dost ko invite karo • 3 Passes + ₹0.60 bonus pao!</div>
             <div class="ref-link-box">
                 <span class="ref-link-text" id="refLinkText">https://t.me/...</span>
                 <button class="ref-copy-btn" onclick="copyRef()" data-t="copy">Copy</button>
@@ -622,6 +665,8 @@
             <div class="game-card" onclick="openGame('guess')"><span class="game-emoji">🔢</span><div class="game-name">Number Guess</div><div class="game-desc">1-10 guess karo</div><span class="game-reward">8x Reward</span></div>
             <div class="game-card" onclick="openGame('coin')"><span class="game-emoji">🪙</span><div class="game-name">Coin Flip</div><div class="game-desc">Heads ya Tails?</div><span class="game-reward">2x Win</span></div>
             <div class="game-card" onclick="openGame('dice')"><span class="game-emoji">🎲</span><div class="game-name">Dice Roll</div><div class="game-desc">Number choose karo</div><span class="game-reward">5x Win</span></div>
+            <div class="game-card" onclick="openGame('color')"><span class="game-emoji">🎨</span><div class="game-name">Color Predict</div><div class="game-desc">Color choose karo</div><span class="game-reward">2x-9x Win</span></div>
+            <div class="game-card" onclick="openGame('crash')"><span class="game-emoji">🚀</span><div class="game-name">Crash Game</div><div class="game-desc">Sahi time pe cashout!</div><span class="game-reward">Up to 10x</span></div>
         </div>
     </div>
 </div>
@@ -711,11 +756,11 @@
         <div style="font-size:12px;color:var(--gold);font-weight:800;margin-bottom:6px;">💡 Apne referred users ko batao:</div>
         <div style="font-size:11px;color:var(--text2);line-height:1.8;">
             📱 <b style="color:var(--text);">Roz movie search karo</b> group pe aur ek shortlink puri karo<br>
-            → Tumhe <b style="color:var(--gold);">₹0.10 daily bonus</b> milega ek user se<br>
+            → Tumhe <b style="color:var(--gold);">₹0.30 daily bonus</b> milega ek user se<br>
         </div>
     </div>
     <div style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:800;color:var(--gold);margin-bottom:9px;">📌 Kaise milte hain Passes?</div>
-    <div class="ep-method"><div class="ep-method-icon">👥</div><div class="ep-method-info"><div class="ep-method-title">Dost ko Refer karo</div><div class="ep-method-desc">Har active referral pe 3 passes + ₹0.40</div></div><div class="ep-method-badge">+3 Pass</div></div>
+    <div class="ep-method"><div class="ep-method-icon">👥</div><div class="ep-method-info"><div class="ep-method-title">Dost ko Refer karo</div><div class="ep-method-desc">Har active referral pe 3 passes + ₹0.60</div></div><div class="ep-method-badge">+3 Pass</div></div>
     <div class="ep-method"><div class="ep-method-icon">🎁</div><div class="ep-method-info"><div class="ep-method-title">Daily Bonus Claim karo</div><div class="ep-method-desc">Roz claim karo, 1 pass milega</div></div><div class="ep-method-badge">+1 Pass</div></div>
     <div class="ep-method"><div class="ep-method-icon">💎</div><div class="ep-method-info"><div class="ep-method-title">Offer claim karo</div><div class="ep-method-desc">Sponsored offer claim karo, 1 pass milega</div></div><div class="ep-method-badge">+1 Pass</div></div>
 </div>
@@ -756,7 +801,7 @@
         <div style="text-align:center;margin-bottom:12px;">
             <div style="font-size:42px;margin-bottom:5px;">👥</div>
             <div style="font-family:'Oxanium',sans-serif;font-size:19px;font-weight:900;color:var(--gold);">Har Referral Pe</div>
-            <div style="font-family:'Oxanium',sans-serif;font-size:30px;font-weight:900;color:var(--green);">3 Passes + ₹0.40!</div>
+            <div style="font-family:'Oxanium',sans-serif;font-size:30px;font-weight:900;color:var(--green);">3 Passes + ₹0.60!</div>
         </div>
         <div class="ref-link-box"><span class="ref-link-text" id="refLinkText2">Loading...</span><button class="ref-copy-btn" onclick="copyRef()">Copy</button></div>
         <div class="share-grid" style="margin-top:8px;">
@@ -772,8 +817,8 @@
             2️⃣ Wo bot join kare<br>
             3️⃣ Movie Group pe movie search kare<br>
             4️⃣ Shortlink poori kare (Movie Bot pe)<br>
-            5️⃣ <b style="color:var(--gold);">Referral auto-active!</b> 3 passes + ₹0.40 milega<br>
-            🔁 Har roz movie search kare → Tumhe <b style="color:var(--green);">₹0.10</b> milega
+            5️⃣ <b style="color:var(--gold);">Referral auto-active!</b> 3 passes + ₹0.60 milega<br>
+            🔁 Har roz movie search kare → Tumhe <b style="color:var(--green);">₹0.30</b> milega
         </div>
     </div>
 </div>
@@ -917,6 +962,74 @@
     </div>
 </div>
 
+<!-- COLOR PREDICTION MODAL -->
+<div class="modal" id="colorModal">
+    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('color')">←</div><div class="modal-title">🎨 Color Predict</div></div>
+    <div style="display:flex;justify-content:space-between;background:var(--bg3);border-radius:12px;padding:11px;margin-bottom:10px;font-size:12px;">
+        <span>Passes: <b style="color:var(--purple2);" id="colorPassesLeft">0</b></span>
+        <span>Bal: <b style="color:var(--gold);" id="colorBal">₹0</b></span>
+    </div>
+    <div class="color-arena">
+        <div class="color-result-display" id="colorResultDisplay">🎨</div>
+        <div class="color-result-txt" id="colorResultTxt">Ek color choose karo!</div>
+    </div>
+    <div class="color-mult-row">
+        <div class="color-mult-badge">🔴 2x</div>
+        <div class="color-mult-badge">🟢 2x</div>
+        <div class="color-mult-badge">🔵 2x</div>
+        <div class="color-mult-badge">🟡 4x</div>
+        <div class="color-mult-badge">🟣 4x</div>
+        <div class="color-mult-badge">🟠 9x</div>
+    </div>
+    <div class="color-btns" id="colorBtns">
+        <button class="color-btn cb-red" onclick="chooseColor('red',this)">🔴<br>RED<br><span style="font-size:10px;opacity:.8;">2x</span></button>
+        <button class="color-btn cb-green" onclick="chooseColor('green',this)">🟢<br>GREEN<br><span style="font-size:10px;opacity:.8;">2x</span></button>
+        <button class="color-btn cb-blue" onclick="chooseColor('blue',this)">🔵<br>BLUE<br><span style="font-size:10px;opacity:.8;">2x</span></button>
+        <button class="color-btn cb-yellow" onclick="chooseColor('yellow',this)">🟡<br>YELLOW<br><span style="font-size:10px;opacity:.8;">4x</span></button>
+        <button class="color-btn cb-purple" onclick="chooseColor('purple',this)">🟣<br>PURPLE<br><span style="font-size:10px;opacity:.8;">4x</span></button>
+        <button class="color-btn cb-orange" onclick="chooseColor('orange',this)">🟠<br>ORANGE<br><span style="font-size:10px;opacity:.8;">9x</span></button>
+    </div>
+    <div class="bet-row">
+        <div class="bet-chip sel" onclick="selColorBet(1,this)">₹1</div>
+        <div class="bet-chip" onclick="selColorBet(2,this)">₹2</div>
+        <div class="bet-chip" onclick="selColorBet(5,this)">₹5</div>
+        <div class="bet-chip" onclick="selColorBet(10,this)">₹10</div>
+    </div>
+    <div class="color-res-win" id="colorResWin"><div style="font-family:Oxanium,sans-serif;font-size:36px;font-weight:900;">🎉 JEETE!</div><div id="colorWinAmt" style="font-family:Oxanium,sans-serif;font-size:28px;font-weight:900;margin-top:4px;">+₹0</div></div>
+    <div class="color-res-lose" id="colorResLose"><div style="font-family:Oxanium,sans-serif;font-size:36px;font-weight:900;">😢 HARE!</div><div id="colorLoseInfo" style="font-size:14px;margin-top:4px;">Try again!</div></div>
+    <button class="btn-purple" id="colorPlayBtn" onclick="doColorPredict()">🎨 PREDICT (1 Pass)</button>
+    <div style="background:rgba(255,78,106,.07);border:1px solid rgba(255,78,106,.2);border-radius:11px;padding:9px;text-align:center;font-size:11px;color:var(--text2);margin-top:7px;">🎯 Red/Green/Blue: 2x • Yellow/Purple: 4x • Orange: 9x (rare!) • House edge lagu hota hai</div>
+</div>
+
+<!-- CRASH GAME MODAL -->
+<div class="modal" id="crashModal">
+    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('crash')">←</div><div class="modal-title">🚀 Crash Game</div></div>
+    <div style="display:flex;justify-content:space-between;background:var(--bg3);border-radius:12px;padding:11px;margin-bottom:10px;font-size:12px;">
+        <span>Passes: <b style="color:var(--purple2);" id="crashPassesLeft">0</b></span>
+        <span>Bal: <b style="color:var(--gold);" id="crashBal">₹0</b></span>
+    </div>
+    <div class="crash-arena" id="crashArena">
+        <div class="crash-rocket" id="crashRocket" style="bottom:20px;left:50%;">🚀</div>
+        <div class="crash-multiplier waiting" id="crashMultiplier">1.00x</div>
+        <div class="crash-status" id="crashStatus">Bet lagao aur shuru karo!</div>
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:5px;font-weight:700;">📜 Last results:</div>
+    <div class="crash-history" id="crashHistory"></div>
+    <div class="crash-auto-row">
+        <div class="crash-auto-label">🎯 Auto cashout at:</div>
+        <input class="crash-auto-inp" id="crashAutoCashout" type="number" step="0.1" min="1.1" max="10" placeholder="e.g. 2.0x (optional)">
+    </div>
+    <div class="bet-row">
+        <div class="bet-chip sel" onclick="selCrashBet(1,this)">₹1</div>
+        <div class="bet-chip" onclick="selCrashBet(2,this)">₹2</div>
+        <div class="bet-chip" onclick="selCrashBet(5,this)">₹5</div>
+        <div class="bet-chip" onclick="selCrashBet(10,this)">₹10</div>
+    </div>
+    <button class="btn-purple" id="crashStartBtn" onclick="startCrash()">🚀 START (1 Pass)</button>
+    <button class="crash-cashout-btn" id="crashCashoutBtn" onclick="doCrashCashout()">💸 CASHOUT NOW!</button>
+    <div style="background:rgba(54,182,245,.07);border:1px solid rgba(54,182,245,.2);border-radius:11px;padding:9px;text-align:center;font-size:11px;color:var(--blue);margin-top:7px;">🚀 Multiplier badhta hai • Sahi time pe cashout karo • Crash se pehle!</div>
+</div>
+
 <!-- USER PROFILE MODAL -->
 <div class="modal" id="userProfileModal">
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('userProfile')">←</div><div class="modal-title">👤 User Profile</div></div>
@@ -968,8 +1081,8 @@
 // TRANSLATIONS
 // ============================================================
 const T={
-    hi:{settings:'Settings',help_support:'Help & Support',dark_mode:'Dark Mode',sounds:'Sounds',admin_edit:'Admin Edit Mode',refer_earn:'Refer & Earn',language:'Language / भाषा',your_balance:'💰 Aapka Balance',today_earned:'Aaj Kamaya',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Aaj ka bonus claim karo!',claim:'Claim',daily_missions:'🎯 Daily Missions',mission_total_reward:'₹6+ Reward',complete_earn:'Missions complete karo, paise pao!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Dost ko invite karo • 3 Passes + ₹0.40!',copy:'Copy',share_more:'Share',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',lb_note:'📌 50+ active refs = weekly prize • 200+ = monthly prize',use_passes:'Passes use karo, paise jeeto!',passes:'Passes',total_wins:'Total Wins',today:'Aaj',streak:'Streak',balance:'Balance',total_earned:'Total Kamaya',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Paise Nikalo',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'Naya Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',already_claimed:'Aaj ka bonus claim ho gaya!',referred_users:'👥 Referred Users Activity',missions:'Missions',bonus_subtitle:'Roz claim karo, streak badhao, zyada pao!',onboard_confirm:'Samajh Gaya! Shuru Karo'},
-    en:{settings:'Settings',help_support:'Help & Support',dark_mode:'Dark Mode',sounds:'Sounds',admin_edit:'Admin Edit Mode',refer_earn:'Refer & Earn',language:'Language',your_balance:'💰 Your Balance',today_earned:'Today Earned',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Claim your daily bonus!',claim:'Claim',daily_missions:'🎯 Daily Missions',mission_total_reward:'₹6+ Reward',complete_earn:'Complete missions, earn money!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Invite friends • 3 Passes + ₹0.40!',copy:'Copy',share_more:'Share',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',lb_note:'📌 50+ active refs = weekly prize • 200+ = monthly prize',use_passes:'Use passes, win money!',passes:'Passes',total_wins:'Total Wins',today:'Today',streak:'Streak',balance:'Balance',total_earned:'Total Earned',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Withdraw Balance',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'New Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',already_claimed:"Today's bonus claimed!",referred_users:'👥 Referred Users Activity',missions:'Missions',bonus_subtitle:'Claim daily, build streak, earn more!',onboard_confirm:"Got it! Let's Start"}
+    hi:{settings:'Settings',help_support:'Help & Support',dark_mode:'Dark Mode',sounds:'Sounds',admin_edit:'Admin Edit Mode',refer_earn:'Refer & Earn',language:'Language / भाषा',your_balance:'💰 Aapka Balance',today_earned:'Aaj Kamaya',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Aaj ka bonus claim karo!',claim:'Claim',daily_missions:'🎯 Daily Missions',mission_total_reward:'₹6+ Reward',complete_earn:'Missions complete karo, paise pao!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Dost ko invite karo • 3 Passes + ₹0.60!',copy:'Copy',share_more:'Share',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',lb_note:'📌 50+ active refs = weekly prize • 200+ = monthly prize',use_passes:'Passes use karo, paise jeeto!',passes:'Passes',total_wins:'Total Wins',today:'Aaj',streak:'Streak',balance:'Balance',total_earned:'Total Kamaya',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Paise Nikalo',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'Naya Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',already_claimed:'Aaj ka bonus claim ho gaya!',referred_users:'👥 Referred Users Activity',missions:'Missions',bonus_subtitle:'Roz claim karo, streak badhao, zyada pao!',onboard_confirm:'Samajh Gaya! Shuru Karo'},
+    en:{settings:'Settings',help_support:'Help & Support',dark_mode:'Dark Mode',sounds:'Sounds',admin_edit:'Admin Edit Mode',refer_earn:'Refer & Earn',language:'Language',your_balance:'💰 Your Balance',today_earned:'Today Earned',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Claim your daily bonus!',claim:'Claim',daily_missions:'🎯 Daily Missions',mission_total_reward:'₹6+ Reward',complete_earn:'Complete missions, earn money!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Invite friends • 3 Passes + ₹0.60!',copy:'Copy',share_more:'Share',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',lb_note:'📌 50+ active refs = weekly prize • 200+ = monthly prize',use_passes:'Use passes, win money!',passes:'Passes',total_wins:'Total Wins',today:'Today',streak:'Streak',balance:'Balance',total_earned:'Total Earned',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Withdraw Balance',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'New Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',already_claimed:"Today's bonus claimed!",referred_users:'👥 Referred Users Activity',missions:'Missions',bonus_subtitle:'Claim daily, build streak, earn more!',onboard_confirm:"Got it! Let's Start"}
 };
 let lang='hi';
 function t(key){return(T[lang]&&T[lang][key])||T.hi[key]||key;}
@@ -987,8 +1100,8 @@ function toggleLang(){setLang(lang==='hi'?'en':'hi');}
 // ONBOARDING CONTENT
 // ============================================================
 const ONBOARD_CONTENT={
-    hi:`<div class="onboard-section"><div class="onboard-section-title">💡 EarnZone Kya Hai?</div><div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">EarnZone ek <b>Telegram Mini App</b> hai jahan aap refer karke, daily bonus lekar aur games khelkar <b>asli paise kama sakte ho</b>.</div></div></div><div class="onboard-section"><div class="onboard-section-title">💰 Paise Kaise Kamayein?</div><div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Apna referral link share karo</b> — jab koi aapke link se join kare, movie group pe jakar movie search kare aur shortlink complete kare, to aapko <b>3 Passes + ₹0.40</b> milega.</div></div><div class="onboard-item"><div class="onboard-item-icon">🔁</div><div class="onboard-item-text"><b>Daily ₹0.10 per active user</b> — jo user roz movie search kare aur shortlink complete kare, us har user se tumhe roz ₹0.10 milega!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — roz login karke bonus claim karo. Streak badhao to bonus amount bhi badhega!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — har din missions complete karo, alag-alag paise aur passes jeetenge.</div></div><div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — offers claim karo, paise aur passes pao.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Games Khelo</b> — Passes use karke Spin, Guess, Coin Flip ya Dice Roll khelke aur paise jeeto.</div></div></div><div class="onboard-section"><div class="onboard-section-title">📅 Daily Kya Karna Hai?</div><div class="onboard-item"><div class="onboard-item-icon">✅</div><div class="onboard-item-text"><b>Daily bonus claim karo</b> — streak mat totne do, warna ₹0.05 se shuru karna hoga.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily missions complete karo</b> — har mission alag claim karo.</div></div><div class="onboard-item"><div class="onboard-item-icon">📱</div><div class="onboard-item-text"><b>Apne referred users ko daily yaad dilao</b> — movie search karo aur shortlink puri karo → tumhe ₹0.10 milega.</div></div></div><div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div><div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Passes earn karo: refer karke (+3), daily bonus (+1), offers claim karke (+1).</div></div></div><div class="onboard-section"><div class="onboard-section-title">💸 Paise Withdraw Karna</div><div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Minimum <b>₹20</b> hone par UPI ya Bank Transfer se withdraw kar sakte ho. Zaruri: <b>Is mahine 20 active referrals</b> hone chahiye. Admin 24-48 ghante mein process karega.</div></div></div>`,
-    en:`<div class="onboard-section"><div class="onboard-section-title">💡 What is EarnZone?</div><div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">EarnZone is a <b>Telegram Mini App</b> where you can earn <b>real money</b> by referring friends, claiming daily bonuses, and playing games.</div></div></div><div class="onboard-section"><div class="onboard-section-title">💰 How to Earn Money?</div><div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Share your referral link</b> — when someone joins via your link, searches a movie & completes shortlink, you get <b>3 Passes + ₹0.40</b>.</div></div><div class="onboard-item"><div class="onboard-item-icon">🔁</div><div class="onboard-item-text"><b>Daily ₹0.10 per active user</b> — for each referred user who completes shortlink daily, you earn ₹0.10!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — claim bonus every day. Maintain streak to increase bonus!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — complete missions, claim each one separately.</div></div><div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — claim offers to earn money and passes.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Play Games</b> — use Passes to play Spin, Guess, Coin Flip or Dice Roll!</div></div></div><div class="onboard-section"><div class="onboard-section-title">📅 Daily Tasks</div><div class="onboard-item"><div class="onboard-item-icon">✅</div><div class="onboard-item-text"><b>Claim daily bonus</b> — don't break streak or restart from ₹0.05.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Complete daily missions</b> — claim each mission separately.</div></div><div class="onboard-item"><div class="onboard-item-icon">📱</div><div class="onboard-item-text"><b>Remind referred users daily</b> — search movie → you get ₹0.10.</div></div></div><div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div><div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Earn passes: refer (+3), daily bonus (+1), offers (+1).</div></div></div><div class="onboard-section"><div class="onboard-section-title">💸 Withdrawals</div><div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Minimum <b>₹20</b>. Required: <b>20 active referrals this month</b>. Admin processes in 24-48 hrs.</div></div></div>`
+    hi:`<div class="onboard-section"><div class="onboard-section-title">💡 EarnZone Kya Hai?</div><div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">EarnZone ek <b>Telegram Mini App</b> hai jahan aap refer karke, daily bonus lekar aur games khelkar <b>asli paise kama sakte ho</b>.</div></div></div><div class="onboard-section"><div class="onboard-section-title">💰 Paise Kaise Kamayein?</div><div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Apna referral link share karo</b> — jab koi aapke link se join kare, movie group pe jakar movie search kare aur shortlink complete kare, to aapko <b>3 Passes + ₹0.60</b> milega.</div></div><div class="onboard-item"><div class="onboard-item-icon">🔁</div><div class="onboard-item-text"><b>Daily ₹0.30 per active user</b> — jo user roz movie search kare aur shortlink complete kare, us har user se tumhe roz ₹0.30 milega!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — roz login karke bonus claim karo. Streak badhao to bonus amount bhi badhega!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — har din missions complete karo, alag-alag paise aur passes jeetenge.</div></div><div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — offers claim karo, paise aur passes pao.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Games Khelo</b> — Passes use karke Spin, Guess, Coin Flip ya Dice Roll khelke aur paise jeeto.</div></div></div><div class="onboard-section"><div class="onboard-section-title">📅 Daily Kya Karna Hai?</div><div class="onboard-item"><div class="onboard-item-icon">✅</div><div class="onboard-item-text"><b>Daily bonus claim karo</b> — streak mat totne do, warna ₹0.05 se shuru karna hoga.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily missions complete karo</b> — har mission alag claim karo.</div></div><div class="onboard-item"><div class="onboard-item-icon">📱</div><div class="onboard-item-text"><b>Apne referred users ko daily yaad dilao</b> — movie search karo aur shortlink puri karo → tumhe ₹0.30 milega.</div></div></div><div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div><div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Passes earn karo: refer karke (+3), daily bonus (+1), offers claim karke (+1).</div></div></div><div class="onboard-section"><div class="onboard-section-title">💸 Paise Withdraw Karna</div><div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Minimum <b>₹20</b> hone par UPI ya Bank Transfer se withdraw kar sakte ho. Zaruri: <b>Is mahine 20 active referrals</b> hone chahiye. Admin 24-48 ghante mein process karega.</div></div></div>`,
+    en:`<div class="onboard-section"><div class="onboard-section-title">💡 What is EarnZone?</div><div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">EarnZone is a <b>Telegram Mini App</b> where you can earn <b>real money</b> by referring friends, claiming daily bonuses, and playing games.</div></div></div><div class="onboard-section"><div class="onboard-section-title">💰 How to Earn Money?</div><div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Share your referral link</b> — when someone joins via your link, searches a movie & completes shortlink, you get <b>3 Passes + ₹0.60</b>.</div></div><div class="onboard-item"><div class="onboard-item-icon">🔁</div><div class="onboard-item-text"><b>Daily ₹0.30 per active user</b> — for each referred user who completes shortlink daily, you earn ₹0.30!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — claim bonus every day. Maintain streak to increase bonus!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — complete missions, claim each one separately.</div></div><div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — claim offers to earn money and passes.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Play Games</b> — use Passes to play Spin, Guess, Coin Flip or Dice Roll!</div></div></div><div class="onboard-section"><div class="onboard-section-title">📅 Daily Tasks</div><div class="onboard-item"><div class="onboard-item-icon">✅</div><div class="onboard-item-text"><b>Claim daily bonus</b> — don't break streak or restart from ₹0.05.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Complete daily missions</b> — claim each mission separately.</div></div><div class="onboard-item"><div class="onboard-item-icon">📱</div><div class="onboard-item-text"><b>Remind referred users daily</b> — search movie → you get ₹0.30.</div></div></div><div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div><div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Earn passes: refer (+3), daily bonus (+1), offers (+1).</div></div></div><div class="onboard-section"><div class="onboard-section-title">💸 Withdrawals</div><div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Minimum <b>₹20</b>. Required: <b>20 active referrals this month</b>. Admin processes in 24-48 hrs.</div></div></div>`
 };
 
 let obLang='hi';
@@ -1196,8 +1309,8 @@ function updateUI(){
     document.getElementById('gameWins').textContent=gameState.wins||0;
     document.getElementById('gameTodayEarned').textContent=`₹${(gameState.today_game_earned||0).toFixed(2)}`;
     document.getElementById('gameStreak').textContent=`${gameState.win_streak||0}🔥`;
-    ['spinBal','spinPassesLeft','spinTodayEarned','guessPassLeft','guessBal','coinPassesLeft','coinBal','dicePassesLeft','diceBal'].forEach((id,i)=>{
-        const vals=[bal,userData.passes||0,`₹${(gameState.today_game_earned||0).toFixed(2)}`,userData.passes||0,bal,userData.passes||0,bal,userData.passes||0,bal];
+    ['spinBal','spinPassesLeft','spinTodayEarned','guessPassLeft','guessBal','coinPassesLeft','coinBal','dicePassesLeft','diceBal','colorPassesLeft','colorBal','crashPassesLeft','crashBal'].forEach((id,i)=>{
+        const vals=[bal,userData.passes||0,`₹${(gameState.today_game_earned||0).toFixed(2)}`,userData.passes||0,bal,userData.passes||0,bal,userData.passes||0,bal,userData.passes||0,bal,userData.passes||0,bal];
         const el=document.getElementById(id);if(el)el.textContent=vals[i];
     });
 }
@@ -1311,8 +1424,14 @@ function renderLiveActivity(acts){
         const dpEl=`<div class="live-dp">${a.avatar||'👤'}</div>`;
         const amtEl=a.amount?`<div class="live-amount">${a.amount>0?'+':''}₹${parseFloat(a.amount).toFixed(2)}</div>`:'';
         let desc=a.description||'active';
-        if(a.type==='referral'&&a.referred_name)desc=`referred ${a.referred_name}`;
-        if(a.type==='daily_search'&&a.referrer_name)desc=`searched movie (referred by ${a.referrer_name})`;
+        if(a.type==='referral'){
+            const rname=a.referred_name||'someone';
+            desc=`👥 ${rname} ko refer kiya! +₹${parseFloat(a.amount||0).toFixed(2)} +3 Passes`;
+        }else if(a.type==='daily_search'&&a.referred_name){
+            desc=`🎬 ${a.referred_name} ne movie search ki`;
+        }else if(a.type==='join'){
+            desc='🎉 EarnZone join kiya';
+        }
         return`<div class="live-item" onclick="viewUserProfile(${a.user_id||0},'${(a.user_name||'User').replace(/'/g,"\\'")}')">
             ${dpEl}<div class="live-info"><div class="live-name">${a.user_name||'User'}</div><div class="live-act">${desc}</div></div>
             <div style="text-align:right;">${amtEl}<div class="live-time">${a.time||'now'}</div></div>
@@ -1331,7 +1450,7 @@ function renderRefActivity(acts){
     const el=document.getElementById('refActivityList');
     if(!acts||!acts.length){el.innerHTML=`<div style="color:var(--text3);font-size:11px;text-align:center;padding:12px;">${lang==='en'?'No referred users yet':'Koi referred user nahi abhi'}</div>`;return;}
     el.innerHTML=acts.map(u=>{
-        const pendingEarning=u.pending_daily?`<span style="color:var(--gold);font-weight:700;">+₹0.10 pending</span>`:u.today_searched?`<span style="color:var(--green);font-weight:700;">✅ ₹0.10 earned today</span>`:`<span style="color:var(--text3);">Search nahi kiya aaj</span>`;
+        const pendingEarning=u.pending_daily?`<span style="color:var(--gold);font-weight:700;">+₹0.30 pending</span>`:u.today_searched?`<span style="color:var(--green);font-weight:700;">✅ ₹0.30 earned today</span>`:`<span style="color:var(--text3);">Search nahi kiya aaj</span>`;
         return`<div class="ref-act-item"><div class="ref-act-dp">${(u.first_name||'U').charAt(0)}</div><div class="ref-act-info"><div class="ref-act-name">${u.first_name||'User'} ${u.username?`<span style="color:var(--blue);font-size:9px;">@${u.username}</span>`:''}</div><div class="ref-act-detail">${pendingEarning}</div></div><span class="ref-act-badge ${u.is_active?'badge-active':'badge-pending'}">${u.is_active?'Active':'Pending'}</span></div>`;
     }).join('');
 }
@@ -1375,14 +1494,16 @@ function updateMissionsUI(){
 }
 async function claimSingleMission(missionId,reward){
     const state=missionStates[missionId];
-    if(!state){showToast('❌ Mission not found');return;}
-    if(state.claimed){showToast('❌ Already claimed');return;}
+    // Even if state is empty/missing, try claiming — backend will verify
+    if(state&&state.claimed){showToast('❌ Already claimed');return;}
     const mdef=MISSIONS_DEF.find(m=>m.id===missionId);
-    const prog=state.progress||0;
+    const prog=state?(state.progress||0):0;
     const total=mdef?mdef.total:1;
-    if(!(state.completed||(prog>=total))){showToast('❌ Mission abhi pura nahi hua');return;}
+    const isDone=state?(state.completed||(prog>=total)):false;
+    // Don't block on frontend — let backend decide
     const r=await apiPost('/api/claim-single-mission',{user_id:userData.user_id,mission_id:missionId,reward:parseFloat(reward)});
     if(r&&r.success){
+        if(!missionStates[missionId])missionStates[missionId]={progress:total,completed:true,claimed:false};
         missionStates[missionId].claimed=true;
         userData.balance+=parseFloat(reward);userData.total_earned+=parseFloat(reward);
         updateUI();updateMissionsUI();showToast(`✅ +₹${parseFloat(reward).toFixed(2)}!`);playSound('earn');
@@ -1488,7 +1609,31 @@ async function openAdminSupport(){
     const el=document.getElementById('adminSupportList');el.innerHTML='<div style="text-align:center;padding:18px;color:var(--text3);">Loading...</div>';
     const r=await apiGet('/api/admin/support-messages?admin_id='+userData.user_id);
     if(!r||!r.length){el.innerHTML='<div style="text-align:center;padding:18px;color:var(--text3);">No messages</div>';return;}
-    el.innerHTML=r.map(msg=>`<div class="support-item"><div class="support-item-top"><div><div class="support-item-user">👤 ${msg.user_name||'User'} <span style="font-size:10px;color:var(--text3);">(ID:${msg.user_id})</span></div>${msg.username?`<div style="font-size:10px;color:var(--blue);">@${msg.username}</div>`:''}</div><div class="support-item-time">${msg.timestamp?new Date(msg.timestamp).toLocaleString():'-'}</div></div><div class="support-item-msg">${msg.message}</div>${msg.admin_reply?`<div style="margin-top:7px;background:rgba(25,216,158,.08);border-radius:8px;padding:8px;font-size:11px;color:var(--green);">✅ ${msg.admin_reply}</div>`:`<div class="support-reply-row"><input class="support-reply-inp" id="reply_${msg._id}" placeholder="Reply..." type="text"><button class="support-reply-btn" onclick="replySupport('${msg._id}','${msg.user_id}')">Send</button></div>`}</div>`).join('');
+    el.innerHTML=r.map(msg=>`<div class="support-item" id="smsg_${msg._id}">
+        <div class="support-item-top">
+            <div>
+                <div class="support-item-user">👤 ${msg.user_name||'User'} <span style="font-size:10px;color:var(--text3);">(ID:${msg.user_id})</span></div>
+                ${msg.username?`<div style="font-size:10px;color:var(--blue);">@${msg.username}</div>`:''}
+            </div>
+            <div style="display:flex;align-items:center;gap:7px;">
+                <div class="support-item-time">${msg.timestamp?new Date(msg.timestamp).toLocaleString():'-'}</div>
+                <button onclick="deleteSupportMsg('${msg._id}')" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:4px 9px;font-size:11px;font-weight:800;cursor:pointer;">🗑️</button>
+            </div>
+        </div>
+        <div class="support-item-msg">${msg.message}</div>
+        ${msg.admin_reply
+            ?`<div style="margin-top:7px;background:rgba(25,216,158,.08);border-radius:8px;padding:8px;font-size:11px;color:var(--green);">✅ ${msg.admin_reply}</div>`
+            :`<div class="support-reply-row"><input class="support-reply-inp" id="reply_${msg._id}" placeholder="Reply..." type="text"><button class="support-reply-btn" onclick="replySupport('${msg._id}','${msg.user_id}')">Send</button></div>`}
+    </div>`).join('');
+}
+async function deleteSupportMsg(msgId){
+    if(!confirm('Delete this message?'))return;
+    const r=await apiPost('/api/admin/delete-support',{admin_id:userData.user_id,message_id:msgId});
+    if(r&&r.success){
+        const el=document.getElementById('smsg_'+msgId);
+        if(el)el.remove();
+        showToast('✅ Message deleted');
+    }else showToast('❌ '+(r?.message||'Failed'));
 }
 async function replySupport(msgId,userId){
     const inp=document.getElementById('reply_'+msgId);if(!inp||!inp.value.trim()){showToast('❌ Reply likhiye');return;}
@@ -1808,6 +1953,293 @@ async function doDiceRoll(){
 // ============================================================
 // OPEN GAME
 // ============================================================
+// ============================================================
+// COLOR PREDICTION GAME
+// Red/Green/Blue = 2x, Yellow/Purple = 4x, Orange = 9x
+// House edge: higher multipliers are rare
+// ============================================================
+const COLOR_CONFIG={
+    red:  {emoji:'🔴',mult:2, cls:'cb-red',   prob:0.30},
+    green:{emoji:'🟢',mult:2, cls:'cb-green',  prob:0.28},
+    blue: {emoji:'🔵',mult:2, cls:'cb-blue',   prob:0.25},
+    yellow:{emoji:'🟡',mult:4,cls:'cb-yellow', prob:0.10},
+    purple:{emoji:'🟣',mult:4,cls:'cb-purple', prob:0.05},
+    orange:{emoji:'🟠',mult:9,cls:'cb-orange', prob:0.02}
+};
+let colorChoice=null,colorBet=1,colorPlaying=false;
+
+function resetColorUI(){
+    colorChoice=null;colorPlaying=false;
+    document.getElementById('colorResultDisplay').textContent='🎨';
+    document.getElementById('colorResultDisplay').style.background='var(--bg3)';
+    document.getElementById('colorResultDisplay').className='color-result-display';
+    document.getElementById('colorResultTxt').textContent='Ek color choose karo!';
+    document.getElementById('colorResultTxt').style.color='var(--text2)';
+    document.getElementById('colorResWin').style.display='none';
+    document.getElementById('colorResLose').style.display='none';
+    const btn=document.getElementById('colorPlayBtn');if(btn){btn.disabled=false;btn.textContent='🎨 PREDICT (1 Pass)';}
+    document.querySelectorAll('.color-btn').forEach(b=>{b.disabled=false;b.className=b.className.replace(' sel','').replace(' correct','').replace(' wrong','');});
+}
+function chooseColor(c,el){
+    if(colorPlaying)return;
+    colorChoice=c;
+    document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('sel'));
+    el.classList.add('sel');
+    playSound('tap');
+}
+function selColorBet(a,el){
+    if(a>userData.balance){showToast('❌ Balance kam hai!');return;}
+    colorBet=a;
+    document.querySelectorAll('#colorModal .bet-chip').forEach(c=>c.classList.remove('sel'));
+    el.classList.add('sel');
+}
+async function doColorPredict(){
+    if(!colorChoice){showToast('❌ Pehle color choose karo!');return;}
+    if(colorPlaying)return;
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
+    if(userData.balance<colorBet){showToast('❌ Balance kam hai!');return;}
+    colorPlaying=true;
+    const btn=document.getElementById('colorPlayBtn');btn.disabled=true;btn.textContent='⏳ Spinning...';
+    document.getElementById('colorResWin').style.display='none';
+    document.getElementById('colorResLose').style.display='none';
+    playSound('tap');
+
+    // Animate color cycling
+    const display=document.getElementById('colorResultDisplay');
+    const colors=Object.keys(COLOR_CONFIG);
+    let animIdx=0;
+    const animInterval=setInterval(()=>{
+        const c=COLOR_CONFIG[colors[animIdx%colors.length]];
+        display.textContent=c.emoji;
+        display.style.background='';
+        animIdx++;
+    },120);
+
+    const r=await apiPost('/api/game/color',{user_id:userData.user_id,choice:colorChoice,bet:colorBet});
+
+    setTimeout(()=>{
+        clearInterval(animInterval);
+        colorPlaying=false;
+        btn.disabled=false;btn.textContent='🎨 PREDICT (1 Pass)';
+
+        if(!r||!r.success){
+            document.getElementById('colorResultTxt').textContent=r?.message||'Error';
+            document.getElementById('colorResultTxt').style.color='var(--red)';
+            return;
+        }
+
+        const result=r.result_color||colors[Math.floor(Math.random()*colors.length)];
+        const rc=COLOR_CONFIG[result];
+        if(rc){
+            display.textContent=rc.emoji;
+            display.style.background='';
+            display.classList.add('revealed');
+        }
+
+        // Highlight buttons
+        document.querySelectorAll('.color-btn').forEach((b,i)=>{
+            b.disabled=false;
+            const cname=colors[i];
+            if(cname===result&&cname===colorChoice)b.classList.add('correct');
+            else if(cname===colorChoice)b.classList.add('wrong');
+            else if(cname===result)b.classList.remove('sel');
+        });
+
+        userData.passes=Math.max(0,(userData.passes||1)-1);
+
+        if(r.won){
+            document.getElementById('colorWinAmt').textContent=`+₹${parseFloat(r.reward||0).toFixed(2)}`;
+            document.getElementById('colorResWin').style.display='block';
+            document.getElementById('colorResultTxt').textContent=`🎉 ${result.toUpperCase()} aaya! ${rc?.mult||2}x WIN!`;
+            document.getElementById('colorResultTxt').style.color='var(--green)';
+            gameState.wins=(gameState.wins||0)+1;
+            gameState.today_game_earned=(gameState.today_game_earned||0)+(r.reward||0);
+            if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
+            playSound('earn');showToast(`🎉 ${rc?.emoji||''} +₹${parseFloat(r.reward||0).toFixed(2)}`);
+        }else{
+            document.getElementById('colorLoseInfo').textContent=`${result.toUpperCase()} aaya, aapne ${colorChoice.toUpperCase()} chuna`;
+            document.getElementById('colorResLose').style.display='block';
+            document.getElementById('colorResultTxt').textContent=`❌ ${result.toUpperCase()} aaya!`;
+            document.getElementById('colorResultTxt').style.color='var(--red)';
+            playSound('lose');showToast(`❌ ${rc?.emoji||''} ${result.toUpperCase()} aaya!`);
+        }
+        updateUI();updateMissionsUI();
+        setTimeout(resetColorUI,3200);
+    },1800);
+}
+
+// ============================================================
+// CRASH GAME
+// Multiplier grows 1x → up to ~10x, then crashes
+// Pre-determined crash point per round (provably "fair" feel)
+// History pattern: mostly 1x, some 2x, rare 5x+
+// ============================================================
+// Pre-set crash sequence (cycles through, hidden from user)
+// Pattern: 15x 1x, 10x 2x, 10x 5x, 3x big — as user specified
+const CRASH_SEQUENCE=(()=>{
+    const seq=[];
+    // Realistic distribution: 50% crash before 1.5x, 25% at 2x, 15% at 3-5x, 10% above 5x
+    const makeSeq=()=>{
+        const r=Math.random();
+        if(r<0.40)return+(1.0+Math.random()*0.4).toFixed(2);        // 40%: 1.00-1.40x
+        if(r<0.65)return+(1.5+Math.random()*0.5).toFixed(2);        // 25%: 1.50-2.00x
+        if(r<0.80)return+(2.0+Math.random()*1.0).toFixed(2);        // 15%: 2.00-3.00x
+        if(r<0.92)return+(3.0+Math.random()*2.0).toFixed(2);        // 12%: 3.00-5.00x
+        if(r<0.98)return+(5.0+Math.random()*5.0).toFixed(2);        // 6%:  5.00-10.00x
+        return+(8.0+Math.random()*2.0).toFixed(2);                  // 2%:  8.00-10.00x
+    };
+    for(let i=0;i<200;i++)seq.push(makeSeq());
+    return seq;
+})();
+let crashSeqIdx=0;
+
+let crashState='idle'; // idle | running | crashed
+let crashBet=1,crashCurrentMult=1.0,crashInterval=null,crashAutoCashoutVal=null;
+let crashUserBet=false,crashCashedOut=false;
+const crashHistory=[];
+
+function resetCrashUI(){
+    crashState='idle';crashUserBet=false;crashCashedOut=false;crashCurrentMult=1.0;
+    const mult=document.getElementById('crashMultiplier');
+    if(mult){mult.textContent='1.00x';mult.className='crash-multiplier waiting';}
+    const status=document.getElementById('crashStatus');
+    if(status)status.textContent='Bet lagao aur shuru karo!';
+    document.getElementById('crashStartBtn').style.display='block';
+    document.getElementById('crashStartBtn').disabled=false;
+    document.getElementById('crashStartBtn').textContent='🚀 START (1 Pass)';
+    document.getElementById('crashCashoutBtn').classList.remove('show');
+    const rocket=document.getElementById('crashRocket');
+    if(rocket){rocket.style.bottom='20px';rocket.style.left='50%';rocket.style.transform='translateX(-50%)';}
+}
+function selCrashBet(a,el){
+    if(crashState==='running'){showToast('❌ Game chal raha hai!');return;}
+    crashBet=a;
+    document.querySelectorAll('#crashModal .bet-chip').forEach(c=>c.classList.remove('sel'));
+    el.classList.add('sel');
+}
+function renderCrashHistory(){
+    const el=document.getElementById('crashHistory');
+    if(!el)return;
+    el.innerHTML=crashHistory.slice(-10).reverse().map(v=>{
+        const cls=v<2?'low':v<5?'mid':'high';
+        return`<span class="crash-hist-badge ${cls}">${v}x</span>`;
+    }).join('');
+}
+
+async function startCrash(){
+    if(crashState!=='idle')return;
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
+    if(userData.balance<crashBet){showToast('❌ Balance kam hai!');return;}
+
+    // Backend deducts both pass and bet
+    const r=await apiPost('/api/game/crash-start',{user_id:userData.user_id,bet:crashBet});
+    if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
+
+    // Update local state after backend confirms
+    userData.passes=Math.max(0,(userData.passes||1)-1);
+    userData.balance=Math.max(0,userData.balance-crashBet);
+    updateUI();
+
+    // Get this round's crash point
+    const crashPoint=parseFloat(CRASH_SEQUENCE[crashSeqIdx%CRASH_SEQUENCE.length]);
+    crashSeqIdx++;
+    crashAutoCashoutVal=parseFloat(document.getElementById('crashAutoCashout').value)||null;
+
+    crashState='running';crashCurrentMult=1.0;crashUserBet=true;crashCashedOut=false;
+    document.getElementById('crashStartBtn').style.display='none';
+    document.getElementById('crashCashoutBtn').classList.add('show');
+    document.getElementById('crashStatus').textContent='🚀 Flying... Cashout karo!';
+    playSound('tap');
+
+    const rocket=document.getElementById('crashRocket');
+    const multEl=document.getElementById('crashMultiplier');
+    let frame=0;
+
+    crashInterval=setInterval(()=>{
+        frame++;
+        // Multiplier grows: starts slow, accelerates
+        crashCurrentMult=parseFloat((1+frame*0.04+Math.pow(frame*0.008,1.6)).toFixed(2));
+        if(crashCurrentMult>crashPoint)crashCurrentMult=crashPoint;
+
+        // Update display
+        if(multEl){
+            multEl.textContent=crashCurrentMult.toFixed(2)+'x';
+            multEl.className='crash-multiplier '+(crashCurrentMult<2?'safe':crashCurrentMult<5?'warning':'safe');
+        }
+
+        // Move rocket up and right
+        if(rocket){
+            const pct=Math.min(frame/80,1);
+            const bottom=20+pct*120;
+            const left=50+pct*30;
+            rocket.style.bottom=bottom+'px';
+            rocket.style.left=left+'%';
+        }
+
+        // Auto cashout
+        if(crashAutoCashoutVal&&crashCurrentMult>=crashAutoCashoutVal&&!crashCashedOut){
+            doCrashCashout();
+            return;
+        }
+
+        // Crash!
+        if(crashCurrentMult>=crashPoint){
+            clearInterval(crashInterval);
+            crashInterval=null;
+            crashState='crashed';
+
+            if(multEl){multEl.textContent='CRASHED!';multEl.className='crash-multiplier crashed';}
+            if(rocket){rocket.textContent='💥';rocket.style.transform='scale(1.5)';}
+            document.getElementById('crashCashoutBtn').classList.remove('show');
+            document.getElementById('crashStatus').textContent=`💥 ${crashPoint}x pe crash! ${crashCashedOut?'Aapne cashout kar liya tha!':'Haare :('}`;
+
+            if(!crashCashedOut){
+                playSound('lose');
+                showToast(`💥 Crash at ${crashPoint}x! Haare ₹${crashBet}`);
+            }
+
+            crashHistory.push(crashPoint);
+            renderCrashHistory();
+
+            setTimeout(()=>{
+                resetCrashUI();
+                document.getElementById('crashStartBtn').style.display='block';
+            },2800);
+        }
+    },150);
+}
+
+async function doCrashCashout(){
+    if(crashState!=='running'||crashCashedOut)return;
+    crashCashedOut=true;
+    clearInterval(crashInterval);crashInterval=null;
+
+    const mult=crashCurrentMult;
+    const reward=parseFloat((crashBet*mult).toFixed(2));
+    document.getElementById('crashCashoutBtn').classList.remove('show');
+
+    const r=await apiPost('/api/game/crash-cashout',{user_id:userData.user_id,bet:crashBet,multiplier:mult,reward});
+    if(r&&r.success){
+        userData.balance+=reward;
+        gameState.today_game_earned=(gameState.today_game_earned||0)+reward;
+        gameState.wins=(gameState.wins||0)+1;
+        if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
+        updateUI();updateMissionsUI();
+        playSound('earn');
+        showToast(`💸 Cashout! ${mult}x = +₹${reward.toFixed(2)}`);
+        document.getElementById('crashStatus').textContent=`✅ Cashout at ${mult}x! +₹${reward.toFixed(2)}`;
+        const multEl=document.getElementById('crashMultiplier');
+        if(multEl){multEl.textContent=mult.toFixed(2)+'x';multEl.className='crash-multiplier safe';}
+    }else{
+        showToast('❌ '+(r?.message||'Cashout failed'));
+    }
+
+    crashHistory.push(mult);
+    renderCrashHistory();
+    crashState='idle';
+    setTimeout(resetCrashUI,2400);
+}
+
 function openGame(g){
     playSound('tap');
     if((userData.passes||0)<=0){showToast('❌ Passes nahi! Refer karo ya daily bonus lo');return;}
@@ -1815,6 +2247,8 @@ function openGame(g){
     else if(g==='guess'){startGuess();openModal('guess');}
     else if(g==='coin'){resetCoinUI();openModal('coin');}
     else if(g==='dice'){resetDiceUI();openModal('dice');}
+    else if(g==='color'){resetColorUI();openModal('color');}
+    else if(g==='crash'){resetCrashUI();renderCrashHistory();openModal('crash');}
 }
 
 // ============================================================
@@ -1838,7 +2272,14 @@ function openModal(id){
     if(id==='dailyBonus')buildTrainChain();
     if(id==='withdraw'){updateWithdrawCondition();}
 }
-function closeModal(id){const el=document.getElementById(id+'Modal');if(el)el.classList.remove('open');}
+function closeModal(id){
+    const el=document.getElementById(id+'Modal');if(el)el.classList.remove('open');
+    // Cleanup crash game if closed mid-game
+    if(id==='crash'&&crashState==='running'){
+        if(crashInterval){clearInterval(crashInterval);crashInterval=null;}
+        crashState='idle';
+    }
+}
 
 // ============================================================
 // THEME & SOUND
