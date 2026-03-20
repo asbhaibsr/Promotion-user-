@@ -263,6 +263,29 @@
         .profile-dp img{width:100%;height:100%;object-fit:cover;}
         .profile-name{font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;margin-bottom:5px;}
         .profile-tier{display:inline-block;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:4px 15px;border-radius:28px;font-weight:800;font-size:11px;}
+        /* BADGE SYSTEM */
+        .badge-section{margin-top:14px;padding:14px;background:var(--bg3);border-radius:16px;border:1px solid var(--border);}
+        .badge-section-title{font-family:'Oxanium',sans-serif;font-size:13px;font-weight:900;color:var(--gold);margin-bottom:10px;text-align:center;}
+        .badge-current{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:12px;}
+        .badge-img-lg{width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 0 12px rgba(240,192,64,.4));animation:badgeFloat 3s ease-in-out infinite;}
+        @keyframes badgeFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+        .badge-name{font-family:'Oxanium',sans-serif;font-size:20px;font-weight:900;color:var(--gold);}
+        .badge-refs-needed{font-size:11px;color:var(--text2);margin-top:3px;}
+        .badge-progress-wrap{margin-bottom:10px;}
+        .badge-progress-bar{height:8px;background:var(--bg2);border-radius:8px;overflow:hidden;margin-top:5px;}
+        .badge-progress-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--gold),var(--purple2));transition:width .5s;}
+        .badge-progress-txt{font-size:10px;color:var(--text3);margin-top:3px;text-align:right;}
+        .badge-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px;}
+        .badge-slot{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;}
+        .badge-slot img{width:44px;height:44px;object-fit:contain;transition:all .2s;}
+        .badge-slot.locked img{filter:grayscale(1) brightness(0.4);}
+        .badge-slot.unlocked img{filter:drop-shadow(0 0 6px rgba(240,192,64,.5));}
+        .badge-slot.current img{filter:drop-shadow(0 0 10px rgba(240,192,64,.8));animation:badgeFloat 2s ease-in-out infinite;}
+        .badge-slot-lbl{font-size:8px;font-weight:700;color:var(--text3);text-align:center;}
+        .badge-slot.unlocked .badge-slot-lbl{color:var(--gold);}
+        .badge-slot.current .badge-slot-lbl{color:var(--purple2);}
+        .badge-unlock-msg{background:linear-gradient(135deg,rgba(240,192,64,.15),rgba(124,92,252,.1));border:1px solid rgba(240,192,64,.3);border-radius:12px;padding:10px;text-align:center;font-size:11px;color:var(--gold);font-weight:700;margin-top:8px;display:none;}
+        .badge-unlock-msg.show{display:block;animation:bounceIn .5s;}
         .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:13px;}
         .stat-box{background:var(--bg3);border-radius:12px;padding:11px 7px;text-align:center;border:1px solid var(--border);}
         .stat-val{font-family:'Oxanium',sans-serif;font-size:19px;font-weight:900;color:var(--gold);}
@@ -663,12 +686,12 @@
             <div class="gstat"><div class="gstat-val" id="gameStreak">0🔥</div><div class="gstat-lbl" data-t="streak">Streak</div></div>
         </div>
         <div class="games-grid">
-            <div class="game-card" onclick="openGame('spin')"><img src="https://image2url.com/r2/default/images/1773972096056-ea04e437-9a04-470c-98ac-4da8383bdc75.jpg" class="game-img" alt="Spin"><div class="game-name">Spin & Earn</div><div class="game-desc">Wheel ghumao</div><span class="game-reward">1 Pass/spin</span></div>
-            <div class="game-card" onclick="openGame('guess')"><img src="https://image2url.com/r2/default/images/1773972255665-85ed9fa1-283e-44ce-8bfb-3aa2eed64ea3.png" class="game-img" alt="Guess"><div class="game-name">Number Guess</div><div class="game-desc">1-10 guess karo</div><span class="game-reward">8x Reward</span></div>
-            <div class="game-card" onclick="openGame('coin')"><img src="https://image2url.com/r2/default/images/1773972404884-e233660e-0845-4937-8f72-560d43048197.jpg" class="game-img" alt="Coin"><div class="game-name">Coin Flip</div><div class="game-desc">Heads ya Tails?</div><span class="game-reward">2x Win</span></div>
-            <div class="game-card" onclick="openGame('dice')"><img src="https://image2url.com/r2/default/images/1773972553734-03239078-a6c1-4c1f-a486-3cf3afe78f23.jpg" class="game-img" alt="Dice"><div class="game-name">Dice Roll</div><div class="game-desc">Number choose karo</div><span class="game-reward">5x Win</span></div>
-            <div class="game-card" onclick="openGame('color')"><img src="https://image2url.com/r2/default/images/1773972774324-44a03873-7e05-4729-bbec-c5945f0bca06.png" class="game-img" alt="Color"><div class="game-name">Color Predict</div><div class="game-desc">Color choose karo</div><span class="game-reward">2x-9x Win</span></div>
-            <div class="game-card" onclick="openGame('crash')"><img src="https://i.postimg.cc/K85csJXs/Rocket-soaring-along-neon-graph-line.png" class="game-img" alt="Crash"><div class="game-name">Crash Game</div><div class="game-desc">Sahi time pe cashout!</div><span class="game-reward">Up to 10x</span></div>
+            <div class="game-card" onclick="openGame('spin')"><img src="https://image2url.com/r2/default/images/1773972096056-ea04e437-9a04-470c-98ac-4da8383bdc75.jpg" class="game-img" alt="Spin"><div class="game-name">Spin & Earn</div><div class="game-desc">Wheel ghumao • ₹0.10–₹2</div><span class="game-reward" style="background:linear-gradient(135deg,#f59e0b,#d97706);">Win: ₹0.50 avg</span></div>
+            <div class="game-card" onclick="openGame('guess')"><img src="https://image2url.com/r2/default/images/1773972255665-85ed9fa1-283e-44ce-8bfb-3aa2eed64ea3.png" class="game-img" alt="Guess"><div class="game-name">Number Guess</div><div class="game-desc">1-10 guess • 10% chance</div><span class="game-reward">8x Reward</span></div>
+            <div class="game-card" onclick="openGame('coin')"><img src="https://image2url.com/r2/default/images/1773972404884-e233660e-0845-4937-8f72-560d43048197.jpg" class="game-img" alt="Coin"><div class="game-name">Coin Flip</div><div class="game-desc">50/50 chance • Double bet</div><span class="game-reward">2x Win</span></div>
+            <div class="game-card" onclick="openGame('dice')"><img src="https://image2url.com/r2/default/images/1773972553734-03239078-a6c1-4c1f-a486-3cf3afe78f23.jpg" class="game-img" alt="Dice"><div class="game-name">Dice Roll</div><div class="game-desc">1-6 choose • ~7% chance</div><span class="game-reward">Win ₹0.50</span></div>
+            <div class="game-card" onclick="openGame('color')"><img src="https://image2url.com/r2/default/images/1773972774324-44a03873-7e05-4729-bbec-c5945f0bca06.png" class="game-img" alt="Color"><div class="game-name">Color Predict</div><div class="game-desc">6 colors • 2x to 9x!</div><span class="game-reward">Max 9x!</span></div>
+            <div class="game-card" onclick="openGame('crash')"><img src="https://i.postimg.cc/K85csJXs/Rocket-soaring-along-neon-graph-line.png" class="game-img" alt="Crash"><div class="game-name">Crash Game</div><div class="game-desc">Rocket fly • Cashout first!</div><span class="game-reward">Up to 10x</span></div>
         </div>
     </div>
 </div>
@@ -692,6 +715,25 @@
                 <div class="stat-box"><div class="stat-val" id="pGamesWon">0</div><div class="stat-lbl" data-t="games_won">Games</div></div>
             </div>
         </div>
+        <!-- BADGE SECTION -->
+        <div class="badge-section">
+            <div class="badge-section-title">🏅 Referral Badges</div>
+            <div class="badge-current">
+                <img id="badgeImgCurrent" class="badge-img-lg" src="https://i.postimg.cc/prJbHJvn/4946de51-23b6-473f-8192-764e1ca09041.jpg" alt="badge">
+                <div>
+                    <div class="badge-name" id="badgeNameCurrent">🥉 Starter</div>
+                    <div class="badge-refs-needed" id="badgeNextInfo">Next: 10 refs ke liye Rising</div>
+                </div>
+            </div>
+            <div class="badge-progress-wrap">
+                <div style="font-size:10px;color:var(--text2);font-weight:700;">Next badge progress:</div>
+                <div class="badge-progress-bar"><div class="badge-progress-fill" id="badgeProgressFill" style="width:0%"></div></div>
+                <div class="badge-progress-txt" id="badgeProgressTxt">0/10 refs</div>
+            </div>
+            <div class="badge-grid" id="badgeGrid"></div>
+            <div class="badge-unlock-msg" id="badgeUnlockMsg">🎉 Naya badge unlock ho gaya!</div>
+        </div>
+
         <div class="ref-activity-section">
             <div class="ref-activity-title" data-t="referred_users">👥 Referred Users Activity</div>
             <div id="refActivityList"><div style="color:var(--text3);font-size:12px;">Loading...</div></div>
@@ -885,6 +927,10 @@
         <div class="wheel-outer"><div class="wheel-ptr">▼</div><canvas id="spinCanvas" width="255" height="255"></canvas></div>
         <div class="spin-result" id="spinResultBox"><div class="spin-result-amt" id="spinResultAmt">+₹0</div><div style="font-size:12px;color:rgba(255,255,255,.8);margin-top:3px;" id="spinResultTxt">Badhaai ho!</div></div>
         <button class="btn-purple" id="spinBtn" onclick="doSpin()">🎰 SPIN (1 Pass)</button>
+        <div style="background:rgba(124,92,252,.07);border:1px solid rgba(124,92,252,.18);border-radius:11px;padding:10px 13px;margin-top:8px;font-size:10px;color:var(--text2);">
+            🎯 <b style="color:var(--purple2);">Chances:</b> ₹0.10 = 25% • ₹0.50 = 37% • ₹1 = 25% • ₹2 = 12.5%<br>
+            💡 <b style="color:var(--gold);">Tip:</b> Zyada spins se zyada ₹0.50 aur ₹1 milte hain!
+        </div>
     </div>
 </div>
 
@@ -905,7 +951,11 @@
         <div class="bet-chip" onclick="selGuessBet(10,this)">₹10</div>
     </div>
     <div class="num-grid" id="numGrid"></div>
-    <div style="text-align:center;background:var(--bg3);border-radius:11px;padding:9px;margin:6px 0;font-size:11px;">✅ Sahi = <b style="color:var(--green);">8x reward</b> • Galat = hint milega!</div>
+    <div style="background:rgba(25,216,158,.07);border:1px solid rgba(25,216,158,.2);border-radius:11px;padding:10px 13px;margin:6px 0;font-size:11px;color:var(--text2);">
+        🎯 <b style="color:var(--green);">Sahi guess</b> = Bet × 8 jeeto!<br>
+        💡 <b style="color:var(--gold);">Strategy:</b> Galat guess pe HOT/COLD hint milta hai — use karo next guess mein!<br>
+        ⚠️ 3 attempts max per round • 1 Pass per attempt
+    </div>
 </div>
 
 <!-- COIN MODAL -->
@@ -931,6 +981,9 @@
         <div class="coin-res-win" id="coinResWin"><div class="coin-res-big">🎉 JEETE!</div><div id="coinWinAmt" style="font-family:'Oxanium',sans-serif;font-size:30px;font-weight:900;margin-top:4px;">+₹0</div></div>
         <div class="coin-res-lose" id="coinResLose"><div class="coin-res-big">😢 HARE!</div><div id="coinLoseAmt" style="font-size:18px;margin-top:4px;">-₹0</div></div>
         <button class="btn-gold" id="flipBtn" onclick="doFlip()">🪙 FLIP!</button>
+        <div style="background:rgba(54,182,245,.07);border:1px solid rgba(54,182,245,.2);border-radius:11px;padding:9px 13px;text-align:center;font-size:11px;color:var(--text2);margin-top:7px;">
+            🎯 <b style="color:var(--blue);">50/50 chance</b> — Jeeto: Bet × 2 • Haaro: Bet wapas nahi
+        </div>
     </div>
 </div>
 
@@ -1000,7 +1053,13 @@
     <div class="color-res-win" id="colorResWin"><div style="font-family:Oxanium,sans-serif;font-size:36px;font-weight:900;">🎉 JEETE!</div><div id="colorWinAmt" style="font-family:Oxanium,sans-serif;font-size:28px;font-weight:900;margin-top:4px;">+₹0</div></div>
     <div class="color-res-lose" id="colorResLose"><div style="font-family:Oxanium,sans-serif;font-size:36px;font-weight:900;">😢 HARE!</div><div id="colorLoseInfo" style="font-size:14px;margin-top:4px;">Try again!</div></div>
     <button class="btn-purple" id="colorPlayBtn" onclick="doColorPredict()">🎨 PREDICT (1 Pass)</button>
-    <div style="background:rgba(255,78,106,.07);border:1px solid rgba(255,78,106,.2);border-radius:11px;padding:9px;text-align:center;font-size:11px;color:var(--text2);margin-top:7px;">🎯 Red/Green/Blue: 2x • Yellow/Purple: 4x • Orange: 9x (rare!) • House edge lagu hota hai</div>
+    <div style="background:rgba(255,78,106,.07);border:1px solid rgba(255,78,106,.2);border-radius:11px;padding:10px 13px;font-size:11px;color:var(--text2);margin-top:7px;">
+        🎯 <b style="color:var(--text);">Win Chances:</b><br>
+        🔴🟢🔵 Red/Green/Blue = <b style="color:var(--green);">2x</b> (Common, ~27% each)<br>
+        🟡🟣 Yellow/Purple = <b style="color:var(--gold);">4x</b> (Rare, ~10-5%)<br>
+        🟠 Orange = <b style="color:var(--red);">9x</b> (Very rare, ~2%) — Big win!<br>
+        💡 <b style="color:var(--gold);">Strategy:</b> Common colors zyada aate hain, rare pe risk lena tumhare upar!
+    </div>
 </div>
 
 <!-- CRASH GAME MODAL -->
@@ -1029,7 +1088,14 @@
     </div>
     <button class="btn-purple" id="crashStartBtn" onclick="startCrash()">🚀 START (1 Pass)</button>
     <button class="crash-cashout-btn" id="crashCashoutBtn" onclick="doCrashCashout()">💸 CASHOUT NOW!</button>
-    <div style="background:rgba(54,182,245,.07);border:1px solid rgba(54,182,245,.2);border-radius:11px;padding:9px;text-align:center;font-size:11px;color:var(--blue);margin-top:7px;">🚀 Multiplier badhta hai • Sahi time pe cashout karo • Crash se pehle!</div>
+    <div style="background:rgba(54,182,245,.07);border:1px solid rgba(54,182,245,.2);border-radius:11px;padding:10px 13px;font-size:11px;color:var(--text2);margin-top:7px;">
+        🚀 <b style="color:var(--blue);">Kaise khele:</b><br>
+        1️⃣ Bet lagao aur START karo<br>
+        2️⃣ Multiplier badhega — 1x → 2x → 5x → ...<br>
+        3️⃣ Jab chahein CASHOUT karo — Bet × current multiplier milega!<br>
+        💥 <b style="color:var(--red);">Crash se pehle cashout nahi kiya = sab kuch jaega!</b><br>
+        💡 Auto-cashout set karo safe rhne ke liye (e.g. 2.0x)
+    </div>
 </div>
 
 <!-- USER PROFILE MODAL -->
@@ -1237,47 +1303,67 @@ async function loadMissions(){
     const d=await apiGet(`/api/user/${userData.user_id}/missions`);
     const today=new Date().toISOString().split('T')[0];
 
+    // Load claimed states from sessionStorage (survives modal close/open but not full refresh)
+    let sessionClaimed={};
+    try{
+        const sc=sessionStorage.getItem(`ez_claimed_${userData.user_id}_${today}`);
+        if(sc)sessionClaimed=JSON.parse(sc);
+    }catch(e){}
+
     MISSIONS_DEF.forEach(m=>{
         const sv=d?d[m.id]:null;
-        const localClaimed=missionStates[m.id]?.claimed||false;
+        // Priority: sessionStorage > local memory > server
+        const localClaimed=sessionClaimed[m.id]||missionStates[m.id]?.claimed||false;
+        const serverClaimed=sv?.claimed||false;
+        const finalClaimed=localClaimed||serverClaimed;
 
         if(sv){
             missionStates[m.id]={
                 progress:sv.progress||0,
                 completed:sv.completed||false,
-                claimed: localClaimed||sv.claimed||false
+                claimed:finalClaimed
             };
         }else{
-            missionStates[m.id]={progress:0,completed:false,claimed:localClaimed};
+            missionStates[m.id]={progress:0,completed:false,claimed:finalClaimed};
         }
     });
 
-    // Auto-fill m_refer5 — always use live active_refs count
+    // Auto-fill m_refer5
     if(!missionStates['m_refer5'])missionStates['m_refer5']={progress:0,completed:false,claimed:false};
     const activeRefs=userData.active_refs||0;
     missionStates['m_refer5'].progress=Math.min(activeRefs,5);
     missionStates['m_refer5'].completed=activeRefs>=5;
 
-    // Auto-fill m_daily — from claimedDates
+    // Auto-fill m_daily from claimedDates
     if(!missionStates['m_daily'])missionStates['m_daily']={progress:0,completed:false,claimed:false};
     if(claimedDates.includes(today)){
         missionStates['m_daily'].progress=1;
         missionStates['m_daily'].completed=true;
     }
 
-    // Auto-fill m_game — from gameState wins today
+    // Auto-fill m_game from gameState wins
     if(!missionStates['m_game'])missionStates['m_game']={progress:0,completed:false,claimed:false};
     const gameWinsToday=gameState.wins||0;
-    if(gameWinsToday>0){
-        const curProg=missionStates['m_game'].progress||0;
-        // Only update if gameState has more wins
-        if(gameWinsToday>curProg&&!missionStates['m_game'].claimed){
-            missionStates['m_game'].progress=Math.min(gameWinsToday,10);
-            missionStates['m_game'].completed=gameWinsToday>=10;
-        }
+    if(gameWinsToday>0&&!missionStates['m_game'].claimed){
+        missionStates['m_game'].progress=Math.min(gameWinsToday,10);
+        missionStates['m_game'].completed=gameWinsToday>=10;
     }
 
     updateMissionsUI();
+}
+
+// Save claimed state to sessionStorage
+function saveMissionClaimed(missionId){
+    if(!userData.user_id)return;
+    const today=new Date().toISOString().split('T')[0];
+    try{
+        const key=`ez_claimed_${userData.user_id}_${today}`;
+        let sc={};
+        const existing=sessionStorage.getItem(key);
+        if(existing)sc=JSON.parse(existing);
+        sc[missionId]=true;
+        sessionStorage.setItem(key,JSON.stringify(sc));
+    }catch(e){}
 }
 async function loadAds(){
     const d=await apiGet('/api/ads');
@@ -1341,8 +1427,106 @@ function updateUI(){
         const vals=[bal,userData.passes||0,`₹${(gameState.today_game_earned||0).toFixed(2)}`,userData.passes||0,bal,userData.passes||0,bal,userData.passes||0,bal,userData.passes||0,bal,userData.passes||0,bal];
         const el=document.getElementById(id);if(el)el.textContent=vals[i];
     });
+    // Update badge UI whenever user data updates
+    updateBadgeUI();
 }
 function getTierName(t){return t>=4?'💎 DIAMOND':t===3?'🥇 GOLD':t===2?'🥈 SILVER':'🥉 BASIC';}
+
+// ============================================================
+// BADGE SYSTEM — based on active_refs
+// ============================================================
+const BADGES=[
+    {name:'🥉 Starter',    req:0,    img:'https://i.postimg.cc/prJbHJvn/4946de51-23b6-473f-8192-764e1ca09041.jpg'},
+    {name:'🥈 Rising',     req:10,   img:'https://i.postimg.cc/pT8M0t1B/42b20bcb-7996-4ab4-b925-ac8cd4164312.jpg'},
+    {name:'🥇 Pro',        req:50,   img:'https://i.postimg.cc/Bvj0KFTR/26ec7226-a6d2-4bd9-acce-adc32b3fae61.jpg'},
+    {name:'💎 Elite',      req:100,  img:'https://i.postimg.cc/MpKxzNvf/fbfcb89d-2e8f-4d33-93f7-40073ca1e608.jpg'},
+    {name:'👑 Champion',   req:500,  img:'https://i.postimg.cc/wTzgG7zX/e820347b-40d8-412d-95cc-0c7ca35c4cb9.jpg'},
+    {name:'🔥 Legend',     req:1000, img:'https://i.postimg.cc/VsnzgX3x/4c0d9789-6fd6-40f8-a9df-e8e840dce66b.jpg'},
+    {name:'⚡ Master',     req:1500, img:'https://i.postimg.cc/Gtwdrpyr/c2ade26d-3347-49bb-a8d9-82a76f43f867.jpg'},
+    {name:'🖤 GrandMaster',req:2000, img:'https://i.postimg.cc/wvsgSN37/f846a6d0-069f-45b3-91ce-0bfe4a946cb8.jpg'},
+    {name:'🌈 Mythic',     req:5000, img:'https://i.postimg.cc/XYQjF3Ty/46ab69f4-1be9-4a0c-8ee6-68af4835b755.jpg'},
+    {name:'✨ God Tier',   req:10000,img:'https://i.postimg.cc/66vpPkv6/c00ea6a7-6f2e-4726-b6b7-4167f8497c42.jpg'},
+];
+
+let prevBadgeIdx=0; // track for unlock animation
+
+function getBadgeIndex(activeRefs){
+    let idx=0;
+    for(let i=0;i<BADGES.length;i++){
+        if(activeRefs>=BADGES[i].req)idx=i;
+        else break;
+    }
+    return idx;
+}
+
+function updateBadgeUI(){
+    const refs=userData.active_refs||0;
+    const idx=getBadgeIndex(refs);
+    const badge=BADGES[idx];
+    const nextBadge=BADGES[idx+1]||null;
+
+    // Current badge display
+    const imgEl=document.getElementById('badgeImgCurrent');
+    const nameEl=document.getElementById('badgeNameCurrent');
+    const nextEl=document.getElementById('badgeNextInfo');
+    const fillEl=document.getElementById('badgeProgressFill');
+    const txtEl=document.getElementById('badgeProgressTxt');
+    if(!imgEl)return;
+
+    imgEl.src=badge.img;
+    nameEl.textContent=badge.name;
+
+    if(nextBadge){
+        const prevReq=badge.req;
+        const nextReq=nextBadge.req;
+        const progress=Math.min(((refs-prevReq)/(nextReq-prevReq))*100,100);
+        fillEl.style.width=progress+'%';
+        txtEl.textContent=`${refs}/${nextReq} refs`;
+        nextEl.textContent=`Next: ${nextReq} refs ke liye ${nextBadge.name}`;
+    }else{
+        fillEl.style.width='100%';
+        txtEl.textContent='Max badge unlock! 🎉';
+        nextEl.textContent='You are at the TOP! ✨';
+    }
+
+    // Badge grid
+    const grid=document.getElementById('badgeGrid');
+    if(grid){
+        grid.innerHTML=BADGES.map((b,i)=>{
+            const unlocked=refs>=b.req;
+            const isCurrent=i===idx;
+            const cls=isCurrent?'current':unlocked?'unlocked':'locked';
+            return`<div class="badge-slot ${cls}" onclick="showBadgeInfo(${i})">
+                <img src="${b.img}" alt="${b.name}">
+                <div class="badge-slot-lbl">${b.req>=1000?(b.req/1000)+'k':b.req}</div>
+            </div>`;
+        }).join('');
+    }
+
+    // Badge unlock animation
+    if(idx>prevBadgeIdx){
+        const msg=document.getElementById('badgeUnlockMsg');
+        if(msg){
+            msg.textContent=`🎉 ${badge.name} badge unlock ho gaya! ${refs} refs pe!`;
+            msg.classList.add('show');
+            playSound('levelup');
+            setTimeout(()=>msg.classList.remove('show'),3500);
+        }
+    }
+    prevBadgeIdx=idx;
+}
+
+function showBadgeInfo(idx){
+    const b=BADGES[idx];
+    const refs=userData.active_refs||0;
+    const unlocked=refs>=b.req;
+    if(unlocked){
+        showToast(`${b.name} ✅ Unlocked! (${b.req}+ refs)`);
+    }else{
+        showToast(`🔒 ${b.name} — ${b.req} refs chahiye (abhi ${refs})`);
+    }
+    playSound('tap');
+}
 function getRefLink(){return`https://t.me/${BOT_USERNAME}?start=ref_${userData.user_id||'xxx'}`;}
 
 // ============================================================
@@ -1530,6 +1714,7 @@ async function claimSingleMission(missionId,reward){
     // IMMEDIATELY mark claimed locally — button disappears at once
     // This prevents double-tap completely
     missionStates[missionId].claimed=true;
+    saveMissionClaimed(missionId); // persist in sessionStorage — survives modal close
     updateMissionsUI();
     // Now call backend
     const r=await apiPost('/api/claim-single-mission',{user_id:userData.user_id,mission_id:missionId,reward:parseFloat(reward)});
