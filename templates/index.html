@@ -320,6 +320,7 @@
         .game-card:hover{border-color:rgba(124,92,252,.38);}
         .game-card:active{transform:scale(.93);}
         .game-emoji{font-size:54px;display:block;margin-bottom:10px;}
+        .game-img{width:80px;height:80px;object-fit:contain;display:block;margin:0 auto 10px;border-radius:14px;}
         .game-name{font-family:'Oxanium',sans-serif;font-size:15px;font-weight:800;margin-bottom:3px;}
         .game-desc{font-size:9px;color:var(--text2);margin-bottom:9px;}
         .game-reward{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;padding:4px 11px;border-radius:28px;font-size:10px;font-weight:700;display:inline-block;}
@@ -533,7 +534,7 @@
 <!-- SIDEBAR -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <div class="sidebar" id="sidebar">
-    <div class="sidebar-header"><div class="sidebar-logo">💰 EarnZone</div></div>
+    <div class="sidebar-header"><div class="sidebar-logo"><img src="https://i.postimg.cc/xT43NypN/IMG-20260320-075702-067.jpg" style="height:28px;border-radius:6px;vertical-align:middle;margin-right:7px;"> EarnZone</div></div>
     <div class="sidebar-item" onclick="closeSidebar();openModal('settings')"><div class="si-icon">⚙️</div><span data-t="settings">Settings</span></div>
     <div class="sidebar-item" onclick="closeSidebar();openModal('support')"><div class="si-icon">📩</div><span data-t="help_support">Help & Support</span></div>
     <div class="sidebar-divider"></div>
@@ -556,7 +557,7 @@
 <!-- TOP BAR -->
 <div class="topbar">
     <div class="hamburger-btn" onclick="openSidebar()"><span></span><span></span><span></span></div>
-    <div class="topbar-logo">💰 EarnZone</div>
+    <div class="topbar-logo"><img src="https://i.postimg.cc/xT43NypN/IMG-20260320-075702-067.jpg" style="height:32px;border-radius:8px;vertical-align:middle;margin-right:6px;"> EarnZone</div>
     <div class="topbar-balance" id="topbarBalance">₹0.00</div>
 </div>
 
@@ -568,18 +569,18 @@
             <div class="balance-main" id="balAmt">₹0.00</div>
             <div class="balance-sub">
                 <div class="bsub-item"><div class="bsub-label" data-t="today_earned">Aaj Kamaya</div><div class="bsub-val" id="todayEarned">₹0</div></div>
-                <div class="bsub-item"><div class="bsub-label" data-t="active_refs">Active Refs</div><div class="bsub-val" id="activeRefs">0</div></div>
+                <div class="bsub-item"><div class="bsub-label" data-t="active_refs"><img src="https://i.postimg.cc/cCV72d3Z/refer-earn-concept-business-partnership-strategy-vector-illustration-185038-443.jpg" style="width:14px;height:14px;object-fit:cover;border-radius:3px;vertical-align:middle;margin-right:3px;"> Active Refs</div><div class="bsub-val" id="activeRefs">0</div></div>
             </div>
         </div>
         <div class="passes-card">
             <div class="passes-info">
-                <div class="passes-icon">🎟️</div>
+                <div class="passes-icon"><img src="https://i.postimg.cc/15X5YpmT/1773974388103.png" style="width:38px;height:38px;object-fit:contain;"></div>
                 <div class="passes-text"><div class="passes-count" id="passCount">0</div><div class="passes-lbl" data-t="game_passes">Game Passes</div></div>
             </div>
             <button class="passes-earn-btn" onclick="openModal('earnPasses')" data-t="earn_passes">+ Earn Passes</button>
         </div>
         <div class="daily-bonus-card" onclick="openModal('dailyBonus')" id="dailyBonusCard">
-            <div style="font-size:32px;" id="dailyBonusIcon">🎁</div>
+            <div id="dailyBonusIcon"><img src="https://i.postimg.cc/50DFNn2V/image.png" style="width:48px;height:48px;object-fit:contain;border-radius:10px;"></div>
             <div style="flex:1;">
                 <div style="font-weight:700;font-size:14px;" data-t="daily_bonus">Daily Bonus</div>
                 <div style="font-size:11px;color:var(--text2);margin-top:2px;" id="dailyBonusSubtitle" data-t="claim_today">Aaj ka bonus claim karo!</div>
@@ -598,7 +599,7 @@
             <div class="mission-bar-bg"><div class="mission-bar-fill" id="missionBarFill" style="width:0%"></div></div>
         </div>
         <div class="ref-card">
-            <div style="font-family:'Oxanium',sans-serif;font-size:17px;font-weight:800;margin-bottom:4px;" data-t="refer_earn_title">👥 Refer & Earn</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;"><img src="https://i.postimg.cc/cCV72d3Z/refer-earn-concept-business-partnership-strategy-vector-illustration-185038-443.jpg" style="width:44px;height:44px;object-fit:cover;border-radius:10px;flex-shrink:0;"><div style="font-family:'Oxanium',sans-serif;font-size:17px;font-weight:800;" data-t="refer_earn_title">Refer & Earn</div></div>
             <div style="font-size:11px;color:var(--text2);margin-bottom:11px;" data-t="refer_sub">Dost ko invite karo • 3 Passes + ₹0.60 bonus pao!</div>
             <div class="ref-link-box">
                 <span class="ref-link-text" id="refLinkText">https://t.me/...</span>
@@ -661,12 +662,12 @@
             <div class="gstat"><div class="gstat-val" id="gameStreak">0🔥</div><div class="gstat-lbl" data-t="streak">Streak</div></div>
         </div>
         <div class="games-grid">
-            <div class="game-card" onclick="openGame('spin')"><span class="game-emoji">🎰</span><div class="game-name">Spin & Earn</div><div class="game-desc">Wheel ghumao</div><span class="game-reward">1 Pass/spin</span></div>
-            <div class="game-card" onclick="openGame('guess')"><span class="game-emoji">🔢</span><div class="game-name">Number Guess</div><div class="game-desc">1-10 guess karo</div><span class="game-reward">8x Reward</span></div>
-            <div class="game-card" onclick="openGame('coin')"><span class="game-emoji">🪙</span><div class="game-name">Coin Flip</div><div class="game-desc">Heads ya Tails?</div><span class="game-reward">2x Win</span></div>
-            <div class="game-card" onclick="openGame('dice')"><span class="game-emoji">🎲</span><div class="game-name">Dice Roll</div><div class="game-desc">Number choose karo</div><span class="game-reward">5x Win</span></div>
-            <div class="game-card" onclick="openGame('color')"><span class="game-emoji">🎨</span><div class="game-name">Color Predict</div><div class="game-desc">Color choose karo</div><span class="game-reward">2x-9x Win</span></div>
-            <div class="game-card" onclick="openGame('crash')"><span class="game-emoji">🚀</span><div class="game-name">Crash Game</div><div class="game-desc">Sahi time pe cashout!</div><span class="game-reward">Up to 10x</span></div>
+            <div class="game-card" onclick="openGame('spin')"><img src="https://image2url.com/r2/default/images/1773972096056-ea04e437-9a04-470c-98ac-4da8383bdc75.jpg" class="game-img" alt="Spin"><div class="game-name">Spin & Earn</div><div class="game-desc">Wheel ghumao</div><span class="game-reward">1 Pass/spin</span></div>
+            <div class="game-card" onclick="openGame('guess')"><img src="https://image2url.com/r2/default/images/1773972255665-85ed9fa1-283e-44ce-8bfb-3aa2eed64ea3.png" class="game-img" alt="Guess"><div class="game-name">Number Guess</div><div class="game-desc">1-10 guess karo</div><span class="game-reward">8x Reward</span></div>
+            <div class="game-card" onclick="openGame('coin')"><img src="https://image2url.com/r2/default/images/1773972404884-e233660e-0845-4937-8f72-560d43048197.jpg" class="game-img" alt="Coin"><div class="game-name">Coin Flip</div><div class="game-desc">Heads ya Tails?</div><span class="game-reward">2x Win</span></div>
+            <div class="game-card" onclick="openGame('dice')"><img src="https://image2url.com/r2/default/images/1773972553734-03239078-a6c1-4c1f-a486-3cf3afe78f23.jpg" class="game-img" alt="Dice"><div class="game-name">Dice Roll</div><div class="game-desc">Number choose karo</div><span class="game-reward">5x Win</span></div>
+            <div class="game-card" onclick="openGame('color')"><img src="https://image2url.com/r2/default/images/1773972774324-44a03873-7e05-4729-bbec-c5945f0bca06.png" class="game-img" alt="Color"><div class="game-name">Color Predict</div><div class="game-desc">Color choose karo</div><span class="game-reward">2x-9x Win</span></div>
+            <div class="game-card" onclick="openGame('crash')"><img src="https://i.postimg.cc/K85csJXs/Rocket-soaring-along-neon-graph-line.png" class="game-img" alt="Crash"><div class="game-name">Crash Game</div><div class="game-desc">Sahi time pe cashout!</div><span class="game-reward">Up to 10x</span></div>
         </div>
     </div>
 </div>
@@ -727,7 +728,7 @@
 
 <!-- DAILY BONUS -->
 <div class="modal" id="dailyBonusModal">
-    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('dailyBonus')">←</div><div class="modal-title" data-t="daily_bonus">🎁 Daily Bonus</div></div>
+    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('dailyBonus')">←</div><div class="modal-title"><img src="https://i.postimg.cc/50DFNn2V/image.png" style="width:30px;height:30px;object-fit:contain;vertical-align:middle;margin-right:6px;border-radius:8px;"> Daily Bonus</div></div>
     <div style="text-align:center;font-size:11px;color:var(--text2);margin-bottom:5px;" data-t="bonus_subtitle">Roz claim karo, streak badhao, zyada pao!</div>
     <div class="train-track"><div class="train-chain" id="trainChain"></div></div>
     <div class="today-claim-box" id="todayClaimBox">
@@ -761,8 +762,8 @@
     </div>
     <div style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:800;color:var(--gold);margin-bottom:9px;">📌 Kaise milte hain Passes?</div>
     <div class="ep-method"><div class="ep-method-icon">👥</div><div class="ep-method-info"><div class="ep-method-title">Dost ko Refer karo</div><div class="ep-method-desc">Har active referral pe 3 passes + ₹0.60</div></div><div class="ep-method-badge">+3 Pass</div></div>
-    <div class="ep-method"><div class="ep-method-icon">🎁</div><div class="ep-method-info"><div class="ep-method-title">Daily Bonus Claim karo</div><div class="ep-method-desc">Roz claim karo, 1 pass milega</div></div><div class="ep-method-badge">+1 Pass</div></div>
-    <div class="ep-method"><div class="ep-method-icon">💎</div><div class="ep-method-info"><div class="ep-method-title">Offer claim karo</div><div class="ep-method-desc">Sponsored offer claim karo, 1 pass milega</div></div><div class="ep-method-badge">+1 Pass</div></div>
+    <div class="ep-method"><div class="ep-method-icon"><img src="https://i.postimg.cc/50DFNn2V/image.png" style="width:32px;height:32px;object-fit:contain;border-radius:8px;"></div><div class="ep-method-info"><div class="ep-method-title">Daily Bonus Claim karo</div><div class="ep-method-desc">Roz claim karo, 1 pass milega</div></div><div class="ep-method-badge">+1 Pass</div></div>
+    <div class="ep-method"><div class="ep-method-icon"><img src="https://i.postimg.cc/15X5YpmT/1773974388103.png" style="width:32px;height:32px;object-fit:contain;border-radius:8px;"></div><div class="ep-method-info"><div class="ep-method-title">Offer claim karo</div><div class="ep-method-desc">Sponsored offer claim karo, 1 pass milega</div></div><div class="ep-method-badge">+1 Pass</div></div>
 </div>
 
 <!-- MISSIONS -->
@@ -799,7 +800,7 @@
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('referral')">←</div><div class="modal-title">👥 Refer & Earn</div></div>
     <div style="background:linear-gradient(135deg,#081530,#0a0a30);border-radius:20px;padding:16px;margin-bottom:12px;">
         <div style="text-align:center;margin-bottom:12px;">
-            <div style="font-size:42px;margin-bottom:5px;">👥</div>
+            <div style="margin-bottom:5px;"><img src="https://i.postimg.cc/cCV72d3Z/refer-earn-concept-business-partnership-strategy-vector-illustration-185038-443.jpg" style="width:60px;height:60px;object-fit:cover;border-radius:14px;"></div>
             <div style="font-family:'Oxanium',sans-serif;font-size:19px;font-weight:900;color:var(--gold);">Har Referral Pe</div>
             <div style="font-family:'Oxanium',sans-serif;font-size:30px;font-weight:900;color:var(--green);">3 Passes + ₹0.60!</div>
         </div>
@@ -862,7 +863,7 @@
         <div class="wd-progress-bar"><div class="wd-progress-fill" id="wdProgressFill" style="width:0%"></div></div>
         <div class="wd-progress-text" id="wdProgressText">0/20 refs this month</div>
     </div>
-    <div class="avail-balance"><div style="font-size:11px;color:var(--text2);margin-bottom:3px;">Available Balance</div><div class="avail-amt" id="wdrawBal">₹0</div><div style="font-size:11px;color:var(--text2);margin-top:3px;">Minimum: ₹20</div></div>
+    <div class="avail-balance"><img src="https://i.postimg.cc/26CCdW9w/wallet-3d-icon-png-download-10033542.png" style="width:52px;height:52px;object-fit:contain;margin-bottom:6px;"><div style="font-size:11px;color:var(--text2);margin-bottom:3px;">Available Balance</div><div class="avail-amt" id="wdrawBal">₹0</div><div style="font-size:11px;color:var(--text2);margin-top:3px;">Minimum: ₹20</div></div>
     <input id="wdrawAmt" class="inp" placeholder="Amount (min ₹20)" type="number" min="20">
     <div class="method-btn" onclick="selMethod('upi')" id="methodUpi"><span style="font-size:24px;">📱</span><div><div style="font-weight:700;">UPI</div><div style="font-size:10px;color:var(--text2);">Instant</div></div></div>
     <div class="method-btn" onclick="selMethod('bank')" id="methodBank"><span style="font-size:24px;">🏦</span><div><div style="font-weight:700;">Bank Transfer</div><div style="font-size:10px;color:var(--text2);">1-2 working days</div></div></div>
@@ -1241,16 +1242,33 @@ async function loadMissions(){
     if(d){
         MISSIONS_DEF.forEach(m=>{
             const sv=d[m.id];
-            if(sv){missionStates[m.id]={progress:sv.progress||0,completed:sv.completed||false,claimed:sv.claimed||false};}
-            else{missionStates[m.id]={progress:0,completed:false,claimed:false};}
+            const localClaimed=missionStates[m.id]?.claimed||false; // preserve local claimed state
+            if(sv){
+                missionStates[m.id]={
+                    progress:sv.progress||0,
+                    completed:sv.completed||false,
+                    // If local says claimed OR server says claimed — keep claimed
+                    claimed: localClaimed || sv.claimed||false
+                };
+            }else{
+                missionStates[m.id]={progress:0,completed:false,claimed:localClaimed};
+            }
         });
+        // Auto-fill m_refer5 from live user data
         if(userData.active_refs){
             const ms=missionStates['m_refer5'];
             ms.progress=Math.min(userData.active_refs,5);
             ms.completed=userData.active_refs>=5;
         }
+        // Auto-fill m_daily from claimedDates
+        if(claimedDates.length>0){
+            const today=new Date().toISOString().split('T')[0];
+            if(claimedDates.includes(today)){
+                missionStates['m_daily'].progress=1;
+                missionStates['m_daily'].completed=true;
+            }
+        }
     } else {
-        // If API fails, init empty states
         MISSIONS_DEF.forEach(m=>{
             if(!missionStates[m.id])missionStates[m.id]={progress:0,completed:false,claimed:false};
         });
@@ -1409,7 +1427,7 @@ async function claimBonus(){
         userStreak=r.streak;claimedDates.push(today);
         if(missionStates['m_daily']){missionStates['m_daily'].progress=1;missionStates['m_daily'].completed=true;}
         updateUI();updateDailyBonusCard();updateMissionsUI();
-        playSound('earn');showToast(`🎉 +₹${r.bonus.toFixed(2)} + 1 Pass! Streak: ${userStreak}🔥`);
+        playSound('levelup');showToast(`🎉 +₹${r.bonus.toFixed(2)} + 1 Pass! Streak: ${userStreak}🔥`);
         setTimeout(()=>closeModal('dailyBonus'),1600);
     }else showToast('❌ '+(r?.message||'Failed'));
 }
@@ -1493,21 +1511,28 @@ function updateMissionsUI(){
     document.getElementById('missionBarFill').style.width=`${(doneCount/MISSIONS_DEF.length)*100}%`;
 }
 async function claimSingleMission(missionId,reward){
-    const state=missionStates[missionId];
-    // Even if state is empty/missing, try claiming — backend will verify
-    if(state&&state.claimed){showToast('❌ Already claimed');return;}
-    const mdef=MISSIONS_DEF.find(m=>m.id===missionId);
-    const prog=state?(state.progress||0):0;
-    const total=mdef?mdef.total:1;
-    const isDone=state?(state.completed||(prog>=total)):false;
-    // Don't block on frontend — let backend decide
+    // Init state if missing
+    if(!missionStates[missionId])missionStates[missionId]={progress:0,completed:true,claimed:false};
+    // Block if already claimed locally
+    if(missionStates[missionId].claimed){showToast('✅ Already claimed!');return;}
+    // IMMEDIATELY mark claimed locally — button disappears at once
+    // This prevents double-tap completely
+    missionStates[missionId].claimed=true;
+    updateMissionsUI();
+    // Now call backend
     const r=await apiPost('/api/claim-single-mission',{user_id:userData.user_id,mission_id:missionId,reward:parseFloat(reward)});
     if(r&&r.success){
-        if(!missionStates[missionId])missionStates[missionId]={progress:total,completed:true,claimed:false};
-        missionStates[missionId].claimed=true;
-        userData.balance+=parseFloat(reward);userData.total_earned+=parseFloat(reward);
-        updateUI();updateMissionsUI();showToast(`✅ +₹${parseFloat(reward).toFixed(2)}!`);playSound('earn');
-    }else showToast('❌ '+(r?.message||'Failed'));
+        userData.balance+=parseFloat(reward);
+        userData.total_earned+=parseFloat(reward);
+        updateUI();
+        playSound('mission');
+        showToast(`✅ +₹${parseFloat(reward).toFixed(2)} mila!`);
+    }else{
+        // Backend rejected — revert local state
+        missionStates[missionId].claimed=false;
+        updateMissionsUI();
+        showToast('❌ '+(r?.message||'Failed'));
+    }
 }
 
 // ============================================================
@@ -1673,7 +1698,7 @@ function renderLeaderboard(data){
     if(sorted.length>=1){
         html+=`<div class="lb-podium">`;
         if(sorted.length>=2)html+=`<div class="podium-slot p2"><div class="podium-dp">${(sorted[1].name||'U')[0]}</div><div class="podium-name">${sorted[1].name||'User'}</div><div style="font-size:9px;color:var(--text2)">${sorted[1].active_refs||0} refs</div><div class="podium-bar">🥈</div>${(sorted[1].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">₹${prizes[1]}</div>`:''}</div>`;
-        html+=`<div class="podium-slot p1"><div class="podium-dp">${(sorted[0].name||'U')[0]}</div><div class="podium-name">${sorted[0].name||'User'}</div><div style="font-size:9px;color:var(--text2)">${sorted[0].active_refs||0} refs</div><div class="podium-bar">🥇</div>${(sorted[0].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">₹${prizes[0]}</div>`:''}</div>`;
+        html+=`<div class="podium-slot p1"><div class="podium-dp">${(sorted[0].name||'U')[0]}</div><div class="podium-name">${sorted[0].name||'User'}</div><div style="font-size:9px;color:var(--text2)">${sorted[0].active_refs||0} refs</div><div class="podium-bar"><img src="https://i.postimg.cc/7Zp6zfyg/1773974341500.png" style="width:44px;height:44px;object-fit:contain;"></div>${(sorted[0].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">₹${prizes[0]}</div>`:''}</div>`;
         if(sorted.length>=3)html+=`<div class="podium-slot p3"><div class="podium-dp">${(sorted[2].name||'U')[0]}</div><div class="podium-name">${sorted[2].name||'User'}</div><div style="font-size:9px;color:var(--text2)">${sorted[2].active_refs||0} refs</div><div class="podium-bar">🥉</div>${(sorted[2].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">₹${prizes[2]}</div>`:''}</div>`;
         html+=`</div>`;
     }
@@ -1757,7 +1782,7 @@ async function doSpin(){
     isSpinning=true;
     const btn=document.getElementById('spinBtn');btn.disabled=true;btn.textContent='⏳...';
     document.getElementById('spinResultBox').style.display='none';
-    playSound('tap');
+    playSound('spin');
     const r=await apiPost('/api/game/spin',{user_id:userData.user_id});
     if(!r||!r.success){isSpinning=false;btn.disabled=false;btn.textContent='🎰 SPIN (1 Pass)';showToast('❌ '+(r?.message||'Error'));return;}
 
@@ -1786,7 +1811,7 @@ async function doSpin(){
         document.getElementById('spinResultAmt').textContent=`+₹${parseFloat(r.reward||0).toFixed(2)}`;
         document.getElementById('spinResultTxt').textContent=(r.reward||0)>=2?'🎉 Jackpot!':'✅ Badhaai ho!';
         document.getElementById('spinResultBox').style.display='block';
-        playSound('earn');btn.disabled=false;btn.textContent='🎰 SPIN (1 Pass)';
+        playSound((r.reward||0)>=2?'jackpot':'earn');btn.disabled=false;btn.textContent='🎰 SPIN (1 Pass)';
     }
     requestAnimationFrame(anim);
 }
@@ -1840,7 +1865,7 @@ async function doFlip(){
     if(userData.balance<coinBet){showToast('❌ Balance kam hai!');return;}
     coinFlipping=true;document.getElementById('flipBtn').disabled=true;
     document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';
-    playSound('tap');
+    playSound('flip');
     const r=await apiPost('/api/game/coin',{user_id:userData.user_id,choice:coinChoice,bet:coinBet});
     const coin=document.getElementById('theCoin');
     const actualResult=r?.result||(Math.random()<.5?'heads':'tails');
@@ -1897,6 +1922,7 @@ async function doDiceRoll(){
     // Animate dice rolling
     const diceEl=document.getElementById('diceDisplay');
     diceEl.classList.add('rolling');
+    playSound('dice');
     const rollAnim=setInterval(()=>{diceEl.textContent=DICE_FACES[Math.floor(Math.random()*6)];},120);
 
     const r=await apiPost('/api/game/dice',{user_id:userData.user_id,choice:diceChoice});
@@ -2008,6 +2034,7 @@ async function doColorPredict(){
     const display=document.getElementById('colorResultDisplay');
     const colors=Object.keys(COLOR_CONFIG);
     let animIdx=0;
+    playSound('color_spin');
     const animInterval=setInterval(()=>{
         const c=COLOR_CONFIG[colors[animIdx%colors.length]];
         display.textContent=c.emoji;
@@ -2149,7 +2176,7 @@ async function startCrash(){
     document.getElementById('crashStartBtn').style.display='none';
     document.getElementById('crashCashoutBtn').classList.add('show');
     document.getElementById('crashStatus').textContent='🚀 Flying... Cashout karo!';
-    playSound('tap');
+    playSound('rocket');
 
     const rocket=document.getElementById('crashRocket');
     const multEl=document.getElementById('crashMultiplier');
@@ -2194,7 +2221,7 @@ async function startCrash(){
             document.getElementById('crashStatus').textContent=`💥 ${crashPoint}x pe crash! ${crashCashedOut?'Aapne cashout kar liya tha!':'Haare :('}`;
 
             if(!crashCashedOut){
-                playSound('lose');
+                playSound('crash_boom');
                 showToast(`💥 Crash at ${crashPoint}x! Haare ₹${crashBet}`);
             }
 
@@ -2225,7 +2252,7 @@ async function doCrashCashout(){
         gameState.wins=(gameState.wins||0)+1;
         if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
         updateUI();updateMissionsUI();
-        playSound('earn');
+        playSound('cashout');
         showToast(`💸 Cashout! ${mult}x = +₹${reward.toFixed(2)}`);
         document.getElementById('crashStatus').textContent=`✅ Cashout at ${mult}x! +₹${reward.toFixed(2)}`;
         const multEl=document.getElementById('crashMultiplier');
@@ -2291,15 +2318,158 @@ function toggleTheme(){
     playSound('tap');
 }
 function toggleSound(){soundOn=!soundOn;['soundToggleEl','soundToggleEl2'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',soundOn);});if(soundOn)playSound('tap');}
+
+// ============================================================
+// SOUND ENGINE — Web Audio API (no files needed)
+// ============================================================
+function getAudioCtx(){
+    if(!audioCtx2){
+        try{audioCtx2=new(window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}
+    }
+    if(audioCtx2.state==='suspended')audioCtx2.resume();
+    return audioCtx2;
+}
+
+function playTone(freq,dur,vol=0.15,type='sine',startDelay=0){
+    const ctx=getAudioCtx();if(!ctx)return;
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.type=type;o.frequency.value=freq;
+    const t=ctx.currentTime+startDelay;
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(vol,t+0.01);
+    g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    o.start(t);o.stop(t+dur+0.05);
+}
+
+function playNoise(dur,vol=0.05,startDelay=0){
+    const ctx=getAudioCtx();if(!ctx)return;
+    const buf=ctx.createBuffer(1,ctx.sampleRate*dur,ctx.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1);
+    const src=ctx.createBufferSource(),g=ctx.createGain();
+    const f=ctx.createBiquadFilter();f.type='bandpass';f.frequency.value=800;f.Q.value=0.5;
+    src.buffer=buf;src.connect(f);f.connect(g);g.connect(ctx.destination);
+    const t=ctx.currentTime+startDelay;
+    g.gain.setValueAtTime(vol,t);
+    g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    src.start(t);src.stop(t+dur+0.05);
+}
+
 function playSound(type){
     if(!soundOn)return;
     try{
-        if(!audioCtx2)audioCtx2=new(window.AudioContext||window.webkitAudioContext)();
-        if(audioCtx2.state==='suspended')audioCtx2.resume();
-        const now=audioCtx2.currentTime;
-        if(type==='tap'){const o=audioCtx2.createOscillator(),g=audioCtx2.createGain();o.connect(g);g.connect(audioCtx2.destination);o.frequency.value=600;g.gain.value=.04;o.start(now);o.stop(now+.05);}
-        else if(type==='earn'){[400,500,600,700,900].forEach((f,i)=>{const o=audioCtx2.createOscillator(),g=audioCtx2.createGain();o.connect(g);g.connect(audioCtx2.destination);o.frequency.value=f;g.gain.value=.08;o.start(now+i*.08);o.stop(now+i*.08+.1);});}
-        else if(type==='lose'){[300,250,200].forEach((f,i)=>{const o=audioCtx2.createOscillator(),g=audioCtx2.createGain();o.connect(g);g.connect(audioCtx2.destination);o.frequency.value=f;g.gain.value=.05;o.start(now+i*.1);o.stop(now+i*.1+.1);});}
+        switch(type){
+            // UI tap — short click
+            case 'tap':
+                playTone(1200,0.04,0.08,'square');
+                playTone(800,0.04,0.04,'sine',0.02);
+                break;
+
+            // Win/Earn — rising coin chime
+            case 'earn':
+                [523,659,784,1047,1319].forEach((f,i)=>{
+                    playTone(f,0.18,0.12,'sine',i*0.07);
+                });
+                // sparkle noise
+                playNoise(0.06,0.04,0.1);
+                break;
+
+            // Lose — descending sad tones
+            case 'lose':
+                [400,320,260,220].forEach((f,i)=>{
+                    playTone(f,0.2,0.1,'sawtooth',i*0.09);
+                });
+                break;
+
+            // Spin wheel — ratchet click sound (fast ticking)
+            case 'spin':
+                for(let i=0;i<18;i++){
+                    const speed=i<10?i*0.06:0.6+(i-10)*0.09;
+                    playTone(1800-i*30,0.03,0.07,'square',speed);
+                    playNoise(0.02,0.03,speed+0.01);
+                }
+                break;
+
+            // Spin win — jackpot fanfare
+            case 'jackpot':
+                [262,330,392,523,659,784,1047].forEach((f,i)=>{
+                    playTone(f,0.25,0.15,'sine',i*0.06);
+                });
+                [523,659,784].forEach((f,i)=>{
+                    playTone(f,0.3,0.12,'triangle',0.5+i*0.08);
+                });
+                break;
+
+            // Coin flip — woosh + landing
+            case 'flip':
+                playNoise(0.15,0.08);
+                playTone(2000,0.05,0.06,'sine',0.05);
+                playTone(1500,0.05,0.05,'sine',0.08);
+                playTone(800,0.12,0.1,'sine',0.16);  // landing thud
+                break;
+
+            // Dice roll — rumble + clatter
+            case 'dice':
+                for(let i=0;i<6;i++){
+                    playNoise(0.05,0.07,i*0.08);
+                    playTone(300+Math.random()*200,0.04,0.06,'square',i*0.08+0.02);
+                }
+                playTone(200,0.15,0.12,'sine',0.55); // final land
+                break;
+
+            // Color predict — swoosh
+            case 'color_spin':
+                playNoise(0.2,0.06);
+                [600,800,1000,1200,1000,800].forEach((f,i)=>{
+                    playTone(f,0.06,0.05,'sine',i*0.04);
+                });
+                break;
+
+            // Crash rocket launch
+            case 'rocket':
+                playNoise(0.3,0.1);
+                playTone(80,0.4,0.15,'sawtooth');
+                playTone(120,0.3,0.1,'sawtooth',0.1);
+                break;
+
+            // Crash boom
+            case 'crash_boom':
+                playTone(60,0.5,0.2,'sawtooth');
+                playNoise(0.4,0.15);
+                playTone(40,0.6,0.18,'sine',0.05);
+                break;
+
+            // Crash cashout — quick cash register
+            case 'cashout':
+                playTone(1047,0.08,0.15,'sine');
+                playTone(1319,0.08,0.15,'sine',0.06);
+                playTone(1568,0.12,0.18,'sine',0.12);
+                playNoise(0.05,0.04,0.2);
+                break;
+
+            // Mission claim
+            case 'mission':
+                [392,494,587,740].forEach((f,i)=>{
+                    playTone(f,0.14,0.12,'sine',i*0.06);
+                });
+                break;
+
+            // Level up / big win
+            case 'levelup':
+                [262,294,330,349,392,440,494,523].forEach((f,i)=>{
+                    playTone(f,0.15,0.13,'sine',i*0.05);
+                });
+                break;
+
+            // Button click (softer)
+            case 'click':
+                playTone(600,0.05,0.06,'sine');
+                break;
+
+            default:
+                playTone(800,0.04,0.06,'sine');
+        }
     }catch(e){}
 }
 
