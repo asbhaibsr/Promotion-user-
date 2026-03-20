@@ -739,88 +739,88 @@ class Database:
             if not mdef:
                 return {'success': False, 'message': 'Mission not found'}
 
-            doc = self.missions.find_one({'user_id': user_id, 'date': today, 'mission_id': mission_id})
-
-            # If doc not found, create it by checking user data directly
-            if not doc:
-                user = self.get_user(user_id)
-                progress = 0
-                completed = False
-
-                # Auto-calculate progress from live user data
-                if mission_id == 'm_refer5' and user:
-                    progress = min(user.get('active_refs', 0), mdef['total'])
-                    completed = user.get('active_refs', 0) >= mdef['total']
-                elif mission_id == 'm_daily':
-                    bonus_today = self.daily_bonus.find_one({'user_id': user_id, 'date': today})
-                    progress = 1 if bonus_today else 0
-                    completed = bool(bonus_today)
-                elif mission_id == 'm_game' and user:
-                    # Check game states for today
-                    state = self.game_states.find_one({'user_id': user_id, 'date': today})
-                    progress = state.get('wins', 0) if state else 0
-                    completed = progress >= mdef['total']
-                elif mission_id == 'm_withdraw':
-                    wd_today = self.withdrawals.find_one({
-                        'user_id': user_id,
-                        'request_date': {'$gte': today}
-                    })
-                    progress = 1 if wd_today else 0
-                    completed = bool(wd_today)
-                elif mission_id == 'm_passes':
-                    claim_today = self.daily_claims.find_one({
-                        'user_id': user_id,
-                        'claimed_at': {'$gte': today}
-                    })
-                    progress = 1 if claim_today else 0
-                    completed = bool(claim_today)
-
-                if not completed:
-                    return {'success': False, 'message': 'Mission abhi puri nahi hui'}
-
-                # Create the doc so we can mark it claimed
-                try:
-                    self.missions.insert_one({
-                        'user_id': user_id, 'date': today,
-                        'mission_id': mission_id,
-                        'progress': progress, 'completed': True, 'claimed': False
-                    })
-                except:
-                    pass  # May already exist due to race condition
-
-                doc = self.missions.find_one({'user_id': user_id, 'date': today, 'mission_id': mission_id})
-                if not doc:
-                    # Still not found — just proceed with claim directly
-                    self.add_balance(user_id, float(reward), f"Mission {mission_id} reward")
-                    self.add_live_activity('mission', user_id, reward, f"claimed mission reward +₹{reward}")
-                    return {'success': True, 'message': f'Claimed! +₹{reward}'}
-
-            if doc.get('claimed'):
+            # ── STEP 1: Check already claimed (fast exit) ──────────────
+            doc = self.missions.find_one({
+                'user_id': user_id, 'date': today, 'mission_id': mission_id
+            })
+            if doc and doc.get('claimed'):
                 return {'success': False, 'message': 'Already claimed'}
 
-            # Check completion — either from doc or from live data
-            if not doc.get('completed') and doc.get('progress', 0) < mdef['total']:
-                # One more check: maybe progress was updated but doc wasn't
-                user = self.get_user(user_id)
-                real_complete = False
-                if mission_id == 'm_refer5' and user:
-                    real_complete = user.get('active_refs', 0) >= mdef['total']
-                elif mission_id == 'm_daily':
-                    real_complete = bool(self.daily_bonus.find_one({'user_id': user_id, 'date': today}))
-                if not real_complete:
-                    return {'success': False, 'message': 'Mission abhi puri nahi hui'}
+            # ── STEP 2: Verify mission is actually completed ────────────
+            completed = doc.get('completed', False) if doc else False
+            progress  = doc.get('progress', 0)      if doc else 0
 
-            self.add_balance(user_id, float(reward), f"Mission {mission_id} reward")
-            self.missions.update_one(
-                {'user_id': user_id, 'date': today, 'mission_id': mission_id},
-                {'$set': {'claimed': True, 'completed': True}},
-                upsert=True
+            # Cross-check with live data for key missions
+            if not completed or progress < mdef['total']:
+                user = self.get_user(user_id)
+                if mission_id == 'm_refer5' and user:
+                    completed = user.get('active_refs', 0) >= mdef['total']
+                    progress  = min(user.get('active_refs', 0), mdef['total'])
+                elif mission_id == 'm_daily':
+                    bonus_today = self.daily_bonus.find_one({'user_id': user_id, 'date': today})
+                    completed   = bool(bonus_today)
+                    progress    = 1 if bonus_today else 0
+                elif mission_id == 'm_game':
+                    state     = self.game_states.find_one({'user_id': user_id, 'date': today})
+                    progress  = state.get('wins', 0) if state else 0
+                    completed = progress >= mdef['total']
+                elif mission_id == 'm_withdraw':
+                    wd = self.withdrawals.find_one({
+                        'user_id': user_id, 'request_date': {'$gte': today}
+                    })
+                    completed = bool(wd);  progress = 1 if wd else 0
+                elif mission_id == 'm_passes':
+                    cl = self.daily_claims.find_one({
+                        'user_id': user_id, 'claimed_at': {'$gte': today}
+                    })
+                    completed = bool(cl);  progress = 1 if cl else 0
+                # m_search5 / m_shortlink — rely on stored doc progress only
+                else:
+                    completed = progress >= mdef['total']
+
+            if not completed:
+                return {'success': False, 'message': 'Mission abhi puri nahi hui'}
+
+            # ── STEP 3: ATOMIC claim — findAndModify pattern ───────────
+            # Only set claimed=True if it is NOT already claimed.
+            # This is the single source-of-truth write.
+            result = self.missions.find_one_and_update(
+                {
+                    'user_id':    user_id,
+                    'date':       today,
+                    'mission_id': mission_id,
+                    'claimed':    {'$ne': True}   # ← guard: skip if already claimed
+                },
+                {
+                    '$set': {
+                        'claimed':   True,
+                        'completed': True,
+                        'progress':  progress,
+                        'reward_given': float(reward)
+                    }
+                },
+                upsert=True,
+                return_document=False  # return old doc (None if upserted)
             )
-            self.add_live_activity('mission', user_id, reward, f"claimed mission reward +₹{reward}")
+            # If result is not None it means we matched an EXISTING unclaimed doc — fine.
+            # If result is None it means either upserted (new) or doc didn't exist — also fine.
+            # Either way we proceed to credit. But we must guard against the case where
+            # find_one_and_update matched nothing because 'claimed' was already True
+            # (that would raise DuplicateKeyError on upsert, caught below).
+
+            # ── STEP 4: Credit balance AFTER atomic write succeeds ─────
+            self.add_balance(user_id, float(reward), f"Mission {mission_id} reward")
+            self.add_live_activity('mission', user_id, reward, f"claimed mission +₹{reward}")
+            logger.info(f"Mission claimed: user={user_id} mission={mission_id} reward=₹{reward}")
             return {'success': True, 'message': f'Claimed! +₹{reward}'}
+
         except Exception as e:
-            logger.error(f"Error claiming single mission: {e}")
-            return {'success': False, 'message': str(e)}
+            err = str(e)
+            # DuplicateKeyError means another request already claimed — safe to block
+            if 'duplicate' in err.lower() or 'E11000' in err:
+                return {'success': False, 'message': 'Already claimed'}
+            logger.error(f"Error claiming single mission {mission_id}: {e}")
+            return {'success': False, 'message': 'Server error, try again'}
 
     # ========== ADS — UPDATED: timer_seconds field ==========
 
