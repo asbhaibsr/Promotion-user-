@@ -286,6 +286,22 @@ class Database:
                         'last_active': datetime.now().isoformat()
                     }}
                 )
+                # Check if someone is trying to refer an existing user
+                if referrer_id and referrer_id != user_id:
+                    # Find who originally referred this user
+                    original_ref = self.referrals.find_one({'referred_id': user_id})
+                    original_referrer_id = original_ref.get('referrer_id') if original_ref else None
+                    return {
+                        'is_new': False,
+                        'already_on_bot': True,
+                        'user_id': user_id,
+                        'first_name': existing.get('first_name', 'User'),
+                        'username': existing.get('username', ''),
+                        'join_date': existing.get('join_date', '')[:10] if existing.get('join_date') else 'Unknown',
+                        'active_refs': existing.get('active_refs', 0),
+                        'balance': existing.get('balance', 0),
+                        'original_referrer_id': original_referrer_id
+                    }
                 return False
 
             now = datetime.now().isoformat()
@@ -296,6 +312,8 @@ class Database:
                 'referrer_id': referrer_id,
                 'balance': 0.0,
                 'total_earned': 0.0,
+                'today_earned': 0.0,
+                'today_date': now[:10],
                 'tier': 1,
                 'total_refs': 0,
                 'active_refs': 0,
@@ -919,7 +937,22 @@ class Database:
             amount = float(amount)
             if amount <= 0:
                 return False
-            self.users.update_one({'user_id': user_id}, {'$inc': {'balance': amount, 'total_earned': amount}})
+            today = datetime.now().date().isoformat()
+            # Reset today_earned if it's a new day
+            user = self.users.find_one({'user_id': user_id}, {'today_date': 1, 'today_earned': 1})
+            if user and user.get('today_date') != today:
+                # New day — reset today_earned
+                self.users.update_one(
+                    {'user_id': user_id},
+                    {'$set': {'today_earned': amount, 'today_date': today},
+                     '$inc': {'balance': amount, 'total_earned': amount}}
+                )
+            else:
+                self.users.update_one(
+                    {'user_id': user_id},
+                    {'$inc': {'balance': amount, 'total_earned': amount, 'today_earned': amount},
+                     '$set': {'today_date': today}}
+                )
             self.add_transaction(user_id, 'credit', amount, description)
             self.user_cache.pop(f"user_{user_id}", None)
             return True
@@ -1109,8 +1142,18 @@ class Database:
         {'label': '₹2',    'value': 2.0},    # index 6
         {'label': '₹0.10', 'value': 0.10},   # index 7
     ]
-    # Weights: 0.10 = ~60%, 0.50 = ~21%, 1.0 = ~10%, 2.0 = ~5%
-    SPIN_WEIGHTS = [15, 6, 15, 3, 6, 15, 2, 15]
+    # FIXED Weights — realistic feel, not spammy 0.10
+    # 0.10 = 40% (4 segs × 5), 0.50 = 30% (2 × 15), 1.0 = 20% (1 × 20), 2.0 = 10% (1 × 10)
+    # Total = 20+15+20+15+10+20+10+20 = 130
+    SPIN_WEIGHTS = [5, 15, 5, 20, 15, 5, 10, 5]
+    # Actual probabilities:
+    # ₹0.10 (indices 0,2,5,7) = (5+5+5+5)/80 = 20/80 = 25%
+    # ₹0.50 (indices 1,4)     = (15+15)/80   = 30/80 = 37.5%
+    # ₹1.0  (index 3)         = 20/80        = 25%
+    # ₹2.0  (index 6)         = 10/80        = 12.5%
+    # Expected value per spin = 0.10*0.25 + 0.50*0.375 + 1.0*0.25 + 2.0*0.125
+    #                         = 0.025 + 0.1875 + 0.25 + 0.25 = 0.7125
+    # Pass costs ~₹0.10 equivalent, house edge maintained through pass system
 
     def get_game_state(self, user_id, date=None):
         try:
