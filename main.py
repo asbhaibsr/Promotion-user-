@@ -559,6 +559,27 @@ def admin_reply_support_api():
         logger.error(f"Admin reply support error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@app.route('/api/admin/delete-support', methods=['POST'])
+def admin_delete_support_api():
+    """Delete a support message."""
+    try:
+        data = request.get_json()
+        admin_id = data.get('admin_id')
+        message_id = data.get('message_id')
+        if not all([admin_id, message_id]):
+            return jsonify({'success': False, 'message': 'Missing data'}), 400
+        admin_user = db.get_user(int(admin_id))
+        if not admin_user or not admin_user.get('is_admin', False):
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+        success = db.delete_support_message(message_id)
+        if success:
+            return jsonify({'success': True, 'message': 'Message deleted'})
+        return jsonify({'success': False, 'message': 'Not found'})
+    except Exception as e:
+        logger.error(f"Admin delete support error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
 # ========== SETTINGS ==========
 
 @app.route('/api/update-setting', methods=['POST'])
@@ -679,6 +700,60 @@ def game_scratch_api():
         return jsonify(result)
     except Exception as e:
         logger.error(f"Scratch game error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/game/color', methods=['POST'])
+def game_color_api():
+    """Color Prediction game."""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        choice = data.get('choice')
+        bet = data.get('bet', 1)
+        if not user_id or not choice:
+            return jsonify({'success': False, 'message': 'Missing data'}), 400
+        if not db or not db.ensure_connection():
+            return jsonify({'success': False, 'message': 'Database error'}), 503
+        result = db.process_game_color(user_id, choice, float(bet))
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Color game error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/game/crash-start', methods=['POST'])
+def game_crash_start_api():
+    """Crash game start — deduct pass."""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        bet = data.get('bet', 1)
+        if not user_id:
+            return jsonify({'success': False, 'message': 'Missing user_id'}), 400
+        if not db or not db.ensure_connection():
+            return jsonify({'success': False, 'message': 'Database error'}), 503
+        result = db.process_crash_start(user_id, float(bet))
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Crash start error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/game/crash-cashout', methods=['POST'])
+def game_crash_cashout_api():
+    """Crash game cashout — credit reward."""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        bet = data.get('bet', 1)
+        multiplier = data.get('multiplier', 1.0)
+        reward = data.get('reward', 0)
+        if not user_id:
+            return jsonify({'success': False, 'message': 'Missing user_id'}), 400
+        if not db or not db.ensure_connection():
+            return jsonify({'success': False, 'message': 'Database error'}), 503
+        result = db.process_crash_cashout(user_id, float(bet), float(multiplier), float(reward))
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Crash cashout error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/game/earn', methods=['POST'])
