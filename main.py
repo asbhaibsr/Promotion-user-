@@ -424,6 +424,108 @@ def claim_milestone_api():
         logger.error(f"Milestone claim API error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@app.route('/api/claim-badge', methods=['POST'])
+def claim_badge_api():
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        badge_idx = data.get('badge_idx')
+        if user_id is None or badge_idx is None:
+            return jsonify({'success': False, 'message': 'Missing data'}), 400
+        if not db or not db.ensure_connection():
+            return jsonify({'success': False, 'message': 'DB error'}), 503
+        result = db.claim_badge(int(user_id), int(badge_idx))
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Badge claim error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/request-passes', methods=['POST'])
+def request_passes_api():
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        pkg_id = data.get('pkg_id')
+        passes = data.get('passes')
+        price = data.get('price')
+        txn_id = data.get('txn_id', '')
+        screenshot = data.get('screenshot', None)
+        if not user_id or not txn_id:
+            return jsonify({'success': False, 'message': 'Transaction ID required'}), 400
+        if not db or not db.ensure_connection():
+            return jsonify({'success': False, 'message': 'DB error'}), 503
+        result = db.request_pass_purchase(
+            int(user_id), int(pkg_id or 1),
+            int(passes or 15), float(price or 50),
+            txn_id.strip(), screenshot
+        )
+        # Notify admins via bot
+        if result.get('success') and bot_app:
+            user = db.get_user(int(user_id))
+            uname = user.get('first_name', 'User') if user else 'User'
+            req_id = result.get('request_id', '?')
+            for admin_id in config.ADMIN_IDS:
+                try:
+                    import asyncio
+                    async def notify():
+                        from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+                        kb = [[
+                            InlineKeyboardButton("✅ VERIFY", callback_data=f"verify_passes_{req_id}"),
+                            InlineKeyboardButton("❌ REJECT", callback_data=f"reject_passes_{req_id}")
+                        ]]
+                        await bot_app.bot.send_message(
+                            chat_id=admin_id,
+                            text=(
+                                f"💰 **PASS PURCHASE REQUEST**\n\n"
+                                f"👤 User: {uname} (`{user_id}`)\n"
+                                f"📦 Package: {passes} passes\n"
+                                f"💵 Amount: ₹{price}\n"
+                                f"🔢 TXN ID: `{txn_id}`\n"
+                                f"📋 Request ID: `{req_id}`"
+                            ),
+                            reply_markup=InlineKeyboardMarkup(kb),
+                            parse_mode='Markdown'
+                        )
+                    asyncio.run_coroutine_threadsafe(notify(), bot_loop)
+                except Exception as e:
+                    logger.error(f"Admin notify error: {e}")
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Request passes error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/verify-passes', methods=['POST'])
+def verify_passes_api():
+    try:
+        data = request.get_json()
+        request_id = data.get('request_id')
+        action = data.get('action')  # 'verify' or 'reject'
+        admin_id = data.get('admin_id')
+        if not request_id or not action:
+            return jsonify({'success': False, 'message': 'Missing data'}), 400
+        if not db or not db.ensure_connection():
+            return jsonify({'success': False, 'message': 'DB error'}), 503
+        result = db.process_pass_request(request_id, action, admin_id)
+        # Notify user
+        if result.get('success') and bot_app:
+            user_id = result.get('user_id')
+            passes = result.get('passes', 0)
+            if action == 'verify':
+                msg = f"✅ **Passes Add Ho Gaye!**\n\n🎟️ {passes} passes aapke account mein add ho gaye!\nGame khelo aur paise kamao! 🎮"
+            else:
+                msg = f"❌ **Pass Request Reject**\n\nAapki pass request reject ho gayi.\nTransaction proof sahi nahi tha ya already processed tha.\nSupport ke liye contact karo."
+            try:
+                import asyncio
+                async def notify_user():
+                    await bot_app.bot.send_message(chat_id=user_id, text=msg, parse_mode='Markdown')
+                asyncio.run_coroutine_threadsafe(notify_user(), bot_loop)
+            except Exception as e:
+                logger.error(f"User notify error: {e}")
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Verify passes error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @app.route('/api/claim-weekly-bonus', methods=['POST'])
 def claim_weekly_bonus_api():
     try:
