@@ -109,6 +109,10 @@ class AdminHandlers:
             await self.reject_withdrawal(query, context, data.replace("reject_", ""))
         elif data.startswith("view_withdrawal_"):
             await self.view_withdrawal_details(query, context, data.replace("view_withdrawal_", ""))
+        elif data.startswith("verify_passes_"):
+            await self.verify_pass_request(query, context, data.replace("verify_passes_", ""), 'verify')
+        elif data.startswith("reject_passes_"):
+            await self.verify_pass_request(query, context, data.replace("reject_passes_", ""), 'reject')
 
     # ========== DATA MANAGER — MAIN ENTRY ==========
 
@@ -747,6 +751,36 @@ class AdminHandlers:
             f"❌ **Rejected!** ₹{w['amount']:.2f} for {uname} — Refunded.",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ BACK", callback_data="admin_withdrawals")]])
         )
+
+    # ========== VERIFY PASS REQUEST ==========
+
+    async def verify_pass_request(self, query, context, request_id, action):
+        try:
+            result = self.db.process_pass_request(request_id, action, query.from_user.id)
+            if not result.get('success'):
+                await query.edit_message_text(f"❌ {result.get('message','Error')}")
+                return
+
+            user_id = result.get('user_id')
+            passes = result.get('passes', 0)
+
+            if action == 'verify':
+                msg_user = f"✅ **Passes Add Ho Gaye!**\n\n🎟️ {passes} passes aapke account mein add ho gaye!\nGame khelo aur paise kamao! 🎮"
+                msg_admin = f"✅ **Pass Request VERIFIED!**\n{passes} passes added to user `{user_id}`"
+            else:
+                msg_user = f"❌ **Pass Request Reject Ho Gayi**\n\nTransaction verify nahi ho saka.\nSupport se contact karo: {self.config.SUPPORT_USERNAME}"
+                msg_admin = f"❌ **Pass Request REJECTED** for user `{user_id}`"
+
+            try:
+                await context.bot.send_message(chat_id=user_id, text=msg_user, parse_mode='Markdown')
+            except Exception as e:
+                logger.error(f"User notify error: {e}")
+
+            await query.edit_message_text(msg_admin, parse_mode='Markdown')
+
+        except Exception as e:
+            logger.error(f"Verify pass request error: {e}")
+            await query.edit_message_text(f"❌ Error: {e}")
 
     # ========== BACK TO ADMIN ==========
 
