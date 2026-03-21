@@ -7,7 +7,7 @@ import asyncio
 import threading
 import time
 import signal
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from bson.objectid import ObjectId
 from flask import Flask, request, jsonify, render_template
@@ -422,6 +422,42 @@ def claim_milestone_api():
         return jsonify(result)
     except Exception as e:
         logger.error(f"Milestone claim API error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/claim-weekly-bonus', methods=['POST'])
+def claim_weekly_bonus_api():
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'message': 'Missing user_id'}), 400
+        if not db or not db.ensure_connection():
+            return jsonify({'success': False, 'message': 'DB error'}), 503
+        # Check this week's claimed days
+        today = datetime.now().date()
+        day_of_week = today.weekday()  # 0=Mon
+        week_start = today - timedelta(days=day_of_week)
+        week_dates = [(week_start + timedelta(days=i)).isoformat() for i in range(7)]
+        user_id_int = int(user_id)
+        claimed_this_week = db.daily_bonus.count_documents({
+            'user_id': user_id_int,
+            'date': {'$in': week_dates}
+        })
+        if claimed_this_week < 7:
+            return jsonify({'success': False, 'message': f'Sirf {claimed_this_week}/7 days claimed. 7 chahiye!'})
+        # Check already claimed this week
+        result = db.users.find_one_and_update(
+            {'user_id': user_id_int, f'weekly_bonus_{week_start.isoformat()}': {'$ne': True}},
+            {'$set': {f'weekly_bonus_{week_start.isoformat()}': True}}
+        )
+        if not result:
+            return jsonify({'success': False, 'message': 'Weekly bonus already claimed!'})
+        db.add_balance(user_id_int, 1.0, 'Weekly bonus — 7 day streak!')
+        db.add_live_activity('bonus', user_id_int, 1.0, '7 din ka streak! Weekly bonus +₹1')
+        db.user_cache.pop(f"user_{user_id_int}", None)
+        return jsonify({'success': True, 'reward': 1.0, 'message': '🎉 Weekly Bonus! +₹1'})
+    except Exception as e:
+        logger.error(f"Weekly bonus error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/claim-mission-reward', methods=['POST'])
