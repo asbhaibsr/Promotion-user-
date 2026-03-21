@@ -199,6 +199,7 @@
         /* MODALS */
         .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:300;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 13px calc(var(--nav-h) + env(safe-area-inset-bottom) + 24px);display:none;}
         .modal.open{display:block;animation:slideUp .25s ease;}
+        #runnerModal.open{display:flex;flex-direction:column;}
         @keyframes slideUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
         .modal-hdr{display:flex;align-items:center;gap:12px;padding:13px 0 14px;position:sticky;top:0;z-index:10;background:var(--bg);}
         .back-btn{width:40px;height:40px;background:var(--bg3);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;border:1px solid var(--border);flex-shrink:0;}
@@ -627,6 +628,15 @@
                 <div class="bsub-item"><div class="bsub-label" data-t="active_refs"><img src="https://i.postimg.cc/cCV72d3Z/refer-earn-concept-business-partnership-strategy-vector-illustration-185038-443.jpg" style="width:14px;height:14px;object-fit:cover;border-radius:3px;vertical-align:middle;margin-right:3px;"> Active Refs</div><div class="bsub-val" id="activeRefs">0</div></div>
                 <div class="bsub-item"><div class="bsub-label">📅 Month Refs</div><div class="bsub-val" id="monthRefsDisplay">0</div></div>
             </div>
+            <!-- Badge mini display on home -->
+            <div onclick="switchTab(4)" style="display:flex;align-items:center;gap:8px;margin-top:10px;background:rgba(255,255,255,.05);border-radius:12px;padding:8px 12px;cursor:pointer;border:1px solid rgba(240,192,64,.2);">
+                <img id="homeBadgeImg" src="https://i.postimg.cc/prJbHJvn/4946de51-23b6-473f-8192-764e1ca09041.jpg" style="width:30px;height:30px;object-fit:contain;">
+                <div style="flex:1;">
+                    <div id="homeBadgeName" style="font-size:11px;font-weight:800;color:var(--gold);">🥉 Starter</div>
+                    <div id="homeBadgeProgress" style="font-size:9px;color:var(--text3);">0/10 refs → next badge</div>
+                </div>
+                <div style="font-size:9px;color:var(--text3);">Profile →</div>
+            </div>
         </div>
         <div class="passes-card">
             <div class="passes-info">
@@ -1043,8 +1053,8 @@
     <div class="num-grid" id="numGrid"></div>
     <div style="background:rgba(25,216,158,.07);border:1px solid rgba(25,216,158,.2);border-radius:11px;padding:10px 13px;margin:6px 0;font-size:11px;color:var(--text2);">
         🎯 <b style="color:var(--green);">Sahi guess</b> = Bet × 8 jeeto!<br>
-        💡 <b style="color:var(--gold);">Strategy:</b> Galat guess pe HOT/COLD hint milta hai — use karo next guess mein!<br>
-        ⚠️ 3 attempts max per round • 1 Pass per attempt
+        💡 <b style="color:var(--gold);">Hint:</b> Galat guess pe sirf HOT/COLD hint milta hai!<br>
+        ⚠️ Sirf <b style="color:var(--red);">2 attempts</b> max • 1 Pass per attempt • Hard!
     </div>
 </div>
 
@@ -1217,15 +1227,15 @@
 </div>
 
 <!-- RUNNER GAME MODAL -->
-<div class="modal" id="runnerModal" style="padding:0;overflow:hidden;">
-    <div style="padding:12px 14px 8px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+<div class="modal" id="runnerModal" style="padding:0;overflow:hidden;flex-direction:column;">
+    <div style="padding:12px 14px 8px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
         <div class="back-btn" onclick="exitRunnerGame()">←</div>
-        <div style="font-family:'Oxanium',sans-serif;font-weight:900;font-size:15px;">🏃 Runner Challenge</div>
+        <div style="font-family:'Oxanium',sans-serif;font-weight:900;font-size:15px;">🏃 JUMP OR DIE!</div>
         <div id="runnerBalDisplay" style="font-size:12px;color:var(--gold);font-weight:800;">₹0</div>
     </div>
 
     <!-- SETUP SCREEN -->
-    <div id="runnerSetup" style="padding:16px;">
+    <div id="runnerSetup" style="padding:16px;overflow-y:auto;flex:1;padding-bottom:80px;">
         <div style="background:var(--bg3);border-radius:16px;padding:14px;margin-bottom:12px;border:1px solid var(--border);">
             <div style="font-size:12px;font-weight:800;color:var(--text2);margin-bottom:8px;">⏱️ Challenge Time Chuno:</div>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;">
@@ -1265,8 +1275,11 @@
             <div style="font-size:12px;">Passes available: <b id="runnerPassCount" style="color:var(--purple2);">0</b></div>
         </div>
 
-        <button class="btn-gold" id="runnerStartBtn" onclick="startRunnerGame()" style="width:100%;font-size:15px;padding:14px;">
-            🏃 START GAME (1 Pass + Bet)
+    </div>
+    <!-- Fixed start button always visible -->
+    <div id="runnerStartWrap" style="position:sticky;bottom:0;left:0;right:0;padding:12px 16px;background:var(--bg2);border-top:1px solid var(--border);flex-shrink:0;z-index:10;">
+        <button class="btn-gold" id="runnerStartBtn" onclick="startRunnerGame()" style="width:100%;font-size:16px;padding:15px;font-family:'Oxanium',sans-serif;font-weight:900;letter-spacing:1px;">
+            🏃 JUMP OR DIE — START! (1 Pass + Bet)
         </button>
     </div>
 
@@ -1408,7 +1421,7 @@ let gameState={today_game_earned:0,wins:0,win_streak:0};
 let claimedDates=[],userStreak=0,adminAds=[],adminEditMode=false,selectedMethod=null;
 let soundOn=true,currentTheme='dark',lbMode='weekly';
 let spinAngle=0,isSpinning=false;
-let guessBet=1,guessActive=false;
+let guessBet=1,guessActive=false,guessAttempts=0,guessMaxAttempts=2;
 let coinChoice=null,coinBet=1,coinFlipping=false;
 let audioCtx2=null;
 let currentAdForCode=null;
@@ -1654,41 +1667,67 @@ function getHappyHoursMultiplier(){return happyHoursActive?2:1;}
 // ============================================================
 // WEEKLY BONUS — 7 din streak → Sunday ko ₹1 extra
 // ============================================================
+let weeklyBonusClaimed=false;
+
 function updateWeeklyBonus(){
     const el=document.getElementById('weeklyDays');
     const statusEl=document.getElementById('weeklyBonusStatus');
     if(!el)return;
 
     const today=new Date();
-    const dayOfWeek=today.getDay(); // 0=Sun,1=Mon...6=Sat
-    // Get this week's Mon-Sun
+    const todayStr=today.toISOString().split('T')[0];
+    const dayOfWeek=today.getDay();
     const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-    // Build last 7 days from Monday
+
+    // Monday of this week
     const weekStart=new Date(today);
-    weekStart.setDate(today.getDate()-((dayOfWeek+6)%7)); // Monday
+    weekStart.setDate(today.getDate()-((dayOfWeek+6)%7));
+    weekStart.setHours(0,0,0,0);
 
     let html='';
     let claimedThisWeek=0;
+    const weekDates=[];
+
     for(let i=0;i<7;i++){
-        const d=new Date(weekStart);d.setDate(weekStart.getDate()+i);
+        const d=new Date(weekStart);
+        d.setDate(weekStart.getDate()+i);
         const dStr=d.toISOString().split('T')[0];
-        const isPast=d<today;
-        const isToday=dStr===today.toISOString().split('T')[0];
+        weekDates.push(dStr);
+        const isFuture=d>today&&dStr!==todayStr;
+        const isToday=dStr===todayStr;
         const claimed=claimedDates.includes(dStr);
+        const isPast=!isFuture&&!isToday&&!claimed;
         if(claimed)claimedThisWeek++;
         let cls='future';
-        if(claimed)cls='done';
-        else if(isToday)cls='today';
-        else if(isPast)cls='missed';
-        html+=`<div class="week-day ${cls}">${claimed?'✅':isToday?'📌':isPast?'✗':days[i]}</div>`;
+        let label=days[i];
+        if(claimed){cls='done';label='✅';}
+        else if(isToday){cls='today';label='📌';}
+        else if(isPast){cls='missed';label='✗';}
+        html+=`<div class="week-day ${cls}">${label}</div>`;
     }
     el.innerHTML=html;
 
     const remaining=7-claimedThisWeek;
-    if(claimedThisWeek===7){
-        if(statusEl)statusEl.innerHTML='<span style="color:var(--green);font-weight:800;">🎉 +₹1 Weekly Bonus Ready!</span>';
+    if(claimedThisWeek>=7&&!weeklyBonusClaimed){
+        if(statusEl)statusEl.innerHTML='<button onclick="claimWeeklyBonus()" style="background:var(--green);color:#000;border:none;border-radius:10px;padding:6px 14px;font-weight:900;font-size:11px;cursor:pointer;">🎉 Claim ₹1 Weekly Bonus!</button>';
+    }else if(claimedThisWeek>=7&&weeklyBonusClaimed){
+        if(statusEl)statusEl.innerHTML='<span style="color:var(--green);font-weight:800;">✅ Weekly bonus claimed!</span>';
     }else{
-        if(statusEl)statusEl.textContent=`${claimedThisWeek}/7 days • ${remaining} aur karo → ₹1 bonus!`;
+        if(statusEl)statusEl.textContent=claimedThisWeek+'/7 days claimed • '+remaining+' aur karo → ₹1 bonus!';
+    }
+}
+
+async function claimWeeklyBonus(){
+    const r=await apiPost('/api/claim-weekly-bonus',{user_id:userData.user_id});
+    if(r&&r.success){
+        weeklyBonusClaimed=true;
+        userData.balance=(userData.balance||0)+1;
+        userData.today_earned=(userData.today_earned||0)+1;
+        updateUI();updateWeeklyBonus();
+        showToast('🎉 Weekly Bonus! +₹1 mila!');
+        playSound('levelup');
+    }else{
+        showToast('❌ '+(r?.message||'Already claimed'));
     }
 }
 
@@ -1789,7 +1828,21 @@ function updateBadgeUI(){
     const badge=BADGES[idx];
     const nextBadge=BADGES[idx+1]||null;
 
-    // Current badge display
+    // ── Home page mini badge ─────────────────────────────────
+    const homeImg=document.getElementById('homeBadgeImg');
+    const homeNm=document.getElementById('homeBadgeName');
+    const homeProg=document.getElementById('homeBadgeProgress');
+    if(homeImg)homeImg.src=badge.img;
+    if(homeNm)homeNm.textContent=badge.name;
+    if(homeProg){
+        if(nextBadge){
+            homeProg.textContent=refs+'/'+nextBadge.req+' refs → '+nextBadge.name;
+        }else{
+            homeProg.textContent='MAX BADGE! 🏆 God Tier';
+        }
+    }
+
+    // Current badge display (profile page)
     const imgEl=document.getElementById('badgeImgCurrent');
     const nameEl=document.getElementById('badgeNameCurrent');
     const nextEl=document.getElementById('badgeNextInfo');
@@ -1953,7 +2006,8 @@ async function claimBonus(){
     const r=await apiPost('/api/claim-day-bonus',{user_id:userData.user_id,date:today});
     if(btn){btn.disabled=false;btn.innerHTML='🎉 CLAIM NOW';}
     if(r&&r.success){
-        userData.balance+=r.bonus;userData.today_earned+=r.bonus;
+        userData.balance=(userData.balance||0)+r.bonus;
+        userData.today_earned=(userData.today_earned||0)+r.bonus;
         userData.passes=(userData.passes||0)+1;
         userStreak=r.streak;claimedDates.push(today);
         if(missionStates['m_daily']){missionStates['m_daily'].progress=1;missionStates['m_daily'].completed=true;}
@@ -1966,25 +2020,36 @@ async function claimBonus(){
 // ============================================================
 // LIVE ACTIVITY
 // ============================================================
+// Consistent color from name for avatars
+function nameColor(name){
+    const colors=[['#7c5cfc','#a78bfa'],['#19d89e','#059669'],['#f0c040','#d97706'],
+        ['#ff4e6a','#be185d'],['#36b6f5','#0284c7'],['#fb923c','#c2410c'],
+        ['#a855f7','#7c3aed'],['#34d399','#065f46']];
+    let h=0;for(let i=0;i<(name||'').length;i++)h=(h*31+name.charCodeAt(i))&0xffff;
+    return colors[h%colors.length];
+}
 function renderLiveActivity(acts){
     const el=document.getElementById('liveList');
-    if(!acts||!acts.length){el.innerHTML=`<div style="text-align:center;padding:14px;color:var(--text3);">No activity</div>`;return;}
-    el.innerHTML=acts.slice(0,12).map(a=>{
-        const dpEl=`<div class="live-dp">${a.avatar||'👤'}</div>`;
-        const amtEl=a.amount?`<div class="live-amount">${a.amount>0?'+':''}₹${parseFloat(a.amount).toFixed(2)}</div>`:'';
+    if(!acts||!acts.length){el.innerHTML='<div style="text-align:center;padding:14px;color:var(--text3);">No activity yet</div>';return;}
+    el.innerHTML=acts.slice(0,15).map(a=>{
+        const nm=a.user_name||'User';
+        const initial=(nm||'U')[0].toUpperCase();
+        const [c1,c2]=nameColor(nm);
+        const dpEl='<div class="live-dp" style="background:linear-gradient(135deg,'+c1+','+c2+');color:#fff;font-size:14px;font-weight:900;">'+initial+'</div>';
+        const amtEl=a.amount?'<div class="live-amount">'+(a.amount>0?'+':'')+'₹'+parseFloat(a.amount).toFixed(2)+'</div>':'';
         let desc=a.description||'active';
-        if(a.type==='referral'){
-            const rname=a.referred_name||'someone';
-            desc=`👥 ${rname} ko refer kiya! +₹${parseFloat(a.amount||0).toFixed(2)} +3 Passes`;
-        }else if(a.type==='daily_search'&&a.referred_name){
-            desc=`🎬 ${a.referred_name} ne movie search ki`;
-        }else if(a.type==='join'){
-            desc='🎉 EarnZone join kiya';
-        }
-        return`<div class="live-item" onclick="viewUserProfile(${a.user_id||0},'${(a.user_name||'User').replace(/'/g,"\\'")}')">
-            ${dpEl}<div class="live-info"><div class="live-name">${a.user_name||'User'}</div><div class="live-act">${desc}</div></div>
-            <div style="text-align:right;">${amtEl}<div class="live-time">${a.time||'now'}</div></div>
-        </div>`;
+        let icon='⚡';
+        if(a.type==='referral'){icon='👥';const rn=a.referred_name||'someone';desc='👥 '+rn+' ko refer kiya! +₹'+parseFloat(a.amount||0).toFixed(2)+' +3 Passes';}
+        else if(a.type==='daily_search'&&a.referred_name){icon='🎬';desc='🎬 '+a.referred_name+' ne movie search ki → +₹'+parseFloat(a.amount||0).toFixed(2);}
+        else if(a.type==='join'){icon='🎉';desc='🎉 EarnZone join kiya';}
+        else if(a.type==='bonus'){icon='🎁';}
+        else if(a.type==='mission'){icon='🎯';}
+        else if(a.type==='runner'){icon='🏃';}
+        else if(a.type==='milestone'){icon='🏆';}
+        return'<div class="live-item" onclick="viewUserProfile('+(a.user_id||0)+',' + "'"+nm.replace(/'/g,"\'")+"'"+')">'+
+            dpEl+'<div class="live-info"><div class="live-name">'+nm+'</div><div class="live-act">'+icon+' '+desc+'</div></div>'+
+            '<div style="text-align:right;">'+amtEl+'<div class="live-time">'+(a.time||'now')+'</div></div>'+
+        '</div>';
     }).join('');
 }
 async function viewUserProfile(userId,name){
@@ -2089,11 +2154,13 @@ async function claimSingleMission(missionId,reward){
     // Now call backend
     const r=await apiPost('/api/claim-single-mission',{user_id:userData.user_id,mission_id:missionId,reward:parseFloat(reward)});
     if(r&&r.success){
-        userData.balance+=parseFloat(reward);
-        userData.total_earned+=parseFloat(reward);
+        const mReward=parseFloat(reward);
+        userData.balance=(userData.balance||0)+mReward;
+        userData.total_earned=(userData.total_earned||0)+mReward;
+        userData.today_earned=(userData.today_earned||0)+mReward;
         updateUI();
         playSound('mission');
-        showToast(`✅ +₹${parseFloat(reward).toFixed(2)} mila!`);
+        showToast('✅ Mission! +₹'+mReward.toFixed(2)+' mila!');
     }else{
         // Backend rejected — revert local state
         missionStates[missionId].claimed=false;
@@ -2280,21 +2347,21 @@ function renderLeaderboard(data){
     if(sorted.length>=1){
         html+=`<div class="lb-podium">`;
         if(sorted.length>=2)html+=`<div class="podium-slot p2">
-            <div class="podium-dp">${(sorted[1].name||'U')[0]}</div>
+            <div class="podium-dp" style="background:linear-gradient(135deg,${nameColor(sorted[1].name||'U')[0]},${nameColor(sorted[1].name||'U')[1]});color:#fff;">${(sorted[1].name||'U')[0].toUpperCase()}</div>
             <div class="podium-name">${sorted[1].name||'User'}</div>
             ${podiumRefsLine(sorted[1])}
             <div class="podium-bar">🥈</div>
             ${(sorted[1].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">₹${prizes[1]}</div>`:''}
         </div>`;
         html+=`<div class="podium-slot p1">
-            <div class="podium-dp">${(sorted[0].name||'U')[0]}</div>
+            <div class="podium-dp" style="background:linear-gradient(135deg,${nameColor(sorted[0].name||'U')[0]},${nameColor(sorted[0].name||'U')[1]});color:#fff;">${(sorted[0].name||'U')[0].toUpperCase()}</div>
             <div class="podium-name">${sorted[0].name||'User'}</div>
             ${podiumRefsLine(sorted[0])}
             <div class="podium-bar"><img src="https://i.postimg.cc/7Zp6zfyg/1773974341500.png" style="width:44px;height:44px;object-fit:contain;"></div>
             ${(sorted[0].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">₹${prizes[0]}</div>`:''}
         </div>`;
         if(sorted.length>=3)html+=`<div class="podium-slot p3">
-            <div class="podium-dp">${(sorted[2].name||'U')[0]}</div>
+            <div class="podium-dp" style="background:linear-gradient(135deg,${nameColor(sorted[2].name||'U')[0]},${nameColor(sorted[2].name||'U')[1]});color:#fff;">${(sorted[2].name||'U')[0].toUpperCase()}</div>
             <div class="podium-name">${sorted[2].name||'User'}</div>
             ${podiumRefsLine(sorted[2])}
             <div class="podium-bar">🥉</div>
@@ -2308,6 +2375,7 @@ function renderLeaderboard(data){
             const hasPrize=(u.active_refs||0)>=prizeMin;
             html+=`<div class="lb-item">
                 <div class="lb-rank">${i+4}</div>
+                <div class="live-dp" style="width:30px;height:30px;font-size:12px;background:linear-gradient(135deg,${nameColor(u.name||'U')[0]},${nameColor(u.name||'U')[1]});color:#fff;font-weight:900;flex-shrink:0;">${(u.name||'U')[0].toUpperCase()}</div>
                 <div class="lb-info">
                     <div class="lb-name">${u.name||'User'}</div>
                     <div class="lb-refs">${refsLine(u)} refs</div>
@@ -2412,15 +2480,18 @@ async function doSpin(){
         isSpinning=false;
         userData.passes=Math.max(0,(userData.passes||1)-1);
         const spinActual=(r.reward||0)*getHappyHoursMultiplier();
+        // ✅ FIX: Update balance + today_earned immediately
+        userData.balance=(userData.balance||0)+spinActual;
+        userData.today_earned=(userData.today_earned||0)+spinActual;
         if(happyHoursActive)showToast(`⚡ Happy Hours! +₹${spinActual.toFixed(2)} (2x!)`);
         gameState.today_game_earned=(gameState.today_game_earned||0)+spinActual;
         gameState.wins=(gameState.wins||0)+1;
         if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
         updateUI();updateMissionsUI();
-        document.getElementById('spinResultAmt').textContent=`+₹${parseFloat(r.reward||0).toFixed(2)}`;
-        document.getElementById('spinResultTxt').textContent=(r.reward||0)>=2?'🎉 Jackpot!':'✅ Badhaai ho!';
+        document.getElementById('spinResultAmt').textContent=`+₹${parseFloat(spinActual).toFixed(2)}`;
+        document.getElementById('spinResultTxt').textContent=spinActual>=2?'🎉 Jackpot!':'✅ Badhaai ho!';
         document.getElementById('spinResultBox').style.display='block';
-        playSound((r.reward||0)>=2?'jackpot':'earn');btn.disabled=false;btn.textContent='🎰 SPIN (1 Pass)';
+        playSound(spinActual>=2?'jackpot':'earn');btn.disabled=false;btn.textContent='🎰 SPIN (1 Pass)';
     }
     requestAnimationFrame(anim);
 }
@@ -2430,8 +2501,9 @@ async function doSpin(){
 // ============================================================
 function startGuess(){
     guessActive=true;
+    guessAttempts=0;
     document.getElementById('guessDisp').textContent='?';document.getElementById('guessDisp').style.color='var(--gold)';
-    document.getElementById('guessHint').textContent='1 se 10 ke beech guess karo';
+    document.getElementById('guessHint').textContent='1 se 10 guess karo — sirf 2 chances!';
     renderNumGrid();
 }
 function renderNumGrid(){document.getElementById('numGrid').innerHTML=[...Array(10)].map((_,i)=>`<button class="num-btn" id="nb${i+1}" onclick="makeGuess(${i+1})">${i+1}</button>`).join('');}
@@ -2440,22 +2512,53 @@ async function makeGuess(num){
     if(!guessActive)return;
     if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
     if(userData.balance<guessBet){showToast('❌ Balance kam hai!');return;}
-    playSound('tap');document.querySelectorAll('.num-btn').forEach(b=>b.disabled=true);
+    guessAttempts++;
+    playSound('tap');
+    document.querySelectorAll('.num-btn').forEach(b=>b.disabled=true);
     const r=await apiPost('/api/game/guess',{user_id:userData.user_id,guess:num,bet:guessBet});
-    if(!r||!r.success){const btn2=document.getElementById(`nb${num}`);if(btn2)btn2.classList.add('wrong');document.getElementById('guessHint').textContent=r?.message||'Error';playSound('lose');document.querySelectorAll('.num-btn').forEach(b=>{if(!b.classList.contains('wrong'))b.disabled=false;});return;}
-    const btn2=document.getElementById(`nb${num}`);
+    if(!r||!r.success){
+        const btn2=document.getElementById('nb'+num);
+        if(btn2)btn2.classList.add('wrong');
+        document.getElementById('guessHint').textContent=r?.message||'Error';
+        playSound('lose');
+        document.querySelectorAll('.num-btn').forEach(b=>{if(!b.classList.contains('wrong'))b.disabled=false;});
+        return;
+    }
+    userData.passes=Math.max(0,(userData.passes||1)-1);
+    const btn2=document.getElementById('nb'+num);
     if(r.correct){
-        if(btn2)btn2.classList.add('correct');document.getElementById('guessDisp').textContent=num;document.getElementById('guessDisp').style.color='var(--green)';
-        document.getElementById('guessHint').textContent=`🎉 +₹${parseFloat(r.reward||0).toFixed(2)}`;
-        userData.passes=Math.max(0,(userData.passes||1)-1);gameState.wins=(gameState.wins||0)+1;
+        if(btn2)btn2.classList.add('correct');
+        document.getElementById('guessDisp').textContent=num;
+        document.getElementById('guessDisp').style.color='var(--green)';
+        const guessReward=parseFloat(r.reward||0);
+        // ✅ FIX: Update balance immediately
+        userData.balance=(userData.balance||0)+guessReward;
+        userData.today_earned=(userData.today_earned||0)+guessReward;
+        document.getElementById('guessHint').textContent='🎉 +₹'+guessReward.toFixed(2);
+        gameState.wins=(gameState.wins||0)+1;
+        gameState.today_game_earned=(gameState.today_game_earned||0)+guessReward;
         if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
-        playSound('earn');showToast(`🎉 +₹${parseFloat(r.reward||0).toFixed(2)}`);updateUI();updateMissionsUI();guessActive=false;await loadUser();setTimeout(startGuess,2000);
-    }else if(r.secret!=null){
-        if(btn2)btn2.classList.add('wrong');document.getElementById('guessDisp').textContent=r.secret;document.getElementById('guessDisp').style.color='var(--red)';
-        document.getElementById('guessHint').textContent=`❌ Number tha: ${r.secret}`;userData.passes=Math.max(0,(userData.passes||1)-1);
-        playSound('lose');guessActive=false;await loadUser();setTimeout(startGuess,2000);
+        playSound('earn');showToast('🎉 +₹'+guessReward.toFixed(2));
+        updateUI();updateMissionsUI();
+        guessActive=false;
+        setTimeout(startGuess,2000);
+    }else if(r.secret!=null||(guessAttempts>=guessMaxAttempts)){
+        // Out of attempts OR revealed
+        const secret=r.secret||'?';
+        if(btn2)btn2.classList.add('wrong');
+        document.getElementById('guessDisp').textContent=secret;
+        document.getElementById('guessDisp').style.color='var(--red)';
+        document.getElementById('guessHint').textContent='❌ Number tha: '+secret+' — 2 chances khatam!';
+        playSound('lose');
+        guessActive=false;
+        setTimeout(startGuess,2000);
     }else{
-        if(btn2)btn2.classList.add('wrong');document.getElementById('guessHint').textContent=r.hint||'Try again!';playSound('lose');
+        // 1st wrong — give hint, 1 chance left
+        if(btn2)btn2.classList.add('wrong');
+        const hint=r.hint||'Try again!';
+        const chancesLeft=guessMaxAttempts-guessAttempts;
+        document.getElementById('guessHint').textContent='⚠️ '+hint+' ('+chancesLeft+' chance left!)';
+        playSound('lose');
         document.querySelectorAll('.num-btn').forEach(b=>{if(!b.classList.contains('wrong'))b.disabled=false;});
     }
     updateUI();
@@ -2564,12 +2667,16 @@ async function doDiceRoll(){
         userData.passes=Math.max(0,(userData.passes||1)-1);
 
         if(r.won){
-            document.getElementById('diceWinAmt').textContent=`+₹${parseFloat(r.reward||0.50).toFixed(2)}`;
+            // ✅ FIX: Update balance immediately
+            const diceReward=parseFloat(r.reward||0.50);
+            userData.balance=(userData.balance||0)+diceReward;
+            userData.today_earned=(userData.today_earned||0)+diceReward;
+            document.getElementById('diceWinAmt').textContent=`+₹${diceReward.toFixed(2)}`;
             document.getElementById('diceResWin').style.display='block';
             document.getElementById('diceResultTxt').textContent=`🎉 Sahi! ${diceChoice} aaya!`;
             document.getElementById('diceResultTxt').style.color='var(--green)';
             gameState.wins=(gameState.wins||0)+1;
-            gameState.today_game_earned=(gameState.today_game_earned||0)+(r.reward||0.50);
+            gameState.today_game_earned=(gameState.today_game_earned||0)+diceReward;
             if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
             playSound('earn');showToast(`🎉 +₹${parseFloat(r.reward||0.50).toFixed(2)}`);
         }else{
@@ -2684,7 +2791,11 @@ async function doColorPredict(){
         userData.passes=Math.max(0,(userData.passes||1)-1);
 
         if(r.won){
-            document.getElementById('colorWinAmt').textContent=`+₹${parseFloat(r.reward||0).toFixed(2)}`;
+            // ✅ FIX: Update balance immediately
+            const colorReward=parseFloat(r.reward||0);
+            userData.balance=(userData.balance||0)+colorReward;
+            userData.today_earned=(userData.today_earned||0)+colorReward;
+            document.getElementById('colorWinAmt').textContent=`+₹${colorReward.toFixed(2)}`;
             document.getElementById('colorResWin').style.display='block';
             document.getElementById('colorResultTxt').textContent=`🎉 ${result.toUpperCase()} aaya! ${rc?.mult||2}x WIN!`;
             document.getElementById('colorResultTxt').style.color='var(--green)';
@@ -2966,6 +3077,7 @@ async function startRunnerGame(){
     runnerRewardPerSec=r.reward_per_sec;
 
     document.getElementById('runnerSetup').style.display='none';
+    document.getElementById('runnerStartWrap').style.display='none';
     document.getElementById('runnerGameScreen').style.display='block';
     document.getElementById('runnerResult').style.display='none';
 
@@ -3073,14 +3185,17 @@ function runnerLoop(){
         return;
     }
 
-    // Increase difficulty over time
-    rScrollSpeed=3+elapsed/30;
+    // Harder: speed increases faster
+    rScrollSpeed=3.5+elapsed/20;
     rFrameCount++;
 
     // Spawn obstacles — frequency increases with time
-    const spawnInterval=Math.max(45,90-elapsed*0.8);
+    // Harder: spawn faster, speed increases quicker
+    const spawnInterval=Math.max(30,75-elapsed*1.2);
     if(rFrameCount-rLastObstacleFrame>spawnInterval){
         spawnObstacle();
+        // Double spawn at high difficulty
+        if(elapsed>20&&Math.random()>0.6)spawnObstacle();
         rLastObstacleFrame=rFrameCount;
     }
 
@@ -3159,102 +3274,149 @@ function drawRunnerFrame(elapsed){
     const CW=rCanvas.width,CH=rCanvas.height;
     rCtx.clearRect(0,0,CW,CH);
 
-    // Sky gradient
-    const skyGrad=rCtx.createLinearGradient(0,0,0,CH*0.7);
-    skyGrad.addColorStop(0,'#1a0a3e');
-    skyGrad.addColorStop(1,'#0d1b4b');
-    rCtx.fillStyle=skyGrad;
-    rCtx.fillRect(0,0,CW,CH*0.7);
+    // ── Jump or Die B&W theme ──────────────────────────────
+    // Background - grey gradient
+    rCtx.fillStyle='#c8c8c8';
+    rCtx.fillRect(0,0,CW,CH);
 
-    // Scrolling stars
-    rBgX-=0.3;
-    rCtx.fillStyle='rgba(255,255,255,0.8)';
-    for(let i=0;i<20;i++){
-        const sx=((i*137+rBgX*0.5)%CW+CW)%CW;
-        const sy=(i*97)%(CH*0.6);
-        rCtx.fillRect(sx,sy,1.5,1.5);
-    }
+    // Spotlight effect from upper left (like screenshot)
+    const spotGrad=rCtx.createRadialGradient(80,0,10,80,0,CH*0.9);
+    spotGrad.addColorStop(0,'rgba(255,255,255,0.45)');
+    spotGrad.addColorStop(1,'rgba(0,0,0,0)');
+    rCtx.fillStyle=spotGrad;
+    rCtx.fillRect(0,0,CW,CH);
 
-    // Mountains
-    rCtx.fillStyle='#0d2b4b';
-    rCtx.beginPath();rCtx.moveTo(0,rGroundY);
-    for(let x=0;x<=CW;x+=60){
-        const h=40+Math.sin((x+rBgX*0.3)/80)*25;
-        rCtx.lineTo(x,rGroundY-h);
-    }
-    rCtx.lineTo(CW,rGroundY);rCtx.closePath();rCtx.fill();
-
-    // Ground
-    const groundGrad=rCtx.createLinearGradient(0,rGroundY,0,CH);
-    groundGrad.addColorStop(0,'#2d5a1b');
-    groundGrad.addColorStop(0.15,'#8B4513');
-    groundGrad.addColorStop(1,'#5c2d0a');
-    rCtx.fillStyle=groundGrad;
-    rCtx.fillRect(0,rGroundY,CW,CH-rGroundY);
-
-    // Ground detail tiles
-    rCtx.fillStyle='rgba(0,0,0,0.2)';
-    for(let x=(-rScrollX%40+40)%40;x<CW;x+=40){
-        rCtx.fillRect(x,rGroundY,1,CH-rGroundY);
+    // Scrolling BG detail — subtle horizontal lines
+    rBgX+=rScrollSpeed*0.3;
+    rCtx.strokeStyle='rgba(180,180,180,0.4)';
+    rCtx.lineWidth=1;
+    for(let y=20;y<CH-50;y+=18){
+        rCtx.beginPath();rCtx.moveTo(0,y);rCtx.lineTo(CW,y);rCtx.stroke();
     }
     rScrollX+=rScrollSpeed;
 
-    // Platforms
+    // Ground — solid black block like screenshot
+    rCtx.fillStyle='#111';
+    rCtx.fillRect(0,rGroundY,CW,CH-rGroundY);
+    // Ground top edge highlight
+    rCtx.fillStyle='#333';
+    rCtx.fillRect(0,rGroundY,CW,3);
+
+    // Platforms — black solid blocks
     rPlatforms.forEach(p=>{
-        // Platform shadow
-        rCtx.fillStyle='rgba(0,0,0,0.3)';
-        rCtx.fillRect(p.x+4,p.y+4,p.w,p.h);
-        // Platform body
-        const pGrad=rCtx.createLinearGradient(0,p.y,0,p.y+p.h);
-        pGrad.addColorStop(0,'#7a6a5a');
-        pGrad.addColorStop(1,'#4a3a2a');
-        rCtx.fillStyle=pGrad;
-        rCtx.beginPath();
-        rCtx.roundRect(p.x,p.y,p.w,p.h,4);
-        rCtx.fill();
-        // Brick pattern
-        rCtx.strokeStyle='rgba(0,0,0,0.3)';
-        rCtx.lineWidth=1;
-        for(let bx=p.x;bx<p.x+p.w;bx+=20){
-            rCtx.beginPath();rCtx.moveTo(bx,p.y);rCtx.lineTo(bx,p.y+p.h);rCtx.stroke();
+        rCtx.fillStyle='#222';
+        rCtx.fillRect(p.x,p.y,p.w,p.h);
+        rCtx.fillStyle='#444';
+        rCtx.fillRect(p.x,p.y,p.w,2);
+        // Pixel texture
+        rCtx.fillStyle='rgba(255,255,255,0.05)';
+        for(let bx=p.x;bx<p.x+p.w;bx+=8){
+            rCtx.fillRect(bx,p.y,4,p.h);
         }
     });
 
-    // Obstacles
+    // Obstacles — black pixel style like screenshot
     rObstacles.forEach(o=>{
-        rCtx.font=`${o.w}px serif`;
-        rCtx.textAlign='center';
-        rCtx.fillText(o.emoji,o.x+o.w/2,o.y+o.h);
+        rCtx.save();
+        if(o.type==='box'){
+            // Black box with pixel effect (like screenshot)
+            rCtx.fillStyle='#111';
+            rCtx.fillRect(o.x,o.y,o.w,o.h);
+            // Eye on box
+            rCtx.fillStyle='#fff';
+            rCtx.fillRect(o.x+o.w*0.55,o.y+o.h*0.2,o.w*0.25,o.h*0.25);
+            rCtx.fillStyle='#000';
+            rCtx.fillRect(o.x+o.w*0.62,o.y+o.h*0.27,o.w*0.1,o.h*0.1);
+            // Pixel crumble bottom
+            rCtx.fillStyle='#333';
+            for(let px=0;px<o.w;px+=4){
+                if(Math.sin(px+rFrameCount*0.1)>0.3){
+                    rCtx.fillRect(o.x+px,o.y+o.h,3,3+Math.abs(Math.sin(px))*4);
+                }
+            }
+        }else if(o.type==='spike'){
+            // Triangle spikes — black
+            rCtx.fillStyle='#111';
+            for(let si=0;si<3;si++){
+                rCtx.beginPath();
+                rCtx.moveTo(o.x+si*10,o.y+o.h);
+                rCtx.lineTo(o.x+si*10+5,o.y);
+                rCtx.lineTo(o.x+si*10+10,o.y+o.h);
+                rCtx.fill();
+            }
+        }else if(o.type==='bird'){
+            rCtx.fillStyle='#222';
+            // Simple bird shape
+            rCtx.beginPath();
+            rCtx.ellipse(o.x+o.w/2,o.y+o.h/2,o.w/2,o.h/3,0,0,Math.PI*2);
+            rCtx.fill();
+            // Wings
+            const wingY=o.y+o.h/2+Math.sin(rFrameCount/8)*5;
+            rCtx.fillRect(o.x-8,wingY,10,4);
+            rCtx.fillRect(o.x+o.w-2,wingY,10,4);
+        }else{
+            // Fireball/rock — dark circle
+            rCtx.fillStyle=o.type==='fireball'?'#333':'#555';
+            rCtx.beginPath();
+            rCtx.arc(o.x+o.w/2,o.y+o.h/2,o.w/2,0,Math.PI*2);
+            rCtx.fill();
+        }
+        rCtx.restore();
     });
 
-    // Particles
+    // Particles — black pixels like screenshot crumble
     rParticles.forEach(p=>{
         rCtx.globalAlpha=p.life;
-        rCtx.fillStyle=p.color;
-        rCtx.fillRect(p.x-3,p.y-3,6,6);
+        rCtx.fillStyle='#222';
+        rCtx.fillRect(p.x-2,p.y-2,4,4);
     });
     rCtx.globalAlpha=1;
 
-    // Player (fox)
+    // Player — black square with eye (like screenshot)
     const pX=rPlayer.x,pY=rPlayer.y,pH=rPlayer.h,pW=rPlayer.w;
     const isInvincible=rPlayer.invincible>0&&Math.floor(rPlayer.invincible/5)%2===0;
     if(!isInvincible){
-        // Fox body
-        rCtx.font=`${pH}px serif`;
-        rCtx.textAlign='center';
-        rCtx.fillText(rPlayer.ducking?'🦊':'🦊',pX+pW/2,pY+pH);
+        // Body — black square
+        rCtx.fillStyle='#111';
+        rCtx.fillRect(pX,pY,pW,pH);
+        // White outline
+        rCtx.strokeStyle='#fff';
+        rCtx.lineWidth=1.5;
+        rCtx.strokeRect(pX,pY,pW,pH);
+        // Eye
+        rCtx.fillStyle='#fff';
+        rCtx.fillRect(pX+pW*0.55,pY+pH*0.2,pW*0.28,pH*0.28);
+        rCtx.fillStyle='#000';
+        rCtx.fillRect(pX+pW*0.62,pY+pH*0.27,pW*0.12,pH*0.12);
+        // Duck indicator
+        if(rPlayer.ducking){
+            rCtx.fillStyle='rgba(255,255,255,0.5)';
+            rCtx.fillRect(pX,pY+pH-4,pW,4);
+        }
+    }else{
+        // Invincible flash — white silhouette
+        rCtx.fillStyle='rgba(255,255,255,0.6)';
+        rCtx.fillRect(pX,pY,pW,pH);
     }
 
-    // HUD — time bar
+    // Distance display top right
+    const dist=Math.floor(rScrollX/10);
+    rCtx.fillStyle='rgba(0,0,0,0.7)';
+    rCtx.fillRect(CW-90,2,88,28);
+    rCtx.fillStyle='#fff';
+    rCtx.font='bold 10px monospace';
+    rCtx.textAlign='left';
+    rCtx.fillText('DISTANCE',CW-86,13);
+    rCtx.font='bold 14px monospace';
+    rCtx.fillText(dist+'m',CW-86,25);
+
+    // HUD time bar at bottom of canvas
     const timeLeft=1-((Date.now()-runnerStartTime)/1000)/runnerMaxSecs;
-    rCtx.fillStyle='rgba(0,0,0,0.5)';
-    rCtx.fillRect(8,8,CW-16,8);
+    rCtx.fillStyle='rgba(0,0,0,0.6)';
+    rCtx.fillRect(0,CH-10,CW,10);
     const barColor=timeLeft>0.5?'#19d89e':timeLeft>0.25?'#f0c040':'#ff4e6a';
     rCtx.fillStyle=barColor;
-    rCtx.fillRect(8,8,(CW-16)*Math.max(0,timeLeft),8);
-    rCtx.strokeStyle='rgba(255,255,255,0.3)';
-    rCtx.lineWidth=1;
-    rCtx.strokeRect(8,8,CW-16,8);
+    rCtx.fillRect(0,CH-10,CW*Math.max(0,timeLeft),10);
 }
 
 async function finishRunnerGame(won){
@@ -3280,8 +3442,9 @@ async function finishRunnerGame(won){
         `Bet back: ₹${(r?.bet_back||0).toFixed(2)} + Earned: ₹${(r?.earned||0).toFixed(4)}`;
 
     if(reward>0){
-        userData.balance+=parseFloat(reward);
-        userData.today_earned+=parseFloat(reward);
+        userData.balance=(userData.balance||0)+parseFloat(reward);
+        userData.today_earned=(userData.today_earned||0)+parseFloat(reward);
+        gameState.today_game_earned=(gameState.today_game_earned||0)+parseFloat(reward);
         updateUI();
         playSound(won?'jackpot':'earn');
     }else{
@@ -3293,6 +3456,7 @@ function resetRunnerGame(){
     runnerGameActive=false;
     if(runnerAnimFrame){cancelAnimationFrame(runnerAnimFrame);runnerAnimFrame=null;}
     document.getElementById('runnerSetup').style.display='block';
+    document.getElementById('runnerStartWrap').style.display='block';
     document.getElementById('runnerGameScreen').style.display='none';
     document.getElementById('runnerResult').style.display='none';
     document.getElementById('runnerPassCount').textContent=userData.passes||0;
