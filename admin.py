@@ -1,4 +1,7 @@
-# ===== admin.py (FIXED - WITH USER DATA MANAGEMENT) =====
+# ===== admin.py (FULLY FIXED) =====
+# Fix: User data manager now works properly
+# Fix: earning/all/+/- commands all work
+# Fix: handle_admin_message properly routes all actions
 
 import logging
 import asyncio
@@ -11,26 +14,24 @@ from bson.objectid import ObjectId
 logger = logging.getLogger(__name__)
 
 class AdminHandlers:
-    def __init__(self, config, db, bot):
+    def __init__(self, config, db, bot=None):
         self.config = config
         self.db = db
         self.bot = bot
         logger.info("✅ Admin handlers initialized")
-    
+
     # ========== MAIN ADMIN PANEL ==========
-    
+
     async def admin_panel(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Main admin panel command (/admin)"""
         user_id = update.effective_user.id
-        
         if user_id not in self.config.ADMIN_IDS:
-            await update.message.reply_text("❌ You are not authorized to use this command.")
+            await update.message.reply_text("❌ Unauthorized.")
             return
-        
+
         total_users = self.db.users.count_documents({})
-        pending_withdrawals = self.db.withdrawals.count_documents({'status': 'pending'})
-        pending_support = self.db.issues.count_documents({'status': 'pending'})
-        
+        pending_wd = self.db.withdrawals.count_documents({'status': 'pending'})
+        pending_sup = self.db.issues.count_documents({'status': 'pending'}) if hasattr(self.db, 'issues') else 0
+
         keyboard = [
             [InlineKeyboardButton("🔍 SEARCH USER", callback_data="admin_search_user")],
             [InlineKeyboardButton("📢 BROADCAST", callback_data="admin_broadcast")],
@@ -39,959 +40,724 @@ class AdminHandlers:
             [InlineKeyboardButton("🗑️ USER DATA MANAGER", callback_data="admin_data_manager")],
             [InlineKeyboardButton("❌ CLOSE", callback_data="admin_close")]
         ]
-        
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
+
         text = (
             "👑 **Admin Panel**\n\n"
-            f"📊 **Quick Stats:**\n"
-            f"• Total Users: {total_users}\n"
-            f"• Pending Withdrawals: {pending_withdrawals}\n"
-            f"• Pending Support: {pending_support}\n\n"
-            f"Select an option below:"
+            f"📊 Users: {total_users} | WD: {pending_wd} | Support: {pending_sup}\n\n"
+            "Select an option:"
         )
-        
-        await update.message.reply_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
-    
+        await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode=ParseMode.MARKDOWN)
+
     # ========== CALLBACK HANDLER ==========
-    
+
     async def handle_admin_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle all admin callback queries"""
         query = update.callback_query
         await query.answer()
-        
         data = query.data
         user_id = update.effective_user.id
-        
+
         if user_id not in self.config.ADMIN_IDS:
             await query.edit_message_text("❌ Unauthorized")
             return
-        
-        logger.info(f"Admin callback: {data}")
-        
+
+        logger.info(f"Admin callback: {data} from {user_id}")
+
         if data == "admin_search_user":
             await self.search_user_prompt(query, context)
-            
         elif data == "admin_broadcast":
             await self.broadcast_menu(query, context)
-            
         elif data == "admin_withdrawals":
             await self.withdrawals_menu(query, context)
-            
         elif data == "admin_support":
             await self.support_messages_menu(query, context)
-            
         elif data == "admin_data_manager":
             await self.data_manager_menu(query, context)
-            
         elif data == "admin_clear_junk":
             await self.clear_junk_users(query, context)
-            
         elif data == "admin_close":
             await query.edit_message_text("🔒 Admin panel closed.")
-            
         elif data == "back_to_admin":
             await self.back_to_admin(query, context)
-            
-        # ===== USER DETAILS =====
         elif data.startswith("user_details_"):
             try:
                 target_id = int(data.replace("user_details_", ""))
                 await self.show_user_details(query, context, target_id)
             except Exception as e:
-                logger.error(f"Error: {e}")
-        
-        # ===== USER DATA MANAGEMENT =====
+                logger.error(f"user_details error: {e}")
         elif data.startswith("manage_user_"):
             try:
                 target_id = int(data.replace("manage_user_", ""))
                 context.user_data['managing_user'] = target_id
+                context.user_data['admin_action'] = f"manage_{target_id}"
                 await self.user_management_menu(query, context, target_id)
             except Exception as e:
-                logger.error(f"Error: {e}")
-        
-        # ===== SUPPORT MESSAGES =====
+                logger.error(f"manage_user error: {e}")
         elif data.startswith("view_support_"):
-            try:
-                msg_id = data.replace("view_support_", "")
-                await self.view_support_message(query, context, msg_id)
-            except Exception as e:
-                logger.error(f"Error: {e}")
-                await query.edit_message_text(
-                    "❌ Error loading support message. It may have been deleted.",
-                    reply_markup=InlineKeyboardMarkup([[
-                        InlineKeyboardButton("◀️ BACK", callback_data="admin_support")
-                    ]])
-                )
-        
+            msg_id = data.replace("view_support_", "")
+            await self.view_support_message(query, context, msg_id)
         elif data.startswith("reply_support_"):
-            try:
-                msg_id = data.replace("reply_support_", "")
-                context.user_data['replying_to'] = msg_id
-                context.user_data['admin_action'] = f"reply_support_{msg_id}"
-                
-                await query.edit_message_text(
-                    f"📝 **Reply to Support Message**\n\n"
-                    f"Please type your reply:",
-                    reply_markup=InlineKeyboardMarkup([[
-                        InlineKeyboardButton("◀️ BACK", callback_data="admin_support")
-                    ]])
-                )
-            except Exception as e:
-                logger.error(f"Error: {e}")
-        
-        # ===== WITHDRAWAL ACTIONS =====
+            msg_id = data.replace("reply_support_", "")
+            context.user_data['replying_to'] = msg_id
+            context.user_data['admin_action'] = f"reply_support_{msg_id}"
+            await query.edit_message_text(
+                "📝 **Reply likhiye:**",
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ BACK", callback_data="admin_support")]])
+            )
         elif data.startswith("approve_"):
-            withdrawal_id = data.replace("approve_", "")
-            await self.approve_withdrawal(query, context, withdrawal_id)
-            
+            await self.approve_withdrawal(query, context, data.replace("approve_", ""))
         elif data.startswith("reject_"):
-            withdrawal_id = data.replace("reject_", "")
-            await self.reject_withdrawal(query, context, withdrawal_id)
-            
+            await self.reject_withdrawal(query, context, data.replace("reject_", ""))
         elif data.startswith("view_withdrawal_"):
-            try:
-                withdrawal_id = data.replace("view_withdrawal_", "")
-                await self.view_withdrawal_details(query, context, withdrawal_id)
-            except Exception as e:
-                logger.error(f"Error: {e}")
-    
-    # ========== DATA MANAGER MENU ==========
-    
+            await self.view_withdrawal_details(query, context, data.replace("view_withdrawal_", ""))
+
+    # ========== DATA MANAGER — MAIN ENTRY ==========
+
     async def data_manager_menu(self, query, context):
-        """Show data manager options"""
+        """Step 1: Ask for user ID"""
         context.user_data['admin_action'] = 'data_manager'
-        
-        keyboard = [[InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
+        context.user_data['managing_user'] = None
+
         await query.edit_message_text(
             "🗑️ **User Data Manager**\n\n"
-            "Please enter the user ID to manage:\n\n"
-            "You can then:\n"
-            "• Clear user's earnings (balance reset to 0)\n"
-            "• Delete ALL user data (complete removal)\n"
-            "• Add money (+100)\n"
-            "• Remove money (-50)",
-            reply_markup=reply_markup,
+            "User ka **ID** bhejiye (numeric):\n\n"
+            "Example: `1234567890`",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")]]),
             parse_mode=ParseMode.MARKDOWN
         )
-    
+
     async def process_data_manager(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Process user ID for data management"""
+        """Step 2: Receive user ID, show management options"""
         try:
             target_id = int(update.message.text.strip())
             user = self.db.get_user(target_id)
-            
-            if user:
-                context.user_data['managing_user'] = target_id
-                await self.user_management_menu(None, context, target_id, update.message)
-            else:
-                await update.message.reply_text(f"❌ User {target_id} not found")
-                
+
+            if not user:
+                await update.message.reply_text(
+                    f"❌ User `{target_id}` nahi mila.\nSahi ID daaliye.",
+                    parse_mode=ParseMode.MARKDOWN
+                )
+                return
+
+            context.user_data['managing_user'] = target_id
+            context.user_data['admin_action'] = f"manage_{target_id}"
+
+            text = (
+                f"👤 **User: {user.get('first_name','Unknown')}**\n"
+                f"🆔 ID: `{target_id}`\n"
+                f"💰 Balance: ₹{user.get('balance',0):.2f}\n"
+                f"📊 Total Earned: ₹{user.get('total_earned',0):.2f}\n"
+                f"👥 Active Refs: {user.get('active_refs',0)}\n\n"
+                f"**Ab command bhejiye:**\n"
+                f"• `earning` — Balance aur earnings reset (0 kar do)\n"
+                f"• `all` — User ka **PURA DATA** delete karo\n"
+                f"• `+100` — ₹100 add karo\n"
+                f"• `-50` — ₹50 hatao"
+            )
+
+            await update.message.reply_text(
+                text,
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("❌ Cancel", callback_data="admin_data_manager")]]),
+                parse_mode=ParseMode.MARKDOWN
+            )
+
         except ValueError:
-            await update.message.reply_text("❌ Invalid user ID. Please enter a numeric ID.")
+            await update.message.reply_text("❌ Sirf number daalo. Example: `1234567890`", parse_mode=ParseMode.MARKDOWN)
         except Exception as e:
             logger.error(f"Data manager error: {e}")
-            await update.message.reply_text(f"❌ Error: {str(e)}")
-        
-        context.user_data['admin_action'] = None
-    
+            await update.message.reply_text(f"❌ Error: {e}")
+        # Don't clear action here — we're waiting for next command
+
     async def user_management_menu(self, query, context, target_id, message=None):
-        """Show user management options"""
+        """Show user management options from callback"""
         user = self.db.get_user(target_id)
         if not user:
-            text = f"❌ User {target_id} not found"
+            txt = f"❌ User {target_id} nahi mila"
             if query:
-                await query.edit_message_text(text)
-            else:
-                await message.reply_text(text)
+                await query.edit_message_text(txt)
+            elif message:
+                await message.reply_text(txt)
             return
-        
-        text = (
-            f"👤 **User: {user.get('first_name', 'Unknown')}**\n"
-            f"ID: `{target_id}`\n"
-            f"💰 Balance: ₹{user.get('balance', 0):.2f}\n"
-            f"📊 Total Earned: ₹{user.get('total_earned', 0):.2f}\n\n"
-            f"**Choose action:**\n\n"
-            f"• Send `+100` to add ₹100\n"
-            f"• Send `-50` to remove ₹50\n"
-            f"• Send `earning` to clear earnings (balance=0)\n"
-            f"• Send `all` to delete ALL user data\n\n"
-            f"Reply to this message with your command:"
-        )
-        
-        keyboard = [[InlineKeyboardButton("◀️ BACK", callback_data="admin_data_manager")]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
+
         context.user_data['admin_action'] = f"manage_{target_id}"
-        
+        context.user_data['managing_user'] = target_id
+
+        text = (
+            f"👤 **{user.get('first_name','Unknown')}** (ID: `{target_id}`)\n"
+            f"💰 Balance: ₹{user.get('balance',0):.2f}\n"
+            f"📊 Total Earned: ₹{user.get('total_earned',0):.2f}\n\n"
+            f"**Command bhejiye:**\n"
+            f"• `earning` — Balance reset to 0\n"
+            f"• `all` — Pura data delete\n"
+            f"• `+100` — Add ₹100\n"
+            f"• `-50` — Remove ₹50"
+        )
+
+        kb = [[InlineKeyboardButton("◀️ BACK", callback_data="admin_data_manager")]]
+
         if query:
-            await query.edit_message_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
-        else:
-            await message.reply_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
-    
+            await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(kb), parse_mode=ParseMode.MARKDOWN)
+        elif message:
+            await message.reply_text(text, reply_markup=InlineKeyboardMarkup(kb), parse_mode=ParseMode.MARKDOWN)
+
     # ========== PROCESS USER MANAGEMENT COMMANDS ==========
-    
+
     async def process_user_management(self, update: Update, context: ContextTypes.DEFAULT_TYPE, target_id):
-        """Process user management commands (earning/all/+/-)"""
+        """Process earning/all/+/- commands"""
+        command = update.message.text.strip().lower()
+        user = self.db.get_user(target_id)
+
+        if not user:
+            await update.message.reply_text(f"❌ User {target_id} nahi mila")
+            context.user_data['admin_action'] = None
+            return
+
         try:
-            command = update.message.text.strip().lower()
-            user = self.db.get_user(target_id)
-            
-            if not user:
-                await update.message.reply_text(f"❌ User {target_id} not found")
-                return
-            
-            # ===== CLEAR EARNINGS ONLY =====
+            # ── CLEAR EARNINGS ────────────────────────────────
             if command == 'earning':
-                old_balance = user.get('balance', 0)
+                old_bal = user.get('balance', 0)
                 old_total = user.get('total_earned', 0)
-                
-                # Reset balance and total_earned to 0
+
                 self.db.users.update_one(
                     {'user_id': target_id},
-                    {'$set': {'balance': 0, 'total_earned': 0}}
+                    {'$set': {
+                        'balance': 0.0,
+                        'total_earned': 0.0,
+                        'today_earned': 0.0
+                    }}
                 )
-                
-                # Clear transactions
                 self.db.transactions.delete_many({'user_id': target_id})
-                
                 self.db.user_cache.pop(f"user_{target_id}", None)
-                
+
                 await update.message.reply_text(
-                    f"✅ **Earnings Cleared** for user {target_id}\n\n"
-                    f"Old Balance: ₹{old_balance:.2f}\n"
-                    f"Old Total: ₹{old_total:.2f}\n"
-                    f"New Balance: ₹0.00",
+                    f"✅ **Earnings Cleared!**\n\n"
+                    f"User: `{target_id}`\n"
+                    f"Old Balance: ₹{old_bal:.2f} → ₹0.00\n"
+                    f"Old Total: ₹{old_total:.2f} → ₹0.00\n"
+                    f"Transactions: Deleted",
                     parse_mode=ParseMode.MARKDOWN
                 )
-                
-                self.db.log_system_event('earnings_cleared', f"User {target_id} by admin {update.effective_user.id}")
-            
-            # ===== DELETE ALL USER DATA =====
+                logger.info(f"Admin {update.effective_user.id} cleared earnings for {target_id}")
+
+            # ── DELETE ALL DATA ───────────────────────────────
             elif command == 'all':
-                # Delete all user data
+                collections_to_clear = [
+                    (self.db.transactions, {'user_id': target_id}),
+                    (self.db.withdrawals, {'user_id': target_id}),
+                    (self.db.referrals, {'$or': [{'referrer_id': target_id}, {'referred_id': target_id}]}),
+                    (self.db.daily_searches, {'user_id': target_id}),
+                    (self.db.daily_bonus, {'user_id': target_id}),
+                    (self.db.missions, {'user_id': target_id}),
+                    (self.db.live_activity, {'user_id': target_id}),
+                ]
+                # Also try optional collections
+                optional = ['search_logs', 'daily_claims', 'issues', 'game_states', 'channel_joins']
+                for col_name in optional:
+                    if hasattr(self.db, col_name):
+                        col = getattr(self.db, col_name)
+                        try:
+                            col.delete_many({'user_id': target_id})
+                        except:
+                            pass
+
+                deleted_all = 0
+                for col, query_filter in collections_to_clear:
+                    try:
+                        r = col.delete_many(query_filter)
+                        deleted_all += r.deleted_count
+                    except Exception as e:
+                        logger.error(f"Delete error for {col.name}: {e}")
+
+                # Finally delete the user document
                 self.db.users.delete_one({'user_id': target_id})
-                self.db.transactions.delete_many({'user_id': target_id})
-                self.db.withdrawals.delete_many({'user_id': target_id})
-                self.db.referrals.delete_many({
-                    '$or': [
-                        {'referrer_id': target_id},
-                        {'referred_id': target_id}
-                    ]
-                })
-                self.db.daily_searches.delete_many({'user_id': target_id})
-                self.db.search_logs.delete_many({'user_id': target_id})
-                self.db.daily_bonus.delete_many({'user_id': target_id})
-                self.db.missions.delete_many({'user_id': target_id})
-                self.db.daily_claims.delete_many({'user_id': target_id})
-                self.db.issues.delete_many({'user_id': target_id})
-                self.db.live_activity.delete_many({'user_id': target_id})
-                
                 self.db.user_cache.pop(f"user_{target_id}", None)
-                
+
+                # Decrement referrer's counts
+                referrer_id = user.get('referrer_id')
+                if referrer_id:
+                    try:
+                        was_active = user.get('active_refs', 0) > 0
+                        self.db.users.update_one(
+                            {'user_id': referrer_id},
+                            {'$inc': {
+                                'total_refs': -1,
+                                'active_refs': -1 if was_active else 0,
+                                'pending_refs': 0 if was_active else -1
+                            }}
+                        )
+                        self.db.user_cache.pop(f"user_{referrer_id}", None)
+                    except:
+                        pass
+
                 await update.message.reply_text(
-                    f"✅ **ALL DATA DELETED** for user {target_id}\n\n"
-                    f"User has been completely removed from database.",
+                    f"✅ **ALL DATA DELETED!**\n\n"
+                    f"User `{target_id}` ka pura data remove ho gaya.\n"
+                    f"Records deleted: {deleted_all + 1}",
                     parse_mode=ParseMode.MARKDOWN
                 )
-                
-                self.db.log_system_event('user_deleted', f"User {target_id} by admin {update.effective_user.id}")
-            
-            # ===== ADD MONEY (+amount) =====
+                logger.info(f"Admin {update.effective_user.id} deleted ALL data for {target_id}")
+
+            # ── ADD MONEY ─────────────────────────────────────
             elif command.startswith('+'):
+                amount = float(command[1:])
+                if amount <= 0 or amount > 100000:
+                    await update.message.reply_text("❌ Invalid amount (1-100000)")
+                    return
+                old_bal = user.get('balance', 0)
+                self.db.add_balance(target_id, amount, f"Admin added ₹{amount}")
+                await update.message.reply_text(
+                    f"✅ **₹{amount:.2f} Add Ho Gaya!**\n\n"
+                    f"User: `{target_id}`\n"
+                    f"Old: ₹{old_bal:.2f} → New: ₹{old_bal+amount:.2f}",
+                    parse_mode=ParseMode.MARKDOWN
+                )
                 try:
-                    amount = float(command[1:])
-                    if amount <= 0:
-                        await update.message.reply_text("❌ Amount must be positive")
-                        return
-                    
-                    old_balance = user.get('balance', 0)
-                    
-                    self.db.add_balance(target_id, amount, f"Admin added ₹{amount}")
-                    
-                    new_balance = old_balance + amount
-                    
-                    await update.message.reply_text(
-                        f"✅ **Added ₹{amount:.2f}** to user {target_id}\n\n"
-                        f"Old Balance: ₹{old_balance:.2f}\n"
-                        f"New Balance: ₹{new_balance:.2f}",
-                        parse_mode=ParseMode.MARKDOWN
+                    await context.bot.send_message(
+                        chat_id=target_id,
+                        text=f"🎉 Admin ne aapke account mein ₹{amount:.2f} add kiye!"
                     )
-                    
-                    # Notify user
-                    try:
-                        await context.bot.send_message(
-                            chat_id=target_id,
-                            text=f"✅ Admin added ₹{amount:.2f} to your balance!"
-                        )
-                    except:
-                        pass
-                    
-                except ValueError:
-                    await update.message.reply_text("❌ Invalid amount format. Use +100")
-            
-            # ===== REMOVE MONEY (-amount) =====
+                except:
+                    pass
+
+            # ── REMOVE MONEY ──────────────────────────────────
             elif command.startswith('-'):
-                try:
-                    amount = float(command[1:])
-                    if amount <= 0:
-                        await update.message.reply_text("❌ Amount must be positive")
-                        return
-                    
-                    old_balance = user.get('balance', 0)
-                    
-                    if old_balance < amount:
-                        await update.message.reply_text(
-                            f"❌ User only has ₹{old_balance:.2f}. Cannot remove ₹{amount:.2f}"
-                        )
-                        return
-                    
-                    new_balance = old_balance - amount
-                    
-                    self.db.users.update_one(
-                        {'user_id': target_id},
-                        {'$inc': {'balance': -amount}}
-                    )
-                    
-                    self.db.add_transaction(target_id, 'admin_remove', -amount, f"Admin removed ₹{amount}")
-                    self.db.user_cache.pop(f"user_{target_id}", None)
-                    
+                amount = float(command[1:])
+                if amount <= 0:
+                    await update.message.reply_text("❌ Invalid amount")
+                    return
+                old_bal = user.get('balance', 0)
+                if old_bal < amount:
                     await update.message.reply_text(
-                        f"✅ **Removed ₹{amount:.2f}** from user {target_id}\n\n"
-                        f"Old Balance: ₹{old_balance:.2f}\n"
-                        f"New Balance: ₹{new_balance:.2f}",
-                        parse_mode=ParseMode.MARKDOWN
+                        f"❌ User ke paas sirf ₹{old_bal:.2f} hai.\n"
+                        f"Itna nahi hata sakte: ₹{amount:.2f}"
                     )
-                    
-                    # Notify user
-                    try:
-                        await context.bot.send_message(
-                            chat_id=target_id,
-                            text=f"⚠️ Admin removed ₹{amount:.2f} from your balance."
-                        )
-                    except:
-                        pass
-                    
-                except ValueError:
-                    await update.message.reply_text("❌ Invalid amount format. Use -50")
-            
+                    return
+                self.db.users.update_one({'user_id': target_id}, {'$inc': {'balance': -amount}})
+                self.db.add_transaction(target_id, 'admin_remove', -amount, f"Admin removed ₹{amount}")
+                self.db.user_cache.pop(f"user_{target_id}", None)
+                await update.message.reply_text(
+                    f"✅ **₹{amount:.2f} Remove Ho Gaya!**\n\n"
+                    f"User: `{target_id}`\n"
+                    f"Old: ₹{old_bal:.2f} → New: ₹{old_bal-amount:.2f}",
+                    parse_mode=ParseMode.MARKDOWN
+                )
+                try:
+                    await context.bot.send_message(
+                        chat_id=target_id,
+                        text=f"⚠️ Admin ne aapke account se ₹{amount:.2f} hataye."
+                    )
+                except:
+                    pass
+
             else:
                 await update.message.reply_text(
-                    "❌ **Invalid Command**\n\n"
+                    "❌ **Invalid Command!**\n\n"
                     "Use:\n"
-                    "• `+100` - Add ₹100\n"
-                    "• `-50` - Remove ₹50\n"
-                    "• `earning` - Clear earnings (balance=0)\n"
-                    "• `all` - Delete ALL user data",
+                    "• `earning` — earnings clear karo\n"
+                    "• `all` — pura data delete\n"
+                    "• `+100` — ₹100 add\n"
+                    "• `-50` — ₹50 remove",
                     parse_mode=ParseMode.MARKDOWN
                 )
-                return
-            
-            # Clear admin action
-            context.user_data['admin_action'] = None
-            context.user_data['managing_user'] = None
-            
+                return  # Don't clear action — let them try again
+
+        except ValueError:
+            await update.message.reply_text("❌ Invalid amount. Example: `+100` ya `-50`", parse_mode=ParseMode.MARKDOWN)
+            return
         except Exception as e:
             logger.error(f"User management error: {e}")
-            await update.message.reply_text(f"❌ Error: {str(e)}")
-    
+            await update.message.reply_text(f"❌ Error: {e}")
+
+        # Clear action after successful command
+        context.user_data['admin_action'] = None
+        context.user_data['managing_user'] = None
+
     # ========== SEARCH USER ==========
-    
+
     async def search_user_prompt(self, query, context):
-        """Prompt for user ID to search"""
         context.user_data['admin_action'] = 'search_user'
-        
-        keyboard = [[InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
         await query.edit_message_text(
-            "🔍 **Search User**\n\n"
-            "Please enter the user ID to search:",
-            reply_markup=reply_markup
+            "🔍 **Search User**\n\nUser ID bhejiye:",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")]])
         )
-    
+
     async def process_search_user(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Process user search"""
         try:
             target_id = int(update.message.text.strip())
             user = self.db.get_user(target_id)
-            
             if user:
                 keyboard = [
-                    [InlineKeyboardButton("👤 VIEW DETAILS", callback_data=f"user_details_{target_id}")],
-                    [InlineKeyboardButton("🗑️ MANAGE USER", callback_data=f"manage_user_{target_id}")]
+                    [InlineKeyboardButton("👤 VIEW", callback_data=f"user_details_{target_id}"),
+                     InlineKeyboardButton("🗑️ MANAGE", callback_data=f"manage_user_{target_id}")]
                 ]
                 await update.message.reply_text(
-                    f"✅ User {target_id} found!",
-                    reply_markup=InlineKeyboardMarkup(keyboard)
+                    f"✅ User `{target_id}` mila!\nName: {user.get('first_name','?')}",
+                    reply_markup=InlineKeyboardMarkup(keyboard),
+                    parse_mode=ParseMode.MARKDOWN
                 )
             else:
-                await update.message.reply_text(f"❌ User {target_id} not found")
-                
+                await update.message.reply_text(f"❌ User `{target_id}` nahi mila", parse_mode=ParseMode.MARKDOWN)
         except ValueError:
-            await update.message.reply_text("❌ Invalid user ID. Please enter a numeric ID.")
+            await update.message.reply_text("❌ Sirf numeric ID daalo")
         except Exception as e:
-            logger.error(f"Search user error: {e}")
-            await update.message.reply_text(f"❌ Error: {str(e)}")
-        
+            logger.error(f"Search error: {e}")
+            await update.message.reply_text(f"❌ Error: {e}")
         context.user_data['admin_action'] = None
-    
+
     # ========== SHOW USER DETAILS ==========
-    
+
     async def show_user_details(self, query, context, target_id):
-        """Show detailed stats for a specific user"""
         user = self.db.get_user(target_id)
-        
         if not user:
             await query.edit_message_text(
-                f"❌ User {target_id} not found",
-                reply_markup=InlineKeyboardMarkup([[
-                    InlineKeyboardButton("◀️ BACK", callback_data="admin_search_user")
-                ]])
+                f"❌ User {target_id} nahi mila",
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ BACK", callback_data="admin_search_user")]])
             )
             return
-        
+
+        join_d = user.get('join_date', 'Unknown')
+        if join_d and len(join_d) > 10:
+            join_d = join_d[:10]
+
         text = (
             f"👤 **User Details**\n\n"
-            f"**Basic Info:**\n"
-            f"ID: `{user['user_id']}`\n"
-            f"Name: {user.get('first_name', 'N/A')}\n"
-            f"Username: @{user.get('username', 'N/A')}\n"
-            f"Joined: {user.get('join_date', 'Unknown')[:10]}\n\n"
-            f"💰 **Financial**\n"
-            f"Balance: ₹{user.get('balance', 0):.2f}\n"
-            f"Total Earned: ₹{user.get('total_earned', 0):.2f}\n\n"
-            f"👥 **Referrals**\n"
-            f"Total: {user.get('total_refs', 0)}\n"
-            f"Active: {user.get('active_refs', 0)}\n"
-            f"Pending: {user.get('pending_refs', 0)}\n\n"
-            f"📊 **Activity**\n"
-            f"Searches: {user.get('total_searches', 0)}\n"
-            f"Last Active: {user.get('last_active', 'Unknown')[:10]}"
+            f"🆔 ID: `{user['user_id']}`\n"
+            f"👤 Name: {user.get('first_name','N/A')}\n"
+            f"📱 Username: @{user.get('username','N/A')}\n"
+            f"📅 Joined: {join_d}\n\n"
+            f"💰 Balance: ₹{user.get('balance',0):.2f}\n"
+            f"📊 Total Earned: ₹{user.get('total_earned',0):.2f}\n"
+            f"🎟️ Passes: {user.get('passes',0)}\n\n"
+            f"👥 Total Refs: {user.get('total_refs',0)}\n"
+            f"✅ Active: {user.get('active_refs',0)}\n"
+            f"⏳ Pending: {user.get('pending_refs',0)}\n\n"
+            f"🔍 Searches: {user.get('total_searches',0)}\n"
+            f"🔥 Streak: {user.get('daily_streak',0)}\n"
+            f"🚫 Blocked: {user.get('withdrawal_blocked',False)}"
         )
-        
+
         keyboard = [
-            [InlineKeyboardButton("🗑️ MANAGE USER", callback_data=f"manage_user_{target_id}")],
+            [InlineKeyboardButton("🗑️ MANAGE", callback_data=f"manage_user_{target_id}")],
             [InlineKeyboardButton("◀️ BACK", callback_data="admin_search_user")]
         ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        await query.edit_message_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
-    
+        await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode=ParseMode.MARKDOWN)
+
     # ========== SUPPORT MESSAGES ==========
-    
+
     async def support_messages_menu(self, query, context):
-        """Show pending support messages"""
         try:
-            messages = self.db.get_pending_support_messages(10)
-            
+            col = self.db.issues if hasattr(self.db, 'issues') else self.db.support_messages
+            messages = list(col.find({'status': 'pending'}).sort('timestamp', -1).limit(10))
             if not messages:
                 await query.edit_message_text(
-                    "📩 **No pending support messages.**",
-                    reply_markup=InlineKeyboardMarkup([[
-                        InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")
-                    ]])
+                    "✅ Koi pending support message nahi.",
+                    reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")]])
                 )
                 return
-            
-            text = f"📩 **Pending Support Messages** ({len(messages)})\n\n"
-            
-            for i, msg in enumerate(messages[:5], 1):
-                text += f"{i}. {msg.get('user_name', 'User')} (ID: `{msg['user_id']}`)\n"
-                text += f"   Message: {msg['message'][:50]}...\n"
-                text += f"   Time: {msg['timestamp'][:16]}\n\n"
-            
+
+            text = f"📩 **Pending Support** ({len(messages)})\n\n"
             keyboard = []
-            for msg in messages[:3]:
-                keyboard.append([
-                    InlineKeyboardButton(f"📩 View {msg['user_name'][:10]}", callback_data=f"view_support_{msg['_id']}")
-                ])
-            
+            for msg in messages[:5]:
+                uid = msg.get('user_id', '?')
+                uname = msg.get('user_name', msg.get('first_name', 'User'))[:10]
+                preview = msg.get('message', '')[:30]
+                text += f"• {uname} (`{uid}`): {preview}...\n"
+                keyboard.append([InlineKeyboardButton(f"📩 {uname}", callback_data=f"view_support_{msg['_id']}")])
+
             keyboard.append([InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")])
-            
-            await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
-            
+            await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode=ParseMode.MARKDOWN)
+
         except Exception as e:
             logger.error(f"Support menu error: {e}")
             await query.edit_message_text(
-                "❌ Error loading support messages.",
-                reply_markup=InlineKeyboardMarkup([[
-                    InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")
-                ]])
+                "❌ Support messages load nahi hue.",
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")]])
             )
-    
+
     async def view_support_message(self, query, context, msg_id):
-        """View single support message"""
         try:
-            msg = self.db.issues.find_one({'_id': ObjectId(msg_id)})
+            col = self.db.issues if hasattr(self.db, 'issues') else self.db.support_messages
+            msg = col.find_one({'_id': ObjectId(msg_id)})
         except:
             msg = None
-        
+
         if not msg:
             await query.edit_message_text(
-                "❌ Message not found or may have been deleted.",
-                reply_markup=InlineKeyboardMarkup([[
-                    InlineKeyboardButton("◀️ BACK", callback_data="admin_support")
-                ]])
+                "❌ Message nahi mila.",
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ BACK", callback_data="admin_support")]])
             )
             return
-        
+
         user = self.db.get_user(msg['user_id'])
-        user_name = user.get('first_name', 'Unknown') if user else 'Unknown'
-        
+        uname = user.get('first_name', 'Unknown') if user else 'Unknown'
+
         text = (
             f"📩 **Support Message**\n\n"
-            f"**From:** {user_name} (ID: `{msg['user_id']}`)\n"
-            f"**Time:** {msg['timestamp'][:16]}\n"
-            f"**Status:** {msg['status']}\n\n"
-            f"**Message:**\n{msg['message']}\n\n"
+            f"From: {uname} (`{msg['user_id']}`)\n"
+            f"Time: {str(msg.get('timestamp',''))[:16]}\n"
+            f"Status: {msg.get('status','pending')}\n\n"
+            f"**Message:**\n{msg.get('message','')}\n"
         )
-        
         if msg.get('admin_reply'):
-            text += f"**Your Reply:**\n{msg['admin_reply']}\n"
-            text += f"**Replied:** {msg.get('reply_date', '')[:16]}\n"
-        
+            text += f"\n**Reply:**\n{msg['admin_reply']}"
+
         keyboard = [
             [InlineKeyboardButton("✏️ REPLY", callback_data=f"reply_support_{msg_id}")],
-            [InlineKeyboardButton("👤 VIEW USER", callback_data=f"user_details_{msg['user_id']}")],
+            [InlineKeyboardButton("👤 USER", callback_data=f"user_details_{msg['user_id']}")],
             [InlineKeyboardButton("◀️ BACK", callback_data="admin_support")]
         ]
-        
-        await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
-    
+        await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode=ParseMode.MARKDOWN)
+
     async def process_support_reply(self, update: Update, context: ContextTypes.DEFAULT_TYPE, msg_id):
-        """Process reply to support message"""
         try:
             reply_text = update.message.text.strip()
-            
-            msg = self.db.issues.find_one({'_id': ObjectId(msg_id)})
+            col = self.db.issues if hasattr(self.db, 'issues') else self.db.support_messages
+            msg = col.find_one({'_id': ObjectId(msg_id)})
+
             if not msg:
-                await update.message.reply_text("❌ Message not found")
+                await update.message.reply_text("❌ Message nahi mila")
                 return
-            
-            self.db.mark_support_replied(msg_id, update.effective_user.id, reply_text)
-            
+
+            col.update_one(
+                {'_id': ObjectId(msg_id)},
+                {'$set': {
+                    'admin_reply': reply_text,
+                    'status': 'replied',
+                    'reply_date': datetime.now().isoformat(),
+                    'replied_by': update.effective_user.id
+                }}
+            )
+
             try:
                 await context.bot.send_message(
                     chat_id=msg['user_id'],
                     text=(
-                        f"📩 **Reply to your support message**\n\n"
-                        f"**Your message:**\n{msg['message']}\n\n"
-                        f"**Admin Reply:**\n{reply_text}\n\n"
-                        f"Thank you for contacting support!"
+                        f"📩 **Support Reply**\n\n"
+                        f"Aapka message:\n_{msg.get('message','')}_\n\n"
+                        f"Admin ka reply:\n{reply_text}"
                     ),
                     parse_mode=ParseMode.MARKDOWN
                 )
-                
-                await update.message.reply_text("✅ Reply sent to user!")
-                
+                await update.message.reply_text("✅ Reply bhej diya!")
             except Exception as e:
-                logger.error(f"Could not send reply to user: {e}")
-                await update.message.reply_text("⚠️ Reply saved but could not send to user (user may have blocked bot)")
-            
-            if self.config.LOG_CHANNEL_ID:
-                try:
-                    await context.bot.send_message(
-                        chat_id=self.config.LOG_CHANNEL_ID,
-                        text=(
-                            f"📩 **Support Reply**\n\n"
-                            f"User: {msg['user_name']} (ID: `{msg['user_id']}`)\n"
-                            f"Reply: {reply_text}\n"
-                            f"Admin: {update.effective_user.id}"
-                        ),
-                        parse_mode=ParseMode.MARKDOWN
-                    )
-                except:
-                    pass
-            
+                await update.message.reply_text(f"⚠️ Reply save hua par user ko nahi gaya: {e}")
+
         except Exception as e:
             logger.error(f"Support reply error: {e}")
-            await update.message.reply_text(f"❌ Error: {str(e)}")
-        
+            await update.message.reply_text(f"❌ Error: {e}")
+
         context.user_data['admin_action'] = None
         context.user_data['replying_to'] = None
-    
+
     # ========== BROADCAST ==========
-    
+
     async def broadcast_menu(self, query, context):
-        """Broadcast message menu"""
         context.user_data['admin_action'] = 'broadcast'
-        
-        keyboard = [[InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        total_users = self.db.users.count_documents({})
-        
+        total = self.db.users.count_documents({})
         await query.edit_message_text(
-            f"📢 **Broadcast Message**\n\n"
-            f"Total users: {total_users}\n\n"
-            f"Send me the message you want to broadcast.\n"
-            f"(Text, photo, video, or any media)",
-            reply_markup=reply_markup,
+            f"📢 **Broadcast**\n\nTotal users: {total}\n\nBhejne wala message type karo:",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")]]),
             parse_mode=ParseMode.MARKDOWN
         )
-    
+
     async def process_broadcast(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Process broadcast message and track blocked/deleted users"""
         message = update.message
         users = list(self.db.users.find({}, {'user_id': 1}))
-        
         sent = 0
         failed = 0
-        blocked_users = []
-        
-        status_msg = await update.message.reply_text(f"📢 Broadcasting to {len(users)} users...")
-        
-        for i, user in enumerate(users):
+        blocked = []
+
+        status = await message.reply_text(f"📢 Broadcasting to {len(users)} users...")
+
+        for i, u in enumerate(users):
             try:
+                uid = u['user_id']
                 if message.text:
-                    await context.bot.send_message(
-                        chat_id=user['user_id'],
-                        text=message.text
-                    )
+                    await context.bot.send_message(chat_id=uid, text=message.text)
                 elif message.photo:
-                    await context.bot.send_photo(
-                        chat_id=user['user_id'],
-                        photo=message.photo[-1].file_id,
-                        caption=message.caption
-                    )
+                    await context.bot.send_photo(chat_id=uid, photo=message.photo[-1].file_id, caption=message.caption)
                 elif message.video:
-                    await context.bot.send_video(
-                        chat_id=user['user_id'],
-                        video=message.video.file_id,
-                        caption=message.caption
-                    )
+                    await context.bot.send_video(chat_id=uid, video=message.video.file_id, caption=message.caption)
                 sent += 1
-                
                 if (i+1) % 100 == 0:
-                    await status_msg.edit_text(f"📢 Progress: {i+1}/{len(users)} users...")
-                    
+                    await status.edit_text(f"📢 {i+1}/{len(users)} done...")
                 await asyncio.sleep(0.05)
             except Exception as e:
                 failed += 1
-                if "blocked" in str(e).lower() or "deactivated" in str(e).lower():
-                    blocked_users.append(user['user_id'])
-                    logger.info(f"User {user['user_id']} blocked/deleted bot")
-                logger.error(f"Broadcast failed: {e}")
-        
-        context.user_data['last_broadcast_blocked'] = blocked_users
-        
-        keyboard = [[InlineKeyboardButton("🧹 CLEAR JUNK", callback_data="admin_clear_junk")]]
-        
-        await status_msg.edit_text(
-            f"✅ **Broadcast Completed!**\n\n"
-            f"📨 Sent: {sent}\n"
-            f"❌ Failed: {failed}\n"
-            f"🚫 Blocked/Deleted: {len(blocked_users)}\n\n"
-            f"Click below to remove blocked/deleted users from database:",
-            reply_markup=InlineKeyboardMarkup(keyboard),
+                err = str(e).lower()
+                if 'blocked' in err or 'deactivated' in err or 'not found' in err:
+                    blocked.append(u['user_id'])
+
+        context.user_data['last_broadcast_blocked'] = blocked
+        await status.edit_text(
+            f"✅ **Broadcast Done!**\n\n"
+            f"📨 Sent: {sent}\n❌ Failed: {failed}\n🚫 Blocked: {len(blocked)}",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🧹 CLEAR JUNK", callback_data="admin_clear_junk")]]),
             parse_mode=ParseMode.MARKDOWN
         )
-        
         context.user_data['admin_action'] = None
-        self.db.log_system_event('broadcast', f"Sent to {sent} users, {len(blocked_users)} blocked")
-    
+
     async def clear_junk_users(self, query, context):
-        """Remove blocked/deleted users from database"""
-        blocked_users = context.user_data.get('last_broadcast_blocked', [])
-        
-        if not blocked_users:
+        blocked = context.user_data.get('last_broadcast_blocked', [])
+        if not blocked:
             await query.edit_message_text(
-                "❌ No blocked users found to clear.",
-                reply_markup=InlineKeyboardMarkup([[
-                    InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")
-                ]])
+                "❌ Koi blocked user nahi.",
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")]])
             )
             return
-        
-        await query.edit_message_text(f"🧹 Cleaning up {len(blocked_users)} users... Please wait.")
-        
-        deleted_count, failed_count = self.db.remove_blocked_users(blocked_users)
-        
+        await query.edit_message_text(f"🧹 {len(blocked)} users clean kar rahe hain...")
+        deleted, failed = self.db.remove_blocked_users(blocked)
         await query.edit_message_text(
-            f"🧹 **Cleanup Completed!**\n\n"
-            f"✅ Removed: {deleted_count}\n"
-            f"❌ Failed: {failed_count}\n\n"
-            f"Total: {len(blocked_users)} users processed.",
-            reply_markup=InlineKeyboardMarkup([[
-                InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")
-            ]])
+            f"🧹 **Cleanup Done!**\n\n✅ Removed: {deleted}\n❌ Failed: {failed}",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")]])
         )
-        
         context.user_data['last_broadcast_blocked'] = []
-        self.db.log_system_event('cleanup', f"Removed {deleted_count} junk users, failed {failed_count}")
-    
-    # ========== WITHDRAWALS WITH 3 BUTTONS ==========
-    
+
+    # ========== WITHDRAWALS ==========
+
     async def withdrawals_menu(self, query, context):
-        """Show pending withdrawals"""
-        withdrawals = self.db.get_pending_withdrawals(10)
-        
-        if not withdrawals:
+        wds = self.db.get_pending_withdrawals(10)
+        if not wds:
             await query.edit_message_text(
-                "✅ No pending withdrawals.",
-                reply_markup=InlineKeyboardMarkup([[
-                    InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")
-                ]])
+                "✅ Koi pending withdrawal nahi.",
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")]])
             )
             return
-        
-        text = f"💰 **Pending Withdrawals** ({len(withdrawals)})\n\n"
-        
-        for i, w in enumerate(withdrawals[:5], 1):
-            user = self.db.get_user(w['user_id'])
-            user_name = user.get('first_name', 'Unknown')[:10] if user else 'Unknown'
-            text += f"{i}. {user_name}: ₹{w['amount']} - {w['method']}\n"
-            text += f"   ID: `{str(w['_id'])[-8:]}`\n\n"
-        
+
+        text = f"💰 **Pending Withdrawals** ({len(wds)})\n\n"
         keyboard = []
-        for w in withdrawals[:3]:
+        for w in wds[:5]:
+            user = self.db.get_user(w['user_id'])
+            uname = user.get('first_name', 'User')[:8] if user else 'User'
+            wid = str(w['_id'])
+            text += f"• {uname}: ₹{w['amount']} ({w['method']})\n"
             keyboard.append([
-                InlineKeyboardButton(f"✅ Approve {str(w['_id'])[-6:]}", callback_data=f"approve_{w['_id']}"),
-                InlineKeyboardButton(f"❌ Reject {str(w['_id'])[-6:]}", callback_data=f"reject_{w['_id']}")
+                InlineKeyboardButton(f"✅ {uname}", callback_data=f"approve_{wid}"),
+                InlineKeyboardButton(f"❌ Reject", callback_data=f"reject_{wid}"),
+                InlineKeyboardButton(f"👁️ View", callback_data=f"view_withdrawal_{wid}")
             ])
-        
+
         keyboard.append([InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")])
-        
-        await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
-    
-    async def view_withdrawal_details(self, query, context, withdrawal_id):
-        """Show withdrawal details with action buttons"""
+        await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode=ParseMode.MARKDOWN)
+
+    async def view_withdrawal_details(self, query, context, wid):
         try:
-            withdrawal = self.db.withdrawals.find_one({'_id': ObjectId(withdrawal_id)})
+            w = self.db.withdrawals.find_one({'_id': ObjectId(wid)})
         except:
-            withdrawal = None
-        
-        if not withdrawal:
-            await query.edit_message_text("❌ Withdrawal not found")
+            w = None
+        if not w:
+            await query.edit_message_text("❌ Withdrawal nahi mila")
             return
-        
-        user = self.db.get_user(withdrawal['user_id'])
-        user_name = user.get('first_name', 'Unknown') if user else 'Unknown'
-        
+
+        user = self.db.get_user(w['user_id'])
+        uname = user.get('first_name', 'Unknown') if user else 'Unknown'
+
         text = (
-            f"📝 **WITHDRAWAL DETAILS**\n\n"
-            f"**ID:** `{withdrawal_id[-8:]}`\n"
-            f"**User:** {user_name} (ID: `{withdrawal['user_id']}`)\n"
-            f"**Amount:** ₹{withdrawal['amount']}\n"
-            f"**Method:** {withdrawal['method']}\n"
-            f"**Details:** `{withdrawal.get('details', 'N/A')}`\n"
-            f"**Status:** {withdrawal['status']}\n"
-            f"**Requested:** {withdrawal['request_date'][:16]}\n"
+            f"💰 **Withdrawal Details**\n\n"
+            f"👤 User: {uname} (`{w['user_id']}`)\n"
+            f"💵 Amount: ₹{w['amount']}\n"
+            f"📱 Method: {w['method']}\n"
+            f"🏦 Details: `{w.get('details','N/A')}`\n"
+            f"📅 Date: {str(w.get('request_date',''))[:16]}\n"
+            f"🔖 Status: {w.get('status','pending')}"
         )
-        
-        if withdrawal.get('processed_date'):
-            text += f"**Processed:** {withdrawal['processed_date'][:16]}\n"
-        
         keyboard = [
-            [
-                InlineKeyboardButton("✅ APPROVE", callback_data=f"approve_{withdrawal_id}"),
-                InlineKeyboardButton("❌ REJECT", callback_data=f"reject_{withdrawal_id}")
-            ],
-            [InlineKeyboardButton("👤 VIEW USER", callback_data=f"user_details_{withdrawal['user_id']}")],
+            [InlineKeyboardButton("✅ APPROVE", callback_data=f"approve_{wid}"),
+             InlineKeyboardButton("❌ REJECT", callback_data=f"reject_{wid}")],
+            [InlineKeyboardButton("👤 USER", callback_data=f"user_details_{w['user_id']}")],
             [InlineKeyboardButton("◀️ BACK", callback_data="admin_withdrawals")]
         ]
-        
-        await query.edit_message_text(
-            text,
-            reply_markup=InlineKeyboardMarkup(keyboard),
-            parse_mode=ParseMode.MARKDOWN
-        )
-    
-    async def approve_withdrawal(self, query, context, withdrawal_id):
-        """Approve a withdrawal with owner notification (3 buttons)"""
+        await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode=ParseMode.MARKDOWN)
+
+    async def approve_withdrawal(self, query, context, wid):
         try:
-            withdrawal = self.db.withdrawals.find_one({'_id': ObjectId(withdrawal_id)})
+            w = self.db.withdrawals.find_one({'_id': ObjectId(wid)})
         except:
-            withdrawal = None
-        
-        if not withdrawal:
-            await query.edit_message_text("❌ Withdrawal not found")
+            w = None
+        if not w:
+            await query.edit_message_text("❌ Withdrawal nahi mila")
             return
-        
-        success = self.db.approve_withdrawal(withdrawal_id, query.from_user.id)
-        
+
+        success = self.db.approve_withdrawal(wid, query.from_user.id)
         if not success:
-            await query.edit_message_text("❌ Failed to approve withdrawal")
+            await query.edit_message_text("❌ Approve nahi ho saka")
             return
-        
-        user = self.db.get_user(withdrawal['user_id'])
-        user_name = user.get('first_name', 'Unknown') if user else 'Unknown'
-        
+
+        user = self.db.get_user(w['user_id'])
+        uname = user.get('first_name', 'Unknown') if user else 'Unknown'
+
         try:
             await context.bot.send_message(
-                chat_id=withdrawal['user_id'],
-                text=(
-                    f"✅ **Withdrawal Approved!**\n\n"
-                    f"Amount: ₹{withdrawal['amount']:.2f}\n"
-                    f"Method: {withdrawal['method']}\n\n"
-                    f"Your withdrawal has been approved and will be processed shortly."
-                ),
-                parse_mode=ParseMode.MARKDOWN
+                chat_id=w['user_id'],
+                text=f"✅ Aapka ₹{w['amount']:.2f} ka withdrawal approve ho gaya!\nMethod: {w['method']}"
             )
-        except Exception as e:
-            logger.error(f"Could not notify user: {e}")
-        
+        except:
+            pass
+
         if self.config.LOG_CHANNEL_ID:
             try:
-                log_text = (
-                    f"📤 **WITHDRAWAL APPROVED**\n\n"
-                    f"**User:** {user_name}\n"
-                    f"**User ID:** `{withdrawal['user_id']}`\n"
-                    f"**Amount:** ₹{withdrawal['amount']}\n"
-                    f"**Method:** {withdrawal['method']}\n"
-                    f"**Approved by:** Admin {query.from_user.id}"
-                )
-                
                 await context.bot.send_message(
                     chat_id=self.config.LOG_CHANNEL_ID,
-                    text=log_text,
+                    text=f"✅ WITHDRAWAL APPROVED\nUser: {uname} (`{w['user_id']}`)\nAmount: ₹{w['amount']}\nMethod: {w['method']}",
                     parse_mode=ParseMode.MARKDOWN
                 )
-            except Exception as e:
-                logger.error(f"Log channel error: {e}")
-        
-        keyboard = [
-            [
-                InlineKeyboardButton("👤 VIEW USER", callback_data=f"user_details_{withdrawal['user_id']}"),
-                InlineKeyboardButton("📝 VIEW WD", callback_data=f"view_withdrawal_{withdrawal_id}")
-            ],
-            [InlineKeyboardButton("❌ CLOSE", callback_data="admin_close")]
-        ]
-        
-        owner_text = (
-            f"👑 **WITHDRAWAL APPROVED**\n\n"
-            f"**User:** {user_name}\n"
-            f"**Amount:** ₹{withdrawal['amount']}\n"
-            f"**Method:** {withdrawal['method']}\n\n"
-            f"✅ **Approved by Admin**"
-        )
-        
-        for admin_id in self.config.ADMIN_IDS:
-            try:
-                await context.bot.send_message(
-                    chat_id=admin_id,
-                    text=owner_text,
-                    reply_markup=InlineKeyboardMarkup(keyboard),
-                    parse_mode=ParseMode.MARKDOWN
-                )
-            except Exception as e:
-                logger.error(f"Could not notify admin {admin_id}: {e}")
-        
+            except:
+                pass
+
         await query.edit_message_text(
-            f"✅ Withdrawal ₹{withdrawal['amount']:.2f} approved!\n\n"
-            f"✅ Owner notified with 3 buttons.\n"
-            f"✅ Log channel updated.",
-            reply_markup=InlineKeyboardMarkup([[
-                InlineKeyboardButton("◀️ BACK TO WITHDRAWALS", callback_data="admin_withdrawals")
-            ]])
+            f"✅ **Approved!** ₹{w['amount']:.2f} for {uname}",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ BACK", callback_data="admin_withdrawals")]])
         )
-    
-    async def reject_withdrawal(self, query, context, withdrawal_id):
-        """Reject a withdrawal with owner notification (3 buttons)"""
+
+    async def reject_withdrawal(self, query, context, wid):
         try:
-            withdrawal = self.db.withdrawals.find_one({'_id': ObjectId(withdrawal_id)})
+            w = self.db.withdrawals.find_one({'_id': ObjectId(wid)})
         except:
-            withdrawal = None
-        
-        if not withdrawal:
-            await query.edit_message_text("❌ Withdrawal not found")
+            w = None
+        if not w:
+            await query.edit_message_text("❌ Withdrawal nahi mila")
             return
-        
-        success = self.db.reject_withdrawal(withdrawal_id, query.from_user.id)
-        
+
+        success = self.db.reject_withdrawal(wid, query.from_user.id)
         if not success:
-            await query.edit_message_text("❌ Failed to reject withdrawal")
+            await query.edit_message_text("❌ Reject nahi ho saka")
             return
-        
-        user = self.db.get_user(withdrawal['user_id'])
-        user_name = user.get('first_name', 'Unknown') if user else 'Unknown'
-        
+
+        user = self.db.get_user(w['user_id'])
+        uname = user.get('first_name', 'Unknown') if user else 'Unknown'
+
         try:
             await context.bot.send_message(
-                chat_id=withdrawal['user_id'],
-                text=(
-                    f"❌ **Withdrawal Rejected**\n\n"
-                    f"Amount: ₹{withdrawal['amount']:.2f}\n"
-                    f"Method: {withdrawal['method']}\n\n"
-                    f"Your withdrawal was rejected. Amount refunded.\n"
-                    f"Contact support: {self.config.SUPPORT_USERNAME}"
-                ),
-                parse_mode=ParseMode.MARKDOWN
+                chat_id=w['user_id'],
+                text=f"❌ Aapka ₹{w['amount']:.2f} ka withdrawal reject ho gaya.\nAmount refund ho gaya.\nSupport: {self.config.SUPPORT_USERNAME}"
             )
-        except Exception as e:
-            logger.error(f"Could not notify user: {e}")
-        
+        except:
+            pass
+
         if self.config.LOG_CHANNEL_ID:
             try:
-                log_text = (
-                    f"📤 **WITHDRAWAL REJECTED**\n\n"
-                    f"**User:** {user_name}\n"
-                    f"**User ID:** `{withdrawal['user_id']}`\n"
-                    f"**Amount:** ₹{withdrawal['amount']}\n"
-                    f"**Method:** {withdrawal['method']}\n"
-                    f"**Rejected by:** Admin {query.from_user.id}"
-                )
-                
                 await context.bot.send_message(
                     chat_id=self.config.LOG_CHANNEL_ID,
-                    text=log_text,
+                    text=f"❌ WITHDRAWAL REJECTED\nUser: {uname} (`{w['user_id']}`)\nAmount: ₹{w['amount']}",
                     parse_mode=ParseMode.MARKDOWN
                 )
-            except Exception as e:
-                logger.error(f"Log channel error: {e}")
-        
-        keyboard = [
-            [
-                InlineKeyboardButton("👤 VIEW USER", callback_data=f"user_details_{withdrawal['user_id']}"),
-                InlineKeyboardButton("📝 VIEW WD", callback_data=f"view_withdrawal_{withdrawal_id}")
-            ],
-            [InlineKeyboardButton("❌ CLOSE", callback_data="admin_close")]
-        ]
-        
-        owner_text = (
-            f"👑 **WITHDRAWAL REJECTED**\n\n"
-            f"**User:** {user_name}\n"
-            f"**Amount:** ₹{withdrawal['amount']}\n"
-            f"**Method:** {withdrawal['method']}\n\n"
-            f"❌ **Rejected by Admin**\n"
-            f"Amount refunded to user."
-        )
-        
-        for admin_id in self.config.ADMIN_IDS:
-            try:
-                await context.bot.send_message(
-                    chat_id=admin_id,
-                    text=owner_text,
-                    reply_markup=InlineKeyboardMarkup(keyboard),
-                    parse_mode=ParseMode.MARKDOWN
-                )
-            except Exception as e:
-                logger.error(f"Could not notify admin {admin_id}: {e}")
-        
+            except:
+                pass
+
         await query.edit_message_text(
-            f"❌ Withdrawal ₹{withdrawal['amount']:.2f} rejected!\n\n"
-            f"✅ Owner notified with 3 buttons.\n"
-            f"✅ Log channel updated.",
-            reply_markup=InlineKeyboardMarkup([[
-                InlineKeyboardButton("◀️ BACK TO WITHDRAWALS", callback_data="admin_withdrawals")
-            ]])
+            f"❌ **Rejected!** ₹{w['amount']:.2f} for {uname} — Refunded.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ BACK", callback_data="admin_withdrawals")]])
         )
-    
+
     # ========== BACK TO ADMIN ==========
-    
+
     async def back_to_admin(self, query, context):
-        """Return to main admin panel"""
         context.user_data['admin_action'] = None
         context.user_data['replying_to'] = None
         context.user_data['managing_user'] = None
-        
-        total_users = self.db.users.count_documents({})
+
+        total = self.db.users.count_documents({})
         pending = self.db.withdrawals.count_documents({'status': 'pending'})
-        pending_support = self.db.issues.count_documents({'status': 'pending'})
-        
+
         keyboard = [
             [InlineKeyboardButton("🔍 SEARCH USER", callback_data="admin_search_user")],
             [InlineKeyboardButton("📢 BROADCAST", callback_data="admin_broadcast")],
@@ -1000,46 +766,48 @@ class AdminHandlers:
             [InlineKeyboardButton("🗑️ USER DATA MANAGER", callback_data="admin_data_manager")],
             [InlineKeyboardButton("❌ CLOSE", callback_data="admin_close")]
         ]
-        
-        text = (
-            "👑 **Admin Panel**\n\n"
-            f"📊 Users: {total_users} | Pending WD: {pending} | Support: {pending_support}"
+        await query.edit_message_text(
+            f"👑 **Admin Panel**\n\nUsers: {total} | Pending WD: {pending}",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            parse_mode=ParseMode.MARKDOWN
         )
-        
-        await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
-    
-    # ========== HANDLE ADMIN MESSAGES ==========
-    
+
+    # ========== MAIN MESSAGE ROUTER ==========
+
     async def handle_admin_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle admin messages"""
+        """Route all admin text messages to correct handler"""
         user_id = update.effective_user.id
-        
         if user_id not in self.config.ADMIN_IDS:
-            return
-        
-        action = context.user_data.get('admin_action')
-        
+            return  # Not admin — ignore silently
+
+        action = context.user_data.get('admin_action', '')
+
+        if not action:
+            return  # No active action
+
+        logger.info(f"Admin message action: '{action}' from {user_id}: {update.message.text[:30]}")
+
         if action == 'broadcast':
             await self.process_broadcast(update, context)
-        
+
         elif action == 'search_user':
             await self.process_search_user(update, context)
-        
+
         elif action == 'data_manager':
+            # Got user ID — now show management options
             await self.process_data_manager(update, context)
-        
-        elif action and action.startswith('manage_'):
+
+        elif action.startswith('manage_'):
             try:
                 target_id = int(action.replace('manage_', ''))
                 await self.process_user_management(update, context, target_id)
-            except Exception as e:
-                logger.error(f"User management error: {e}")
-                await update.message.reply_text("❌ Error processing command")
-        
-        elif action and action.startswith('reply_support_'):
-            try:
-                msg_id = action.replace('reply_support_', '')
-                await self.process_support_reply(update, context, msg_id)
-            except Exception as e:
-                logger.error(f"Support reply error: {e}")
-                await update.message.reply_text("❌ Error processing reply")
+            except (ValueError, Exception) as e:
+                logger.error(f"manage_ routing error: {e}")
+                await update.message.reply_text(f"❌ Error: {e}")
+
+        elif action.startswith('reply_support_'):
+            msg_id = action.replace('reply_support_', '')
+            await self.process_support_reply(update, context, msg_id)
+
+        else:
+            logger.warning(f"Unknown admin action: {action}")
