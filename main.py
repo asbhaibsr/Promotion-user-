@@ -165,6 +165,12 @@ def get_user_api(user_id):
             # Ensure today_earned field exists
             if 'today_earned' not in user_data:
                 user_data['today_earned'] = 0.0
+            # Build claimed_milestones list from individual fields
+            claimed_milestones = []
+            for m in [5, 10, 25, 50, 100]:
+                if user_data.get(f'milestone_claimed_{m}'):
+                    claimed_milestones.append(m)
+            user_data['claimed_milestones'] = claimed_milestones
             return jsonify(user_data)
         return jsonify({'error': 'User not found'}), 404
     except Exception as e:
@@ -401,6 +407,21 @@ def claim_single_mission_api():
         return jsonify(result)
     except Exception as e:
         logger.error(f"Claim single mission error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/claim-milestone', methods=['POST'])
+def claim_milestone_api():
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        refs_required = data.get('refs_required')
+        reward = data.get('reward')
+        if not user_id or refs_required is None:
+            return jsonify({'success': False, 'message': 'Missing data'}), 400
+        result = db.claim_milestone(user_id, refs_required, reward)
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Milestone claim API error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/claim-mission-reward', methods=['POST'])
@@ -769,6 +790,41 @@ def game_crash_cashout_api():
         return jsonify(result)
     except Exception as e:
         logger.error(f"Crash cashout error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/game/runner-start', methods=['POST'])
+def runner_start_api():
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        mode = data.get('mode', '10s')
+        bet = data.get('bet', 1.0)
+        if not user_id:
+            return jsonify({'success': False, 'message': 'Missing user_id'}), 400
+        if not db or not db.ensure_connection():
+            return jsonify({'success': False, 'message': 'Database error'}), 503
+        result = db.runner_start(user_id, mode, float(bet))
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Runner start error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/game/runner-finish', methods=['POST'])
+def runner_finish_api():
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        mode = data.get('mode', '10s')
+        bet = data.get('bet', 1.0)
+        survived_seconds = data.get('survived_seconds', 0)
+        if not user_id:
+            return jsonify({'success': False, 'message': 'Missing user_id'}), 400
+        if not db or not db.ensure_connection():
+            return jsonify({'success': False, 'message': 'Database error'}), 503
+        result = db.runner_finish(user_id, mode, float(bet), int(survived_seconds))
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Runner finish error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/game/earn', methods=['POST'])
