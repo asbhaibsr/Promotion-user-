@@ -287,7 +287,7 @@
         .milestone-reward{font-size:12px;font-weight:800;color:var(--gold);}
         .weekly-bonus-card{background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);border:1px solid rgba(54,182,245,.25);border-radius:16px;padding:13px;margin-bottom:11px;}
         .weekly-days{display:flex;gap:5px;margin:10px 0;}
-        .week-day{flex:1;aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;}
+        .week-day{flex:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 2px;font-size:10px;font-weight:800;min-height:44px;}
         .week-day.done{background:rgba(25,216,158,.25);color:var(--green);border:1px solid var(--green);}
         .week-day.today{background:rgba(240,192,64,.2);color:var(--gold);border:1px solid var(--gold);}
         .week-day.missed{background:rgba(255,78,106,.1);color:var(--red);border:1px solid rgba(255,78,106,.3);}
@@ -296,7 +296,16 @@
         .runner-mode-btn{background:var(--bg2);border:1.5px solid var(--border);border-radius:12px;padding:10px 6px;font-size:13px;font-weight:900;color:var(--text);cursor:pointer;transition:all .15s;font-family:'Oxanium',sans-serif;}
         .runner-mode-btn.sel{background:linear-gradient(135deg,var(--purple),var(--purple2));border-color:var(--purple2);color:#fff;}
         .runner-mode-btn:active{transform:scale(.95);}
-        /* BADGE SYSTEM */
+        /* PASS STORE */
+        .pass-pkg{background:var(--bg3);border:2px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;position:relative;transition:all .2s;}
+        .pass-pkg.sel{background:linear-gradient(135deg,rgba(240,192,64,.15),rgba(124,92,252,.1));border-color:var(--gold);box-shadow:0 0 16px rgba(240,192,64,.2);}
+        .pass-pkg:active{transform:scale(.95);}
+        .pkg-passes{font-family:'Oxanium',sans-serif;font-size:28px;font-weight:900;color:var(--purple2);}
+        .pkg-label{font-size:10px;color:var(--text3);font-weight:700;margin-bottom:4px;}
+        .pkg-price{font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--gold);}
+        .pkg-badge{position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;font-size:8px;font-weight:900;padding:2px 8px;border-radius:10px;white-space:nowrap;}
+        .pkg-badge.best{background:var(--green);}
+        /* BADGE CLAIM */
         .badge-section{margin-top:14px;padding:14px;background:var(--bg3);border-radius:16px;border:1px solid var(--border);}
         .badge-section-title{font-family:'Oxanium',sans-serif;font-size:13px;font-weight:900;color:var(--gold);margin-bottom:10px;text-align:center;}
         .badge-current{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:12px;}
@@ -643,7 +652,10 @@
                 <div class="passes-icon"><img src="https://i.postimg.cc/15X5YpmT/1773974388103.png" style="width:38px;height:38px;object-fit:contain;"></div>
                 <div class="passes-text"><div class="passes-count" id="passCount">0</div><div class="passes-lbl" data-t="game_passes">Game Passes</div></div>
             </div>
-            <button class="passes-earn-btn" onclick="openModal('earnPasses')" data-t="earn_passes">+ Earn Passes</button>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+                <button class="passes-earn-btn" onclick="openModal('earnPasses')" data-t="earn_passes">+ Earn Free</button>
+                <button style="background:linear-gradient(135deg,#f0c040,#d97706);color:#000;border:none;border-radius:20px;padding:6px 13px;font-weight:900;font-size:10px;cursor:pointer;white-space:nowrap;" onclick="openModal('buyPasses')">🛒 Buy Passes</button>
+            </div>
         </div>
         <!-- HAPPY HOURS BANNER — shows only during 8-9 PM -->
         <div class="happy-hours-banner" id="happyHoursBanner">
@@ -768,6 +780,37 @@
                         <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;">
                             <span style="background:rgba(240,192,64,.15);color:var(--gold);padding:2px 7px;border-radius:10px;font-size:9px;font-weight:800;">10s • 30s • 1m • 5m • 10m</span>
                             <span style="background:rgba(25,216,158,.15);color:var(--green);padding:2px 7px;border-radius:10px;font-size:9px;font-weight:800;">Survive = Earn!</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- NEW GAMES ROW -->
+            <div class="game-card" style="background:linear-gradient(135deg,#0a1628,#0d2040);border-color:rgba(54,182,245,.3);" onclick="openGame('maze')">
+                <div style="font-size:38px;text-align:center;margin-bottom:6px;">🗺️</div>
+                <div class="game-name" style="color:var(--blue);">Maze Escape</div>
+                <div class="game-desc">Bhulbhulaiya se niklo!</div>
+                <div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;">
+                    <span style="background:rgba(54,182,245,.15);color:var(--blue);padding:1px 6px;border-radius:8px;font-size:8px;font-weight:800;">3x-8x</span>
+                    <span style="background:rgba(255,78,106,.15);color:var(--red);padding:1px 6px;border-radius:8px;font-size:8px;font-weight:800;">HARD!</span>
+                </div>
+            </div>
+            <div class="game-card" style="background:linear-gradient(135deg,#0a2e0a,#0d3010);border-color:rgba(25,216,158,.3);" onclick="openGame('snake')">
+                <div style="font-size:38px;text-align:center;margin-bottom:6px;">🐍</div>
+                <div class="game-name" style="color:var(--green);">Snake Game</div>
+                <div class="game-desc">Dot khao, paise kamao!</div>
+                <div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;">
+                    <span style="background:rgba(25,216,158,.15);color:var(--green);padding:1px 6px;border-radius:8px;font-size:8px;font-weight:800;">10% per dot</span>
+                </div>
+            </div>
+            <div class="game-card" style="grid-column:span 2;background:linear-gradient(135deg,#1a1200,#2a2000);border-color:rgba(240,192,64,.3);" onclick="openGame('chess')">
+                <div style="display:flex;align-items:center;gap:14px;">
+                    <div style="font-size:42px;">♟️</div>
+                    <div style="text-align:left;">
+                        <div class="game-name" style="color:var(--gold);">Chess Timer</div>
+                        <div class="game-desc">AI se chess khelo • Time ke saath jeeto!</div>
+                        <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;">
+                            <span style="background:rgba(240,192,64,.15);color:var(--gold);padding:2px 7px;border-radius:10px;font-size:9px;font-weight:800;">1min | 30s | 15s</span>
+                            <span style="background:rgba(255,78,106,.15);color:var(--red);padding:2px 7px;border-radius:10px;font-size:9px;font-weight:800;">2x-8x Reward</span>
                         </div>
                     </div>
                 </div>
@@ -1312,6 +1355,261 @@
     </div>
 </div>
 
+<!-- BUY PASSES MODAL -->
+<div class="modal" id="buyPassesModal">
+    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('buyPasses')">←</div><div class="modal-title">🛒 Passes Kharido</div></div>
+    <div style="padding:4px 0 10px;text-align:center;font-size:11px;color:var(--text2);">UPI se payment karo, turant passes paao!</div>
+
+    <!-- UPI ID Box -->
+    <div style="background:linear-gradient(135deg,#0f2027,#1a3a4a);border:1.5px solid rgba(54,182,245,.35);border-radius:16px;padding:14px;margin-bottom:14px;text-align:center;">
+        <div style="font-size:10px;color:var(--text2);margin-bottom:4px;">💳 Payment karo is UPI ID pe:</div>
+        <div style="font-family:'Oxanium',sans-serif;font-size:17px;font-weight:900;color:var(--gold);letter-spacing:.5px;" id="storeUpiId">arsadsaifi8272@ibl</div>
+        <button onclick="navigator.clipboard.writeText('arsadsaifi8272@ibl').then(()=>showToast('✅ UPI ID copied!'))" style="margin-top:7px;background:rgba(54,182,245,.15);color:var(--blue);border:1px solid rgba(54,182,245,.3);border-radius:20px;padding:5px 16px;font-size:10px;font-weight:800;cursor:pointer;">📋 Copy UPI ID</button>
+    </div>
+
+    <!-- Packages -->
+    <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:8px;">📦 Package Chuno:</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;" id="passPackages">
+        <div class="pass-pkg" onclick="selectPackage(1,this)" data-pkg="1">
+            <div class="pkg-passes">15</div>
+            <div class="pkg-label">Passes</div>
+            <div class="pkg-price">₹50</div>
+        </div>
+        <div class="pass-pkg sel" onclick="selectPackage(2,this)" data-pkg="2">
+            <div class="pkg-passes">30</div>
+            <div class="pkg-label">Passes</div>
+            <div class="pkg-price">₹100</div>
+            <div class="pkg-badge">Popular</div>
+        </div>
+        <div class="pass-pkg" onclick="selectPackage(3,this)" data-pkg="3">
+            <div class="pkg-passes">60</div>
+            <div class="pkg-label">Passes</div>
+            <div class="pkg-price">₹200</div>
+            <div class="pkg-badge best">Best</div>
+        </div>
+    </div>
+
+    <!-- Transaction ID -->
+    <div style="margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:5px;">🔢 Transaction ID / UTR Number:</div>
+        <input type="text" id="txnIdInput" class="inp" placeholder="Payment ke baad mila number daalo..." style="font-size:13px;">
+    </div>
+
+    <!-- Screenshot upload -->
+    <div style="margin-bottom:14px;">
+        <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:5px;">📸 Screenshot (optional):</div>
+        <label for="payScreenshot" style="display:flex;align-items:center;gap:8px;background:var(--bg3);border:1.5px dashed var(--border);border-radius:12px;padding:12px;cursor:pointer;">
+            <span style="font-size:22px;">📷</span>
+            <div>
+                <div style="font-size:11px;font-weight:700;">Screenshot attach karo</div>
+                <div id="screenshotName" style="font-size:10px;color:var(--text3);">No file selected</div>
+            </div>
+        </label>
+        <input type="file" id="payScreenshot" accept="image/*" style="display:none;" onchange="handleScreenshot(this)">
+    </div>
+
+    <button class="btn-gold" onclick="submitPassPurchase()" style="width:100%;font-size:14px;padding:14px;">
+        ✅ Submit — Passes Request Bhejo
+    </button>
+    <div style="text-align:center;font-size:9px;color:var(--text3);margin-top:8px;">Admin verify karega, 5-30 minutes mein passes add ho jaayenge</div>
+</div>
+
+<!-- BADGE CLAIM MODAL -->
+<div class="modal" id="badgeClaimModal">
+    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('badgeClaim')">←</div><div class="modal-title">🏅 Badge Claim Karo</div></div>
+    <div style="text-align:center;padding:10px 0 20px;">
+        <img id="claimBadgeImg" src="" style="width:100px;height:100px;object-fit:contain;filter:drop-shadow(0 0 20px rgba(240,192,64,.6));animation:badgeFloat 2s ease-in-out infinite;margin-bottom:12px;">
+        <div id="claimBadgeName" style="font-family:'Oxanium',sans-serif;font-size:24px;font-weight:900;color:var(--gold);margin-bottom:4px;"></div>
+        <div id="claimBadgeDesc" style="font-size:12px;color:var(--text2);margin-bottom:16px;"></div>
+        <div style="background:linear-gradient(135deg,rgba(240,192,64,.15),rgba(124,92,252,.1));border:1.5px solid rgba(240,192,64,.4);border-radius:16px;padding:16px;margin:0 4px 16px;">
+            <div style="font-size:11px;color:var(--text2);margin-bottom:8px;">🎁 Is Badge ka Reward:</div>
+            <div id="claimBadgeRewardPasses" style="font-size:18px;font-weight:900;color:var(--purple2);margin-bottom:4px;"></div>
+            <div id="claimBadgeRewardBalance" style="font-size:18px;font-weight:900;color:var(--gold);"></div>
+        </div>
+        <button id="claimBadgeBtn" class="btn-gold" onclick="doClaimBadge()" style="width:90%;font-size:16px;padding:14px;font-family:'Oxanium',sans-serif;font-weight:900;">
+            🏅 Claim Reward!
+        </button>
+        <div id="claimBadgeAlready" style="display:none;background:rgba(25,216,158,.1);border:1px solid var(--green);border-radius:12px;padding:10px;margin-top:10px;color:var(--green);font-weight:700;font-size:12px;">✅ Ye badge already claim ho chuka hai!</div>
+    </div>
+</div>
+
+<!-- MAZE GAME MODAL -->
+<div class="modal" id="mazeModal">
+    <div class="modal-hdr"><div class="back-btn" onclick="exitMaze()">←</div><div class="modal-title">🗺️ Maze Escape</div><div id="mazeBal" style="font-size:11px;color:var(--gold);font-weight:800;">₹0</div></div>
+    <div id="mazeSetup" style="padding:14px;">
+        <div style="background:linear-gradient(135deg,#0a1628,#1a0a2e);border-radius:16px;padding:14px;margin-bottom:12px;text-align:center;">
+            <div style="font-size:32px;margin-bottom:6px;">🗺️</div>
+            <div style="font-family:'Oxanium',sans-serif;font-weight:900;color:var(--gold);font-size:16px;">MAZE ESCAPE</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:4px;">Bhulbhulaiya se niklo 🚩 jhande tak!</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:14px;padding:12px;margin-bottom:10px;font-size:10px;color:var(--text2);">
+            ⏱️ Jitni tez niklo utna zyada jeeto<br>
+            💀 Time khatam = sab kho doge<br>
+            🎯 Har 5 second survive = bet ka 20% back
+        </div>
+        <div style="margin-bottom:10px;">
+            <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:6px;">💰 Bet:</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="bet-chip" onclick="selMazeBet(1,this)">₹1</button>
+                <button class="bet-chip" onclick="selMazeBet(10,this)">₹10</button>
+                <button class="bet-chip" onclick="selMazeBet(15,this)">₹15</button>
+                <button class="bet-chip" onclick="selMazeBet(20,this)">₹20</button>
+                <button class="bet-chip" onclick="selMazeBet(40,this)">₹40</button>
+                <button class="bet-chip" onclick="selMazeBet(50,this)">₹50</button>
+            </div>
+        </div>
+        <div style="margin-bottom:10px;">
+            <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:6px;">⚡ Difficulty:</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+                <button class="runner-mode-btn sel" onclick="selMazeDiff('easy',this)">Easy<br><span style="font-size:9px;color:var(--green);">60s | 3x</span></button>
+                <button class="runner-mode-btn" onclick="selMazeDiff('medium',this)">Medium<br><span style="font-size:9px;color:var(--gold);">40s | 5x</span></button>
+                <button class="runner-mode-btn" onclick="selMazeDiff('hard',this)">Hard<br><span style="font-size:9px;color:var(--red);">25s | 8x</span></button>
+            </div>
+        </div>
+        <button class="btn-gold" onclick="startMaze()" style="width:100%;padding:13px;font-size:14px;">🗺️ START (1 Pass + Bet)</button>
+    </div>
+    <div id="mazeGame" style="display:none;padding:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div id="mazeTimer" style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--red);">0:60</div>
+            <div style="font-size:11px;color:var(--gold);font-weight:800;" id="mazeEarning">₹0</div>
+            <div style="font-size:10px;color:var(--text2);" id="mazeMoves">Moves: 0</div>
+        </div>
+        <canvas id="mazeCanvas" style="width:100%;border-radius:12px;display:block;"></canvas>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;">
+            <div></div>
+            <button ontouchstart="mazeMove('up')" onclick="mazeMove('up')" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;">⬆️</button>
+            <div></div>
+            <button ontouchstart="mazeMove('left')" onclick="mazeMove('left')" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;">⬅️</button>
+            <button ontouchstart="mazeMove('down')" onclick="mazeMove('down')" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;">⬇️</button>
+            <button ontouchstart="mazeMove('right')" onclick="mazeMove('right')" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;">➡️</button>
+        </div>
+    </div>
+    <div id="mazeResult" style="display:none;padding:20px;text-align:center;">
+        <div id="mazeResultEmoji" style="font-size:60px;margin-bottom:10px;">🏆</div>
+        <div id="mazeResultTitle" style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--gold);margin-bottom:6px;"></div>
+        <div id="mazeResultSub" style="font-size:12px;color:var(--text2);margin-bottom:14px;"></div>
+        <div style="background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:14px;">
+            <div style="font-size:11px;color:var(--text2);">Reward:</div>
+            <div id="mazeResultReward" style="font-family:'Oxanium',sans-serif;font-size:32px;font-weight:900;color:var(--gold);"></div>
+        </div>
+        <button class="btn-purple" onclick="resetMaze()" style="width:100%;margin-bottom:8px;">🔄 Again</button>
+        <button onclick="exitMaze()" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:11px;font-weight:800;cursor:pointer;">← Back</button>
+    </div>
+</div>
+
+<!-- SNAKE GAME MODAL -->
+<div class="modal" id="snakeModal">
+    <div class="modal-hdr"><div class="back-btn" onclick="exitSnake()">←</div><div class="modal-title">🐍 Snake Game</div><div id="snakeBal" style="font-size:11px;color:var(--gold);font-weight:800;">₹0</div></div>
+    <div id="snakeSetup" style="padding:14px;">
+        <div style="background:linear-gradient(135deg,#0a2e0a,#0a1e0a);border-radius:16px;padding:14px;margin-bottom:12px;text-align:center;">
+            <div style="font-size:32px;margin-bottom:6px;">🐍</div>
+            <div style="font-family:'Oxanium',sans-serif;font-weight:900;color:var(--green);font-size:16px;">SNAKE GAME</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:4px;">Dot khao, paise kamao! Khud se mat takrao!</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:14px;padding:12px;margin-bottom:10px;font-size:10px;color:var(--text2);">
+            🍎 Har dot = bet ka 10% reward<br>
+            💀 Wall ya khud se takrao = game over<br>
+            ⏱️ 60 second ka game
+        </div>
+        <div style="margin-bottom:10px;">
+            <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:6px;">💰 Bet:</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="bet-chip" onclick="selSnakeBet(1,this)">₹1</button>
+                <button class="bet-chip" onclick="selSnakeBet(5,this)">₹5</button>
+                <button class="bet-chip" onclick="selSnakeBet(10,this)">₹10</button>
+                <button class="bet-chip" onclick="selSnakeBet(20,this)">₹20</button>
+                <button class="bet-chip" onclick="selSnakeBet(50,this)">₹50</button>
+            </div>
+        </div>
+        <button class="btn-gold" onclick="startSnake()" style="width:100%;padding:13px;font-size:14px;">🐍 START (1 Pass + Bet)</button>
+    </div>
+    <div id="snakeGame" style="display:none;padding:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <div id="snakeScore" style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:900;color:var(--green);">Score: 0</div>
+            <div id="snakeTimer" style="font-size:14px;font-weight:800;color:var(--red);">60s</div>
+            <div id="snakeEarning" style="font-size:11px;color:var(--gold);font-weight:800;">₹0</div>
+        </div>
+        <canvas id="snakeCanvas" style="width:100%;border-radius:10px;display:block;background:#0a1a0a;"></canvas>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;">
+            <div></div>
+            <button ontouchstart="snakeDir('up')" onclick="snakeDir('up')" style="background:rgba(25,216,158,.15);border:1px solid var(--green);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;">⬆️</button>
+            <div></div>
+            <button ontouchstart="snakeDir('left')" onclick="snakeDir('left')" style="background:rgba(25,216,158,.15);border:1px solid var(--green);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;">⬅️</button>
+            <button ontouchstart="snakeDir('down')" onclick="snakeDir('down')" style="background:rgba(25,216,158,.15);border:1px solid var(--green);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;">⬇️</button>
+            <button ontouchstart="snakeDir('right')" onclick="snakeDir('right')" style="background:rgba(25,216,158,.15);border:1px solid var(--green);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;">➡️</button>
+        </div>
+    </div>
+    <div id="snakeResult" style="display:none;padding:20px;text-align:center;">
+        <div id="snakeResultEmoji" style="font-size:60px;margin-bottom:10px;">🐍</div>
+        <div id="snakeResultTitle" style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--green);margin-bottom:6px;"></div>
+        <div style="background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:14px;">
+            <div style="font-size:11px;color:var(--text2);">Score: <span id="snakeFinalScore">0</span> dots</div>
+            <div id="snakeResultReward" style="font-family:'Oxanium',sans-serif;font-size:32px;font-weight:900;color:var(--gold);"></div>
+        </div>
+        <button class="btn-purple" onclick="resetSnake()" style="width:100%;margin-bottom:8px;">🔄 Again</button>
+        <button onclick="exitSnake()" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:11px;font-weight:800;cursor:pointer;">← Back</button>
+    </div>
+</div>
+
+<!-- CHESS TIMER GAME MODAL -->
+<div class="modal" id="chessModal">
+    <div class="modal-hdr"><div class="back-btn" onclick="exitChess()">←</div><div class="modal-title">♟️ Chess Timer</div><div id="chessBal" style="font-size:11px;color:var(--gold);font-weight:800;">₹0</div></div>
+    <div id="chessSetup" style="padding:14px;">
+        <div style="background:linear-gradient(135deg,#1a1200,#2a1a00);border-radius:16px;padding:14px;margin-bottom:12px;text-align:center;">
+            <div style="font-size:32px;margin-bottom:6px;">♟️</div>
+            <div style="font-family:'Oxanium',sans-serif;font-weight:900;color:var(--gold);font-size:16px;">CHESS TIMER CHALLENGE</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:4px;">AI se chess khelo — samay ke saath jeeto!</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:14px;padding:12px;margin-bottom:10px;font-size:10px;color:var(--text2);">
+            ♟️ AI se chess khelo (simplified)<br>
+            ⏱️ Jitna zyada time bachao = zyada reward<br>
+            💀 Time khatam = haar • Checkmate = bada inam!
+        </div>
+        <div style="margin-bottom:10px;">
+            <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:6px;">💰 Bet:</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="bet-chip" onclick="selChessBet(1,this)">₹1</button>
+                <button class="bet-chip" onclick="selChessBet(5,this)">₹5</button>
+                <button class="bet-chip" onclick="selChessBet(10,this)">₹10</button>
+                <button class="bet-chip" onclick="selChessBet(20,this)">₹20</button>
+                <button class="bet-chip" onclick="selChessBet(50,this)">₹50</button>
+            </div>
+        </div>
+        <div style="margin-bottom:10px;">
+            <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:6px;">⚡ Time:</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+                <button class="runner-mode-btn sel" onclick="selChessTime(60,this)">1 Min<br><span style="font-size:9px;color:var(--green);">Easy | 2x</span></button>
+                <button class="runner-mode-btn" onclick="selChessTime(30,this)">30s<br><span style="font-size:9px;color:var(--gold);">Hard | 4x</span></button>
+                <button class="runner-mode-btn" onclick="selChessTime(15,this)">15s<br><span style="font-size:9px;color:var(--red);">Extreme | 8x</span></button>
+            </div>
+        </div>
+        <button class="btn-gold" onclick="startChess()" style="width:100%;padding:13px;font-size:14px;">♟️ START (1 Pass + Bet)</button>
+    </div>
+    <div id="chessGame" style="display:none;padding:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <div id="chessPlayerTimer" style="font-family:'Oxanium',sans-serif;font-size:20px;font-weight:900;color:var(--green);background:rgba(25,216,158,.1);border-radius:8px;padding:4px 10px;">60s</div>
+            <div style="font-size:10px;color:var(--text2);" id="chessTurn">Your Turn</div>
+            <div id="chessAiTimer" style="font-family:'Oxanium',sans-serif;font-size:20px;font-weight:900;color:var(--red);background:rgba(255,78,106,.1);border-radius:8px;padding:4px 10px;">60s</div>
+        </div>
+        <canvas id="chessCanvas" style="width:100%;border-radius:10px;display:block;cursor:pointer;" onclick="chessClick(event)"></canvas>
+        <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--text2);">
+            <div>♟️ You: White</div>
+            <div id="chessMoveCount">Moves: 0</div>
+            <div>🤖 AI: Black</div>
+        </div>
+    </div>
+    <div id="chessResult" style="display:none;padding:20px;text-align:center;">
+        <div id="chessResultEmoji" style="font-size:60px;margin-bottom:10px;">♟️</div>
+        <div id="chessResultTitle" style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--gold);margin-bottom:6px;"></div>
+        <div id="chessResultSub" style="font-size:12px;color:var(--text2);margin-bottom:14px;"></div>
+        <div style="background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:14px;">
+            <div id="chessResultReward" style="font-family:'Oxanium',sans-serif;font-size:32px;font-weight:900;color:var(--gold);"></div>
+        </div>
+        <button class="btn-purple" onclick="resetChess()" style="width:100%;margin-bottom:8px;">🔄 Again</button>
+        <button onclick="exitChess()" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:11px;font-weight:800;cursor:pointer;">← Back</button>
+    </div>
+</div>
+
 <!-- ADMIN SUPPORT -->
 <div class="modal" id="adminSupportModal">
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('adminSupport')">←</div><div class="modal-title">🛡️ Support Msgs</div></div>
@@ -1502,17 +1800,24 @@ async function loadMissions(){
     const d=await apiGet(`/api/user/${userData.user_id}/missions`);
     const today=new Date().toISOString().split('T')[0];
 
-    // Load claimed states from sessionStorage (survives modal close/open but not full refresh)
+    // Load claimed states from sessionStorage (date-keyed — auto resets each day)
     let sessionClaimed={};
     try{
         const sc=sessionStorage.getItem(`ez_claimed_${userData.user_id}_${today}`);
         if(sc)sessionClaimed=JSON.parse(sc);
+        // Clean old day keys
+        for(let k of Object.keys(sessionStorage)){
+            if(k.startsWith(`ez_claimed_${userData.user_id}_`)&&!k.endsWith(today)){
+                sessionStorage.removeItem(k);
+            }
+        }
     }catch(e){}
 
     MISSIONS_DEF.forEach(m=>{
         const sv=d?d[m.id]:null;
-        // Priority: sessionStorage > local memory > server
+        // Priority: sessionStorage > local memory > server (server only if TODAY)
         const localClaimed=sessionClaimed[m.id]||missionStates[m.id]?.claimed||false;
+        // Server claimed only valid if server confirms today's date
         const serverClaimed=sv?.claimed||false;
         const finalClaimed=localClaimed||serverClaimed;
 
@@ -1677,7 +1982,8 @@ function updateWeeklyBonus(){
     const today=new Date();
     const todayStr=today.toISOString().split('T')[0];
     const dayOfWeek=today.getDay();
-    const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const shortMonths=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
     // Monday of this week
     const weekStart=new Date(today);
@@ -1686,24 +1992,32 @@ function updateWeeklyBonus(){
 
     let html='';
     let claimedThisWeek=0;
-    const weekDates=[];
 
     for(let i=0;i<7;i++){
         const d=new Date(weekStart);
         d.setDate(weekStart.getDate()+i);
         const dStr=d.toISOString().split('T')[0];
-        weekDates.push(dStr);
         const isFuture=d>today&&dStr!==todayStr;
         const isToday=dStr===todayStr;
+        // FIXED: today only counts as claimed if it's in claimedDates
         const claimed=claimedDates.includes(dStr);
         const isPast=!isFuture&&!isToday&&!claimed;
         if(claimed)claimedThisWeek++;
+
         let cls='future';
-        let label=days[i];
-        if(claimed){cls='done';label='✅';}
-        else if(isToday){cls='today';label='📌';}
-        else if(isPast){cls='missed';label='✗';}
-        html+=`<div class="week-day ${cls}">${label}</div>`;
+        let icon=dayNames[(d.getDay())];
+        if(claimed){cls='done';icon='✅';}
+        else if(isToday){cls='today';icon='📌';}
+        else if(isPast){cls='missed';icon='✗';}
+
+        // Date display: "Mon\n21"
+        const dateNum=d.getDate();
+        const mon=shortMonths[d.getMonth()];
+        html+=`<div class="week-day ${cls}" title="${dStr}">
+            <div style="font-size:8px;opacity:.7;">${dayNames[d.getDay()]}</div>
+            <div style="font-size:11px;font-weight:900;">${icon}</div>
+            <div style="font-size:8px;opacity:.7;">${dateNum} ${mon}</div>
+        </div>`;
     }
     el.innerHTML=html;
 
@@ -1789,29 +2103,179 @@ async function claimMilestone(refs,reward){
 // BADGE SYSTEM — based on active_refs
 // ============================================================
 const BADGES=[
-    {name:'🥉 Starter',    req:0,    desc:'EarnZone ki pehli kadam. Swagat hai!',
+    {name:'🥉 Starter',    req:0,    passes:2,  coins:0,    balance:0,
+     desc:'Swagat hai! Shuru karo apni earning journey.',
+     reward_txt:'2 Free Passes milenge!',
      img:'https://i.postimg.cc/prJbHJvn/4946de51-23b6-473f-8192-764e1ca09041.jpg'},
-    {name:'🥈 Rising',     req:10,   desc:'10+ active referrals! Ab journey shuru ho gayi.',
+    {name:'🥈 Rising',     req:10,   passes:5,  coins:0,    balance:1.0,
+     desc:'10 refs! Ab tum ek badhte hue earner ho.',
+     reward_txt:'5 Passes + ₹1 milega!',
      img:'https://i.postimg.cc/pT8M0t1B/42b20bcb-7996-4ab4-b925-ac8cd4164312.jpg'},
-    {name:'🥇 Pro',        req:50,   desc:'50+ refs! Tum ek serious earner ho.',
+    {name:'🥇 Pro',        req:50,   passes:10, coins:0,    balance:3.0,
+     desc:'50 refs! Tum serious earner ban gaye.',
+     reward_txt:'10 Passes + ₹3 milega!',
      img:'https://i.postimg.cc/Bvj0KFTR/26ec7226-a6d2-4bd9-acce-adc32b3fae61.jpg'},
-    {name:'💎 Elite',      req:100,  desc:'100+ refs! Elite circle mein welcome!',
+    {name:'💎 Elite',      req:100,  passes:20, coins:0,    balance:10.0,
+     desc:'100 refs! Elite circle mein welcome!',
+     reward_txt:'20 Passes + ₹10 milega!',
      img:'https://i.postimg.cc/MpKxzNvf/fbfcb89d-2e8f-4d33-93f7-40073ca1e608.jpg'},
-    {name:'👑 Champion',   req:500,  desc:'500+ refs! Tum EarnZone ke champion ho!',
+    {name:'👑 Champion',   req:500,  passes:50, coins:0,    balance:50.0,
+     desc:'500 refs! Tum EarnZone ke champion ho!',
+     reward_txt:'50 Passes + ₹50 milega!',
      img:'https://i.postimg.cc/wTzgG7zX/e820347b-40d8-412d-95cc-0c7ca35c4cb9.jpg'},
-    {name:'🔥 Legend',     req:1000, desc:'1000+ refs! Tera naam EarnZone history mein!',
+    {name:'🔥 Legend',     req:1000, passes:100,coins:0,    balance:100.0,
+     desc:'1000 refs! Tera naam EarnZone history mein darz!',
+     reward_txt:'100 Passes + ₹100 milega!',
      img:'https://i.postimg.cc/VsnzgX3x/4c0d9789-6fd6-40f8-a9df-e8e840dce66b.jpg'},
-    {name:'⚡ Master',     req:1500, desc:'1500+ refs! Mastery ka alag hi level!',
+    {name:'⚡ Master',     req:1500, passes:150,coins:0,    balance:200.0,
+     desc:'1500 refs! Mastery ka alag hi level!',
+     reward_txt:'150 Passes + ₹200 milega!',
      img:'https://i.postimg.cc/Gtwdrpyr/c2ade26d-3347-49bb-a8d9-82a76f43f867.jpg'},
-    {name:'🖤 GrandMaster',req:2000, desc:'2000+ refs! GrandMaster — sirf kuch hi hain!',
+    {name:'🖤 GrandMaster',req:2000, passes:200,coins:0,    balance:300.0,
+     desc:'2000 refs! GrandMaster — sirf gine chune hain!',
+     reward_txt:'200 Passes + ₹300 milega!',
      img:'https://i.postimg.cc/wvsgSN37/f846a6d0-069f-45b3-91ce-0bfe4a946cb8.jpg'},
-    {name:'🌈 Mythic',     req:5000, desc:'5000+ refs! Mythic level — ek alag duniya!',
+    {name:'🌈 Mythic',     req:5000, passes:500,coins:0,    balance:1000.0,
+     desc:'5000 refs! Mythic level — ek alag duniya!',
+     reward_txt:'500 Passes + ₹1000 milega!',
      img:'https://i.postimg.cc/XYQjF3Ty/46ab69f4-1be9-4a0c-8ee6-68af4835b755.jpg'},
-    {name:'✨ God Tier',   req:10000,desc:'10000+ refs! GOD TIER — Tum EarnZone ke bhagwan ho!',
+    {name:'✨ God Tier',   req:10000,passes:1000,coins:0,   balance:5000.0,
+     desc:'10000 refs! GOD TIER — Tum EarnZone ke bhagwan ho!',
+     reward_txt:'1000 Passes + ₹5000 milega!',
      img:'https://i.postimg.cc/66vpPkv6/c00ea6a7-6f2e-4726-b6b7-4167f8497c42.jpg'},
 ];
 
 let prevBadgeIdx=0; // track for unlock animation
+
+// ============================================================
+// BADGE CLAIM SYSTEM
+// ============================================================
+let claimingBadgeIdx=null;
+const CLAIMED_BADGES_KEY=()=>`ez_badges_${userData.user_id||0}`;
+
+function getClaimedBadges(){
+    try{
+        const s=localStorage.getItem(CLAIMED_BADGES_KEY());
+        return s?JSON.parse(s):[];
+    }catch(e){return[];}
+}
+
+function saveBadgeClaimed(idx){
+    try{
+        const arr=getClaimedBadges();
+        if(!arr.includes(idx))arr.push(idx);
+        localStorage.setItem(CLAIMED_BADGES_KEY(),JSON.stringify(arr));
+    }catch(e){}
+}
+
+function openBadgeClaim(idx){
+    const b=BADGES[idx];
+    const claimed=getClaimedBadges();
+    const refs=userData.active_refs||0;
+    const unlocked=refs>=b.req;
+    if(!unlocked){showToast('🔒 Pehle '+b.req+' active refs karo!');return;}
+
+    claimingBadgeIdx=idx;
+    document.getElementById('claimBadgeImg').src=b.img;
+    document.getElementById('claimBadgeName').textContent=b.name;
+    document.getElementById('claimBadgeDesc').textContent=b.desc;
+
+    const pTxt=b.passes>0?'🎟️ '+b.passes+' Passes':'';
+    const bTxt=b.balance>0?'💰 ₹'+b.balance+' Balance':'';
+    document.getElementById('claimBadgeRewardPasses').textContent=pTxt;
+    document.getElementById('claimBadgeRewardBalance').textContent=bTxt;
+
+    const alreadyClaimed=claimed.includes(idx);
+    document.getElementById('claimBadgeBtn').style.display=alreadyClaimed?'none':'block';
+    document.getElementById('claimBadgeAlready').style.display=alreadyClaimed?'block':'none';
+
+    openModal('badgeClaim');
+    playSound('tap');
+}
+
+async function doClaimBadge(){
+    if(claimingBadgeIdx===null)return;
+    const idx=claimingBadgeIdx;
+    const b=BADGES[idx];
+    const claimed=getClaimedBadges();
+    if(claimed.includes(idx)){showToast('✅ Already claimed!');return;}
+
+    const r=await apiPost('/api/claim-badge',{user_id:userData.user_id,badge_idx:idx});
+    if(r&&r.success){
+        saveBadgeClaimed(idx);
+        if(b.passes>0){userData.passes=(userData.passes||0)+b.passes;}
+        if(b.balance>0){
+            userData.balance=(userData.balance||0)+b.balance;
+            userData.today_earned=(userData.today_earned||0)+b.balance;
+        }
+        updateUI();
+        document.getElementById('claimBadgeBtn').style.display='none';
+        document.getElementById('claimBadgeAlready').style.display='block';
+        document.getElementById('claimBadgeAlready').innerHTML='🎉 Claimed! +'+b.passes+' Passes'+(b.balance>0?' +₹'+b.balance:'');
+        playSound('jackpot');
+        showToast('🎉 Badge Reward! +'+b.passes+' Passes'+(b.balance>0?' +₹'+b.balance:''));
+    }else{
+        showToast('❌ '+(r?.message||'Error'));
+    }
+}
+
+// ============================================================
+// BUY PASSES STORE
+// ============================================================
+const PASS_PACKAGES=[
+    {id:1, passes:15, price:50,  label:'Starter Pack'},
+    {id:2, passes:30, price:100, label:'Value Pack'},
+    {id:3, passes:60, price:200, label:'Mega Pack'},
+];
+let selectedPkgId=2;
+let screenshotBase64=null;
+
+function selectPackage(id,el){
+    selectedPkgId=id;
+    document.querySelectorAll('.pass-pkg').forEach(p=>p.classList.remove('sel'));
+    el.classList.add('sel');
+    playSound('tap');
+}
+
+function handleScreenshot(input){
+    const file=input.files[0];
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+        screenshotBase64=e.target.result;
+        document.getElementById('screenshotName').textContent=file.name;
+        document.getElementById('screenshotName').style.color='var(--green)';
+    };
+    reader.readAsDataURL(file);
+}
+
+async function submitPassPurchase(){
+    const txnId=document.getElementById('txnIdInput').value.trim();
+    if(!txnId){showToast('❌ Transaction ID daalo!');return;}
+
+    const pkg=PASS_PACKAGES.find(p=>p.id===selectedPkgId);
+    if(!pkg){showToast('❌ Package chuno!');return;}
+
+    const r=await apiPost('/api/request-passes',{
+        user_id:userData.user_id,
+        pkg_id:selectedPkgId,
+        passes:pkg.passes,
+        price:pkg.price,
+        txn_id:txnId,
+        screenshot:screenshotBase64||null
+    });
+
+    if(r&&r.success){
+        showToast('✅ Request bhej di! 5-30 min mein passes add honge.');
+        closeModal('buyPasses');
+        document.getElementById('txnIdInput').value='';
+        screenshotBase64=null;
+        document.getElementById('screenshotName').textContent='No file selected';
+        playSound('earn');
+    }else{
+        showToast('❌ '+(r?.message||'Error'));
+    }
+}
 
 function getBadgeIndex(activeRefs){
     let idx=0;
@@ -1869,13 +2333,19 @@ function updateBadgeUI(){
     // Badge grid
     const grid=document.getElementById('badgeGrid');
     if(grid){
+        const claimedBadges=getClaimedBadges();
         grid.innerHTML=BADGES.map((b,i)=>{
             const unlocked=refs>=b.req;
             const isCurrent=i===idx;
+            const isClaimed=claimedBadges.includes(i);
             const cls=isCurrent?'current':unlocked?'unlocked':'locked';
-            return`<div class="badge-slot ${cls}" onclick="showBadgeInfo(${i})">
+            const claimDot=unlocked&&!isClaimed?'<div style="position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:var(--red);border-radius:50%;border:2px solid var(--bg3);"></div>':'';
+            const claimedMark=isClaimed?'<div style="position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;border:1px solid var(--bg3);">✓</div>':'';
+            return`<div class="badge-slot ${cls}" onclick="openBadgeClaim(${i})" style="position:relative;">
+                ${claimDot}${claimedMark}
                 <img src="${b.img}" alt="${b.name}">
-                <div class="badge-slot-lbl">${b.req>=1000?(b.req/1000)+'k':b.req}</div>
+                <div class="badge-slot-lbl">${b.req>=1000?(b.req/1000)+'k':b.req||'Free'}</div>
+                ${unlocked&&!isClaimed?`<div style="font-size:7px;color:var(--gold);font-weight:800;margin-top:1px;">CLAIM!</div>`:''}
             </div>`;
         }).join('');
     }
@@ -2997,6 +3467,9 @@ function openGame(g){
     else if(g==='color'){resetColorUI();openModal('color');}
     else if(g==='crash'){resetCrashUI();renderCrashHistory();openModal('crash');}
     else if(g==='runner'){openRunnerGame();}
+    else if(g==='maze'){openMazeGame();}
+    else if(g==='snake'){openSnakeGame();}
+    else if(g==='chess'){openChessGame();}
 }
 
 // ============================================================
@@ -3461,6 +3934,419 @@ function resetRunnerGame(){
     document.getElementById('runnerResult').style.display='none';
     document.getElementById('runnerPassCount').textContent=userData.passes||0;
 }
+
+// ============================================================
+// 🗺️ MAZE ESCAPE GAME
+// ============================================================
+let mazeBet=1,mazeDiff='easy',mazeTimer=0,mazeInterval=null;
+let mazeGrid=[],mazePlayer={x:1,y:1},mazeGoal={x:0,y:0};
+let mazeMoveCount=0,mazeEarned=0,mazeActive=false;
+const MAZE_DIFFS={easy:{time:60,mult:3,size:11},medium:{time:40,mult:5,size:13},hard:{time:25,mult:8,size:15}};
+
+function openMazeGame(){document.getElementById('mazeBal').textContent='₹'+(userData.balance||0).toFixed(2);document.getElementById('mazeSetup').style.display='block';document.getElementById('mazeGame').style.display='none';document.getElementById('mazeResult').style.display='none';openModal('maze');}
+function selMazeBet(a,el){if(a>userData.balance){showToast('❌ Balance kam!');return;}mazeBet=a;document.querySelectorAll('#mazeModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+function selMazeDiff(d,el){mazeDiff=d;document.querySelectorAll('#mazeModal .runner-mode-btn').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+
+function generateMaze(size){
+    const g=Array.from({length:size},()=>Array(size).fill(1));
+    function carve(x,y){
+        const dirs=[[0,-2],[0,2],[-2,0],[2,0]].sort(()=>Math.random()-.5);
+        for(const[dx,dy]of dirs){
+            const nx=x+dx,ny=y+dy;
+            if(nx>0&&nx<size-1&&ny>0&&ny<size-1&&g[ny][nx]===1){
+                g[y+dy/2][x+dx/2]=0;g[ny][nx]=0;carve(nx,ny);
+            }
+        }
+    }
+    g[1][1]=0;carve(1,1);
+    return g;
+}
+
+async function startMaze(){
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
+    if(userData.balance<mazeBet){showToast('❌ Balance kam!');return;}
+    const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'maze',bet:mazeBet});
+    if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
+    userData.passes=Math.max(0,(userData.passes||1)-1);
+    userData.balance=Math.max(0,userData.balance-mazeBet);
+    updateUI();
+
+    const cfg=MAZE_DIFFS[mazeDiff];
+    mazeGrid=generateMaze(cfg.size);
+    mazePlayer={x:1,y:1};
+    mazeGoal={x:cfg.size-2,y:cfg.size-2};
+    mazeGrid[mazeGoal.y][mazeGoal.x]=0;
+    mazeTimer=cfg.time;mazeMoveCount=0;mazeEarned=0;mazeActive=true;
+
+    document.getElementById('mazeSetup').style.display='none';
+    document.getElementById('mazeGame').style.display='block';
+    document.getElementById('mazeResult').style.display='none';
+
+    drawMaze();
+    mazeInterval=setInterval(()=>{
+        mazeTimer--;
+        const earned=parseFloat((Math.floor((cfg.time-mazeTimer)/5)*mazeBet*0.2).toFixed(2));
+        mazeEarned=earned;
+        document.getElementById('mazeTimer').textContent='⏱️ '+(Math.floor(mazeTimer/60)+':'+String(mazeTimer%60).padStart(2,'0'));
+        document.getElementById('mazeEarning').textContent='₹'+earned.toFixed(2);
+        document.getElementById('mazeMoves').textContent='Moves: '+mazeMoveCount;
+        if(mazeTimer<=0){mazeActive=false;clearInterval(mazeInterval);finishMaze(false);}
+    },1000);
+    playSound('tap');
+    // Keyboard
+    document.onkeydown=e=>{
+        const map={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};
+        if(map[e.code])mazeMove(map[e.code]);
+    };
+}
+
+function drawMaze(){
+    const canvas=document.getElementById('mazeCanvas');
+    const size=MAZE_DIFFS[mazeDiff].size;
+    const W=canvas.parentElement.offsetWidth-20||320;
+    canvas.width=W;canvas.height=W;
+    const cell=W/size;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#0a1628';ctx.fillRect(0,0,W,W);
+    for(let y=0;y<size;y++){
+        for(let x=0;x<size;x++){
+            if(mazeGrid[y][x]===1){
+                ctx.fillStyle='#1a3a5a';
+                ctx.fillRect(x*cell,y*cell,cell,cell);
+            }
+        }
+    }
+    // Goal flag
+    ctx.font=(cell*0.8)+'px serif';ctx.textAlign='center';
+    ctx.fillText('🚩',mazeGoal.x*cell+cell/2,mazeGoal.y*cell+cell*0.85);
+    // Player
+    ctx.fillText('🏃',mazePlayer.x*cell+cell/2,mazePlayer.y*cell+cell*0.85);
+}
+
+function mazeMove(dir){
+    if(!mazeActive)return;
+    let{x,y}=mazePlayer;
+    if(dir==='up')y--;else if(dir==='down')y++;else if(dir==='left')x--;else x++;
+    const size=MAZE_DIFFS[mazeDiff].size;
+    if(x<0||y<0||x>=size||y>=size||mazeGrid[y][x]===1)return;
+    mazePlayer={x,y};mazeMoveCount++;
+    drawMaze();
+    if(x===mazeGoal.x&&y===mazeGoal.y){
+        mazeActive=false;clearInterval(mazeInterval);finishMaze(true);
+    }
+    playSound('tap');
+}
+
+async function finishMaze(won){
+    clearInterval(mazeInterval);mazeActive=false;document.onkeydown=null;
+    const cfg=MAZE_DIFFS[mazeDiff];
+    let reward=0;
+    if(won){
+        const timeBonus=mazeTimer/cfg.time;
+        reward=parseFloat((mazeBet*cfg.mult*timeBonus).toFixed(2));
+    }else{
+        reward=mazeEarned;
+    }
+    if(reward>0){
+        const r=await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'maze',bet:mazeBet,survived_seconds:cfg.time-mazeTimer});
+        if(r?.reward)reward=r.reward;
+        userData.balance=(userData.balance||0)+reward;
+        userData.today_earned=(userData.today_earned||0)+reward;
+        gameState.today_game_earned=(gameState.today_game_earned||0)+reward;
+        updateUI();
+    }
+    document.getElementById('mazeGame').style.display='none';
+    document.getElementById('mazeResult').style.display='block';
+    document.getElementById('mazeResultEmoji').textContent=won?'🏆':'😵';
+    document.getElementById('mazeResultTitle').textContent=won?'NIKAL GAYE! 🎉':'Time Out!';
+    document.getElementById('mazeResultSub').textContent=won?`${mazeMoveCount} moves mein!`:`${cfg.time-mazeTimer}s survive kiya`;
+    document.getElementById('mazeResultReward').textContent='+₹'+reward.toFixed(2);
+    playSound(won?'jackpot':'lose');
+}
+function resetMaze(){document.getElementById('mazeSetup').style.display='block';document.getElementById('mazeGame').style.display='none';document.getElementById('mazeResult').style.display='none';}
+function exitMaze(){if(mazeInterval)clearInterval(mazeInterval);mazeActive=false;document.onkeydown=null;closeModal('maze');}
+
+// ============================================================
+// 🐍 SNAKE GAME
+// ============================================================
+let snakeBet=1,snakeActive=false,snakeTimer=60,snakeInterval=null;
+let snake=[],snakeDir_v={x:1,y:0},snakeNextDir={x:1,y:0};
+let snakeFood={x:5,y:5},snakeScore_v=0,snakeCellSize=20;
+const SNAKE_GRID=15;
+
+function openSnakeGame(){document.getElementById('snakeBal').textContent='₹'+(userData.balance||0).toFixed(2);document.getElementById('snakeSetup').style.display='block';document.getElementById('snakeGame').style.display='none';document.getElementById('snakeResult').style.display='none';openModal('snake');}
+function selSnakeBet(a,el){if(a>userData.balance){showToast('❌ Balance kam!');return;}snakeBet=a;document.querySelectorAll('#snakeModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+function snakeDir(d){const map={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}};const nd=map[d];if(nd.x===-snakeDir_v.x&&nd.y===-snakeDir_v.y)return;snakeNextDir=nd;}
+
+function placeSnakeFood(){
+    let f;do{f={x:Math.floor(Math.random()*SNAKE_GRID),y:Math.floor(Math.random()*SNAKE_GRID)};}
+    while(snake.some(s=>s.x===f.x&&s.y===f.y));
+    snakeFood=f;
+}
+
+async function startSnake(){
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
+    if(userData.balance<snakeBet){showToast('❌ Balance kam!');return;}
+    const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'snake',bet:snakeBet});
+    if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
+    userData.passes=Math.max(0,(userData.passes||1)-1);
+    userData.balance=Math.max(0,userData.balance-snakeBet);
+    updateUI();
+
+    snake=[{x:7,y:7},{x:6,y:7},{x:5,y:7}];
+    snakeDir_v={x:1,y:0};snakeNextDir={x:1,y:0};
+    snakeScore_v=0;snakeTimer=60;snakeActive=true;
+    placeSnakeFood();
+
+    const canvas=document.getElementById('snakeCanvas');
+    const W=canvas.parentElement.offsetWidth-16||320;
+    canvas.width=W;canvas.height=W;
+    snakeCellSize=Math.floor(W/SNAKE_GRID);
+
+    document.getElementById('snakeSetup').style.display='none';
+    document.getElementById('snakeGame').style.display='block';
+    document.getElementById('snakeResult').style.display='none';
+
+    document.onkeydown=e=>{
+        const map={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};
+        if(map[e.code])snakeDir(map[e.code]);
+    };
+
+    snakeInterval=setInterval(()=>{
+        if(!snakeActive)return;
+        // Timer
+        snakeTimer--;
+        document.getElementById('snakeTimer').textContent=snakeTimer+'s';
+        const earned=parseFloat((snakeScore_v*snakeBet*0.10).toFixed(2));
+        document.getElementById('snakeEarning').textContent='₹'+earned.toFixed(2);
+        document.getElementById('snakeScore').textContent='Score: '+snakeScore_v;
+        if(snakeTimer<=0){snakeActive=false;clearInterval(snakeInterval);finishSnake();}
+        // Move snake
+        snakeDir_v=snakeNextDir;
+        const head={x:snake[0].x+snakeDir_v.x,y:snake[0].y+snakeDir_v.y};
+        // Wall collision
+        if(head.x<0||head.x>=SNAKE_GRID||head.y<0||head.y>=SNAKE_GRID){snakeActive=false;clearInterval(snakeInterval);finishSnake();return;}
+        // Self collision
+        if(snake.some(s=>s.x===head.x&&s.y===head.y)){snakeActive=false;clearInterval(snakeInterval);finishSnake();return;}
+        snake.unshift(head);
+        if(head.x===snakeFood.x&&head.y===snakeFood.y){
+            snakeScore_v++;placeSnakeFood();playSound('tap');
+        }else{snake.pop();}
+        drawSnake();
+    },200);
+}
+
+function drawSnake(){
+    const canvas=document.getElementById('snakeCanvas');
+    const ctx=canvas.getContext('2d');
+    const cs=snakeCellSize;
+    ctx.fillStyle='#0a1a0a';ctx.fillRect(0,0,canvas.width,canvas.height);
+    // Grid
+    ctx.strokeStyle='rgba(25,216,158,.08)';ctx.lineWidth=0.5;
+    for(let i=0;i<SNAKE_GRID;i++){
+        ctx.beginPath();ctx.moveTo(i*cs,0);ctx.lineTo(i*cs,canvas.height);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(0,i*cs);ctx.lineTo(canvas.width,i*cs);ctx.stroke();
+    }
+    // Snake
+    snake.forEach((s,i)=>{
+        ctx.fillStyle=i===0?'#19d89e':'rgba(25,216,158,0.7)';
+        ctx.beginPath();
+        ctx.roundRect(s.x*cs+1,s.y*cs+1,cs-2,cs-2,i===0?5:2);
+        ctx.fill();
+        if(i===0){ctx.fillStyle='#000';ctx.fillRect(s.x*cs+cs*0.6,s.y*cs+cs*0.25,2,2);ctx.fillRect(s.x*cs+cs*0.6,s.y*cs+cs*0.55,2,2);}
+    });
+    // Food
+    ctx.font=(cs*0.9)+'px serif';ctx.textAlign='center';
+    ctx.fillText('🍎',snakeFood.x*cs+cs/2,snakeFood.y*cs+cs*0.9);
+}
+
+async function finishSnake(){
+    clearInterval(snakeInterval);snakeActive=false;document.onkeydown=null;
+    const earned=parseFloat((snakeScore_v*snakeBet*0.10).toFixed(2));
+    if(earned>0){
+        await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'snake',bet:snakeBet,survived_seconds:snakeScore_v});
+        userData.balance=(userData.balance||0)+earned;
+        userData.today_earned=(userData.today_earned||0)+earned;
+        gameState.today_game_earned=(gameState.today_game_earned||0)+earned;
+        updateUI();
+    }
+    document.getElementById('snakeGame').style.display='none';
+    document.getElementById('snakeResult').style.display='block';
+    document.getElementById('snakeResultEmoji').textContent=snakeScore_v>=10?'🏆':'🐍';
+    document.getElementById('snakeResultTitle').textContent=snakeScore_v>=10?'Snake Master!':snakeScore_v>0?'Not bad!':'Oops!';
+    document.getElementById('snakeFinalScore').textContent=snakeScore_v;
+    document.getElementById('snakeResultReward').textContent='+₹'+earned.toFixed(2);
+    playSound(snakeScore_v>0?'earn':'lose');
+}
+function resetSnake(){document.getElementById('snakeSetup').style.display='block';document.getElementById('snakeGame').style.display='none';document.getElementById('snakeResult').style.display='none';}
+function exitSnake(){if(snakeInterval)clearInterval(snakeInterval);snakeActive=false;document.onkeydown=null;closeModal('snake');}
+
+// ============================================================
+// ♟️ CHESS TIMER GAME (Simplified board, AI)
+// ============================================================
+let chessBet=1,chessTimeLeft=60,chessAiTime=60,chessMult=2;
+let chessBoard=[],chessSelected=null,chessTurn_v='white',chessActive=false;
+let chessInterval=null,chessPlayerElapsed=0,chessMoveCount=0;
+// 0=empty,1=wP,2=wR,3=wN,4=wB,5=wQ,6=wK,7=bP,8=bR,9=bN,10=bB,11=bQ,12=bK
+const CHESS_INIT=[
+    [8,9,10,11,12,10,9,8],[7,7,7,7,7,7,7,7],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1],[2,3,4,5,6,4,3,2]
+];
+const CHESS_EMOJI=['','♟','♜','♞','♝','♛','♚','♟','♜','♞','♝','♛','♚'];
+const CHESS_COLOR=['','#fff','#fff','#fff','#fff','#fff','#fff','#888','#888','#888','#888','#888','#888'];
+
+function openChessGame(){document.getElementById('chessBal').textContent='₹'+(userData.balance||0).toFixed(2);document.getElementById('chessSetup').style.display='block';document.getElementById('chessGame').style.display='none';document.getElementById('chessResult').style.display='none';openModal('chess');}
+function selChessBet(a,el){if(a>userData.balance){showToast('❌ Balance kam!');return;}chessBet=a;document.querySelectorAll('#chessModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+function selChessTime(t,el){chessTimeLeft=t;chessAiTime=t;const mults={60:2,30:4,15:8};chessMult=mults[t]||2;document.querySelectorAll('#chessModal .runner-mode-btn').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+
+async function startChess(){
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
+    if(userData.balance<chessBet){showToast('❌ Balance kam!');return;}
+    const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'chess',bet:chessBet});
+    if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
+    userData.passes=Math.max(0,(userData.passes||1)-1);
+    userData.balance=Math.max(0,userData.balance-chessBet);
+    updateUI();
+
+    chessBoard=CHESS_INIT.map(row=>[...row]);
+    chessSelected=null;chessTurn_v='white';chessActive=true;chessMoveCount=0;chessPlayerElapsed=0;
+
+    document.getElementById('chessSetup').style.display='none';
+    document.getElementById('chessGame').style.display='block';
+    document.getElementById('chessResult').style.display='none';
+
+    const canvas=document.getElementById('chessCanvas');
+    const W=canvas.parentElement.offsetWidth-16||320;
+    canvas.width=W;canvas.height=W;
+
+    drawChess();
+    chessInterval=setInterval(()=>{
+        if(!chessActive)return;
+        if(chessTurn_v==='white'){
+            chessPlayerElapsed++;
+            chessTimeLeft--;
+            document.getElementById('chessPlayerTimer').textContent=chessTimeLeft+'s';
+            if(chessTimeLeft<=0){chessActive=false;clearInterval(chessInterval);finishChess('timeout');}
+        }
+        document.getElementById('chessMoveCount').textContent='Moves: '+chessMoveCount;
+    },1000);
+}
+
+function drawChess(){
+    const canvas=document.getElementById('chessCanvas');
+    const ctx=canvas.getContext('2d');
+    const W=canvas.width,cs=W/8;
+    for(let r=0;r<8;r++){
+        for(let c=0;c<8;c++){
+            ctx.fillStyle=(r+c)%2===0?'#f0d9b5':'#b58863';
+            ctx.fillRect(c*cs,r*cs,cs,cs);
+            if(chessSelected&&chessSelected.r===r&&chessSelected.c===c){
+                ctx.fillStyle='rgba(255,255,0,0.4)';ctx.fillRect(c*cs,r*cs,cs,cs);
+            }
+            const p=chessBoard[r][c];
+            if(p!==0){
+                ctx.font=(cs*0.72)+'px serif';ctx.textAlign='center';
+                ctx.fillStyle=CHESS_COLOR[p];
+                ctx.strokeStyle=p<=6?'#000':'#fff';ctx.lineWidth=0.5;
+                ctx.strokeText(CHESS_EMOJI[p],c*cs+cs/2,r*cs+cs*0.78);
+                ctx.fillText(CHESS_EMOJI[p],c*cs+cs/2,r*cs+cs*0.78);
+            }
+        }
+    }
+}
+
+function chessClick(evt){
+    if(!chessActive||chessTurn_v!=='white')return;
+    const canvas=document.getElementById('chessCanvas');
+    const rect=canvas.getBoundingClientRect();
+    const cs=canvas.width/8;
+    const c=Math.floor((evt.clientX-rect.left)*(canvas.width/rect.width)/cs);
+    const r=Math.floor((evt.clientY-rect.top)*(canvas.height/rect.height)/cs);
+    if(r<0||r>7||c<0||c>7)return;
+
+    const p=chessBoard[r][c];
+    if(chessSelected){
+        const sp=chessBoard[chessSelected.r][chessSelected.c];
+        // Simple move validation: can't capture own pieces
+        if(p>0&&p<=6){chessSelected={r,c};drawChess();return;}
+        // Make move
+        chessBoard[r][c]=sp;chessBoard[chessSelected.r][chessSelected.c]=0;
+        chessMoveCount++;chessSelected=null;
+        drawChess();
+        // Check if black king captured (win!)
+        const bKing=chessBoard.flat().includes(12);
+        if(!bKing){chessActive=false;clearInterval(chessInterval);finishChess('checkmate');return;}
+        // AI move
+        chessTurn_v='black';
+        document.getElementById('chessTurn').textContent='🤖 AI Thinking...';
+        setTimeout(()=>{chessAiMove();chessTurn_v='white';document.getElementById('chessTurn').textContent='♟️ Your Turn';},600);
+        playSound('tap');
+    }else{
+        if(p>0&&p<=6){chessSelected={r,c};drawChess();playSound('click');}
+    }
+}
+
+function chessAiMove(){
+    // Simple AI: find all black pieces, make a random legal move
+    const moves=[];
+    for(let r=0;r<8;r++){
+        for(let c=0;c<8;c++){
+            const p=chessBoard[r][c];
+            if(p>=7&&p<=12){
+                // Simple: move to adjacent empty or white piece
+                const dirs=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+                for(const[dr,dc]of dirs){
+                    const nr=r+dr,nc=c+dc;
+                    if(nr>=0&&nr<8&&nc>=0&&nc<8){
+                        const tp=chessBoard[nr][nc];
+                        if(tp===0||(tp>=1&&tp<=6))moves.push({fr:r,fc:c,tr:nr,tc:nc,tp});
+                    }
+                }
+            }
+        }
+    }
+    if(moves.length===0)return;
+    const m=moves[Math.floor(Math.random()*moves.length)];
+    chessBoard[m.tr][m.tc]=chessBoard[m.fr][m.fc];
+    chessBoard[m.fr][m.fc]=0;
+    drawChess();
+    // Check if white king captured (lose)
+    if(!chessBoard.flat().includes(6)){chessActive=false;clearInterval(chessInterval);finishChess('lost');}
+}
+
+async function finishChess(reason){
+    clearInterval(chessInterval);chessActive=false;
+    let reward=0;
+    let title='',sub='',emoji='♟️';
+    if(reason==='checkmate'){
+        reward=parseFloat((chessBet*chessMult*1.5).toFixed(2));
+        title='CHECKMATE! 🏆';sub='AI ko haara diya!';emoji='🏆';
+    }else if(reason==='timeout'){
+        title='Time Out! ⏱️';sub='Zyada socha!';emoji='⏱️';
+    }else{
+        title='Haar Gaye!';sub='AI ne checkmate kar diya!';emoji='😔';
+    }
+    // Reward based on time left
+    if(reason!=='checkmate'&&chessTimeLeft>0&&chessMoveCount>0){
+        reward=parseFloat((chessBet*0.5*(chessTimeLeft/60)).toFixed(2));
+    }
+    if(reward>0){
+        await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'chess',bet:chessBet,survived_seconds:chessMoveCount});
+        userData.balance=(userData.balance||0)+reward;
+        userData.today_earned=(userData.today_earned||0)+reward;
+        gameState.today_game_earned=(gameState.today_game_earned||0)+reward;
+        updateUI();
+    }
+    document.getElementById('chessGame').style.display='none';
+    document.getElementById('chessResult').style.display='block';
+    document.getElementById('chessResultEmoji').textContent=emoji;
+    document.getElementById('chessResultTitle').textContent=title;
+    document.getElementById('chessResultSub').textContent=sub+' • '+chessMoveCount+' moves';
+    document.getElementById('chessResultReward').textContent='+₹'+reward.toFixed(2);
+    playSound(reason==='checkmate'?'jackpot':reason==='lost'?'lose':'earn');
+}
+function resetChess(){document.getElementById('chessSetup').style.display='block';document.getElementById('chessGame').style.display='none';document.getElementById('chessResult').style.display='none';}
+function exitChess(){if(chessInterval)clearInterval(chessInterval);chessActive=false;closeModal('chess');}
 
 function exitRunnerGame(){
     runnerGameActive=false;
