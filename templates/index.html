@@ -2946,9 +2946,7 @@ function updateRunnerPreview(){
     const preview=document.getElementById('runnerRewardPreview');
     const txt=document.getElementById('runnerRewardTxt');
     preview.style.display='block';
-    txt.innerHTML=`Bet: <b style="color:var(--gold);">₹${runnerBet}</b> • Time: <b>${runnerMode}</b><br>
-    Max earn: <b style="color:var(--green);">₹${maxEarn}</b> + bet back<br>
-    Per second: <b style="color:var(--purple2);">₹${m.r}</b>`;
+    txt.innerHTML='Bet: <b style="color:var(--gold);">₹'+runnerBet+'</b> • Time: <b>'+runnerMode+'</b><br>Max earn: <b style="color:var(--green);">₹'+maxEarn+'</b> + bet back<br>Per second: <b style="color:var(--purple2);">₹'+m.r+'</b>';
 }
 
 async function startRunnerGame(){
@@ -3529,4 +3527,4 @@ async function init(){
 document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
-                                                                                                         </html>
+    </html>
