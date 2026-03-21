@@ -40,6 +40,7 @@ class Database:
             self.system_stats = self.db['system_stats']
             self.issues = self.db['issues']
             self.live_activity = self.db['live_activity']
+            self.pass_requests = self.db['pass_requests']
             self.game_states = self.db['game_states']
 
             self._create_indexes()
@@ -574,6 +575,154 @@ class Database:
         except Exception as e:
             logger.error(f"Error deducting pass: {e}")
             return False
+
+    # ========== BADGE CLAIM ==========
+
+    BADGE_REWARDS = [
+        {'passes': 2,    'balance': 0},       # 0 Starter
+        {'passes': 5,    'balance': 1.0},     # 1 Rising
+        {'passes': 10,   'balance': 3.0},     # 2 Pro
+        {'passes': 20,   'balance': 10.0},    # 3 Elite
+        {'passes': 50,   'balance': 50.0},    # 4 Champion
+        {'passes': 100,  'balance': 100.0},   # 5 Legend
+        {'passes': 150,  'balance': 200.0},   # 6 Master
+        {'passes': 200,  'balance': 300.0},   # 7 GrandMaster
+        {'passes': 500,  'balance': 1000.0},  # 8 Mythic
+        {'passes': 1000, 'balance': 5000.0},  # 9 God Tier
+    ]
+
+    BADGE_REQ_REFS = [0, 10, 50, 100, 500, 1000, 1500, 2000, 5000, 10000]
+
+    def claim_badge(self, user_id, badge_idx):
+        try:
+            user_id = int(user_id)
+            badge_idx = int(badge_idx)
+
+            if badge_idx < 0 or badge_idx >= len(self.BADGE_REWARDS):
+                return {'success': False, 'message': 'Invalid badge'}
+
+            user = self.get_user(user_id)
+            if not user:
+                return {'success': False, 'message': 'User not found'}
+
+            # Check refs requirement
+            required_refs = self.BADGE_REQ_REFS[badge_idx]
+            if user.get('active_refs', 0) < required_refs:
+                return {'success': False, 'message': f'{required_refs} active refs chahiye'}
+
+            # Atomic claim — prevent double claim
+            field = f'badge_claimed_{badge_idx}'
+            result = self.users.find_one_and_update(
+                {'user_id': user_id, field: {'$ne': True}},
+                {'$set': {field: True}}
+            )
+            if not result:
+                return {'success': False, 'message': 'Badge already claimed!'}
+
+            reward = self.BADGE_REWARDS[badge_idx]
+            passes = reward['passes']
+            balance = reward['balance']
+
+            # Give rewards
+            if passes > 0:
+                self.add_passes(user_id, passes, f"Badge {badge_idx} reward")
+            if balance > 0:
+                self.add_balance(user_id, balance, f"Badge {badge_idx} reward")
+
+            badge_names = ['Starter','Rising','Pro','Elite','Champion','Legend','Master','GrandMaster','Mythic','God Tier']
+            bname = badge_names[badge_idx] if badge_idx < len(badge_names) else f'Badge {badge_idx}'
+            self.add_live_activity('badge', user_id, balance,
+                f"Badge claimed: {bname} → +{passes} passes" + (f" +₹{balance}" if balance > 0 else ""))
+
+            logger.info(f"✅ Badge claimed: user={user_id} badge={badge_idx} passes={passes} balance={balance}")
+            return {'success': True, 'passes': passes, 'balance': balance}
+
+        except Exception as e:
+            logger.error(f"Badge claim error: {e}")
+            return {'success': False, 'message': str(e)}
+
+    # ========== PASS PURCHASE ==========
+
+    def request_pass_purchase(self, user_id, pkg_id, passes, price, txn_id, screenshot=None):
+        try:
+            user_id = int(user_id)
+            now = datetime.now().isoformat()
+
+            # Check duplicate TXN ID
+            existing = self.pass_requests.find_one({'txn_id': txn_id})
+            if existing:
+                return {'success': False, 'message': 'Ye Transaction ID pehle se use ho chuki hai!'}
+
+            req = {
+                'user_id': user_id,
+                'pkg_id': pkg_id,
+                'passes': passes,
+                'price': price,
+                'txn_id': txn_id,
+                'screenshot': screenshot[:500] if screenshot else None,  # store thumbnail only
+                'status': 'pending',
+                'created_at': now,
+                'processed_at': None,
+                'processed_by': None
+            }
+            result = self.pass_requests.insert_one(req)
+            req_id = str(result.inserted_id)
+
+            # Notify in support messages too
+            user = self.get_user(user_id)
+            uname = user.get('first_name', 'User') if user else 'User'
+            self.add_support_message(user_id, f"PASS REQUEST: {passes} passes for ₹{price} | TXN: {txn_id}")
+
+            logger.info(f"✅ Pass request: user={user_id} pkg={pkg_id} passes={passes} txn={txn_id}")
+            return {'success': True, 'request_id': req_id, 'message': 'Request bhej di!'}
+
+        except Exception as e:
+            logger.error(f"Pass request error: {e}")
+            return {'success': False, 'message': str(e)}
+
+    def process_pass_request(self, request_id, action, admin_id):
+        try:
+            from bson import ObjectId
+            req = self.pass_requests.find_one({'_id': ObjectId(request_id)})
+            if not req:
+                return {'success': False, 'message': 'Request not found'}
+            if req.get('status') != 'pending':
+                return {'success': False, 'message': 'Already processed'}
+
+            now = datetime.now().isoformat()
+            user_id = req['user_id']
+            passes = req['passes']
+
+            if action == 'verify':
+                self.pass_requests.update_one(
+                    {'_id': ObjectId(request_id)},
+                    {'$set': {'status': 'verified', 'processed_at': now, 'processed_by': admin_id}}
+                )
+                self.add_passes(user_id, passes, f"Purchased {passes} passes ₹{req['price']}")
+                self.add_live_activity('bonus', user_id, 0, f"Purchased {passes} passes")
+                logger.info(f"✅ Passes verified: user={user_id} passes={passes}")
+                return {'success': True, 'user_id': user_id, 'passes': passes, 'action': 'verify'}
+            else:
+                self.pass_requests.update_one(
+                    {'_id': ObjectId(request_id)},
+                    {'$set': {'status': 'rejected', 'processed_at': now, 'processed_by': admin_id}}
+                )
+                logger.info(f"Pass request rejected: user={user_id}")
+                return {'success': True, 'user_id': user_id, 'passes': 0, 'action': 'reject'}
+
+        except Exception as e:
+            logger.error(f"Process pass request error: {e}")
+            return {'success': False, 'message': str(e)}
+
+    def get_pending_pass_requests(self, limit=20):
+        try:
+            reqs = list(self.pass_requests.find({'status': 'pending'}).sort('created_at', -1).limit(limit))
+            for r in reqs:
+                r['_id'] = str(r['_id'])
+            return reqs
+        except Exception as e:
+            logger.error(f"Get pass requests error: {e}")
+            return []
 
     # ========== REF ACTIVITY ==========
 
