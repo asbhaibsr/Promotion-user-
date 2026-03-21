@@ -513,6 +513,55 @@ class Database:
             logger.error(f"Error adding passes: {e}")
             return False
 
+    # ========== MILESTONE BONUSES ==========
+    MILESTONES = [
+        {'refs': 5,   'reward': 2.0},
+        {'refs': 10,  'reward': 5.0},
+        {'refs': 25,  'reward': 15.0},
+        {'refs': 50,  'reward': 40.0},
+        {'refs': 100, 'reward': 100.0},
+    ]
+
+    def claim_milestone(self, user_id, refs_required, reward):
+        try:
+            user_id = int(user_id)
+            refs_required = int(refs_required)
+            reward = float(reward)
+
+            # Validate milestone exists
+            valid = any(m['refs'] == refs_required for m in self.MILESTONES)
+            if not valid:
+                return {'success': False, 'message': 'Invalid milestone'}
+
+            user = self.get_user(user_id)
+            if not user:
+                return {'success': False, 'message': 'User not found'}
+
+            # Check refs requirement
+            if user.get('active_refs', 0) < refs_required:
+                return {'success': False, 'message': f'{refs_required} active refs chahiye'}
+
+            # Check not already claimed — atomic update
+            result = self.users.find_one_and_update(
+                {
+                    'user_id': user_id,
+                    'active_refs': {'$gte': refs_required},
+                    f'milestone_claimed_{refs_required}': {'$ne': True}
+                },
+                {'$set': {f'milestone_claimed_{refs_required}': True}}
+            )
+            if not result:
+                return {'success': False, 'message': 'Already claimed or not eligible'}
+
+            self.add_balance(user_id, reward, f"Milestone bonus: {refs_required} refs")
+            self.add_live_activity('milestone', user_id, reward, f"Milestone {refs_required} refs → +₹{reward}")
+            logger.info(f"✅ Milestone claimed: user={user_id} refs={refs_required} reward=₹{reward}")
+            return {'success': True, 'reward': reward}
+
+        except Exception as e:
+            logger.error(f"Milestone claim error: {e}")
+            return {'success': False, 'message': str(e)}
+
     def deduct_pass(self, user_id):
         try:
             user_id = int(user_id)
@@ -1534,6 +1583,91 @@ class Database:
             logger.error(f"Crash cashout error: {e}")
             return {'success': False, 'message': str(e)}
 
+    # ========== RUNNER GAME ==========
+
+    RUNNER_MODES = {
+        '10s':  {'seconds': 10,  'reward_per_sec': 0.005, 'label': '10 Seconds'},
+        '30s':  {'seconds': 30,  'reward_per_sec': 0.004, 'label': '30 Seconds'},
+        '1m':   {'seconds': 60,  'reward_per_sec': 0.003, 'label': '1 Minute'},
+        '5m':   {'seconds': 300, 'reward_per_sec': 0.002, 'label': '5 Minutes'},
+        '10m':  {'seconds': 600, 'reward_per_sec': 0.0015,'label': '10 Minutes'},
+    }
+
+    def runner_start(self, user_id, mode, bet):
+        """Start runner game — deduct pass + bet."""
+        try:
+            user_id = int(user_id)
+            bet = float(bet)
+            if mode not in self.RUNNER_MODES:
+                return {'success': False, 'message': 'Invalid mode'}
+            user = self.get_user(user_id)
+            if not user:
+                return {'success': False, 'message': 'User not found'}
+            if user.get('passes', 0) <= 0:
+                return {'success': False, 'message': 'Passes nahi hain!'}
+            if user.get('balance', 0) < bet:
+                return {'success': False, 'message': f'Balance kam hai! ₹{user.get("balance",0):.2f}'}
+            # Deduct pass + bet
+            if not self.deduct_pass(user_id):
+                return {'success': False, 'message': 'Pass deduct nahi hua'}
+            self.users.update_one({'user_id': user_id}, {'$inc': {'balance': -bet}})
+            self.add_transaction(user_id, 'game_bet', -bet, f"Runner game bet ₹{bet} ({mode})")
+            self.user_cache.pop(f"user_{user_id}", None)
+            mode_info = self.RUNNER_MODES[mode]
+            max_reward = round(bet + (mode_info['seconds'] * mode_info['reward_per_sec']), 2)
+            return {
+                'success': True,
+                'mode': mode,
+                'seconds': mode_info['seconds'],
+                'reward_per_sec': mode_info['reward_per_sec'],
+                'bet': bet,
+                'max_reward': max_reward
+            }
+        except Exception as e:
+            logger.error(f"Runner start error: {e}")
+            return {'success': False, 'message': str(e)}
+
+    def runner_finish(self, user_id, mode, bet, survived_seconds):
+        """Finish runner — credit reward based on survived time."""
+        try:
+            user_id = int(user_id)
+            bet = float(bet)
+            survived_seconds = int(survived_seconds)
+            if mode not in self.RUNNER_MODES:
+                return {'success': False, 'message': 'Invalid mode'}
+            mode_info = self.RUNNER_MODES[mode]
+            total_seconds = mode_info['seconds']
+            reward_per_sec = mode_info['reward_per_sec']
+            # Calculate reward: bet back + earnings per second survived
+            if survived_seconds <= 0:
+                return {'success': True, 'reward': 0, 'survived': 0, 'message': 'Game over! Kuch nahi mila.'}
+            survived_pct = survived_seconds / total_seconds
+            # Bet refund based on % survived
+            bet_back = round(bet * survived_pct, 2)
+            # Per second earning
+            earned = round(survived_seconds * reward_per_sec, 4)
+            total_reward = round(bet_back + earned, 2)
+            # Cap at max possible
+            max_reward = round(bet + (total_seconds * reward_per_sec), 2)
+            total_reward = min(total_reward, max_reward)
+            if total_reward > 0:
+                self.add_game_earning(user_id, total_reward, 'runner',
+                    f"Runner {mode} — {survived_seconds}s survived → +₹{total_reward}")
+                self.add_live_activity('runner', user_id, total_reward,
+                    f"Runner game {mode}: {survived_seconds}s survive kiya → +₹{total_reward}")
+            won = survived_seconds >= total_seconds
+            return {
+                'success': True,
+                'reward': total_reward,
+                'survived': survived_seconds,
+                'won': won,
+                'bet_back': bet_back,
+                'earned': earned
+            }
+        except Exception as e:
+            logger.error(f"Runner finish error: {e}")
+            return {'success': False, 'message': str(e)}
+
     # ========== SYSTEM & CLEANUP ==========
 
     def remove_blocked_users(self, user_ids, progress_callback=None):
@@ -1593,4 +1727,4 @@ class Database:
                 self.client.close()
             logger.info("Database connection closed")
         except Exception as e:
-            logger.error(f"Error closing database: {e}")
+            logger.error(f"Error closing database: {e}"
