@@ -1727,4 +1727,4 @@ class Database:
                 self.client.close()
             logger.info("Database connection closed")
         except Exception as e:
-            logger.error(f"Error closing database: {e}"
+            logger.error(f"Error closing database: {e}")
