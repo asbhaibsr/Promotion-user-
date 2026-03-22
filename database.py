@@ -1,4 +1,4 @@
-# ===== database.py (FULLY UPDATED) =====
+# ===== database.py (FULLY UPDATED - WITH ALL FIXES) =====
 
 import logging
 import random
@@ -62,7 +62,7 @@ class Database:
             self.users.create_index('balance')
             self.referrals.create_index([('referrer_id', ASCENDING), ('referred_id', ASCENDING)], unique=True)
             self.referrals.create_index('is_active')
-            self.referrals.create_index('activation_date')  # NEW: for month_active_refs query
+            self.referrals.create_index('activation_date')
             self.daily_searches.create_index([('user_id', ASCENDING), ('date', ASCENDING)], unique=True)
             self.search_logs.create_index([('user_id', ASCENDING), ('timestamp', DESCENDING)])
             self.search_logs.create_index('timestamp', expireAfterSeconds=2592000)
@@ -238,7 +238,6 @@ class Database:
             return False
 
     def delete_support_message(self, message_id):
-        """Delete a support message by ID."""
         try:
             from bson.objectid import ObjectId
             result = self.issues.delete_one({'_id': ObjectId(message_id)})
@@ -246,7 +245,6 @@ class Database:
         except Exception as e:
             logger.error(f"Error deleting support message: {e}")
             return False
-
 
     # ========== USER MANAGEMENT ==========
 
@@ -287,9 +285,7 @@ class Database:
                         'last_active': datetime.now().isoformat()
                     }}
                 )
-                # Check if someone is trying to refer an existing user
                 if referrer_id and referrer_id != user_id:
-                    # Find who originally referred this user
                     original_ref = self.referrals.find_one({'referred_id': user_id})
                     original_referrer_id = original_ref.get('referrer_id') if original_ref else None
                     return {
@@ -363,19 +359,13 @@ class Database:
             logger.error(f"Error adding user: {e}")
             return False
 
-    # ========== NEW: MONTH ACTIVE REFS ==========
+    # ========== MONTH ACTIVE REFS ==========
 
     def get_month_active_refs(self, referrer_id):
-        """
-        Count referrals that were ACTIVATED this calendar month.
-        Used for withdrawal condition (user needs 20 this month).
-        """
         try:
             referrer_id = int(referrer_id)
             now = datetime.now()
-            # First day of current month
             month_start = datetime(now.year, now.month, 1).isoformat()
-
             count = self.referrals.count_documents({
                 'referrer_id': referrer_id,
                 'is_active': True,
@@ -471,8 +461,6 @@ class Database:
                 {'$set': {'last_search_date': today, 'today_searched': True}}
             )
 
-            # 60% of shortlink earning goes to referrer
-            # Based on ~₹0.50 per shortlink completion, 60% = ₹0.30
             DAILY_SEARCH_EARNING = 0.30
             self.add_balance(referrer_id, DAILY_SEARCH_EARNING, f"Daily search earning from user {referred_user_id}")
             self.users.update_one({'user_id': referred_user_id}, {'$inc': {'total_searches': 1}})
@@ -515,6 +503,7 @@ class Database:
             return False
 
     # ========== MILESTONE BONUSES ==========
+
     MILESTONES = [
         {'refs': 5,   'reward': 2.0},
         {'refs': 10,  'reward': 5.0},
@@ -529,7 +518,6 @@ class Database:
             refs_required = int(refs_required)
             reward = float(reward)
 
-            # Validate milestone exists
             valid = any(m['refs'] == refs_required for m in self.MILESTONES)
             if not valid:
                 return {'success': False, 'message': 'Invalid milestone'}
@@ -538,11 +526,9 @@ class Database:
             if not user:
                 return {'success': False, 'message': 'User not found'}
 
-            # Check refs requirement
             if user.get('active_refs', 0) < refs_required:
                 return {'success': False, 'message': f'{refs_required} active refs chahiye'}
 
-            # Check not already claimed — atomic update
             result = self.users.find_one_and_update(
                 {
                     'user_id': user_id,
@@ -605,12 +591,10 @@ class Database:
             if not user:
                 return {'success': False, 'message': 'User not found'}
 
-            # Check refs requirement
             required_refs = self.BADGE_REQ_REFS[badge_idx]
             if user.get('active_refs', 0) < required_refs:
                 return {'success': False, 'message': f'{required_refs} active refs chahiye'}
 
-            # Atomic claim — prevent double claim
             field = f'badge_claimed_{badge_idx}'
             result = self.users.find_one_and_update(
                 {'user_id': user_id, field: {'$ne': True}},
@@ -623,7 +607,6 @@ class Database:
             passes = reward['passes']
             balance = reward['balance']
 
-            # Give rewards
             if passes > 0:
                 self.add_passes(user_id, passes, f"Badge {badge_idx} reward")
             if balance > 0:
@@ -648,7 +631,6 @@ class Database:
             user_id = int(user_id)
             now = datetime.now().isoformat()
 
-            # Check duplicate TXN ID
             existing = self.pass_requests.find_one({'txn_id': txn_id})
             if existing:
                 return {'success': False, 'message': 'Ye Transaction ID pehle se use ho chuki hai!'}
@@ -659,7 +641,7 @@ class Database:
                 'passes': passes,
                 'price': price,
                 'txn_id': txn_id,
-                'screenshot': screenshot[:500] if screenshot else None,  # store thumbnail only
+                'screenshot': screenshot[:500] if screenshot else None,
                 'status': 'pending',
                 'created_at': now,
                 'processed_at': None,
@@ -668,7 +650,6 @@ class Database:
             result = self.pass_requests.insert_one(req)
             req_id = str(result.inserted_id)
 
-            # Notify in support messages too
             user = self.get_user(user_id)
             uname = user.get('first_name', 'User') if user else 'User'
             self.add_support_message(user_id, f"PASS REQUEST: {passes} passes for ₹{price} | TXN: {txn_id}")
@@ -799,7 +780,7 @@ class Database:
             logger.error(f"Error marking channel join: {e}")
             return False
 
-    # ========== DAILY BONUS — UPDATED: 0.05/day max 0.30 ==========
+    # ========== DAILY BONUS ==========
 
     def claim_day_bonus(self, user_id, date_str):
         try:
@@ -821,7 +802,6 @@ class Database:
             streak = user.get('daily_streak', 0)
             last_daily = user.get('last_daily')
 
-            # Streak breaks if yesterday not claimed
             if last_daily:
                 try:
                     last_date = datetime.fromisoformat(last_daily).date()
@@ -833,7 +813,6 @@ class Database:
                     streak = 0
 
             base_bonus = self.config.DAILY_BONUS  # 0.05
-            # UPDATED: 0.05 per day of streak, max 0.30
             streak_bonus = min(streak * 0.05, 0.30)
             total_bonus = base_bonus + streak_bonus
 
@@ -955,14 +934,14 @@ class Database:
             if not mdef:
                 return {'success': False, 'message': 'Mission not found'}
 
-            # ── STEP 1: Check already claimed (fast exit) ──────────────
+            # Check already claimed (fast exit)
             doc = self.missions.find_one({
                 'user_id': user_id, 'date': today, 'mission_id': mission_id
             })
             if doc and doc.get('claimed'):
                 return {'success': False, 'message': 'Already claimed'}
 
-            # ── STEP 2: Verify mission is actually completed ────────────
+            # Verify mission is actually completed
             completed = doc.get('completed', False) if doc else False
             progress  = doc.get('progress', 0)      if doc else 0
 
@@ -990,41 +969,45 @@ class Database:
                         'user_id': user_id, 'claimed_at': {'$gte': today}
                     })
                     completed = bool(cl);  progress = 1 if cl else 0
-                # m_search5 / m_shortlink — rely on stored doc progress only
                 else:
                     completed = progress >= mdef['total']
 
             if not completed:
                 return {'success': False, 'message': 'Mission abhi puri nahi hui'}
 
-            # ── STEP 3: ATOMIC claim — findAndModify pattern ───────────
-            # Only set claimed=True if it is NOT already claimed.
-            # This is the single source-of-truth write.
-            result = self.missions.find_one_and_update(
+            # FIX: Ensure doc exists first
+            self.missions.update_one(
+                {'user_id': user_id, 'date': today, 'mission_id': mission_id},
+                {'$setOnInsert': {
+                    'user_id': user_id, 'date': today, 'mission_id': mission_id,
+                    'progress': progress, 'completed': True, 'claimed': False
+                }},
+                upsert=True
+            )
+
+            # FIX: Atomically claim — only if NOT already claimed
+            result = self.missions.update_one(
                 {
                     'user_id':    user_id,
                     'date':       today,
                     'mission_id': mission_id,
-                    'claimed':    {'$ne': True}   # ← guard: skip if already claimed
+                    'claimed':    {'$ne': True}
                 },
                 {
                     '$set': {
-                        'claimed':   True,
-                        'completed': True,
-                        'progress':  progress,
+                        'claimed':      True,
+                        'completed':    True,
+                        'progress':     progress,
                         'reward_given': float(reward)
                     }
-                },
-                upsert=True,
-                return_document=False  # return old doc (None if upserted)
+                }
             )
-            # If result is not None it means we matched an EXISTING unclaimed doc — fine.
-            # If result is None it means either upserted (new) or doc didn't exist — also fine.
-            # Either way we proceed to credit. But we must guard against the case where
-            # find_one_and_update matched nothing because 'claimed' was already True
-            # (that would raise DuplicateKeyError on upsert, caught below).
 
-            # ── STEP 4: Credit balance AFTER atomic write succeeds ─────
+            # If 0 documents modified → already claimed
+            if result.modified_count == 0:
+                return {'success': False, 'message': 'Already claimed'}
+
+            # Credit balance AFTER atomic write succeeds
             self.add_balance(user_id, float(reward), f"Mission {mission_id} reward")
             self.add_live_activity('mission', user_id, reward, f"claimed mission +₹{reward}")
             logger.info(f"Mission claimed: user={user_id} mission={mission_id} reward=₹{reward}")
@@ -1032,13 +1015,12 @@ class Database:
 
         except Exception as e:
             err = str(e)
-            # DuplicateKeyError means another request already claimed — safe to block
             if 'duplicate' in err.lower() or 'E11000' in err:
                 return {'success': False, 'message': 'Already claimed'}
             logger.error(f"Error claiming single mission {mission_id}: {e}")
             return {'success': False, 'message': 'Server error, try again'}
 
-    # ========== ADS — UPDATED: timer_seconds field ==========
+    # ========== ADS ==========
 
     def get_all_ads(self):
         try:
@@ -1051,10 +1033,6 @@ class Database:
             return []
 
     def update_ad(self, ad_id, title, reward, link, meta, icon=None, claim_code=None, timer_seconds=0):
-        """
-        UPDATED: saves timer_seconds.
-        Resets all claims so users can claim again after edit.
-        """
         try:
             update_data = {
                 'title': title,
@@ -1063,7 +1041,7 @@ class Database:
                 'meta': meta,
                 'edited_at': datetime.now().isoformat(),
                 'claim_code': claim_code.upper() if claim_code else None,
-                'timer_seconds': int(timer_seconds) if timer_seconds else 0  # NEW
+                'timer_seconds': int(timer_seconds) if timer_seconds else 0
             }
             if icon:
                 update_data['icon'] = icon
@@ -1136,10 +1114,8 @@ class Database:
             if amount <= 0:
                 return False
             today = datetime.now().date().isoformat()
-            # Reset today_earned if it's a new day
             user = self.users.find_one({'user_id': user_id}, {'today_date': 1, 'today_earned': 1})
             if user and user.get('today_date') != today:
-                # New day — reset today_earned
                 self.users.update_one(
                     {'user_id': user_id},
                     {'$set': {'today_earned': amount, 'today_date': today},
@@ -1158,7 +1134,7 @@ class Database:
             logger.error(f"Error adding balance: {e}")
             return False
 
-    # ========== WITHDRAWAL — UPDATED: min ₹20, check month refs ==========
+    # ========== WITHDRAWAL ==========
 
     def process_withdrawal(self, user_id, amount, method, details):
         try:
@@ -1173,10 +1149,9 @@ class Database:
                 return {'success': False, 'message': 'Withdrawals blocked. Contact support.'}
             if user['balance'] < amount:
                 return {'success': False, 'message': f'Insufficient balance. You have ₹{user["balance"]:.2f}'}
-            # UPDATED: minimum ₹20
             if amount < self.config.MIN_WITHDRAWAL:
                 return {'success': False, 'message': f'Minimum withdrawal is ₹{self.config.MIN_WITHDRAWAL}'}
-            # UPDATED: check 20 month active refs
+            # Check 20 month active refs
             month_refs = self.get_month_active_refs(user_id)
             if month_refs < 20:
                 return {'success': False, 'message': f'Is mahine sirf {month_refs}/20 active refs hain. 20 chahiye!'}
@@ -1328,8 +1303,6 @@ class Database:
 
     # ========== GAME FUNCTIONS ==========
 
-    # SPIN: segments must match frontend SEGS array exactly (same index)
-    # Frontend SEGS: [0.10, 0.50, 0.10, 1.0, 0.50, 0.10, 2.0, 0.10]
     SPIN_SEGMENTS = [
         {'label': '₹0.10', 'value': 0.10},   # index 0
         {'label': '₹0.50', 'value': 0.50},   # index 1
@@ -1340,18 +1313,7 @@ class Database:
         {'label': '₹2',    'value': 2.0},    # index 6
         {'label': '₹0.10', 'value': 0.10},   # index 7
     ]
-    # FIXED Weights — realistic feel, not spammy 0.10
-    # 0.10 = 40% (4 segs × 5), 0.50 = 30% (2 × 15), 1.0 = 20% (1 × 20), 2.0 = 10% (1 × 10)
-    # Total = 20+15+20+15+10+20+10+20 = 130
     SPIN_WEIGHTS = [5, 15, 5, 20, 15, 5, 10, 5]
-    # Actual probabilities:
-    # ₹0.10 (indices 0,2,5,7) = (5+5+5+5)/80 = 20/80 = 25%
-    # ₹0.50 (indices 1,4)     = (15+15)/80   = 30/80 = 37.5%
-    # ₹1.0  (index 3)         = 20/80        = 25%
-    # ₹2.0  (index 6)         = 10/80        = 12.5%
-    # Expected value per spin = 0.10*0.25 + 0.50*0.375 + 1.0*0.25 + 2.0*0.125
-    #                         = 0.025 + 0.1875 + 0.25 + 0.25 = 0.7125
-    # Pass costs ~₹0.10 equivalent, house edge maintained through pass system
 
     def get_game_state(self, user_id, date=None):
         try:
@@ -1419,11 +1381,6 @@ class Database:
             return {'success': False, 'message': str(e)}
 
     def process_game_spin(self, user_id):
-        """
-        Spin — costs 1 pass.
-        Returns segment_index so frontend wheel stops at exact correct segment.
-        SEGS in frontend and SPIN_SEGMENTS here must be in same order.
-        """
         try:
             user_id = int(user_id)
             user = self.get_user(user_id)
@@ -1452,7 +1409,7 @@ class Database:
                 'success': True,
                 'reward': earn_result.get('earned', reward),
                 'reward_label': reward_label,
-                'segment_index': selected,   # Frontend uses this to stop wheel
+                'segment_index': selected,
                 'today_earned': earn_result.get('today_total', 0)
             }
         except Exception as e:
@@ -1460,7 +1417,6 @@ class Database:
             return {'success': False, 'message': str(e)}
 
     def process_game_guess(self, user_id, guess, bet):
-        """Number guess — costs 1 pass."""
         try:
             user_id = int(user_id)
             today = datetime.now().date().isoformat()
@@ -1517,7 +1473,6 @@ class Database:
             return {'success': False, 'message': str(e)}
 
     def process_game_coin(self, user_id, choice, bet):
-        """Coin flip — costs 1 pass."""
         try:
             user_id = int(user_id)
             user = self.get_user(user_id)
@@ -1546,17 +1501,9 @@ class Database:
             logger.error(f"Error processing coin flip: {e}")
             return {'success': False, 'message': str(e)}
 
-    # ========== NEW: DICE GAME ==========
+    # ========== DICE GAME ==========
 
     def process_game_dice(self, user_id, choice):
-        """
-        Dice Roll game.
-        - User picks number 1-6.
-        - Costs 1 Pass.
-        - Win: ₹0.50 if correct number comes.
-        - House edge: 60% of matching rolls are forced to lose.
-        - Effective win rate: ~6.7% per roll (1/6 * 40%).
-        """
         try:
             user_id = int(user_id)
 
@@ -1570,13 +1517,11 @@ class Database:
             if not self.deduct_pass(user_id):
                 return {'success': False, 'message': 'Pass deduct nahi hua'}
 
-            # Roll dice
             actual_number = random.randint(1, 6)
             matched = (actual_number == choice)
 
-            # House edge: even if matched, 60% chance of forced loss
             if matched:
-                won = random.random() >= 0.60  # 40% of matches actually win
+                won = random.random() >= 0.60
             else:
                 won = False
 
@@ -1602,10 +1547,6 @@ class Database:
             return {'success': False, 'message': str(e)}
 
     def process_game_scratch(self, user_id):
-        """
-        Scratch card — costs 1 pass.
-        Rewards: 0.10=60%, 0.50=25%, 1=10%, 2=4%, 5=1%
-        """
         try:
             user_id = int(user_id)
             user = self.get_user(user_id)
@@ -1650,10 +1591,6 @@ class Database:
     }
 
     def process_game_color(self, user_id, choice, bet):
-        """
-        Color Prediction. Red/Green/Blue=2x, Yellow/Purple=4x, Orange=9x
-        House edge ~40%.
-        """
         try:
             user_id = int(user_id)
             bet = float(bet)
@@ -1669,7 +1606,6 @@ class Database:
             if not self.deduct_pass(user_id):
                 self.add_balance(user_id, bet, "Color refund")
                 return {'success': False, 'message': 'Pass deduct nahi hua'}
-            # Weighted color pick
             probs = [self.COLOR_CONFIG[c]['prob'] for c in valid_colors]
             total = sum(probs)
             r = random.random() * total
@@ -1694,7 +1630,6 @@ class Database:
             return {'success': False, 'message': str(e)}
 
     def process_crash_start(self, user_id, bet):
-        """Crash game — deduct pass AND bet amount from balance."""
         try:
             user_id = int(user_id)
             bet = float(bet)
@@ -1703,10 +1638,8 @@ class Database:
                 return {'success': False, 'message': 'Passes nahi hain!'}
             if user.get('balance', 0) < bet:
                 return {'success': False, 'message': f'Balance kam hai! ₹{user.get("balance",0):.2f} hai'}
-            # Deduct pass
             if not self.deduct_pass(user_id):
                 return {'success': False, 'message': 'Pass deduct nahi hua'}
-            # Deduct bet from balance
             self.users.update_one({'user_id': user_id}, {'$inc': {'balance': -bet}})
             self.add_transaction(user_id, 'game_bet', -bet, f"Crash game bet ₹{bet}")
             self.user_cache.pop(f"user_{user_id}", None)
@@ -1716,7 +1649,6 @@ class Database:
             return {'success': False, 'message': str(e)}
 
     def process_crash_cashout(self, user_id, bet, multiplier, reward):
-        """Crash cashout — credit winnings."""
         try:
             user_id = int(user_id)
             bet = float(bet)
@@ -1732,7 +1664,7 @@ class Database:
             logger.error(f"Crash cashout error: {e}")
             return {'success': False, 'message': str(e)}
 
-    # ========== RUNNER GAME ==========
+    # ========== RUNNER GAME — FIX: maze/snake/chess modes added ==========
 
     RUNNER_MODES = {
         '10s':  {'seconds': 10,  'reward_per_sec': 0.005, 'label': '10 Seconds'},
@@ -1740,10 +1672,13 @@ class Database:
         '1m':   {'seconds': 60,  'reward_per_sec': 0.003, 'label': '1 Minute'},
         '5m':   {'seconds': 300, 'reward_per_sec': 0.002, 'label': '5 Minutes'},
         '10m':  {'seconds': 600, 'reward_per_sec': 0.0015,'label': '10 Minutes'},
+        # ✅ FIX: Maze / Snake / Chess modes — "Invalid mode" error fix
+        'maze':  {'seconds': 60,  'reward_per_sec': 0.003, 'label': 'Maze Escape'},
+        'snake': {'seconds': 60,  'reward_per_sec': 0.003, 'label': 'Snake Game'},
+        'chess': {'seconds': 60,  'reward_per_sec': 0.003, 'label': 'Chess Timer'},
     }
 
     def runner_start(self, user_id, mode, bet):
-        """Start runner game — deduct pass + bet."""
         try:
             user_id = int(user_id)
             bet = float(bet)
@@ -1756,7 +1691,6 @@ class Database:
                 return {'success': False, 'message': 'Passes nahi hain!'}
             if user.get('balance', 0) < bet:
                 return {'success': False, 'message': f'Balance kam hai! ₹{user.get("balance",0):.2f}'}
-            # Deduct pass + bet
             if not self.deduct_pass(user_id):
                 return {'success': False, 'message': 'Pass deduct nahi hua'}
             self.users.update_one({'user_id': user_id}, {'$inc': {'balance': -bet}})
@@ -1777,7 +1711,6 @@ class Database:
             return {'success': False, 'message': str(e)}
 
     def runner_finish(self, user_id, mode, bet, survived_seconds):
-        """Finish runner — credit reward based on survived time."""
         try:
             user_id = int(user_id)
             bet = float(bet)
@@ -1787,16 +1720,12 @@ class Database:
             mode_info = self.RUNNER_MODES[mode]
             total_seconds = mode_info['seconds']
             reward_per_sec = mode_info['reward_per_sec']
-            # Calculate reward: bet back + earnings per second survived
             if survived_seconds <= 0:
                 return {'success': True, 'reward': 0, 'survived': 0, 'message': 'Game over! Kuch nahi mila.'}
             survived_pct = survived_seconds / total_seconds
-            # Bet refund based on % survived
             bet_back = round(bet * survived_pct, 2)
-            # Per second earning
             earned = round(survived_seconds * reward_per_sec, 4)
             total_reward = round(bet_back + earned, 2)
-            # Cap at max possible
             max_reward = round(bet + (total_seconds * reward_per_sec), 2)
             total_reward = min(total_reward, max_reward)
             if total_reward > 0:
