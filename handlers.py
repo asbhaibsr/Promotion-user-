@@ -1,3 +1,12 @@
+# ═══════════════════════════════════════════════════════════
+# EarnZone / FilmyFund — Telegram Mini App
+# Owner   : @asbhaibsr
+# Channel : @asbhai_bsr
+# Contact : https://t.me/asbhaibsr
+# ⚠️  Unauthorized modification or redistribution prohibited.
+# © 2025 @asbhaibsr — All Rights Reserved
+# ═══════════════════════════════════════════════════════════
+
 # ===== handlers.py (FULLY UPDATED) =====
 # Changes:
 # 1. start() — duplicate user check + notify referrer with user details
