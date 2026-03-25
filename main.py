@@ -1,3 +1,12 @@
+# ═══════════════════════════════════════════════════════════
+# EarnZone / FilmyFund — Telegram Mini App
+# Owner   : @asbhaibsr
+# Channel : @asbhai_bsr
+# Contact : https://t.me/asbhaibsr
+# ⚠️  Unauthorized modification or redistribution prohibited.
+# © 2025 @asbhaibsr — All Rights Reserved
+# ═══════════════════════════════════════════════════════════
+
 # ===== main.py (FULLY UPDATED - ALL NEW ROUTES) =====
 
 import logging
