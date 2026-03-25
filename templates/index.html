@@ -287,7 +287,11 @@
         .milestone-reward{font-size:12px;font-weight:800;color:var(--gold);}
         .weekly-bonus-card{background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);border:1px solid rgba(54,182,245,.25);border-radius:16px;padding:13px;margin-bottom:11px;}
         .weekly-days{display:flex;gap:5px;margin:10px 0;}
-        .week-day{flex:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 2px;font-size:10px;font-weight:800;min-height:44px;}
+        .week-day{flex:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px 2px;font-size:10px;font-weight:800;min-height:50px;transition:all .15s;}
+        .week-day.done{background:rgba(25,216,158,.15);border:1.5px solid var(--green);}
+        .week-day.today{background:rgba(240,192,64,.12);border:1.5px solid var(--gold);}
+        .week-day.missed{background:rgba(255,78,106,.08);border:1px solid rgba(255,78,106,.2);}
+        .week-day.future{background:var(--bg3);border:1px solid var(--border);opacity:.6;}
         .week-day.done{background:rgba(25,216,158,.25);color:var(--green);border:1px solid var(--green);}
         .week-day.today{background:rgba(240,192,64,.2);color:var(--gold);border:1px solid var(--gold);}
         .week-day.missed{background:rgba(255,78,106,.1);color:var(--red);border:1px solid rgba(255,78,106,.3);}
@@ -385,7 +389,11 @@
         .game-card:hover{border-color:rgba(124,92,252,.38);}
         .game-card:active{transform:scale(.93);}
         .game-emoji{font-size:54px;display:block;margin-bottom:10px;}
-        .game-img{width:80px;height:80px;object-fit:contain;display:block;margin:0 auto 10px;border-radius:14px;}
+        .game-img{width:80px;height:80px;object-fit:cover;display:block;margin:0 auto 10px;border-radius:18px;
+            box-shadow:0 4px 18px rgba(0,0,0,.5),0 0 0 2px rgba(255,255,255,.1),0 0 20px rgba(124,92,252,.15);
+            transition:transform .2s,box-shadow .2s;background:#111;}
+        .game-img:hover{transform:scale(1.05);box-shadow:0 6px 24px rgba(0,0,0,.6),0 0 0 2px rgba(240,192,64,.3),0 0 28px rgba(240,192,64,.2);}
+        .game-card:active .game-img{transform:scale(.95);}
         .game-name{font-family:'Oxanium',sans-serif;font-size:15px;font-weight:800;margin-bottom:3px;}
         .game-desc{font-size:9px;color:var(--text2);margin-bottom:9px;}
         .game-reward{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;padding:4px 11px;border-radius:28px;font-size:10px;font-weight:700;display:inline-block;}
@@ -637,14 +645,33 @@
                 <div class="bsub-item"><div class="bsub-label" data-t="active_refs"><img src="https://i.postimg.cc/cCV72d3Z/refer-earn-concept-business-partnership-strategy-vector-illustration-185038-443.jpg" style="width:14px;height:14px;object-fit:cover;border-radius:3px;vertical-align:middle;margin-right:3px;"> Active Refs</div><div class="bsub-val" id="activeRefs">0</div></div>
                 <div class="bsub-item"><div class="bsub-label">📅 Month Refs</div><div class="bsub-val" id="monthRefsDisplay">0</div></div>
             </div>
-            <!-- Badge mini display on home -->
-            <div onclick="switchTab(4)" style="display:flex;align-items:center;gap:8px;margin-top:10px;background:rgba(255,255,255,.05);border-radius:12px;padding:8px 12px;cursor:pointer;border:1px solid rgba(240,192,64,.2);">
-                <img id="homeBadgeImg" src="https://i.postimg.cc/prJbHJvn/4946de51-23b6-473f-8192-764e1ca09041.jpg" style="width:30px;height:30px;object-fit:contain;">
-                <div style="flex:1;">
-                    <div id="homeBadgeName" style="font-size:11px;font-weight:800;color:var(--gold);">🥉 Starter</div>
-                    <div id="homeBadgeProgress" style="font-size:9px;color:var(--text3);">0/10 refs → next badge</div>
+            <!-- Withdraw progress bar -->
+            <div style="margin-top:9px;" id="wdProgressWrap">
+                <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-bottom:3px;">
+                    <span>Withdrawal Progress</span>
+                    <span id="wdProgressTxt">0/20 refs</span>
                 </div>
-                <div style="font-size:9px;color:var(--text3);">Profile →</div>
+                <div style="height:6px;background:var(--bg2);border-radius:6px;overflow:hidden;">
+                    <div id="wdProgressBar" style="height:100%;background:linear-gradient(90deg,#f0c040,#19d89e);border-radius:6px;width:0%;transition:width .5s;"></div>
+                </div>
+                <div id="wdProgressMsg" style="font-size:9px;color:var(--text3);margin-top:2px;text-align:right;"></div>
+            </div>
+            <!-- Badge on home — premium box design -->
+            <div onclick="openBadgeShowcase()" style="display:flex;align-items:center;gap:10px;margin-top:10px;background:linear-gradient(135deg,rgba(240,192,64,.1),rgba(124,92,252,.08));border-radius:16px;padding:10px 13px;border:1.5px solid rgba(240,192,64,.3);cursor:pointer;position:relative;overflow:hidden;transition:all .2s;" ontouchstart="this.style.opacity='.8'" ontouchend="this.style.opacity='1'">
+                <div style="position:absolute;top:-20px;right:-20px;width:60px;height:60px;background:radial-gradient(circle,rgba(240,192,64,.12),transparent);border-radius:50%;pointer-events:none;"></div>
+                <div style="position:relative;flex-shrink:0;">
+                    <img id="homeBadgeImg" src="https://i.postimg.cc/prJbHJvn/4946de51-23b6-473f-8192-764e1ca09041.jpg" style="width:46px;height:46px;object-fit:contain;border-radius:12px;box-shadow:0 4px 14px rgba(240,192,64,.3);">
+                    <div id="homeBadgeClaimDot" style="display:none;position:absolute;top:-5px;right:-5px;width:13px;height:13px;background:var(--red);border-radius:50%;border:2px solid var(--bg);box-shadow:0 0 6px rgba(255,78,106,.6);animation:pulse 1.2s infinite;"></div>
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div id="homeBadgeName" style="font-family:'Oxanium',sans-serif;font-size:12px;font-weight:900;color:var(--gold);">🥉 Starter</div>
+                    <div id="homeBadgeProgress" style="font-size:9px;color:var(--text3);margin-top:2px;">0/10 refs → next badge</div>
+                    <div style="height:3px;background:var(--bg2);border-radius:3px;margin-top:4px;overflow:hidden;"><div id="homeBadgeBar" style="height:100%;background:linear-gradient(90deg,var(--gold),var(--purple2));border-radius:3px;width:0%;transition:width .5s;"></div></div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;">
+                    <div style="background:var(--gold);color:#000;border-radius:8px;padding:4px 9px;font-size:9px;font-weight:900;white-space:nowrap;">🏅 Badges</div>
+                    <div style="font-size:8px;color:var(--text3);">tap to view</div>
+                </div>
             </div>
         </div>
         <div class="passes-card">
@@ -773,7 +800,7 @@
             <div class="game-card" onclick="openGame('crash')"><img src="https://i.postimg.cc/K85csJXs/Rocket-soaring-along-neon-graph-line.png" class="game-img" alt="Crash"><div class="game-name">Crash Game</div><div class="game-desc">Rocket fly • Cashout first!</div><span class="game-reward">Up to 10x</span></div>
             <div class="game-card" style="grid-column:span 2;background:linear-gradient(135deg,#0a1628,#1a0a2e);border-color:rgba(240,192,64,.3);" onclick="openGame('runner')">
                 <div style="display:flex;align-items:center;gap:14px;">
-                    <div style="font-size:48px;">🦊</div>
+                    <div style="font-size:48px;filter:drop-shadow(0 0 8px rgba(240,192,64,.5));">🦊</div>
                     <div style="text-align:left;">
                         <div class="game-name" style="color:var(--gold);font-size:16px;">🏃 Runner Challenge</div>
                         <div class="game-desc">Obstacles se bacho • Har second = paise!</div>
@@ -786,7 +813,7 @@
             </div>
             <!-- NEW GAMES ROW -->
             <div class="game-card" style="background:linear-gradient(135deg,#0a1628,#0d2040);border-color:rgba(54,182,245,.3);" onclick="openGame('maze')">
-                <div style="font-size:38px;text-align:center;margin-bottom:6px;">🗺️</div>
+                <img src="https://i.postimg.cc/3rX44NH8/b6b10c99-9c7a-4404-93fe-afdb9750fedc.jpg" class="game-img" alt="Maze">
                 <div class="game-name" style="color:var(--blue);">Maze Escape</div>
                 <div class="game-desc">Bhulbhulaiya se niklo!</div>
                 <div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;">
@@ -795,7 +822,7 @@
                 </div>
             </div>
             <div class="game-card" style="background:linear-gradient(135deg,#0a2e0a,#0d3010);border-color:rgba(25,216,158,.3);" onclick="openGame('snake')">
-                <div style="font-size:38px;text-align:center;margin-bottom:6px;">🐍</div>
+                <img src="https://i.postimg.cc/76g62sjH/0db283bd-58ae-4317-b6b8-aed3f78c45f1.jpg" class="game-img" alt="Snake">
                 <div class="game-name" style="color:var(--green);">Snake Game</div>
                 <div class="game-desc">Dot khao, paise kamao!</div>
                 <div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;">
@@ -804,7 +831,7 @@
             </div>
             <div class="game-card" style="grid-column:span 2;background:linear-gradient(135deg,#1a1200,#2a2000);border-color:rgba(240,192,64,.3);" onclick="openGame('chess')">
                 <div style="display:flex;align-items:center;gap:14px;">
-                    <div style="font-size:42px;">♟️</div>
+                    <img src="https://i.postimg.cc/7LzPFtHD/a4ee8463-c918-40e5-ac55-82e4dcbc9164.jpg" style="width:60px;height:60px;object-fit:cover;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.5);flex-shrink:0;">
                     <div style="text-align:left;">
                         <div class="game-name" style="color:var(--gold);">Chess Timer</div>
                         <div class="game-desc">AI se chess khelo • Time ke saath jeeto!</div>
@@ -1244,28 +1271,76 @@
 <!-- USER PROFILE MODAL -->
 <div class="modal" id="userProfileModal">
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('userProfile')">←</div><div class="modal-title">👤 User Profile</div></div>
-    <div class="user-profile-card">
-        <div class="user-profile-dp-lg" id="upDp">👤</div>
-        <div style="font-family:'Oxanium',sans-serif;font-size:21px;font-weight:900;" id="upName">User</div>
-        <div style="color:var(--text2);font-size:11px;margin-top:3px;" id="upId">ID: -</div>
-        <!-- Badge display in other user profile -->
-        <div id="upBadgeWrap" style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:9px;">
-            <img id="upBadgeImg" src="" style="width:44px;height:44px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(240,192,64,.5));" alt="badge">
-            <div>
-                <div id="upBadgeName" style="font-family:'Oxanium',sans-serif;font-size:14px;font-weight:900;color:var(--gold);"></div>
-                <div id="upBadgeDesc" style="font-size:10px;color:var(--text2);margin-top:2px;max-width:160px;"></div>
+    <!-- Hero card -->
+    <div style="background:linear-gradient(135deg,#0d0d2e,#1a0a3e);border-radius:20px;padding:20px;margin-bottom:12px;text-align:center;border:1px solid rgba(124,92,252,.25);position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:radial-gradient(circle,rgba(240,192,64,.15),transparent);border-radius:50%;"></div>
+        <div style="position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;background:radial-gradient(circle,rgba(124,92,252,.12),transparent);border-radius:50%;"></div>
+        <!-- Avatar -->
+        <div id="upDp" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--purple));margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;border:3px solid rgba(240,192,64,.4);box-shadow:0 0 20px rgba(240,192,64,.2);">👤</div>
+        <div style="font-family:'Oxanium',sans-serif;font-size:20px;font-weight:900;" id="upName">User</div>
+        <div style="color:var(--text3);font-size:10px;margin-top:2px;" id="upId">ID: -</div>
+        <!-- Badge pill -->
+        <div id="upBadgeWrap" style="margin-top:12px;display:inline-flex;align-items:center;gap:8px;background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.3);border-radius:20px;padding:6px 14px;">
+            <img id="upBadgeImg" src="" style="width:28px;height:28px;object-fit:contain;" alt="badge">
+            <div style="text-align:left;">
+                <div id="upBadgeName" style="font-family:'Oxanium',sans-serif;font-size:12px;font-weight:900;color:var(--gold);"></div>
+                <div id="upBadgeDesc" style="font-size:9px;color:var(--text2);max-width:140px;"></div>
             </div>
         </div>
     </div>
-    <div class="stats-grid">
-        <div class="stat-box"><div class="stat-val" id="upBal">₹0</div><div class="stat-lbl">Balance</div></div>
-        <div class="stat-box"><div class="stat-val" id="upRefs">0</div><div class="stat-lbl">Total Refs</div></div>
-        <div class="stat-box"><div class="stat-val" id="upActiveRefs">0</div><div class="stat-lbl">Active</div></div>
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
+        <div style="background:var(--bg3);border-radius:14px;padding:12px;text-align:center;border:1px solid var(--border);">
+            <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--gold);" id="upBal">₹0</div>
+            <div style="font-size:9px;color:var(--text3);margin-top:2px;">Balance</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:14px;padding:12px;text-align:center;border:1px solid var(--border);">
+            <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--purple2);" id="upRefs">0</div>
+            <div style="font-size:9px;color:var(--text3);margin-top:2px;">Total Refs</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:14px;padding:12px;text-align:center;border:1px solid var(--border);">
+            <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--green);" id="upActiveRefs">0</div>
+            <div style="font-size:9px;color:var(--text3);margin-top:2px;">Active</div>
+        </div>
     </div>
-    <!-- All badges progress for other user -->
-    <div style="background:var(--bg3);border-radius:14px;padding:12px;margin-top:10px;border:1px solid var(--border);">
-        <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:8px;text-align:center;">🏅 Badge Collection</div>
+    <!-- Badge Collection -->
+    <div style="background:var(--bg3);border-radius:16px;padding:12px;border:1px solid var(--border);">
+        <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:10px;text-align:center;">🏅 Badge Collection</div>
         <div class="badge-grid" id="upBadgeGrid"></div>
+    </div>
+</div>
+
+<!-- BADGE SHOWCASE MODAL — full page badge details with claim -->
+<div class="modal" id="badgeShowcaseModal" style="padding:0;overflow:hidden;">
+    <div style="padding:12px 14px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div class="back-btn" onclick="closeModal('badgeShowcase')">←</div>
+        <div style="font-family:'Oxanium',sans-serif;font-weight:900;font-size:15px;">🏅 My Badges</div>
+        <div style="font-size:10px;color:var(--text3);" id="bsUnlockCount">0/10</div>
+    </div>
+    <div style="overflow-y:auto;height:calc(100% - 50px);padding:12px;">
+        <!-- Current badge big display -->
+        <div id="bsCurrentBadge" style="background:linear-gradient(135deg,#0d0d2e,#1a0a3e);border-radius:20px;padding:20px;text-align:center;margin-bottom:16px;border:1.5px solid rgba(240,192,64,.3);position:relative;overflow:hidden;">
+            <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(240,192,64,.08),transparent 70%);pointer-events:none;"></div>
+            <img id="bsCurrentImg" src="" style="width:90px;height:90px;object-fit:contain;filter:drop-shadow(0 0 20px rgba(240,192,64,.5));animation:badgeFloat 3s ease-in-out infinite;margin-bottom:10px;">
+            <div id="bsCurrentName" style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--gold);"></div>
+            <div id="bsCurrentDesc" style="font-size:11px;color:var(--text2);margin:6px 0 12px;"></div>
+            <div id="bsCurrentReward" style="background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.3);border-radius:12px;padding:10px;display:inline-block;">
+                <div style="font-size:9px;color:var(--text3);">🎁 Reward:</div>
+                <div id="bsRewardTxt" style="font-size:14px;font-weight:900;color:var(--gold);"></div>
+            </div>
+            <div id="bsClaimWrap" style="margin-top:12px;"></div>
+        </div>
+        <!-- Progress to next -->
+        <div id="bsNextWrap" style="background:var(--bg3);border-radius:14px;padding:12px;margin-bottom:16px;border:1px solid var(--border);">
+            <div style="font-size:10px;color:var(--text2);margin-bottom:6px;" id="bsNextTxt">Next Badge:</div>
+            <div style="height:8px;background:var(--bg2);border-radius:8px;overflow:hidden;">
+                <div id="bsProgressBar" style="height:100%;background:linear-gradient(90deg,var(--purple2),var(--gold));border-radius:8px;width:0%;transition:width .6s;"></div>
+            </div>
+            <div id="bsProgressTxt" style="font-size:10px;color:var(--text3);margin-top:4px;text-align:right;"></div>
+        </div>
+        <!-- All badges grid -->
+        <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:10px;">🏆 Sare Badges:</div>
+        <div id="bsAllBadges" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;"></div>
     </div>
 </div>
 
@@ -1803,10 +1878,14 @@ async function loadMissions(){
     // Load claimed states from sessionStorage (date-keyed — auto resets each day)
     let sessionClaimed={};
     try{
-        const sc=sessionStorage.getItem(`ez_claimed_${userData.user_id}_${today}`);
+        const sc=sessionStorage.getItem(`ez_m_${userData.user_id}_${today}`);
         if(sc)sessionClaimed=JSON.parse(sc);
-        // Clean old day keys
+        // Clean ALL old day keys
         for(let k of Object.keys(sessionStorage)){
+            if(k.startsWith(`ez_m_${userData.user_id}_`)&&!k.endsWith(today)){
+                sessionStorage.removeItem(k);
+            }
+            // Also clean old format keys
             if(k.startsWith(`ez_claimed_${userData.user_id}_`)&&!k.endsWith(today)){
                 sessionStorage.removeItem(k);
             }
@@ -1815,40 +1894,35 @@ async function loadMissions(){
 
     MISSIONS_DEF.forEach(m=>{
         const sv=d?d[m.id]:null;
-        // Priority: sessionStorage > local memory > server (server only if TODAY)
-        const localClaimed=sessionClaimed[m.id]||missionStates[m.id]?.claimed||false;
-        // Server claimed only valid if server confirms today's date
-        const serverClaimed=sv?.claimed||false;
-        const finalClaimed=localClaimed||serverClaimed;
+        const localClaimed=sessionClaimed[m.id]||false;
+        // Server claimed valid ONLY if server says claimed_date===today
+        const serverClaimedToday=sv?.claimed&&sv?.claimed_date===today;
+        const finalClaimed=localClaimed||serverClaimedToday;
 
-        if(sv){
-            missionStates[m.id]={
-                progress:sv.progress||0,
-                completed:sv.completed||false,
-                claimed:finalClaimed
-            };
-        }else{
-            missionStates[m.id]={progress:0,completed:false,claimed:finalClaimed};
-        }
+        missionStates[m.id]={
+            progress:sv?.progress||0,
+            completed:sv?.completed||false,
+            claimed:finalClaimed
+        };
     });
 
     // Auto-fill m_refer5
-    if(!missionStates['m_refer5'])missionStates['m_refer5']={progress:0,completed:false,claimed:false};
     const activeRefs=userData.active_refs||0;
-    missionStates['m_refer5'].progress=Math.min(activeRefs,5);
-    missionStates['m_refer5'].completed=activeRefs>=5;
+    missionStates['m_refer5']={
+        progress:Math.min(activeRefs,5),
+        completed:activeRefs>=5,
+        claimed:missionStates['m_refer5']?.claimed||false
+    };
 
-    // Auto-fill m_daily from claimedDates
-    if(!missionStates['m_daily'])missionStates['m_daily']={progress:0,completed:false,claimed:false};
-    if(claimedDates.includes(today)){
-        missionStates['m_daily'].progress=1;
-        missionStates['m_daily'].completed=true;
+    // Auto-fill m_daily — only if user claimed bonus today
+    const dailyClaimedToday=claimedDates.includes(today);
+    if(dailyClaimedToday&&!missionStates['m_daily']?.claimed){
+        missionStates['m_daily']={progress:1,completed:true,claimed:missionStates['m_daily']?.claimed||false};
     }
 
-    // Auto-fill m_game from gameState wins
-    if(!missionStates['m_game'])missionStates['m_game']={progress:0,completed:false,claimed:false};
+    // Auto-fill m_game from today's wins
     const gameWinsToday=gameState.wins||0;
-    if(gameWinsToday>0&&!missionStates['m_game'].claimed){
+    if(gameWinsToday>0&&!missionStates['m_game']?.claimed){
         missionStates['m_game'].progress=Math.min(gameWinsToday,10);
         missionStates['m_game'].completed=gameWinsToday>=10;
     }
@@ -1856,12 +1930,12 @@ async function loadMissions(){
     updateMissionsUI();
 }
 
-// Save claimed state to sessionStorage
+// Save claimed state to sessionStorage (date-keyed — auto resets next day)
 function saveMissionClaimed(missionId){
     if(!userData.user_id)return;
     const today=new Date().toISOString().split('T')[0];
     try{
-        const key=`ez_claimed_${userData.user_id}_${today}`;
+        const key=`ez_m_${userData.user_id}_${today}`;
         let sc={};
         const existing=sessionStorage.getItem(key);
         if(existing)sc=JSON.parse(existing);
@@ -1936,6 +2010,33 @@ function updateUI(){
     // Update new feature UIs
     updateWeeklyBonus();
     updateMilestoneCard();
+    updateWithdrawProgress();
+}
+
+function updateWithdrawProgress(){
+    const refs=userData.month_active_refs||0;
+    const needed=20;
+    const pct=Math.min((refs/needed)*100,100);
+    const bar=document.getElementById('wdProgressBar');
+    const txt=document.getElementById('wdProgressTxt');
+    const msg=document.getElementById('wdProgressMsg');
+    if(bar)bar.style.width=pct+'%';
+    if(txt)txt.textContent=refs+'/'+needed+' refs this month';
+    if(msg){
+        if(refs>=needed){
+            msg.textContent='✅ Withdraw ho sakta hai!';
+            msg.style.color='var(--green)';
+        }else{
+            msg.textContent=(needed-refs)+' aur refs chahiye';
+            msg.style.color='var(--text3)';
+        }
+    }
+    // Badge claim dot update
+    const claimedBadges=getClaimedBadges();
+    const idx=getBadgeIndex(userData.active_refs||0);
+    const canClaim=!claimedBadges.includes(idx);
+    const dot=document.getElementById('homeBadgeClaimDot');
+    if(dot)dot.style.display=canClaim?'block':'none';
 }
 function getTierName(t){return t>=4?'💎 DIAMOND':t===3?'🥇 GOLD':t===2?'🥈 SILVER':'🥉 BASIC';}
 
@@ -1997,10 +2098,12 @@ function updateWeeklyBonus(){
         const d=new Date(weekStart);
         d.setDate(weekStart.getDate()+i);
         const dStr=d.toISOString().split('T')[0];
-        const isFuture=d>today&&dStr!==todayStr;
+        const dMidnight=new Date(d);dMidnight.setHours(0,0,0,0);
+        const todayMidnight=new Date(today);todayMidnight.setHours(0,0,0,0);
+        const isFuture=dMidnight>todayMidnight;
         const isToday=dStr===todayStr;
-        // FIXED: today only counts as claimed if it's in claimedDates
-        const claimed=claimedDates.includes(dStr);
+        // Only mark claimed if explicitly in claimedDates (from server)
+        const claimed=!isFuture&&claimedDates.includes(dStr);
         const isPast=!isFuture&&!isToday&&!claimed;
         if(claimed)claimedThisWeek++;
 
@@ -2296,15 +2399,23 @@ function updateBadgeUI(){
     const homeImg=document.getElementById('homeBadgeImg');
     const homeNm=document.getElementById('homeBadgeName');
     const homeProg=document.getElementById('homeBadgeProgress');
+    const homeBar=document.getElementById('homeBadgeBar');
     if(homeImg)homeImg.src=badge.img;
     if(homeNm)homeNm.textContent=badge.name;
     if(homeProg){
         if(nextBadge){
             homeProg.textContent=refs+'/'+nextBadge.req+' refs → '+nextBadge.name;
+            const pct=Math.min(((refs-badge.req)/(nextBadge.req-badge.req))*100,100);
+            if(homeBar)homeBar.style.width=pct+'%';
         }else{
             homeProg.textContent='MAX BADGE! 🏆 God Tier';
+            if(homeBar)homeBar.style.width='100%';
         }
     }
+    // Show red dot if unclaimed
+    const claimedArr=getClaimedBadges();
+    const dot=document.getElementById('homeBadgeClaimDot');
+    if(dot)dot.style.display=(!claimedArr.includes(idx))?'block':'none';
 
     // Current badge display (profile page)
     const imgEl=document.getElementById('badgeImgCurrent');
@@ -2525,22 +2636,30 @@ function renderLiveActivity(acts){
 async function viewUserProfile(userId,name){
     if(!userId)return;
     openModal('userProfile');
-    document.getElementById('upName').textContent=name;
+    // Set initial state
+    const initial=(name||'U')[0].toUpperCase();
+    const [c1,c2]=nameColor(name||'U');
+    document.getElementById('upDp').textContent=initial;
+    document.getElementById('upDp').style.background=`linear-gradient(135deg,${c1},${c2})`;
+    document.getElementById('upName').textContent=name||'User';
     document.getElementById('upId').textContent=`ID: ${userId}`;
-    document.getElementById('upDp').textContent=name.charAt(0).toUpperCase();
     document.getElementById('upBal').textContent='...';
     document.getElementById('upRefs').textContent='...';
     document.getElementById('upActiveRefs').textContent='...';
     document.getElementById('upBadgeName').textContent='Loading...';
     document.getElementById('upBadgeDesc').textContent='';
+    document.getElementById('upBadgeImg').src='';
 
-    const d=await apiGet(`/api/user/${userId}`);
-    if(d&&!d.error){
+    try{
+        const d=await apiGet(`/api/user/${userId}`);
+        if(!d||d.error){
+            document.getElementById('upBadgeName').textContent='User not found';
+            return;
+        }
         document.getElementById('upBal').textContent=`₹${(d.balance||0).toFixed(2)}`;
         document.getElementById('upRefs').textContent=d.total_refs||0;
         document.getElementById('upActiveRefs').textContent=d.active_refs||0;
 
-        // Show their current badge
         const refs=d.active_refs||0;
         const bIdx=getBadgeIndex(refs);
         const b=BADGES[bIdx];
@@ -2548,7 +2667,6 @@ async function viewUserProfile(userId,name){
         document.getElementById('upBadgeName').textContent=b.name;
         document.getElementById('upBadgeDesc').textContent=b.desc;
 
-        // Badge grid — show all badges, unlocked/locked
         const grid=document.getElementById('upBadgeGrid');
         if(grid){
             grid.innerHTML=BADGES.map((badge,i)=>{
@@ -2557,10 +2675,109 @@ async function viewUserProfile(userId,name){
                 const cls=isCurrent?'current':unlocked?'unlocked':'locked';
                 return`<div class="badge-slot ${cls}" title="${badge.name}">
                     <img src="${badge.img}" alt="${badge.name}">
-                    <div class="badge-slot-lbl">${badge.req>=1000?(badge.req/1000)+'k':badge.req||'0'}</div>
+                    <div class="badge-slot-lbl">${badge.req>=1000?(badge.req/1000)+'k':badge.req||'Free'}</div>
                 </div>`;
             }).join('');
         }
+    }catch(err){
+        document.getElementById('upBadgeName').textContent='Error loading';
+    }
+}
+
+// ============================================================
+// BADGE SHOWCASE — full page modal
+// ============================================================
+function openBadgeShowcase(){
+    const refs=userData.active_refs||0;
+    const idx=getBadgeIndex(refs);
+    const badge=BADGES[idx];
+    const nextBadge=BADGES[idx+1]||null;
+    const claimedArr=getClaimedBadges();
+    const unlockCount=BADGES.filter((_,i)=>refs>=BADGES[i].req).length;
+
+    document.getElementById('bsUnlockCount').textContent=unlockCount+'/'+BADGES.length+' unlocked';
+    document.getElementById('bsCurrentImg').src=badge.img;
+    document.getElementById('bsCurrentName').textContent=badge.name;
+    document.getElementById('bsCurrentDesc').textContent=badge.desc;
+    document.getElementById('bsRewardTxt').textContent=(badge.passes>0?badge.passes+' Passes':'')+
+        (badge.passes>0&&badge.balance>0?' + ':'')+
+        (badge.balance>0?'₹'+badge.balance:'');
+
+    // Progress bar
+    if(nextBadge){
+        const pct=Math.min(((refs-badge.req)/(nextBadge.req-badge.req))*100,100);
+        document.getElementById('bsProgressBar').style.width=pct+'%';
+        document.getElementById('bsNextTxt').textContent='Next: '+nextBadge.name+' ('+nextBadge.req+' refs)';
+        document.getElementById('bsProgressTxt').textContent=refs+'/'+nextBadge.req+' refs';
+    }else{
+        document.getElementById('bsProgressBar').style.width='100%';
+        document.getElementById('bsNextTxt').textContent='MAX BADGE! ✨ God Tier';
+        document.getElementById('bsProgressTxt').textContent='You are at the TOP!';
+    }
+
+    // Claim button or status
+    const isClaimed=claimedArr.includes(idx);
+    const bsClaimWrap=document.getElementById('bsClaimWrap');
+    if(isClaimed){
+        bsClaimWrap.innerHTML='<div style="background:rgba(25,216,158,.15);border:1px solid var(--green);border-radius:12px;padding:8px 16px;font-size:12px;font-weight:800;color:var(--green);display:inline-block;">✅ Badge Reward Claimed!</div>';
+    }else{
+        bsClaimWrap.innerHTML='<button onclick="bsClaimCurrentBadge()" style="background:linear-gradient(135deg,#f0c040,#d97706);color:#000;border:none;border-radius:14px;padding:11px 24px;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Oxanium\',sans-serif;box-shadow:0 4px 14px rgba(240,192,64,.35);">🏅 Claim Reward!</button>';
+    }
+
+    // All badges grid
+    const allGrid=document.getElementById('bsAllBadges');
+    allGrid.innerHTML=BADGES.map((b,i)=>{
+        const unlocked=refs>=b.req;
+        const isCur=i===idx;
+        const isCl=claimedArr.includes(i);
+        const borderColor=isCur?'var(--gold)':unlocked?'rgba(124,92,252,.4)':'var(--border)';
+        const bg=isCur?'linear-gradient(135deg,rgba(240,192,64,.15),rgba(124,92,252,.1))':
+                  unlocked?'rgba(124,92,252,.06)':'var(--bg3)';
+        return`<div onclick="bsViewBadge(${i})" style="background:${bg};border:1.5px solid ${borderColor};border-radius:16px;padding:12px;cursor:pointer;position:relative;transition:all .15s;${unlocked?'':'opacity:.5;'}">
+            ${isCl?'<div style="position:absolute;top:6px;right:6px;width:16px;height:16px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;">✓</div>':''}
+            ${!isCl&&unlocked?'<div style="position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--red);border-radius:50%;animation:pulse 1.2s infinite;"></div>':''}
+            <div style="text-align:center;">
+                <img src="${b.img}" style="width:48px;height:48px;object-fit:contain;${isCur?'filter:drop-shadow(0 0 10px rgba(240,192,64,.5));':''}${!unlocked?'filter:grayscale(1) brightness(.4);':''}">
+                <div style="font-size:10px;font-weight:900;color:${isCur?'var(--gold)':unlocked?'var(--text)':'var(--text3)'};margin-top:5px;">${b.name}</div>
+                <div style="font-size:8px;color:var(--text3);margin-top:2px;">${b.req===0?'Free':''+b.req+' refs'}</div>
+                <div style="font-size:8px;color:var(--purple2);margin-top:3px;font-weight:700;">${b.passes>0?b.passes+' Passes':''}${b.balance>0?' +₹'+b.balance:''}</div>
+            </div>
+        </div>`;
+    }).join('');
+
+    openModal('badgeShowcase');
+    playSound('tap');
+}
+
+function bsViewBadge(idx){
+    const refs=userData.active_refs||0;
+    const unlocked=refs>=BADGES[idx].req;
+    if(!unlocked){showToast('🔒 '+BADGES[idx].req+' active refs chahiye!');return;}
+    openBadgeClaim(idx);
+}
+
+async function bsClaimCurrentBadge(){
+    const idx=getBadgeIndex(userData.active_refs||0);
+    await doClaimBadgeByIdx(idx);
+    // Refresh showcase
+    openBadgeShowcase();
+}
+
+async function doClaimBadgeByIdx(idx){
+    if(idx===null||idx===undefined)return;
+    const b=BADGES[idx];
+    const claimed=getClaimedBadges();
+    if(claimed.includes(idx)){showToast('✅ Already claimed!');return;}
+    const r=await apiPost('/api/claim-badge',{user_id:userData.user_id,badge_idx:idx});
+    if(r&&r.success){
+        saveBadgeClaimed(idx);
+        if(b.passes>0)userData.passes=(userData.passes||0)+b.passes;
+        if(b.balance>0){userData.balance=(userData.balance||0)+b.balance;userData.today_earned=(userData.today_earned||0)+b.balance;}
+        updateUI();
+        playSound('jackpot');
+        showToast('🎉 Badge Reward! +'+b.passes+' Passes'+(b.balance>0?' +₹'+b.balance:''));
+    }else{
+        showToast('❌ '+(r?.message||'Error'));
     }
 }
 function renderRefActivity(acts){
@@ -2583,6 +2800,7 @@ function showCongratsPopup(){
 function updateMissionsUI(){
     const c=document.getElementById('missionsContainer');if(!c)return;
     let doneCount=0,compCount=0;
+    const today=new Date().toISOString().split('T')[0];
     c.innerHTML=MISSIONS_DEF.map(m=>{
         const state=missionStates[m.id]||{progress:0,completed:false,claimed:false};
         const prog=Math.min(state.progress||0,m.total);
@@ -2591,25 +2809,36 @@ function updateMissionsUI(){
         const isClaimed=state.claimed;
         if(isClaimed)doneCount++;
         if(isDone&&!isClaimed)compCount++;
-        const rewardTxt=m.reward>=1?`₹${m.reward}`:`₹${m.reward.toFixed(2)}`;
-        return`<div class="mission-item" style="${isDone&&!isClaimed?'border-color:rgba(240,192,64,.4);box-shadow:0 0 12px rgba(240,192,64,.1);':''}">
-            <div class="mission-item-header">
-                <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">${m.icon}</span><span class="mission-item-title">${lang==='en'?m.en:m.hi}</span></div>
-                <div class="mission-item-reward">+${rewardTxt}</div>
-            </div>
-            <div class="mission-item-bar"><div class="mission-item-fill" style="width:${Math.min(pct,100)}%;background:${isClaimed?'var(--green)':isDone?'var(--gold)':'var(--purple2)'};"></div></div>
-            <div class="mission-progress-text">${prog}/${m.total} ${isClaimed?'✅ Claimed!':isDone?'🎯 Ready to claim!':''}</div>
-            ${isClaimed
-                ?`<div class="mission-claimed-badge">✅ Claimed! +${rewardTxt}</div>`
-                :isDone
-                    ?`<button class="mission-claim-btn" onclick="claimSingleMission('${m.id}',${m.reward})">✅ Claim ${rewardTxt}</button>`
-                    :''}
-        </div>`;
+        const rewardTxt=m.reward>=1?'₹'+m.reward:'₹'+m.reward.toFixed(2);
+        // Separate mission reward — NOT game/bonus earnings
+        let statusHtml='';
+        if(isClaimed){
+            statusHtml='<div style="display:flex;align-items:center;gap:6px;margin-top:7px;background:rgba(25,216,158,.1);border:1px solid var(--green);border-radius:10px;padding:7px 10px;">'
+                +'<span style="font-size:16px;">✅</span>'
+                +'<div><div style="font-size:11px;font-weight:900;color:var(--green);">Claimed! +'+rewardTxt+'</div>'
+                +'<div style="font-size:9px;color:var(--text3);">Kal naya mission aayega</div></div>'
+                +'</div>';
+        }else if(isDone){
+            statusHtml='<button class="mission-claim-btn" style="margin-top:7px;animation:pulse 1.5s infinite;" onclick="claimSingleMission(\''+m.id+'\','+m.reward+')">🎯 Claim '+rewardTxt+' (Mission Reward)</button>';
+        }
+        return'<div class="mission-item" style="'+(isDone&&!isClaimed?'border-color:rgba(240,192,64,.5);box-shadow:0 0 14px rgba(240,192,64,.15);':'')+'">'
+            +'<div class="mission-item-header">'
+                +'<div style="display:flex;align-items:center;gap:8px;">'
+                    +'<span style="font-size:20px;">'+m.icon+'</span>'
+                    +'<div><div class="mission-item-title">'+(lang==='en'?m.en:m.hi)+'</div>'
+                    +'<div style="font-size:9px;color:var(--text3);margin-top:1px;">Alag reward • Game/bonus se independent</div></div>'
+                +'</div>'
+                +'<div class="mission-item-reward" style="color:'+(isClaimed?'var(--green)':isDone?'var(--gold)':'var(--text2)')+';">+'+rewardTxt+'</div>'
+            +'</div>'
+            +'<div class="mission-item-bar"><div class="mission-item-fill" style="width:'+Math.min(pct,100)+'%;background:'+(isClaimed?'var(--green)':isDone?'var(--gold)':'var(--purple2)')+'"></div></div>'
+            +'<div class="mission-progress-text">'+prog+'/'+m.total+(isClaimed?' ✅':isDone?' 🎯 Ready!':'')+'</div>'
+            +statusHtml
+        +'</div>';
     }).join('');
     const totalDone=doneCount+compCount;
-    document.getElementById('missionsDone').textContent=totalDone;
+    document.getElementById('missionsDone').textContent=doneCount;
     document.getElementById('missionsTotal').textContent=MISSIONS_DEF.length;
-    document.getElementById('missionBarFill').style.width=`${(totalDone/MISSIONS_DEF.length)*100}%`;
+    document.getElementById('missionBarFill').style.width=(doneCount/MISSIONS_DEF.length*100)+'%';
 }
 async function claimSingleMission(missionId,reward){
     // Init state if missing
@@ -2625,12 +2854,13 @@ async function claimSingleMission(missionId,reward){
     const r=await apiPost('/api/claim-single-mission',{user_id:userData.user_id,mission_id:missionId,reward:parseFloat(reward)});
     if(r&&r.success){
         const mReward=parseFloat(reward);
+        // Mission reward is SEPARATE from game earnings and bonus
         userData.balance=(userData.balance||0)+mReward;
         userData.total_earned=(userData.total_earned||0)+mReward;
-        userData.today_earned=(userData.today_earned||0)+mReward;
+        // today_earned updates from server on next loadUser — keeps it clean
         updateUI();
         playSound('mission');
-        showToast('✅ Mission! +₹'+mReward.toFixed(2)+' mila!');
+        showToast('🎯 Mission Reward! +₹'+mReward.toFixed(2)+' mila!');
     }else{
         // Backend rejected — revert local state
         missionStates[missionId].claimed=false;
@@ -2919,7 +3149,13 @@ function drawWheel(angle){
     ctx.beginPath();ctx.arc(cx,cy,20,0,2*Math.PI);
     const g=ctx.createRadialGradient(cx,cy,0,cx,cy,20);g.addColorStop(0,'#fff');g.addColorStop(1,'#ddd');
     ctx.fillStyle=g;ctx.fill();
-    ctx.fillStyle='#1a1a1a';ctx.font='bold 9px Space Grotesk';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('SPIN',cx,cy);
+    // Center circle with image
+    const _cImg=document.getElementById('_spinCenterImg')||document.createElement('img');
+    _cImg.id='_spinCenterImg';_cImg.src='https://i.postimg.cc/zGbqh2Rk/89cdcea2-faf0-4d66-9011-7309cf5978fa.jpg';
+    ctx.save();ctx.beginPath();ctx.arc(cx,cy,20,0,Math.PI*2);ctx.clip();
+    if(_cImg.complete&&_cImg.naturalWidth>0){ctx.drawImage(_cImg,cx-20,cy-20,40,40);}
+    else{ctx.fillStyle='#1a1a1a';ctx.fillText('SPIN',cx,cy);_cImg.onload=()=>drawWheel(spinAngle);}
+    ctx.restore();
 }
 async function doSpin(){
     if(isSpinning)return;
@@ -4577,4 +4813,4 @@ async function init(){
 document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
-  </html>
+</html>
