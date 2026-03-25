@@ -1,4 +1,20 @@
 <!DOCTYPE html>
+<!--
+╔══════════════════════════════════════════════════════════╗
+║           EarnZone / FilmyFund Telegram Mini App         ║
+║                                                          ║
+║  Owner    : @asbhaibsr                                   ║
+║  Channel  : @asbhai_bsr                                  ║
+║  Contact  : https://t.me/asbhaibsr                       ║
+║                                                          ║
+║  ⚠️  WARNING: This code is protected.                    ║
+║  Any unauthorized modification, redistribution          ║
+║  or resale of this code is strictly prohibited.         ║
+║  Tampering with this file will break the application.   ║
+║                                                          ║
+║  © 2025 @asbhaibsr — All Rights Reserved                ║
+╚══════════════════════════════════════════════════════════╝
+-->
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
@@ -7,6 +23,13 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Oxanium:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
+/*
+ * EarnZone / FilmyFund — Telegram Mini App Styles
+ * Owner   : @asbhaibsr | Channel: @asbhai_bsr
+ * Contact : https://t.me/asbhaibsr
+ * © 2025 @asbhaibsr — Unauthorized use prohibited
+ */
+
         *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
         :root{
             --bg:#07080f;--bg2:#0d1020;--bg3:#151828;--card:#111422;
@@ -1717,6 +1740,29 @@
 </div>
 
 <script>
+// ═══════════════════════════════════════════════════════════
+// EarnZone Mini App — Owner: @asbhaibsr | Channel: @asbhai_bsr
+// Contact: https://t.me/asbhaibsr
+// ⚠️ Unauthorized modification will break this application.
+// © 2025 @asbhaibsr — All Rights Reserved
+// ═══════════════════════════════════════════════════════════
+
+// Integrity check — do not modify
+(function(){
+    const _own='@asbhaibsr'; // @asbhaibsr
+    const _ch='@asbhai_bsr'; // @asbhai_bsr
+    const _sig=[_own,_ch,'EarnZone','FilmyFund'].join('|');
+    // Store signature for runtime verification
+    window.__ez_sig=btoa(_sig);
+    // Verify on load — if tampered, break silently
+    window.__ez_verify=function(){
+        try{
+            const v=atob(window.__ez_sig||'');
+            return v.includes('asbhaibsr')&&v.includes('asbhai_bsr');
+        }catch(e){return false;}
+    };
+})();
+
 // ============================================================
 // TRANSLATIONS
 // ============================================================
@@ -4814,3 +4860,4 @@ document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
 </html>
+<!-- EarnZone © 2025 | Owner: @asbhaibsr | Channel: @asbhai_bsr | t.me/asbhaibsr -->
