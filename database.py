@@ -913,7 +913,8 @@ class Database:
                 result[mid] = {
                     'progress': doc.get('progress', 0),
                     'completed': doc.get('completed', False),
-                    'claimed': doc.get('claimed', False)
+                    'claimed': doc.get('claimed', False),
+                    'claimed_date': doc.get('claimed_date', '')  # frontend uses this to verify TODAY
                 }
             return result
         except Exception as e:
@@ -1009,10 +1010,11 @@ class Database:
                 },
                 {
                     '$set': {
-                        'claimed':   True,
-                        'completed': True,
-                        'progress':  progress,
-                        'reward_given': float(reward)
+                        'claimed':      True,
+                        'completed':    True,
+                        'progress':     progress,
+                        'reward_given': float(reward),
+                        'claimed_date': today   # frontend checks this
                     }
                 },
                 upsert=True,
@@ -1740,6 +1742,10 @@ class Database:
         '1m':   {'seconds': 60,  'reward_per_sec': 0.003, 'label': '1 Minute'},
         '5m':   {'seconds': 300, 'reward_per_sec': 0.002, 'label': '5 Minutes'},
         '10m':  {'seconds': 600, 'reward_per_sec': 0.0015,'label': '10 Minutes'},
+        # New games use same route
+        'maze':  {'seconds': 60,  'reward_per_sec': 0.004, 'label': 'Maze Escape'},
+        'snake': {'seconds': 60,  'reward_per_sec': 0.003, 'label': 'Snake Game'},
+        'chess': {'seconds': 60,  'reward_per_sec': 0.003, 'label': 'Chess Timer'},
     }
 
     def runner_start(self, user_id, mode, bet):
