@@ -614,6 +614,34 @@ def record_search_api():
         logger.error(f"Record search error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@app.route('/api/self-search', methods=['POST'])
+def self_search_api():
+    """User khud movie search karta hai — 48 hr mein ek baar 30 pts milte hain"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'message': 'Missing user_id'}), 400
+        if not db or not db.ensure_connection():
+            return jsonify({'success': False, 'message': 'DB error'}), 503
+        result = db.record_self_search(int(user_id))
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Self search error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/self-search-status/<int:user_id>')
+def self_search_status_api(user_id):
+    """Check when user can next self-search"""
+    try:
+        if not db or not db.ensure_connection():
+            return jsonify({'can_search': True})
+        result = db.get_self_search_status(user_id)
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Self search status error: {e}")
+        return jsonify({'can_search': True})
+
 # ========== PASSES API ==========
 
 @app.route('/api/user/<int:user_id>/passes')
@@ -1067,15 +1095,36 @@ async def post_init(application):
         logger.error(f"Post-init error: {e}")
 
 async def scheduled_jobs():
-    global db, config
+    global db, config, bot_app, handlers
     logger.info("Scheduled jobs started")
+    reminder_sent_today = None
     while True:
         try:
             now = datetime.now()
+
+            # Midnight job — daily earnings
             if now.hour == 0 and now.minute == 0:
                 if db and db.ensure_connection():
                     count = db.process_daily_referral_earnings()
                     logger.info(f"Midnight job: processed {count} daily earnings")
+
+            # Evening reminder — 8 PM (once per day)
+            if now.hour == 20 and now.minute == 0:
+                today_str = now.date().isoformat()
+                if reminder_sent_today != today_str:
+                    reminder_sent_today = today_str
+                    if bot_app and handlers and db:
+                        try:
+                            # Create a fake context-like object for the reminder
+                            class FakeContext:
+                                def __init__(self, bot):
+                                    self.bot = bot
+                            ctx = FakeContext(bot_app.bot)
+                            await handlers.send_daily_reminders(ctx)
+                            logger.info("✅ Daily reminders sent at 8 PM")
+                        except Exception as e:
+                            logger.error(f"Reminder job error: {e}")
+
             await asyncio.sleep(60)
         except Exception as e:
             logger.error(f"Scheduled job error: {e}")
