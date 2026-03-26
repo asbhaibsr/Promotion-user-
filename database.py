@@ -480,8 +480,6 @@ class Database:
                 {'$set': {'last_search_date': today, 'today_searched': True}}
             )
 
-            # 60% of shortlink earning goes to referrer
-            # Based on ~₹0.50 per shortlink completion, 60% = ₹0.30
             DAILY_SEARCH_EARNING = 0.30
             self.add_balance(referrer_id, DAILY_SEARCH_EARNING, f"Daily search earning from user {referred_user_id}")
             self.users.update_one({'user_id': referred_user_id}, {'$inc': {'total_searches': 1}})
@@ -494,7 +492,7 @@ class Database:
             self.add_live_activity(
                 'daily_search', referrer_id,
                 DAILY_SEARCH_EARNING,
-                f"{referred_name} searched movie → +₹{DAILY_SEARCH_EARNING}",
+                f"{referred_name} searched movie → +{int(DAILY_SEARCH_EARNING*100)} pts",
                 extra={'referred_name': referred_name, 'referrer_name': referrer_name, 'referred_id': referred_user_id}
             )
 
@@ -509,6 +507,152 @@ class Database:
         except Exception as e:
             logger.error(f"Error recording daily search: {e}")
             return {'success': False, 'reason': str(e)}
+
+    # ========== USER SELF-SEARCH (48 hour reset) ==========
+
+    def record_self_search(self, user_id):
+        """
+        User khud movie search karta hai → 48 ghnte mein ek baar
+        user ko bhi points milte hain (30 pts = ₹0.30)
+        """
+        try:
+            user_id = int(user_id)
+            now = datetime.now()
+            now_iso = now.isoformat()
+
+            user = self.get_user(user_id)
+            if not user:
+                return {'success': False, 'reason': 'user_not_found'}
+
+            # Check last self search time
+            last_self = user.get('last_self_search')
+            if last_self:
+                try:
+                    last_dt = datetime.fromisoformat(last_self)
+                    elapsed_hours = (now - last_dt).total_seconds() / 3600
+                    if elapsed_hours < 48:
+                        remaining_h = int(48 - elapsed_hours)
+                        remaining_m = int((48 - elapsed_hours - remaining_h) * 60)
+                        return {
+                            'success': False,
+                            'reason': 'too_soon',
+                            'next_in_hours': remaining_h,
+                            'next_in_minutes': remaining_m
+                        }
+                except:
+                    pass
+
+            # Credit 30 pts (₹0.30) to user themselves
+            SELF_SEARCH_EARNING = 0.30
+            self.add_balance(user_id, SELF_SEARCH_EARNING, "Self movie search bonus (48hr)")
+            self.users.update_one(
+                {'user_id': user_id},
+                {
+                    '$set': {'last_self_search': now_iso},
+                    '$inc': {'total_searches': 1, 'self_search_count': 1}
+                }
+            )
+            self.user_cache.pop(f"user_{user_id}", None)
+
+            # Update mission progress
+            self._update_single_mission_progress(user_id, 'm_self_search', 1)
+
+            self.add_live_activity(
+                'bonus', user_id, SELF_SEARCH_EARNING,
+                "Movie search ki → +30 pts (48hr bonus)"
+            )
+
+            logger.info(f"✅ Self search: user={user_id} +₹{SELF_SEARCH_EARNING}")
+            return {
+                'success': True,
+                'earning': SELF_SEARCH_EARNING,
+                'points': int(SELF_SEARCH_EARNING * 100)
+            }
+
+        except Exception as e:
+            logger.error(f"Self search error: {e}")
+            return {'success': False, 'reason': str(e)}
+
+    def get_self_search_status(self, user_id):
+        """Check how many hours until next self search"""
+        try:
+            user_id = int(user_id)
+            user = self.get_user(user_id)
+            if not user:
+                return {'can_search': False}
+
+            last_self = user.get('last_self_search')
+            if not last_self:
+                return {'can_search': True, 'hours_left': 0}
+
+            now = datetime.now()
+            try:
+                last_dt = datetime.fromisoformat(last_self)
+                elapsed = (now - last_dt).total_seconds() / 3600
+                if elapsed >= 48:
+                    return {'can_search': True, 'hours_left': 0}
+                h_left = int(48 - elapsed)
+                m_left = int((48 - elapsed - h_left) * 60)
+                return {
+                    'can_search': False,
+                    'hours_left': h_left,
+                    'minutes_left': m_left,
+                    'last_search': last_self
+                }
+            except:
+                return {'can_search': True, 'hours_left': 0}
+
+        except Exception as e:
+            logger.error(f"Self search status error: {e}")
+            return {'can_search': True, 'hours_left': 0}
+
+    def get_pending_reminders(self):
+        """Get users who haven't claimed bonus/missions today — for daily reminder"""
+        try:
+            today = datetime.now().date().isoformat()
+            now_hour = datetime.now().hour
+
+            # Only send reminders in evening (7-10 PM)
+            if not (19 <= now_hour <= 22):
+                return []
+
+            # Find users who haven't claimed bonus today
+            claimed_today = set(
+                doc['user_id'] for doc in
+                self.daily_bonus.find({'date': today}, {'user_id': 1})
+            )
+
+            # Get active users (active in last 7 days)
+            week_ago = (datetime.now() - timedelta(days=7)).isoformat()
+            active_users = list(self.users.find(
+                {'last_active': {'$gte': week_ago}},
+                {'user_id': 1, 'first_name': 1}
+            ).limit(500))
+
+            pending = []
+            for u in active_users:
+                uid = u['user_id']
+                if uid not in claimed_today:
+                    # Check if already reminded today
+                    last_reminded = u.get('last_reminded', '')
+                    if last_reminded[:10] != today:
+                        pending.append({'user_id': uid, 'first_name': u.get('first_name', 'User')})
+
+            return pending[:200]  # max 200 per run
+
+        except Exception as e:
+            logger.error(f"Get pending reminders error: {e}")
+            return []
+
+    def mark_user_reminded(self, user_id):
+        """Mark user as reminded today"""
+        try:
+            self.users.update_one(
+                {'user_id': int(user_id)},
+                {'$set': {'last_reminded': datetime.now().isoformat()}}
+            )
+        except:
+            pass
 
     # ========== PASSES SYSTEM ==========
 
@@ -879,13 +1023,16 @@ class Database:
     # ========== MISSIONS ==========
 
     MISSIONS_DEF = [
-        {'id': 'm_refer5',    'total': 5,  'reward': 2.0,  'track': 'active_refs'},
-        {'id': 'm_search5',   'total': 5,  'reward': 1.0,  'track': 'daily_search'},
-        {'id': 'm_shortlink', 'total': 1,  'reward': 1.0,  'track': 'shortlink'},
-        {'id': 'm_game',      'total': 10, 'reward': 1.0,  'track': 'game_plays'},
-        {'id': 'm_passes',    'total': 1,  'reward': 1.0,  'track': 'pass_purchase'},
-        {'id': 'm_daily',     'total': 1,  'reward': 0.10, 'track': 'daily_bonus'},
-        {'id': 'm_withdraw',  'total': 1,  'reward': 1.0,  'track': 'withdraw'},
+        {'id': 'm_refer5',      'total': 5,  'reward': 2.0,  'track': 'active_refs'},
+        {'id': 'm_search5',     'total': 5,  'reward': 1.0,  'track': 'daily_search'},
+        {'id': 'm_self_search', 'total': 1,  'reward': 0.50, 'track': 'self_search'},
+        {'id': 'm_shortlink',   'total': 1,  'reward': 1.0,  'track': 'shortlink'},
+        {'id': 'm_game',        'total': 10, 'reward': 1.0,  'track': 'game_plays'},
+        {'id': 'm_game5win',    'total': 5,  'reward': 1.5,  'track': 'game_wins'},
+        {'id': 'm_passes',      'total': 1,  'reward': 1.0,  'track': 'pass_purchase'},
+        {'id': 'm_daily',       'total': 1,  'reward': 0.10, 'track': 'daily_bonus'},
+        {'id': 'm_streak3',     'total': 3,  'reward': 1.0,  'track': 'streak'},
+        {'id': 'm_withdraw',    'total': 1,  'reward': 1.0,  'track': 'withdraw'},
     ]
 
     def get_user_missions(self, user_id):
