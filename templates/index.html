@@ -345,14 +345,17 @@
         .badge-progress-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--gold),var(--purple2));transition:width .5s;}
         .badge-progress-txt{font-size:10px;color:var(--text3);margin-top:3px;text-align:right;}
         .badge-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px;}
-        .badge-slot{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;}
-        .badge-slot img{width:44px;height:44px;object-fit:contain;transition:all .2s;}
+        .badge-slot{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border-radius:12px;padding:6px 4px;border:2px solid transparent;transition:all .2s;background:var(--bg3);}
+        .badge-slot img{width:44px;height:44px;object-fit:contain;border-radius:8px;transition:all .2s;}
+        .badge-slot.locked{opacity:.35;filter:grayscale(1);border-color:rgba(255,255,255,.05);}
         .badge-slot.locked img{filter:grayscale(1) brightness(0.4);}
-        .badge-slot.unlocked img{filter:drop-shadow(0 0 6px rgba(240,192,64,.5));}
-        .badge-slot.current img{filter:drop-shadow(0 0 10px rgba(240,192,64,.8));animation:badgeFloat 2s ease-in-out infinite;}
+        .badge-slot.unlocked{border-color:rgba(124,92,252,.4);background:rgba(124,92,252,.07);box-shadow:0 2px 8px rgba(124,92,252,.12);}
+        .badge-slot.unlocked img{filter:drop-shadow(0 0 6px rgba(124,92,252,.4));}
+        .badge-slot.current{border-color:var(--gold);background:linear-gradient(135deg,rgba(240,192,64,.15),rgba(124,92,252,.08));box-shadow:0 0 16px rgba(240,192,64,.3),inset 0 0 8px rgba(240,192,64,.06);transform:scale(1.05);}
+        .badge-slot.current img{filter:drop-shadow(0 0 12px rgba(240,192,64,.8));animation:badgeFloat 2s ease-in-out infinite;}
         .badge-slot-lbl{font-size:8px;font-weight:700;color:var(--text3);text-align:center;}
-        .badge-slot.unlocked .badge-slot-lbl{color:var(--gold);}
-        .badge-slot.current .badge-slot-lbl{color:var(--purple2);}
+        .badge-slot.unlocked .badge-slot-lbl{color:var(--purple2);}
+        .badge-slot.current .badge-slot-lbl{color:var(--gold);font-weight:900;}
         .badge-unlock-msg{background:linear-gradient(135deg,rgba(240,192,64,.15),rgba(124,92,252,.1));border:1px solid rgba(240,192,64,.3);border-radius:12px;padding:10px;text-align:center;font-size:11px;color:var(--gold);font-weight:700;margin-top:8px;display:none;}
         .badge-unlock-msg.show{display:block;animation:bounceIn .5s;}
         .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:13px;}
@@ -654,17 +657,18 @@
 <div class="topbar">
     <div class="hamburger-btn" onclick="openSidebar()"><span></span><span></span><span></span></div>
     <div class="topbar-logo"><img src="https://i.postimg.cc/xT43NypN/IMG-20260320-075702-067.jpg" style="height:32px;border-radius:8px;vertical-align:middle;margin-right:6px;"> EarnZone</div>
-    <div class="topbar-balance" id="topbarBalance">₹0.00</div>
+    <div class="topbar-balance" id="topbarBalance">0 pts</div>
 </div>
 
 <!-- HOME PAGE -->
 <div class="page active" id="homePage">
     <div class="page-inner">
         <div class="balance-card">
-            <div class="balance-label" data-t="your_balance">💰 Aapka Balance</div>
-            <div class="balance-main" id="balAmt">₹0.00</div>
+            <div class="balance-label" data-t="your_balance">🪙 Aapke Points</div>
+            <div class="balance-main" id="balAmt" style="font-size:32px;">0 pts</div>
+            <div id="balRupees" style="font-size:11px;color:var(--text2);margin-top:-4px;font-weight:700;">= ₹0.00 withdrawal value</div>
             <div class="balance-sub">
-                <div class="bsub-item"><div class="bsub-label" data-t="today_earned">Aaj Kamaya</div><div class="bsub-val" id="todayEarned">₹0</div></div>
+                <div class="bsub-item"><div class="bsub-label" data-t="today_earned">Aaj Kamaya</div><div class="bsub-val" id="todayEarned">0 pts</div></div>
                 <div class="bsub-item"><div class="bsub-label" data-t="active_refs"><img src="https://i.postimg.cc/cCV72d3Z/refer-earn-concept-business-partnership-strategy-vector-illustration-185038-443.jpg" style="width:14px;height:14px;object-fit:cover;border-radius:3px;vertical-align:middle;margin-right:3px;"> Active Refs</div><div class="bsub-val" id="activeRefs">0</div></div>
                 <div class="bsub-item"><div class="bsub-label">📅 Month Refs</div><div class="bsub-val" id="monthRefsDisplay">0</div></div>
             </div>
@@ -727,7 +731,7 @@
         <div class="weekly-bonus-card" id="weeklyCard">
             <div style="display:flex;justify-content:space-between;align-items:center;">
                 <div style="font-family:'Oxanium',sans-serif;font-size:14px;font-weight:900;color:var(--blue);">📅 Weekly Bonus</div>
-                <div id="weeklyBonusStatus" style="font-size:11px;color:var(--text2);">7 din claim karo → ₹1 extra!</div>
+                <div id="weeklyBonusStatus" style="font-size:11px;color:var(--text2);">7 din claim karo → 100 pts extra!</div>
             </div>
             <div class="weekly-days" id="weeklyDays"></div>
         </div>
@@ -743,7 +747,7 @@
         <div class="mission-card" onclick="openModal('missions')">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;">
                 <div style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:900;" data-t="daily_missions">🎯 Daily Missions</div>
-                <div style="background:rgba(0,0,0,.18);padding:4px 11px;border-radius:28px;font-size:11px;font-weight:800;" data-t="mission_total_reward">₹6+ Reward</div>
+                <div style="background:rgba(0,0,0,.18);padding:4px 11px;border-radius:28px;font-size:11px;font-weight:800;" data-t="mission_total_reward">600+ pts Reward</div>
             </div>
             <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;">
                 <span data-t="complete_earn">Missions complete karo, paise pao!</span>
@@ -753,7 +757,7 @@
         </div>
         <div class="ref-card">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;"><img src="https://i.postimg.cc/cCV72d3Z/refer-earn-concept-business-partnership-strategy-vector-illustration-185038-443.jpg" style="width:44px;height:44px;object-fit:cover;border-radius:10px;flex-shrink:0;"><div style="font-family:'Oxanium',sans-serif;font-size:17px;font-weight:800;" data-t="refer_earn_title">Refer & Earn</div></div>
-            <div style="font-size:11px;color:var(--text2);margin-bottom:11px;" data-t="refer_sub">Dost ko invite karo • 3 Passes + ₹0.60 bonus pao!</div>
+            <div style="font-size:11px;color:var(--text2);margin-bottom:11px;" data-t="refer_sub">Dost ko invite karo • 3 Passes + 60 pts bonus pao!</div>
             <div class="ref-link-box">
                 <span class="ref-link-text" id="refLinkText">https://t.me/...</span>
                 <button class="ref-copy-btn" onclick="copyRef()" data-t="copy">Copy</button>
@@ -811,14 +815,14 @@
         <div class="games-info-banner">🎟️ 1 Pass = 1 Game • Passes earn karo refer karke!</div>
         <div class="games-stats">
             <div class="gstat"><div class="gstat-val" id="gameWins">0</div><div class="gstat-lbl" data-t="total_wins">Wins</div></div>
-            <div class="gstat"><div class="gstat-val" id="gameTodayEarned">₹0</div><div class="gstat-lbl" data-t="today">Today</div></div>
+            <div class="gstat"><div class="gstat-val" id="gameTodayEarned">0 pts</div><div class="gstat-lbl" data-t="today">Today</div></div>
             <div class="gstat"><div class="gstat-val" id="gameStreak">0🔥</div><div class="gstat-lbl" data-t="streak">Streak</div></div>
         </div>
         <div class="games-grid">
-            <div class="game-card" onclick="openGame('spin')"><img src="https://image2url.com/r2/default/images/1773972096056-ea04e437-9a04-470c-98ac-4da8383bdc75.jpg" class="game-img" alt="Spin"><div class="game-name">Spin & Earn</div><div class="game-desc">Wheel ghumao • ₹0.10–₹2</div><span class="game-reward" style="background:linear-gradient(135deg,#f59e0b,#d97706);">Win: ₹0.50 avg</span></div>
+            <div class="game-card" onclick="openGame('spin')"><img src="https://image2url.com/r2/default/images/1773972096056-ea04e437-9a04-470c-98ac-4da8383bdc75.jpg" class="game-img" alt="Spin"><div class="game-name">Spin & Earn</div><div class="game-desc">Wheel ghumao • ₹0.10–₹2</div><span class="game-reward" style="background:linear-gradient(135deg,#f59e0b,#d97706);">Win: 50 pts avg</span></div>
             <div class="game-card" onclick="openGame('guess')"><img src="https://image2url.com/r2/default/images/1773972255665-85ed9fa1-283e-44ce-8bfb-3aa2eed64ea3.png" class="game-img" alt="Guess"><div class="game-name">Number Guess</div><div class="game-desc">1-10 guess • 10% chance</div><span class="game-reward">8x Reward</span></div>
             <div class="game-card" onclick="openGame('coin')"><img src="https://image2url.com/r2/default/images/1773972404884-e233660e-0845-4937-8f72-560d43048197.jpg" class="game-img" alt="Coin"><div class="game-name">Coin Flip</div><div class="game-desc">50/50 chance • Double bet</div><span class="game-reward">2x Win</span></div>
-            <div class="game-card" onclick="openGame('dice')"><img src="https://image2url.com/r2/default/images/1773972553734-03239078-a6c1-4c1f-a486-3cf3afe78f23.jpg" class="game-img" alt="Dice"><div class="game-name">Dice Roll</div><div class="game-desc">1-6 choose • ~7% chance</div><span class="game-reward">Win ₹0.50</span></div>
+            <div class="game-card" onclick="openGame('dice')"><img src="https://image2url.com/r2/default/images/1773972553734-03239078-a6c1-4c1f-a486-3cf3afe78f23.jpg" class="game-img" alt="Dice"><div class="game-name">Dice Roll</div><div class="game-desc">1-6 guess • ~17% chance</div><span class="game-reward">Win ₹0.50</span></div>
             <div class="game-card" onclick="openGame('color')"><img src="https://image2url.com/r2/default/images/1773972774324-44a03873-7e05-4729-bbec-c5945f0bca06.png" class="game-img" alt="Color"><div class="game-name">Color Predict</div><div class="game-desc">6 colors • 2x to 9x!</div><span class="game-reward">Max 9x!</span></div>
             <div class="game-card" onclick="openGame('crash')"><img src="https://i.postimg.cc/K85csJXs/Rocket-soaring-along-neon-graph-line.png" class="game-img" alt="Crash"><div class="game-name">Crash Game</div><div class="game-desc">Rocket fly • Cashout first!</div><span class="game-reward">Up to 10x</span></div>
             <div class="game-card" style="grid-column:span 2;background:linear-gradient(135deg,#0a1628,#1a0a2e);border-color:rgba(240,192,64,.3);" onclick="openGame('runner')">
@@ -877,8 +881,8 @@
             <div class="profile-name" id="profileName">Loading...</div>
             <div class="profile-tier" id="profileTier">🥉 BASIC</div>
             <div class="stats-grid">
-                <div class="stat-box"><div class="stat-val" id="pBal">₹0</div><div class="stat-lbl" data-t="balance">Balance</div></div>
-                <div class="stat-box"><div class="stat-val" id="pTotal">₹0</div><div class="stat-lbl" data-t="total_earned">Total</div></div>
+                <div class="stat-box"><div class="stat-val" id="pBal">0 pts</div><div class="stat-lbl" data-t="balance">Balance</div></div>
+                <div class="stat-box"><div class="stat-val" id="pTotal">0 pts</div><div class="stat-lbl" data-t="total_earned">Total</div></div>
                 <div class="stat-box"><div class="stat-val" id="pStreak">0🔥</div><div class="stat-lbl" data-t="streak">Streak</div></div>
             </div>
             <div class="stats-grid2" style="margin-top:7px;">
@@ -922,7 +926,7 @@
             <div style="flex:1;">
                 <div style="font-family:'Oxanium',sans-serif;font-weight:900;color:var(--gold);font-size:14px;">Runner Challenge</div>
                 <div style="font-size:10px;color:var(--text2);margin-top:2px;">Survive karo • Har second paise milenge!</div>
-                <div style="font-size:10px;color:var(--green);font-weight:700;margin-top:3px;">₹0.005/sec → Max ₹3+ per game!</div>
+                <div style="font-size:10px;color:var(--green);font-weight:700;margin-top:3px;">0.5 pts/sec → Max 300+ pts per game!</div>
             </div>
             <div style="background:var(--gold);color:#000;padding:6px 12px;border-radius:28px;font-size:10px;font-weight:900;">PLAY →</div>
         </div>
@@ -969,15 +973,15 @@
     <div class="train-track"><div class="train-chain" id="trainChain"></div></div>
     <div class="today-claim-box" id="todayClaimBox">
         <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">Aaj ka bonus</div>
-        <div class="today-claim-amt" id="todayBonusAmt">₹0.05</div>
+        <div class="today-claim-amt" id="todayBonusAmt">5 pts</div>
         <div style="font-size:11px;color:var(--purple2);margin:6px 0;">🎟️ +1 Game Pass bhi milega!</div>
         <div class="streak-row">
             <div class="streak-item"><div class="streak-val" id="streakDays2">0</div><div class="streak-lbl">Day Streak</div></div>
-            <div class="streak-item"><div class="streak-val" id="bonusTotal">₹0</div><div class="streak-lbl">Total Earned</div></div>
+            <div class="streak-item"><div class="streak-val" id="bonusTotal">0 pts</div><div class="streak-lbl">Total Earned</div></div>
         </div>
         <button class="btn-gold" id="claimBonusBtn2" onclick="claimBonus()">🎉 CLAIM NOW</button>
     </div>
-    <div id="streakBrokenMsg" style="display:none;" class="streak-broken-msg">⚠️ Kal bonus nahi liya — streak toot gayi! Ab ₹0.05 se shuru hoga.</div>
+    <div id="streakBrokenMsg" style="display:none;" class="streak-broken-msg">⚠️ Kal bonus nahi liya — streak toot gayi! Ab 0.05 se shuru hoga.</div>
     <div id="alreadyClaimedMsg" style="display:none;text-align:center;padding:16px;background:rgba(25,216,158,.07);border-radius:12px;border:1px solid rgba(25,216,158,.22);margin-top:12px;">
         <div style="font-size:28px;margin-bottom:5px;">✅</div>
         <div style="font-weight:800;color:var(--green);" data-t="already_claimed">Aaj ka bonus claim ho gaya!</div>
@@ -993,11 +997,11 @@
         <div style="font-size:12px;color:var(--gold);font-weight:800;margin-bottom:6px;">💡 Apne referred users ko batao:</div>
         <div style="font-size:11px;color:var(--text2);line-height:1.8;">
             📱 <b style="color:var(--text);">Roz movie search karo</b> group pe aur ek shortlink puri karo<br>
-            → Tumhe <b style="color:var(--gold);">₹0.30 daily bonus</b> milega ek user se<br>
+            → Tumhe <b style="color:var(--gold);">30 pts daily bonus</b> milega ek user se<br>
         </div>
     </div>
     <div style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:800;color:var(--gold);margin-bottom:9px;">📌 Kaise milte hain Passes?</div>
-    <div class="ep-method"><div class="ep-method-icon">👥</div><div class="ep-method-info"><div class="ep-method-title">Dost ko Refer karo</div><div class="ep-method-desc">Har active referral pe 3 passes + ₹0.60</div></div><div class="ep-method-badge">+3 Pass</div></div>
+    <div class="ep-method"><div class="ep-method-icon">👥</div><div class="ep-method-info"><div class="ep-method-title">Dost ko Refer karo</div><div class="ep-method-desc">Har active referral pe 3 passes + 60 pts</div></div><div class="ep-method-badge">+3 Pass</div></div>
     <div class="ep-method"><div class="ep-method-icon"><img src="https://i.postimg.cc/50DFNn2V/image.png" style="width:32px;height:32px;object-fit:contain;border-radius:8px;"></div><div class="ep-method-info"><div class="ep-method-title">Daily Bonus Claim karo</div><div class="ep-method-desc">Roz claim karo, 1 pass milega</div></div><div class="ep-method-badge">+1 Pass</div></div>
     <div class="ep-method"><div class="ep-method-icon"><img src="https://i.postimg.cc/15X5YpmT/1773974388103.png" style="width:32px;height:32px;object-fit:contain;border-radius:8px;"></div><div class="ep-method-info"><div class="ep-method-title">Offer claim karo</div><div class="ep-method-desc">Sponsored offer claim karo, 1 pass milega</div></div><div class="ep-method-badge">+1 Pass</div></div>
 </div>
@@ -1005,8 +1009,23 @@
 <!-- MISSIONS -->
 <div class="modal" id="missionsModal">
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('missions')">←</div><div class="modal-title">🎯 <span data-t="missions">Missions</span></div></div>
-    <div style="background:linear-gradient(135deg,#0a1628,#0d0d3c);border:1px solid rgba(240,192,64,.18);border-radius:16px;padding:14px;margin-bottom:14px;text-align:center;">
+    <div style="background:linear-gradient(135deg,#0a1628,#0d0d3c);border:1px solid rgba(240,192,64,.18);border-radius:16px;padding:14px;margin-bottom:10px;text-align:center;">
         <div style="font-size:11px;color:var(--text2);">Har mission alag claim karo • 24 ghante mein expire</div>
+        <div style="margin-top:4px;font-size:10px;color:var(--text3);">Mission reward game/bonus se bilkul alag hai!</div>
+    </div>
+    <!-- Self Search 48hr Card -->
+    <div id="selfSearchCard" style="background:linear-gradient(135deg,rgba(54,182,245,.1),rgba(124,92,252,.08));border:1.5px solid rgba(54,182,245,.3);border-radius:16px;padding:14px;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <div style="font-size:28px;">🔍</div>
+            <div style="flex:1;">
+                <div style="font-weight:900;font-size:13px;color:var(--blue);">Movie Search Bonus (48hr)</div>
+                <div style="font-size:10px;color:var(--text2);margin-top:2px;">Khud movie search karo → 30 pts milenge!</div>
+                <div id="selfSearchTimer" style="font-size:10px;color:var(--text3);margin-top:3px;">Loading...</div>
+            </div>
+            <div>
+                <button id="selfSearchBtn" onclick="doSelfSearch()" style="background:var(--blue);color:#fff;border:none;border-radius:12px;padding:9px 14px;font-size:11px;font-weight:900;cursor:pointer;white-space:nowrap;">🔍 Search!</button>
+            </div>
+        </div>
     </div>
     <div id="missionsContainer"></div>
 </div>
@@ -1038,7 +1057,7 @@
         <div style="text-align:center;margin-bottom:12px;">
             <div style="margin-bottom:5px;"><img src="https://i.postimg.cc/cCV72d3Z/refer-earn-concept-business-partnership-strategy-vector-illustration-185038-443.jpg" style="width:60px;height:60px;object-fit:cover;border-radius:14px;"></div>
             <div style="font-family:'Oxanium',sans-serif;font-size:19px;font-weight:900;color:var(--gold);">Har Referral Pe</div>
-            <div style="font-family:'Oxanium',sans-serif;font-size:30px;font-weight:900;color:var(--green);">3 Passes + ₹0.60!</div>
+            <div style="font-family:'Oxanium',sans-serif;font-size:30px;font-weight:900;color:var(--green);">3 Passes + 60 pts!</div>
         </div>
         <div class="ref-link-box"><span class="ref-link-text" id="refLinkText2">Loading...</span><button class="ref-copy-btn" onclick="copyRef()">Copy</button></div>
         <div class="share-grid" style="margin-top:8px;">
@@ -1054,8 +1073,8 @@
             2️⃣ Wo bot join kare<br>
             3️⃣ Movie Group pe movie search kare<br>
             4️⃣ Shortlink poori kare (Movie Bot pe)<br>
-            5️⃣ <b style="color:var(--gold);">Referral auto-active!</b> 3 passes + ₹0.60 milega<br>
-            🔁 Har roz movie search kare → Tumhe <b style="color:var(--green);">₹0.30</b> milega
+            5️⃣ <b style="color:var(--gold);">Referral auto-active!</b> 3 passes + 60 pts milega<br>
+            🔁 Har roz movie search kare → Tumhe <b style="color:var(--green);">30 pts</b> milega
         </div>
     </div>
 </div>
@@ -1065,7 +1084,7 @@
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('createOffer')">←</div><div class="modal-title">➕ Create Offer</div></div>
     <input id="promoTitle" class="inp" placeholder="Offer Title" type="text">
     <input id="promoDesc" class="inp" placeholder="Description" type="text">
-    <input id="promoReward" class="inp" placeholder="Reward Amount (₹)" type="number" step="0.1">
+    <input id="promoReward" class="inp" placeholder="Reward Amount (in ₹, auto-converts)" type="number" step="0.1">
     <input id="promoLink" class="inp" placeholder="Link URL" type="url">
     <input id="promoIcon" class="inp" placeholder="Icon emoji (e.g. 📱)" type="text">
     <input id="promoMeta" class="inp" placeholder="Meta text (e.g. ⏱️ 2 min)" type="text">
@@ -1099,7 +1118,7 @@
         <div class="wd-progress-bar"><div class="wd-progress-fill" id="wdProgressFill" style="width:0%"></div></div>
         <div class="wd-progress-text" id="wdProgressText">0/20 refs this month</div>
     </div>
-    <div class="avail-balance"><img src="https://i.postimg.cc/26CCdW9w/wallet-3d-icon-png-download-10033542.png" style="width:52px;height:52px;object-fit:contain;margin-bottom:6px;"><div style="font-size:11px;color:var(--text2);margin-bottom:3px;">Available Balance</div><div class="avail-amt" id="wdrawBal">₹0</div><div style="font-size:11px;color:var(--text2);margin-top:3px;">Minimum: ₹20</div></div>
+    <div class="avail-balance"><img src="https://i.postimg.cc/26CCdW9w/wallet-3d-icon-png-download-10033542.png" style="width:52px;height:52px;object-fit:contain;margin-bottom:6px;"><div style="font-size:11px;color:var(--text2);margin-bottom:3px;">Available Balance</div><div class="avail-amt" id="wdrawBal">0 pts</div><div style="font-size:11px;color:var(--text2);margin-top:3px;">Minimum: ₹20</div></div>
     <input id="wdrawAmt" class="inp" placeholder="Amount (min ₹20)" type="number" min="20">
     <div class="method-btn" onclick="selMethod('upi')" id="methodUpi"><span style="font-size:24px;">📱</span><div><div style="font-weight:700;">UPI</div><div style="font-size:10px;color:var(--text2);">Instant</div></div></div>
     <div class="method-btn" onclick="selMethod('bank')" id="methodBank"><span style="font-size:24px;">🏦</span><div><div style="font-weight:700;">Bank Transfer</div><div style="font-size:10px;color:var(--text2);">1-2 working days</div></div></div>
@@ -1113,16 +1132,16 @@
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('spin')">←</div><div class="modal-title">🎰 Spin & Earn</div></div>
     <div class="spin-wrap">
         <div class="spin-stats">
-            <div class="ss-item"><div class="ss-val" id="spinBal">₹0</div><div class="ss-lbl">Balance</div></div>
+            <div class="ss-item"><div class="ss-val" id="spinBal">0 pts</div><div class="ss-lbl">Balance</div></div>
             <div class="ss-item"><div class="ss-val" id="spinPassesLeft">0</div><div class="ss-lbl">Passes</div></div>
-            <div class="ss-item"><div class="ss-val" id="spinTodayEarned">₹0</div><div class="ss-lbl">Today</div></div>
+            <div class="ss-item"><div class="ss-val" id="spinTodayEarned">0 pts</div><div class="ss-lbl">Today</div></div>
         </div>
         <div class="wheel-outer"><div class="wheel-ptr">▼</div><canvas id="spinCanvas" width="255" height="255"></canvas></div>
-        <div class="spin-result" id="spinResultBox"><div class="spin-result-amt" id="spinResultAmt">+₹0</div><div style="font-size:12px;color:rgba(255,255,255,.8);margin-top:3px;" id="spinResultTxt">Badhaai ho!</div></div>
+        <div class="spin-result" id="spinResultBox"><div class="spin-result-amt" id="spinResultAmt">+0 pts</div><div style="font-size:12px;color:rgba(255,255,255,.8);margin-top:3px;" id="spinResultTxt">Badhaai ho!</div></div>
         <button class="btn-purple" id="spinBtn" onclick="doSpin()">🎰 SPIN (1 Pass)</button>
         <div style="background:rgba(124,92,252,.07);border:1px solid rgba(124,92,252,.18);border-radius:11px;padding:10px 13px;margin-top:8px;font-size:10px;color:var(--text2);">
-            🎯 <b style="color:var(--purple2);">Chances:</b> ₹0.10 = 25% • ₹0.50 = 37% • ₹1 = 25% • ₹2 = 12.5%<br>
-            💡 <b style="color:var(--gold);">Tip:</b> Zyada spins se zyada ₹0.50 aur ₹1 milte hain!
+            🎯 <b style="color:var(--purple2);">Chances:</b> 10 pts = 25% • 50 pts = 37% • 100 pts = 25% • 200 pts = 12.5%<br>
+            💡 <b style="color:var(--gold);">Tip:</b> Zyada spins se zyada 50 pts aur 100 pts milte hain!
         </div>
     </div>
 </div>
@@ -1133,15 +1152,15 @@
     <div class="guess-display"><div class="guess-num" id="guessDisp">?</div><div class="guess-hint" id="guessHint">1 se 10 ke beech guess karo</div></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0;">
         <span style="font-weight:700;font-size:12px;">Bet:</span>
-        <span style="font-family:'Oxanium',sans-serif;font-size:17px;font-weight:900;color:var(--gold);" id="guessBetDisp">₹1</span>
+        <span style="font-family:'Oxanium',sans-serif;font-size:17px;font-weight:900;color:var(--gold);" id="guessBetDisp">100 pts</span>
         <span style="font-size:11px;color:var(--text2);">Passes: <b style="color:var(--purple2);" id="guessPassLeft">0</b></span>
-        <span style="font-size:11px;color:var(--text2);">Bal: <b style="color:var(--gold);" id="guessBal">₹0</b></span>
+        <span style="font-size:11px;color:var(--text2);">Bal: <b style="color:var(--gold);" id="guessBal">0 pts</b></span>
     </div>
     <div class="bet-row">
-        <div class="bet-chip sel" onclick="selGuessBet(1,this)">₹1</div>
-        <div class="bet-chip" onclick="selGuessBet(2,this)">₹2</div>
-        <div class="bet-chip" onclick="selGuessBet(5,this)">₹5</div>
-        <div class="bet-chip" onclick="selGuessBet(10,this)">₹10</div>
+        <div class="bet-chip sel" onclick="selGuessBet(1,this)">100 pts</div>
+        <div class="bet-chip" onclick="selGuessBet(2,this)">200 pts</div>
+        <div class="bet-chip" onclick="selGuessBet(5,this)">500 pts</div>
+        <div class="bet-chip" onclick="selGuessBet(10,this)">1000 pts</div>
     </div>
     <div class="num-grid" id="numGrid"></div>
     <div style="background:rgba(25,216,158,.07);border:1px solid rgba(25,216,158,.2);border-radius:11px;padding:10px 13px;margin:6px 0;font-size:11px;color:var(--text2);">
@@ -1157,7 +1176,7 @@
     <div class="coin-game-wrap">
         <div style="display:flex;justify-content:space-between;background:var(--bg3);border-radius:12px;padding:11px;margin-bottom:11px;">
             <span style="font-size:12px;">Passes: <b style="color:var(--purple2);" id="coinPassesLeft">0</b></span>
-            <span style="font-size:12px;">Bal: <b style="color:var(--gold);" id="coinBal">₹0</b></span>
+            <span style="font-size:12px;">Bal: <b style="color:var(--gold);" id="coinBal">0 pts</b></span>
         </div>
         <div class="coin-outer"><div class="coin" id="theCoin"><div class="coin-face coin-h">👑</div><div class="coin-face coin-t">⚡</div></div></div>
         <p style="text-align:center;color:var(--text2);font-size:12px;margin:9px 0;">Pehle choose karo, phir flip:</p>
@@ -1166,13 +1185,13 @@
             <button class="coin-choice" id="coinChoiceT" onclick="chooseCoin('tails')">⚡<br><span style="font-size:12px;">Tails</span></button>
         </div>
         <div class="bet-row">
-            <div class="bet-chip sel" onclick="selCoinBet(1,this)">₹1</div>
-            <div class="bet-chip" onclick="selCoinBet(2,this)">₹2</div>
-            <div class="bet-chip" onclick="selCoinBet(5,this)">₹5</div>
-            <div class="bet-chip" onclick="selCoinBet(10,this)">₹10</div>
+            <div class="bet-chip sel" onclick="selCoinBet(1,this)">100 pts</div>
+            <div class="bet-chip" onclick="selCoinBet(2,this)">200 pts</div>
+            <div class="bet-chip" onclick="selCoinBet(5,this)">500 pts</div>
+            <div class="bet-chip" onclick="selCoinBet(10,this)">1000 pts</div>
         </div>
-        <div class="coin-res-win" id="coinResWin"><div class="coin-res-big">🎉 JEETE!</div><div id="coinWinAmt" style="font-family:'Oxanium',sans-serif;font-size:30px;font-weight:900;margin-top:4px;">+₹0</div></div>
-        <div class="coin-res-lose" id="coinResLose"><div class="coin-res-big">😢 HARE!</div><div id="coinLoseAmt" style="font-size:18px;margin-top:4px;">-₹0</div></div>
+        <div class="coin-res-win" id="coinResWin"><div class="coin-res-big">🎉 JEETE!</div><div id="coinWinAmt" style="font-family:'Oxanium',sans-serif;font-size:30px;font-weight:900;margin-top:4px;">+0 pts</div></div>
+        <div class="coin-res-lose" id="coinResLose"><div class="coin-res-big">😢 HARE!</div><div id="coinLoseAmt" style="font-size:18px;margin-top:4px;">-0 pts</div></div>
         <button class="btn-gold" id="flipBtn" onclick="doFlip()">🪙 FLIP!</button>
         <div style="background:rgba(54,182,245,.07);border:1px solid rgba(54,182,245,.2);border-radius:11px;padding:9px 13px;text-align:center;font-size:11px;color:var(--text2);margin-top:7px;">
             🎯 <b style="color:var(--blue);">50/50 chance</b> — Jeeto: Bet × 2 • Haaro: Bet wapas nahi
@@ -1186,7 +1205,7 @@
     <div class="dice-game-wrap">
         <div style="display:flex;justify-content:space-between;background:var(--bg3);border-radius:12px;padding:11px;margin-bottom:11px;font-size:12px;">
             <span>Passes: <b style="color:var(--purple2);" id="dicePassesLeft">0</b></span>
-            <span>Bal: <b style="color:var(--gold);" id="diceBal">₹0</b></span>
+            <span>Bal: <b style="color:var(--gold);" id="diceBal">0 pts</b></span>
         </div>
         <div class="dice-arena">
             <div class="dice-display" id="diceDisplay">🎲</div>
@@ -1203,10 +1222,10 @@
                 <button class="dice-num-btn" onclick="chooseDice(6,this)">6</button>
             </div>
         </div>
-        <div class="dice-res-win" id="diceResWin"><div class="dice-res-big">🎉 SAHI!</div><div id="diceWinAmt" style="font-family:'Oxanium',sans-serif;font-size:28px;font-weight:900;margin-top:4px;">+₹0.50</div></div>
+        <div class="dice-res-win" id="diceResWin"><div class="dice-res-big">🎉 SAHI!</div><div id="diceWinAmt" style="font-family:'Oxanium',sans-serif;font-size:28px;font-weight:900;margin-top:4px;">+0 pts</div></div>
         <div class="dice-res-lose" id="diceResLose"><div class="dice-res-big">😢 GALAT!</div><div id="diceLoseNum" style="font-size:15px;margin-top:4px;">Number tha: ?</div></div>
         <button class="btn-purple" id="diceRollBtn" onclick="doDiceRoll()">🎲 ROLL (1 Pass)</button>
-        <div class="dice-odds-info">⚠️ Win chance: ~17% (1 in 6) • Win = ₹0.50 (5x Pass value) • House edge lagu hota hai</div>
+        <div class="dice-odds-info">⚠️ Win chance: ~17% (1 in 6) • Win = 50 pts (5x Pass value) • House edge lagu hota hai</div>
     </div>
 </div>
 
@@ -1215,7 +1234,7 @@
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('color')">←</div><div class="modal-title">🎨 Color Predict</div></div>
     <div style="display:flex;justify-content:space-between;background:var(--bg3);border-radius:12px;padding:11px;margin-bottom:10px;font-size:12px;">
         <span>Passes: <b style="color:var(--purple2);" id="colorPassesLeft">0</b></span>
-        <span>Bal: <b style="color:var(--gold);" id="colorBal">₹0</b></span>
+        <span>Bal: <b style="color:var(--gold);" id="colorBal">0 pts</b></span>
     </div>
     <div class="color-arena">
         <div class="color-result-display" id="colorResultDisplay">🎨</div>
@@ -1238,12 +1257,12 @@
         <button class="color-btn cb-orange" onclick="chooseColor('orange',this)">🟠<br>ORANGE<br><span style="font-size:10px;opacity:.8;">9x</span></button>
     </div>
     <div class="bet-row">
-        <div class="bet-chip sel" onclick="selColorBet(1,this)">₹1</div>
-        <div class="bet-chip" onclick="selColorBet(2,this)">₹2</div>
-        <div class="bet-chip" onclick="selColorBet(5,this)">₹5</div>
-        <div class="bet-chip" onclick="selColorBet(10,this)">₹10</div>
+        <div class="bet-chip sel" onclick="selColorBet(1,this)">100 pts</div>
+        <div class="bet-chip" onclick="selColorBet(2,this)">200 pts</div>
+        <div class="bet-chip" onclick="selColorBet(5,this)">500 pts</div>
+        <div class="bet-chip" onclick="selColorBet(10,this)">1000 pts</div>
     </div>
-    <div class="color-res-win" id="colorResWin"><div style="font-family:Oxanium,sans-serif;font-size:36px;font-weight:900;">🎉 JEETE!</div><div id="colorWinAmt" style="font-family:Oxanium,sans-serif;font-size:28px;font-weight:900;margin-top:4px;">+₹0</div></div>
+    <div class="color-res-win" id="colorResWin"><div style="font-family:Oxanium,sans-serif;font-size:36px;font-weight:900;">🎉 JEETE!</div><div id="colorWinAmt" style="font-family:Oxanium,sans-serif;font-size:28px;font-weight:900;margin-top:4px;">+0 pts</div></div>
     <div class="color-res-lose" id="colorResLose"><div style="font-family:Oxanium,sans-serif;font-size:36px;font-weight:900;">😢 HARE!</div><div id="colorLoseInfo" style="font-size:14px;margin-top:4px;">Try again!</div></div>
     <button class="btn-purple" id="colorPlayBtn" onclick="doColorPredict()">🎨 PREDICT (1 Pass)</button>
     <div style="background:rgba(255,78,106,.07);border:1px solid rgba(255,78,106,.2);border-radius:11px;padding:10px 13px;font-size:11px;color:var(--text2);margin-top:7px;">
@@ -1260,7 +1279,7 @@
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('crash')">←</div><div class="modal-title">🚀 Crash Game</div></div>
     <div style="display:flex;justify-content:space-between;background:var(--bg3);border-radius:12px;padding:11px;margin-bottom:10px;font-size:12px;">
         <span>Passes: <b style="color:var(--purple2);" id="crashPassesLeft">0</b></span>
-        <span>Bal: <b style="color:var(--gold);" id="crashBal">₹0</b></span>
+        <span>Bal: <b style="color:var(--gold);" id="crashBal">0 pts</b></span>
     </div>
     <div class="crash-arena" id="crashArena">
         <div class="crash-rocket" id="crashRocket" style="bottom:20px;left:50%;">🚀</div>
@@ -1274,10 +1293,10 @@
         <input class="crash-auto-inp" id="crashAutoCashout" type="number" step="0.1" min="1.1" max="10" placeholder="e.g. 2.0x (optional)">
     </div>
     <div class="bet-row">
-        <div class="bet-chip sel" onclick="selCrashBet(1,this)">₹1</div>
-        <div class="bet-chip" onclick="selCrashBet(2,this)">₹2</div>
-        <div class="bet-chip" onclick="selCrashBet(5,this)">₹5</div>
-        <div class="bet-chip" onclick="selCrashBet(10,this)">₹10</div>
+        <div class="bet-chip sel" onclick="selCrashBet(1,this)">100 pts</div>
+        <div class="bet-chip" onclick="selCrashBet(2,this)">200 pts</div>
+        <div class="bet-chip" onclick="selCrashBet(5,this)">500 pts</div>
+        <div class="bet-chip" onclick="selCrashBet(10,this)">1000 pts</div>
     </div>
     <button class="btn-purple" id="crashStartBtn" onclick="startCrash()">🚀 START (1 Pass)</button>
     <button class="crash-cashout-btn" id="crashCashoutBtn" onclick="doCrashCashout()">💸 CASHOUT NOW!</button>
@@ -1314,7 +1333,7 @@
     <!-- Stats -->
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
         <div style="background:var(--bg3);border-radius:14px;padding:12px;text-align:center;border:1px solid var(--border);">
-            <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--gold);" id="upBal">₹0</div>
+            <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--gold);" id="upBal">0 pts</div>
             <div style="font-size:9px;color:var(--text3);margin-top:2px;">Balance</div>
         </div>
         <div style="background:var(--bg3);border-radius:14px;padding:12px;text-align:center;border:1px solid var(--border);">
@@ -1372,7 +1391,7 @@
     <div style="padding:12px 14px 8px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
         <div class="back-btn" onclick="exitRunnerGame()">←</div>
         <div style="font-family:'Oxanium',sans-serif;font-weight:900;font-size:15px;">🏃 JUMP OR DIE!</div>
-        <div id="runnerBalDisplay" style="font-size:12px;color:var(--gold);font-weight:800;">₹0</div>
+        <div id="runnerBalDisplay" style="font-size:12px;color:var(--gold);font-weight:800;">0 pts</div>
     </div>
 
     <!-- SETUP SCREEN -->
@@ -1393,10 +1412,10 @@
         <div style="background:var(--bg3);border-radius:16px;padding:14px;margin-bottom:12px;border:1px solid var(--border);">
             <div style="font-size:12px;font-weight:800;color:var(--text2);margin-bottom:8px;">💰 Bet Amount:</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button class="bet-chip" onclick="selectRunnerBet(1,this)">₹1</button>
-                <button class="bet-chip" onclick="selectRunnerBet(2,this)">₹2</button>
-                <button class="bet-chip" onclick="selectRunnerBet(5,this)">₹5</button>
-                <button class="bet-chip" onclick="selectRunnerBet(10,this)">₹10</button>
+                <button class="bet-chip" onclick="selectRunnerBet(1,this)">100 pts</button>
+                <button class="bet-chip" onclick="selectRunnerBet(2,this)">200 pts</button>
+                <button class="bet-chip" onclick="selectRunnerBet(5,this)">500 pts</button>
+                <button class="bet-chip" onclick="selectRunnerBet(10,this)">1000 pts</button>
             </div>
         </div>
 
@@ -1428,7 +1447,7 @@
     <div id="runnerGameScreen" style="display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,0,0,.4);">
             <div style="font-family:'Oxanium',sans-serif;font-size:13px;font-weight:900;color:var(--red);" id="runnerTimer">00:00</div>
-            <div style="font-size:11px;color:var(--gold);font-weight:800;" id="runnerEarning">+₹0.000</div>
+            <div style="font-size:11px;color:var(--gold);font-weight:800;" id="runnerEarning">+0 pts</div>
             <div style="font-size:11px;color:var(--text2);" id="runnerLives">❤️❤️❤️</div>
         </div>
         <canvas id="runnerCanvas" style="width:100%;display:block;touch-action:none;"></canvas>
@@ -1445,7 +1464,7 @@
         <div style="font-size:13px;color:var(--text2);margin-bottom:16px;" id="runnerResultSub">Survived: 0 seconds</div>
         <div style="background:var(--bg3);border-radius:16px;padding:16px;margin-bottom:16px;">
             <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Kamai:</div>
-            <div style="font-family:'Oxanium',sans-serif;font-size:36px;font-weight:900;color:var(--gold);" id="runnerResultReward">+₹0</div>
+            <div style="font-family:'Oxanium',sans-serif;font-size:36px;font-weight:900;color:var(--gold);" id="runnerResultReward">+0 pts</div>
             <div style="font-size:10px;color:var(--text3);" id="runnerResultBreakdown"></div>
         </div>
         <button class="btn-purple" onclick="resetRunnerGame()" style="width:100%;margin-bottom:8px;">🔄 Play Again</button>
@@ -1533,7 +1552,7 @@
 
 <!-- MAZE GAME MODAL -->
 <div class="modal" id="mazeModal">
-    <div class="modal-hdr"><div class="back-btn" onclick="exitMaze()">←</div><div class="modal-title">🗺️ Maze Escape</div><div id="mazeBal" style="font-size:11px;color:var(--gold);font-weight:800;">₹0</div></div>
+    <div class="modal-hdr"><div class="back-btn" onclick="exitMaze()">←</div><div class="modal-title">🗺️ Maze Escape</div><div id="mazeBal" style="font-size:11px;color:var(--gold);font-weight:800;">0 pts</div></div>
     <div id="mazeSetup" style="padding:14px;">
         <div style="background:linear-gradient(135deg,#0a1628,#1a0a2e);border-radius:16px;padding:14px;margin-bottom:12px;text-align:center;">
             <div style="font-size:32px;margin-bottom:6px;">🗺️</div>
@@ -1548,12 +1567,12 @@
         <div style="margin-bottom:10px;">
             <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:6px;">💰 Bet:</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button class="bet-chip" onclick="selMazeBet(1,this)">₹1</button>
-                <button class="bet-chip" onclick="selMazeBet(10,this)">₹10</button>
-                <button class="bet-chip" onclick="selMazeBet(15,this)">₹15</button>
-                <button class="bet-chip" onclick="selMazeBet(20,this)">₹20</button>
-                <button class="bet-chip" onclick="selMazeBet(40,this)">₹40</button>
-                <button class="bet-chip" onclick="selMazeBet(50,this)">₹50</button>
+                <button class="bet-chip" onclick="selMazeBet(1,this)">100 pts</button>
+                <button class="bet-chip" onclick="selMazeBet(10,this)">1000 pts</button>
+                <button class="bet-chip" onclick="selMazeBet(15,this)">1500 pts</button>
+                <button class="bet-chip" onclick="selMazeBet(20,this)">2000 pts</button>
+                <button class="bet-chip" onclick="selMazeBet(40,this)">4000 pts</button>
+                <button class="bet-chip" onclick="selMazeBet(50,this)">5000 pts</button>
             </div>
         </div>
         <div style="margin-bottom:10px;">
@@ -1564,12 +1583,13 @@
                 <button class="runner-mode-btn" onclick="selMazeDiff('hard',this)">Hard<br><span style="font-size:9px;color:var(--red);">25s | 8x</span></button>
             </div>
         </div>
+        <div id="mazeRewardPreview" style="text-align:center;font-size:11px;color:var(--gold);font-weight:800;margin-bottom:8px;padding:6px;background:rgba(240,192,64,.08);border-radius:10px;">🏆 Bet lagao to reward dikhega</div>
         <button class="btn-gold" onclick="startMaze()" style="width:100%;padding:13px;font-size:14px;">🗺️ START (1 Pass + Bet)</button>
     </div>
     <div id="mazeGame" style="display:none;padding:10px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
             <div id="mazeTimer" style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--red);">0:60</div>
-            <div style="font-size:11px;color:var(--gold);font-weight:800;" id="mazeEarning">₹0</div>
+            <div style="font-size:11px;color:var(--gold);font-weight:800;" id="mazeEarning">0 pts</div>
             <div style="font-size:10px;color:var(--text2);" id="mazeMoves">Moves: 0</div>
         </div>
         <canvas id="mazeCanvas" style="width:100%;border-radius:12px;display:block;"></canvas>
@@ -1588,7 +1608,7 @@
         <div id="mazeResultSub" style="font-size:12px;color:var(--text2);margin-bottom:14px;"></div>
         <div style="background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:14px;">
             <div style="font-size:11px;color:var(--text2);">Reward:</div>
-            <div id="mazeResultReward" style="font-family:'Oxanium',sans-serif;font-size:32px;font-weight:900;color:var(--gold);"></div>
+            <div id="mazeResultReward" style="font-family:'Oxanium',sans-serif;font-size:32px;font-weight:900;color:var(--gold);margin-top:4px;"></div>
         </div>
         <button class="btn-purple" onclick="resetMaze()" style="width:100%;margin-bottom:8px;">🔄 Again</button>
         <button onclick="exitMaze()" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:11px;font-weight:800;cursor:pointer;">← Back</button>
@@ -1597,7 +1617,7 @@
 
 <!-- SNAKE GAME MODAL -->
 <div class="modal" id="snakeModal">
-    <div class="modal-hdr"><div class="back-btn" onclick="exitSnake()">←</div><div class="modal-title">🐍 Snake Game</div><div id="snakeBal" style="font-size:11px;color:var(--gold);font-weight:800;">₹0</div></div>
+    <div class="modal-hdr"><div class="back-btn" onclick="exitSnake()">←</div><div class="modal-title">🐍 Snake Game</div><div id="snakeBal" style="font-size:11px;color:var(--gold);font-weight:800;">0 pts</div></div>
     <div id="snakeSetup" style="padding:14px;">
         <div style="background:linear-gradient(135deg,#0a2e0a,#0a1e0a);border-radius:16px;padding:14px;margin-bottom:12px;text-align:center;">
             <div style="font-size:32px;margin-bottom:6px;">🐍</div>
@@ -1612,11 +1632,11 @@
         <div style="margin-bottom:10px;">
             <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:6px;">💰 Bet:</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button class="bet-chip" onclick="selSnakeBet(1,this)">₹1</button>
-                <button class="bet-chip" onclick="selSnakeBet(5,this)">₹5</button>
-                <button class="bet-chip" onclick="selSnakeBet(10,this)">₹10</button>
-                <button class="bet-chip" onclick="selSnakeBet(20,this)">₹20</button>
-                <button class="bet-chip" onclick="selSnakeBet(50,this)">₹50</button>
+                <button class="bet-chip" onclick="selSnakeBet(1,this)">100 pts</button>
+                <button class="bet-chip" onclick="selSnakeBet(5,this)">500 pts</button>
+                <button class="bet-chip" onclick="selSnakeBet(10,this)">1000 pts</button>
+                <button class="bet-chip" onclick="selSnakeBet(20,this)">2000 pts</button>
+                <button class="bet-chip" onclick="selSnakeBet(50,this)">5000 pts</button>
             </div>
         </div>
         <button class="btn-gold" onclick="startSnake()" style="width:100%;padding:13px;font-size:14px;">🐍 START (1 Pass + Bet)</button>
@@ -1625,7 +1645,7 @@
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
             <div id="snakeScore" style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:900;color:var(--green);">Score: 0</div>
             <div id="snakeTimer" style="font-size:14px;font-weight:800;color:var(--red);">60s</div>
-            <div id="snakeEarning" style="font-size:11px;color:var(--gold);font-weight:800;">₹0</div>
+            <div id="snakeEarning" style="font-size:11px;color:var(--gold);font-weight:800;">0 pts</div>
         </div>
         <canvas id="snakeCanvas" style="width:100%;border-radius:10px;display:block;background:#0a1a0a;"></canvas>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;">
@@ -1641,7 +1661,7 @@
         <div id="snakeResultEmoji" style="font-size:60px;margin-bottom:10px;">🐍</div>
         <div id="snakeResultTitle" style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--green);margin-bottom:6px;"></div>
         <div style="background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:14px;">
-            <div style="font-size:11px;color:var(--text2);">Score: <span id="snakeFinalScore">0</span> dots</div>
+            <div style="font-size:11px;color:var(--text2);">🍎 Score: <span id="snakeFinalScore">0</span> dots | Reward:</div>
             <div id="snakeResultReward" style="font-family:'Oxanium',sans-serif;font-size:32px;font-weight:900;color:var(--gold);"></div>
         </div>
         <button class="btn-purple" onclick="resetSnake()" style="width:100%;margin-bottom:8px;">🔄 Again</button>
@@ -1651,7 +1671,7 @@
 
 <!-- CHESS TIMER GAME MODAL -->
 <div class="modal" id="chessModal">
-    <div class="modal-hdr"><div class="back-btn" onclick="exitChess()">←</div><div class="modal-title">♟️ Chess Timer</div><div id="chessBal" style="font-size:11px;color:var(--gold);font-weight:800;">₹0</div></div>
+    <div class="modal-hdr"><div class="back-btn" onclick="exitChess()">←</div><div class="modal-title">♟️ Chess Timer</div><div id="chessBal" style="font-size:11px;color:var(--gold);font-weight:800;">0 pts</div></div>
     <div id="chessSetup" style="padding:14px;">
         <div style="background:linear-gradient(135deg,#1a1200,#2a1a00);border-radius:16px;padding:14px;margin-bottom:12px;text-align:center;">
             <div style="font-size:32px;margin-bottom:6px;">♟️</div>
@@ -1666,11 +1686,11 @@
         <div style="margin-bottom:10px;">
             <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:6px;">💰 Bet:</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button class="bet-chip" onclick="selChessBet(1,this)">₹1</button>
-                <button class="bet-chip" onclick="selChessBet(5,this)">₹5</button>
-                <button class="bet-chip" onclick="selChessBet(10,this)">₹10</button>
-                <button class="bet-chip" onclick="selChessBet(20,this)">₹20</button>
-                <button class="bet-chip" onclick="selChessBet(50,this)">₹50</button>
+                <button class="bet-chip" onclick="selChessBet(1,this)">100 pts</button>
+                <button class="bet-chip" onclick="selChessBet(5,this)">500 pts</button>
+                <button class="bet-chip" onclick="selChessBet(10,this)">1000 pts</button>
+                <button class="bet-chip" onclick="selChessBet(20,this)">2000 pts</button>
+                <button class="bet-chip" onclick="selChessBet(50,this)">5000 pts</button>
             </div>
         </div>
         <div style="margin-bottom:10px;">
@@ -1747,6 +1767,18 @@
 // © 2025 @asbhaibsr — All Rights Reserved
 // ═══════════════════════════════════════════════════════════
 
+// ── Points System ────────────────────────────────────────────
+// 1 Rupee = 100 Points | Withdraw = points ÷ 100 = ₹
+const PT = 100; // points per rupee
+function toPoints(rupees){ return Math.round(rupees * PT); }
+function fromPoints(pts){ return pts / PT; }
+function fmtPts(pts){ 
+    if(pts>=1000000) return (pts/1000000).toFixed(1)+'M pts';
+    if(pts>=1000) return (pts/1000).toFixed(1)+'K pts';
+    return Math.floor(pts)+' pts';
+}
+function fmtRupees(rupees){ return '₹'+parseFloat(rupees).toFixed(2); }
+
 // Integrity check — do not modify
 (function(){
     const _own='@asbhaibsr'; // @asbhaibsr
@@ -1767,8 +1799,8 @@
 // TRANSLATIONS
 // ============================================================
 const T={
-    hi:{settings:'Settings',help_support:'Help & Support',dark_mode:'Dark Mode',sounds:'Sounds',admin_edit:'Admin Edit Mode',refer_earn:'Refer & Earn',language:'Language / भाषा',your_balance:'💰 Aapka Balance',today_earned:'Aaj Kamaya',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Aaj ka bonus claim karo!',claim:'Claim',daily_missions:'🎯 Daily Missions',mission_total_reward:'₹6+ Reward',complete_earn:'Missions complete karo, paise pao!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Dost ko invite karo • 3 Passes + ₹0.60!',copy:'Copy',share_more:'Share',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',lb_note:'📌 50+ active refs = weekly prize • 200+ = monthly prize',use_passes:'Passes use karo, paise jeeto!',passes:'Passes',total_wins:'Total Wins',today:'Aaj',streak:'Streak',balance:'Balance',total_earned:'Total Kamaya',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Paise Nikalo',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'Naya Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',already_claimed:'Aaj ka bonus claim ho gaya!',referred_users:'👥 Referred Users Activity',missions:'Missions',bonus_subtitle:'Roz claim karo, streak badhao, zyada pao!',onboard_confirm:'Samajh Gaya! Shuru Karo'},
-    en:{settings:'Settings',help_support:'Help & Support',dark_mode:'Dark Mode',sounds:'Sounds',admin_edit:'Admin Edit Mode',refer_earn:'Refer & Earn',language:'Language',your_balance:'💰 Your Balance',today_earned:'Today Earned',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Claim your daily bonus!',claim:'Claim',daily_missions:'🎯 Daily Missions',mission_total_reward:'₹6+ Reward',complete_earn:'Complete missions, earn money!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Invite friends • 3 Passes + ₹0.60!',copy:'Copy',share_more:'Share',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',lb_note:'📌 50+ active refs = weekly prize • 200+ = monthly prize',use_passes:'Use passes, win money!',passes:'Passes',total_wins:'Total Wins',today:'Today',streak:'Streak',balance:'Balance',total_earned:'Total Earned',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Withdraw Balance',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'New Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',already_claimed:"Today's bonus claimed!",referred_users:'👥 Referred Users Activity',missions:'Missions',bonus_subtitle:'Claim daily, build streak, earn more!',onboard_confirm:"Got it! Let's Start"}
+    hi:{settings:'Settings',help_support:'Help & Support',dark_mode:'Dark Mode',sounds:'Sounds',admin_edit:'Admin Edit Mode',refer_earn:'Refer & Earn',language:'Language / भाषा',your_balance:'💰 Aapka Balance',today_earned:'Aaj Kamaya',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Aaj ka bonus claim karo!',claim:'Claim',daily_missions:'🎯 Daily Missions',mission_total_reward:'₹6+ Reward',complete_earn:'Missions complete karo, paise pao!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Dost ko invite karo • 3 Passes + 60 pts!',copy:'Copy',share_more:'Share',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',lb_note:'📌 50+ active refs = weekly prize • 200+ = monthly prize',use_passes:'Passes use karo, paise jeeto!',passes:'Passes',total_wins:'Total Wins',today:'Aaj',streak:'Streak',balance:'Balance',total_earned:'Total Kamaya',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Paise Nikalo',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'Naya Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',already_claimed:'Aaj ka bonus claim ho gaya!',referred_users:'👥 Referred Users Activity',missions:'Missions',bonus_subtitle:'Roz claim karo, streak badhao, zyada pao!',onboard_confirm:'Samajh Gaya! Shuru Karo'},
+    en:{settings:'Settings',help_support:'Help & Support',dark_mode:'Dark Mode',sounds:'Sounds',admin_edit:'Admin Edit Mode',refer_earn:'Refer & Earn',language:'Language',your_balance:'💰 Your Balance',today_earned:'Today Earned',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Claim your daily bonus!',claim:'Claim',daily_missions:'🎯 Daily Missions',mission_total_reward:'₹6+ Reward',complete_earn:'Complete missions, earn money!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Invite friends • 3 Passes + 60 pts!',copy:'Copy',share_more:'Share',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',lb_note:'📌 50+ active refs = weekly prize • 200+ = monthly prize',use_passes:'Use passes, win money!',passes:'Passes',total_wins:'Total Wins',today:'Today',streak:'Streak',balance:'Balance',total_earned:'Total Earned',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Withdraw Balance',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'New Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',already_claimed:"Today's bonus claimed!",referred_users:'👥 Referred Users Activity',missions:'Missions',bonus_subtitle:'Claim daily, build streak, earn more!',onboard_confirm:"Got it! Let's Start"}
 };
 let lang='hi';
 function t(key){return(T[lang]&&T[lang][key])||T.hi[key]||key;}
@@ -1786,8 +1818,8 @@ function toggleLang(){setLang(lang==='hi'?'en':'hi');}
 // ONBOARDING CONTENT
 // ============================================================
 const ONBOARD_CONTENT={
-    hi:`<div class="onboard-section"><div class="onboard-section-title">💡 EarnZone Kya Hai?</div><div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">EarnZone ek <b>Telegram Mini App</b> hai jahan aap refer karke, daily bonus lekar aur games khelkar <b>asli paise kama sakte ho</b>.</div></div></div><div class="onboard-section"><div class="onboard-section-title">💰 Paise Kaise Kamayein?</div><div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Apna referral link share karo</b> — jab koi aapke link se join kare, movie group pe jakar movie search kare aur shortlink complete kare, to aapko <b>3 Passes + ₹0.60</b> milega.</div></div><div class="onboard-item"><div class="onboard-item-icon">🔁</div><div class="onboard-item-text"><b>Daily ₹0.30 per active user</b> — jo user roz movie search kare aur shortlink complete kare, us har user se tumhe roz ₹0.30 milega!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — roz login karke bonus claim karo. Streak badhao to bonus amount bhi badhega!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — har din missions complete karo, alag-alag paise aur passes jeetenge.</div></div><div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — offers claim karo, paise aur passes pao.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Games Khelo</b> — Passes use karke Spin, Guess, Coin Flip ya Dice Roll khelke aur paise jeeto.</div></div></div><div class="onboard-section"><div class="onboard-section-title">📅 Daily Kya Karna Hai?</div><div class="onboard-item"><div class="onboard-item-icon">✅</div><div class="onboard-item-text"><b>Daily bonus claim karo</b> — streak mat totne do, warna ₹0.05 se shuru karna hoga.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily missions complete karo</b> — har mission alag claim karo.</div></div><div class="onboard-item"><div class="onboard-item-icon">📱</div><div class="onboard-item-text"><b>Apne referred users ko daily yaad dilao</b> — movie search karo aur shortlink puri karo → tumhe ₹0.30 milega.</div></div></div><div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div><div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Passes earn karo: refer karke (+3), daily bonus (+1), offers claim karke (+1).</div></div></div><div class="onboard-section"><div class="onboard-section-title">💸 Paise Withdraw Karna</div><div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Minimum <b>₹20</b> hone par UPI ya Bank Transfer se withdraw kar sakte ho. Zaruri: <b>Is mahine 20 active referrals</b> hone chahiye. Admin 24-48 ghante mein process karega.</div></div></div>`,
-    en:`<div class="onboard-section"><div class="onboard-section-title">💡 What is EarnZone?</div><div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">EarnZone is a <b>Telegram Mini App</b> where you can earn <b>real money</b> by referring friends, claiming daily bonuses, and playing games.</div></div></div><div class="onboard-section"><div class="onboard-section-title">💰 How to Earn Money?</div><div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Share your referral link</b> — when someone joins via your link, searches a movie & completes shortlink, you get <b>3 Passes + ₹0.60</b>.</div></div><div class="onboard-item"><div class="onboard-item-icon">🔁</div><div class="onboard-item-text"><b>Daily ₹0.30 per active user</b> — for each referred user who completes shortlink daily, you earn ₹0.30!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — claim bonus every day. Maintain streak to increase bonus!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — complete missions, claim each one separately.</div></div><div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — claim offers to earn money and passes.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Play Games</b> — use Passes to play Spin, Guess, Coin Flip or Dice Roll!</div></div></div><div class="onboard-section"><div class="onboard-section-title">📅 Daily Tasks</div><div class="onboard-item"><div class="onboard-item-icon">✅</div><div class="onboard-item-text"><b>Claim daily bonus</b> — don't break streak or restart from ₹0.05.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Complete daily missions</b> — claim each mission separately.</div></div><div class="onboard-item"><div class="onboard-item-icon">📱</div><div class="onboard-item-text"><b>Remind referred users daily</b> — search movie → you get ₹0.30.</div></div></div><div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div><div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Earn passes: refer (+3), daily bonus (+1), offers (+1).</div></div></div><div class="onboard-section"><div class="onboard-section-title">💸 Withdrawals</div><div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Minimum <b>₹20</b>. Required: <b>20 active referrals this month</b>. Admin processes in 24-48 hrs.</div></div></div>`
+    hi:`<div class="onboard-section"><div class="onboard-section-title">💡 EarnZone Kya Hai?</div><div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">EarnZone ek <b>Telegram Mini App</b> hai jahan aap refer karke, daily bonus lekar aur games khelkar <b>asli paise kama sakte ho</b>.</div></div></div><div class="onboard-section"><div class="onboard-section-title">💰 Paise Kaise Kamayein?</div><div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Apna referral link share karo</b> — jab koi aapke link se join kare, movie group pe jakar movie search kare aur shortlink complete kare, to aapko <b>3 Passes + 60 pts</b> milega.</div></div><div class="onboard-item"><div class="onboard-item-icon">🔁</div><div class="onboard-item-text"><b>Daily ₹0.30 per active user</b> — jo user roz movie search kare aur shortlink complete kare, us har user se tumhe roz 30 pts milega!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — roz login karke bonus claim karo. Streak badhao to bonus amount bhi badhega!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — har din missions complete karo, alag-alag paise aur passes jeetenge.</div></div><div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — offers claim karo, paise aur passes pao.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Games Khelo</b> — Passes use karke Spin, Guess, Coin Flip ya Dice Roll khelke aur paise jeeto.</div></div></div><div class="onboard-section"><div class="onboard-section-title">📅 Daily Kya Karna Hai?</div><div class="onboard-item"><div class="onboard-item-icon">✅</div><div class="onboard-item-text"><b>Daily bonus claim karo</b> — streak mat totne do, warna ₹0.05 se shuru karna hoga.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily missions complete karo</b> — har mission alag claim karo.</div></div><div class="onboard-item"><div class="onboard-item-icon">📱</div><div class="onboard-item-text"><b>Apne referred users ko daily yaad dilao</b> — movie search karo aur shortlink puri karo → tumhe 30 pts milega.</div></div></div><div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div><div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Passes earn karo: refer karke (+3), daily bonus (+1), offers claim karke (+1).</div></div></div><div class="onboard-section"><div class="onboard-section-title">💸 Paise Withdraw Karna</div><div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Minimum <b>₹20</b> hone par UPI ya Bank Transfer se withdraw kar sakte ho. Zaruri: <b>Is mahine 20 active referrals</b> hone chahiye. Admin 24-48 ghante mein process karega.</div></div></div>`,
+    en:`<div class="onboard-section"><div class="onboard-section-title">💡 What is EarnZone?</div><div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">EarnZone is a <b>Telegram Mini App</b> where you can earn <b>real money</b> by referring friends, claiming daily bonuses, and playing games.</div></div></div><div class="onboard-section"><div class="onboard-section-title">💰 How to Earn Money?</div><div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Share your referral link</b> — when someone joins via your link, searches a movie & completes shortlink, you get <b>3 Passes + 60 pts</b>.</div></div><div class="onboard-item"><div class="onboard-item-icon">🔁</div><div class="onboard-item-text"><b>Daily ₹0.30 per active user</b> — for each referred user who completes shortlink daily, you earn ₹0.30!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — claim bonus every day. Maintain streak to increase bonus!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — complete missions, claim each one separately.</div></div><div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — claim offers to earn money and passes.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Play Games</b> — use Passes to play Spin, Guess, Coin Flip or Dice Roll!</div></div></div><div class="onboard-section"><div class="onboard-section-title">📅 Daily Tasks</div><div class="onboard-item"><div class="onboard-item-icon">✅</div><div class="onboard-item-text"><b>Claim daily bonus</b> — don't break streak or restart from ₹0.05.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Complete daily missions</b> — claim each mission separately.</div></div><div class="onboard-item"><div class="onboard-item-icon">📱</div><div class="onboard-item-text"><b>Remind referred users daily</b> — search movie → you get ₹0.30.</div></div></div><div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div><div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Earn passes: refer (+3), daily bonus (+1), offers (+1).</div></div></div><div class="onboard-section"><div class="onboard-section-title">💸 Withdrawals</div><div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Minimum <b>₹20</b>. Required: <b>20 active referrals this month</b>. Admin processes in 24-48 hrs.</div></div></div>`
 };
 
 let obLang='hi';
@@ -1836,7 +1868,7 @@ if(tg){tg.expand();tg.ready();}
 const BOT_USERNAME='LinkProviderRobot';
 
 let userData={user_id:null,first_name:'Guest',username:'',balance:0,total_earned:0,tier:1,total_refs:0,active_refs:0,pending_refs:0,daily_streak:0,today_earned:0,is_admin:false,games_won:0,passes:0,photo_url:null,month_active_refs:0};
-let gameState={today_game_earned:0,wins:0,win_streak:0};
+let gameState={today_game_earned:0,wins:0,win_streak:0,totalPlays:0};
 let claimedDates=[],userStreak=0,adminAds=[],adminEditMode=false,selectedMethod=null;
 let soundOn=true,currentTheme='dark',lbMode='weekly';
 let spinAngle=0,isSpinning=false;
@@ -1851,24 +1883,27 @@ let diceChoice=null,diceRolling=false;
 // SPIN SEGS — MUST match backend SPIN_SEGMENTS exactly (same order, same index)
 // Backend: [{0.10},{0.50},{0.10},{1.0},{0.50},{0.10},{2.0},{0.10}]  weights:[15,6,15,3,6,15,1,15]
 const SEGS=[
-    {l:'₹0.10',v:.10,c:'#a78bfa'},
-    {l:'₹0.50',v:.50,c:'#f59e0b'},
-    {l:'₹0.10',v:.10,c:'#22d3a0'},
-    {l:'₹1',   v:1.0,c:'#3b82f6'},
-    {l:'₹0.50',v:.50,c:'#38bdf8'},
-    {l:'₹0.10',v:.10,c:'#f97316'},
-    {l:'₹2',   v:2.0,c:'#ff5b6b'},
-    {l:'₹0.10',v:.10,c:'#ec4899'}
+    {l:'10pts',v:.10,c:'#a78bfa'},
+    {l:'50pts',v:.50,c:'#f59e0b'},
+    {l:'10pts',v:.10,c:'#22d3a0'},
+    {l:'100pts',v:1.0,c:'#3b82f6'},
+    {l:'50pts',v:.50,c:'#38bdf8'},
+    {l:'10pts',v:.10,c:'#f97316'},
+    {l:'200pts',v:2.0,c:'#ff5b6b'},
+    {l:'10pts',v:.10,c:'#ec4899'}
 ];
 
 const MISSIONS_DEF=[
-    {id:'m_refer5',   icon:'👥',hi:'5 Active User Refer karo',en:'Refer 5 active users',        reward:2,   total:5,  track:'active_refs'},
-    {id:'m_search5',  icon:'🎬',hi:'5 Users movie search karein',en:'5 users search movie',      reward:1,   total:5,  track:'daily_search'},
-    {id:'m_shortlink',icon:'🔗',hi:'Shortlink puri karo (1 user)',en:'1 user completes shortlink',reward:1,  total:1,  track:'shortlink'},
-    {id:'m_game',     icon:'🎮',hi:'10 baar game khelo',en:'Play game 10 times',                 reward:1,   total:10, track:'game_plays'},
-    {id:'m_passes',   icon:'🎟️',hi:'1 Offer claim karo',en:'Claim 1 offer',                     reward:1,   total:1,  track:'pass_purchase'},
-    {id:'m_daily',    icon:'🎁',hi:'Daily bonus claim karo',en:'Claim daily bonus',               reward:0.10,total:1,  track:'daily_bonus'},
-    {id:'m_withdraw', icon:'💸',hi:'Aaj 1 baar withdraw karo',en:'Withdraw once today',           reward:1,   total:1,  track:'withdraw'},
+    {id:'m_refer5',      icon:'👥',hi:'5 Active User Refer karo',       en:'Refer 5 active users',          reward:2,    total:5,  track:'active_refs'},
+    {id:'m_search5',     icon:'🎬',hi:'5 Users ki movie search karwao',  en:'5 users search movie',          reward:1,    total:5,  track:'daily_search'},
+    {id:'m_self_search', icon:'🔍',hi:'Khud movie search karo (48hr)',   en:'Self movie search (48hr)',       reward:0.50, total:1,  track:'self_search'},
+    {id:'m_shortlink',   icon:'🔗',hi:'Shortlink puri karo (1 user)',    en:'1 user completes shortlink',    reward:1,    total:1,  track:'shortlink'},
+    {id:'m_game',        icon:'🎮',hi:'10 baar game khelo',              en:'Play game 10 times',            reward:1,    total:10, track:'game_plays'},
+    {id:'m_game5win',    icon:'🏆',hi:'5 games jeeto',                   en:'Win 5 games',                   reward:1.5,  total:5,  track:'game_wins'},
+    {id:'m_passes',      icon:'🎟️',hi:'1 Offer claim karo',             en:'Claim 1 offer',                 reward:1,    total:1,  track:'pass_purchase'},
+    {id:'m_daily',       icon:'🎁',hi:'Daily bonus claim karo',          en:'Claim daily bonus',             reward:0.10, total:1,  track:'daily_bonus'},
+    {id:'m_streak3',     icon:'🔥',hi:'3 din ka streak banao',           en:'Build 3 day streak',            reward:1,    total:3,  track:'streak'},
+    {id:'m_withdraw',    icon:'💸',hi:'Aaj 1 baar withdraw karo',        en:'Withdraw once today',           reward:1,    total:1,  track:'withdraw'},
 ];
 
 // ============================================================
@@ -1960,20 +1995,43 @@ async function loadMissions(){
         claimed:missionStates['m_refer5']?.claimed||false
     };
 
-    // Auto-fill m_daily — only if user claimed bonus today
+    // Auto-fill m_daily — ONLY if user claimed bonus today AND mission not already claimed
     const dailyClaimedToday=claimedDates.includes(today);
-    if(dailyClaimedToday&&!missionStates['m_daily']?.claimed){
-        missionStates['m_daily']={progress:1,completed:true,claimed:missionStates['m_daily']?.claimed||false};
+    if(!missionStates['m_daily'])missionStates['m_daily']={progress:0,completed:false,claimed:false};
+    if(dailyClaimedToday){
+        // Set progress/completed only — do NOT auto-set claimed
+        missionStates['m_daily'].progress=1;
+        missionStates['m_daily'].completed=true;
+        // claimed stays as-is from sessionStorage/server
     }
 
-    // Auto-fill m_game from today's wins
-    const gameWinsToday=gameState.wins||0;
-    if(gameWinsToday>0&&!missionStates['m_game']?.claimed){
-        missionStates['m_game'].progress=Math.min(gameWinsToday,10);
-        missionStates['m_game'].completed=gameWinsToday>=10;
+    // Auto-fill m_game from today's game plays/wins
+    const gamePlays=gameState.totalPlays||gameState.wins||0;
+    const gameWins=gameState.wins||0;
+    if(!missionStates['m_game'])missionStates['m_game']={progress:0,completed:false,claimed:false};
+    if(!missionStates['m_game5win'])missionStates['m_game5win']={progress:0,completed:false,claimed:false};
+    if(gamePlays>0&&!missionStates['m_game'].claimed){
+        missionStates['m_game'].progress=Math.min(gamePlays,10);
+        missionStates['m_game'].completed=gamePlays>=10;
     }
+    if(gameWins>0&&!missionStates['m_game5win'].claimed){
+        missionStates['m_game5win'].progress=Math.min(gameWins,5);
+        missionStates['m_game5win'].completed=gameWins>=5;
+    }
+
+    // Auto-fill m_streak3 from daily streak
+    const streak=userData.daily_streak||0;
+    if(!missionStates['m_streak3'])missionStates['m_streak3']={progress:0,completed:false,claimed:false};
+    if(!missionStates['m_streak3'].claimed){
+        missionStates['m_streak3'].progress=Math.min(streak,3);
+        missionStates['m_streak3'].completed=streak>=3;
+    }
+
+    // Auto-fill m_self_search from server data
+    // (server returns progress if user has done self-search today)
 
     updateMissionsUI();
+    loadSelfSearchStatus(); // check 48hr timer
 }
 
 // Save claimed state to sessionStorage (date-keyed — auto resets next day)
@@ -2013,25 +2071,31 @@ async function loadRefActivity(){
 // UI UPDATE
 // ============================================================
 function updateUI(){
-    const bal=`₹${(userData.balance||0).toFixed(2)}`;
-    // Today earned — comes directly from backend (resets each day automatically)
-    // Backend add_balance() already tracks today_earned for ALL sources
+    const bal=userData.balance||0;
+    const pts=toPoints(bal);
+    const balDisplay=fmtPts(pts);
+    // Today earned
     const totalTodayEarned=userData.today_earned||0;
-    document.getElementById('balAmt').textContent=bal;
-    document.getElementById('topbarBalance').textContent=bal;
-    document.getElementById('todayEarned').textContent=`₹${totalTodayEarned.toFixed(2)}`;
+    const todayPts=toPoints(totalTodayEarned);
+
+    document.getElementById('balAmt').textContent=balDisplay;
+    document.getElementById('topbarBalance').textContent=balDisplay;
+    // Update rupee value subtitle
+    const rupeesEl=document.getElementById('balRupees');
+    if(rupeesEl)rupeesEl.textContent='= ₹'+bal.toFixed(2)+' withdrawal value';
+    document.getElementById('todayEarned').textContent=fmtPts(todayPts);
     document.getElementById('activeRefs').textContent=userData.active_refs||0;
     // Month refs display in balance card
     const monthRefsEl=document.getElementById('monthRefsDisplay');
     if(monthRefsEl)monthRefsEl.textContent=userData.month_active_refs||0;
     document.getElementById('passCount').textContent=userData.passes||0;
-    document.getElementById('wdrawBal').textContent=bal;
+    document.getElementById('wdrawBal').textContent='₹'+bal.toFixed(2);  // withdrawal shows ₹
     document.getElementById('epPassCount').textContent=userData.passes||0;
     const fname=userData.first_name||'Guest';
     document.getElementById('profileName').textContent=fname;
     document.getElementById('profileTier').textContent=getTierName(userData.tier||1);
     document.getElementById('pBal').textContent=bal;
-    document.getElementById('pTotal').textContent=`₹${(userData.total_earned||0).toFixed(2)}`;
+    document.getElementById('pTotal').textContent=fmtPts(toPoints(userData.total_earned||0));
     document.getElementById('pStreak').textContent=`${userStreak}🔥`;
     document.getElementById('pTotalRefs').textContent=userData.total_refs||0;
     document.getElementById('pActiveRefs').textContent=userData.active_refs||0;
@@ -2045,10 +2109,10 @@ function updateUI(){
     else{profDp.textContent=fname.charAt(0).toUpperCase();}
     document.getElementById('gameBadgePasses').textContent=userData.passes||0;
     document.getElementById('gameWins').textContent=gameState.wins||0;
-    document.getElementById('gameTodayEarned').textContent=`₹${(gameState.today_game_earned||0).toFixed(2)}`;
+    document.getElementById('gameTodayEarned').textContent=fmtPts(toPoints(gameState.today_game_earned||0));
     document.getElementById('gameStreak').textContent=`${gameState.win_streak||0}🔥`;
     ['spinBal','spinPassesLeft','spinTodayEarned','guessPassLeft','guessBal','coinPassesLeft','coinBal','dicePassesLeft','diceBal','colorPassesLeft','colorBal','crashPassesLeft','crashBal'].forEach((id,i)=>{
-        const vals=[bal,userData.passes||0,`₹${(gameState.today_game_earned||0).toFixed(2)}`,userData.passes||0,bal,userData.passes||0,bal,userData.passes||0,bal,userData.passes||0,bal,userData.passes||0,bal];
+        const vals=[bal,userData.passes||0,fmtPts(toPoints(gameState.today_game_earned||0)),userData.passes||0,bal,userData.passes||0,bal,userData.passes||0,bal,userData.passes||0,bal,userData.passes||0,bal];
         const el=document.getElementById(id);if(el)el.textContent=vals[i];
     });
     // Update badge UI whenever user data updates
@@ -2172,11 +2236,11 @@ function updateWeeklyBonus(){
 
     const remaining=7-claimedThisWeek;
     if(claimedThisWeek>=7&&!weeklyBonusClaimed){
-        if(statusEl)statusEl.innerHTML='<button onclick="claimWeeklyBonus()" style="background:var(--green);color:#000;border:none;border-radius:10px;padding:6px 14px;font-weight:900;font-size:11px;cursor:pointer;">🎉 Claim ₹1 Weekly Bonus!</button>';
+        if(statusEl)statusEl.innerHTML='<button onclick="claimWeeklyBonus()" style="background:var(--green);color:#000;border:none;border-radius:10px;padding:6px 14px;font-weight:900;font-size:11px;cursor:pointer;">🎉 Claim 100 pts Weekly Bonus!</button>';
     }else if(claimedThisWeek>=7&&weeklyBonusClaimed){
         if(statusEl)statusEl.innerHTML='<span style="color:var(--green);font-weight:800;">✅ Weekly bonus claimed!</span>';
     }else{
-        if(statusEl)statusEl.textContent=claimedThisWeek+'/7 days claimed • '+remaining+' aur karo → ₹1 bonus!';
+        if(statusEl)statusEl.textContent=claimedThisWeek+'/7 days claimed • '+remaining+' aur karo → 100 pts bonus!';
     }
 }
 
@@ -2187,7 +2251,7 @@ async function claimWeeklyBonus(){
         userData.balance=(userData.balance||0)+1;
         userData.today_earned=(userData.today_earned||0)+1;
         updateUI();updateWeeklyBonus();
-        showToast('🎉 Weekly Bonus! +₹1 mila!');
+        showToast('🎉 Weekly Bonus! +100 pts!');
         playSound('levelup');
     }else{
         showToast('❌ '+(r?.message||'Already claimed'));
@@ -2219,7 +2283,7 @@ function updateMilestoneCard(){
         let btn=claimed
             ?`<span style="font-size:10px;color:var(--green);">Claimed</span>`
             :reached
-                ?`<button onclick="claimMilestone(${m.refs},${m.reward})" style="background:var(--gold);color:#000;border:none;border-radius:8px;padding:4px 10px;font-weight:800;font-size:10px;cursor:pointer;">Claim ₹${m.reward}</button>`
+                ?`<button onclick="claimMilestone(${m.refs},${m.reward})" style="background:var(--gold);color:#000;border:none;border-radius:8px;padding:4px 10px;font-weight:800;font-size:10px;cursor:pointer;">Claim ${toPoints(m.reward)+'pts'}</button>`
                 :`<span style="font-size:10px;color:var(--text3);">${m.refs-refs} more</span>`;
         return`<div class="milestone-item">
             <div class="milestone-check ${cls}">${icon}</div>
@@ -2227,7 +2291,7 @@ function updateMilestoneCard(){
                 <div class="milestone-name">${m.label}</div>
                 <div class="milestone-req">${m.refs} active refs chahiye</div>
             </div>
-            <div class="milestone-reward">+₹${m.reward}</div>
+            <div class="milestone-reward">+toPoints(${m.reward}) pts</div>
             ${btn}
         </div>`;
     }).join('');
@@ -2241,7 +2305,7 @@ async function claimMilestone(refs,reward){
         userData.balance+=parseFloat(reward);
         userData.today_earned+=parseFloat(reward);
         updateUI();updateMilestoneCard();
-        showToast(`🎉 Milestone! +₹${reward} mila!`);
+        showToast('🎉 Milestone! +'+toPoints(reward)+' pts!');
         playSound('jackpot');
     }else{
         showToast('❌ '+(r?.message||'Already claimed'));
@@ -2254,43 +2318,43 @@ async function claimMilestone(refs,reward){
 const BADGES=[
     {name:'🥉 Starter',    req:0,    passes:2,  coins:0,    balance:0,
      desc:'Swagat hai! Shuru karo apni earning journey.',
-     reward_txt:'2 Free Passes milenge!',
+     reward_txt:'2 Passes milenge!',
      img:'https://i.postimg.cc/prJbHJvn/4946de51-23b6-473f-8192-764e1ca09041.jpg'},
     {name:'🥈 Rising',     req:10,   passes:5,  coins:0,    balance:1.0,
      desc:'10 refs! Ab tum ek badhte hue earner ho.',
-     reward_txt:'5 Passes + ₹1 milega!',
+     reward_txt:'5 Passes + 100 pts milega!',
      img:'https://i.postimg.cc/pT8M0t1B/42b20bcb-7996-4ab4-b925-ac8cd4164312.jpg'},
     {name:'🥇 Pro',        req:50,   passes:10, coins:0,    balance:3.0,
      desc:'50 refs! Tum serious earner ban gaye.',
-     reward_txt:'10 Passes + ₹3 milega!',
+     reward_txt:'10 Passes + 300 pts milega!',
      img:'https://i.postimg.cc/Bvj0KFTR/26ec7226-a6d2-4bd9-acce-adc32b3fae61.jpg'},
     {name:'💎 Elite',      req:100,  passes:20, coins:0,    balance:10.0,
      desc:'100 refs! Elite circle mein welcome!',
-     reward_txt:'20 Passes + ₹10 milega!',
+     reward_txt:'20 Passes + 1000 pts milega!',
      img:'https://i.postimg.cc/MpKxzNvf/fbfcb89d-2e8f-4d33-93f7-40073ca1e608.jpg'},
     {name:'👑 Champion',   req:500,  passes:50, coins:0,    balance:50.0,
      desc:'500 refs! Tum EarnZone ke champion ho!',
-     reward_txt:'50 Passes + ₹50 milega!',
+     reward_txt:'50 Passes + 5000 pts milega!',
      img:'https://i.postimg.cc/wTzgG7zX/e820347b-40d8-412d-95cc-0c7ca35c4cb9.jpg'},
     {name:'🔥 Legend',     req:1000, passes:100,coins:0,    balance:100.0,
      desc:'1000 refs! Tera naam EarnZone history mein darz!',
-     reward_txt:'100 Passes + ₹100 milega!',
+     reward_txt:'100 Passes + 10K pts milega!',
      img:'https://i.postimg.cc/VsnzgX3x/4c0d9789-6fd6-40f8-a9df-e8e840dce66b.jpg'},
     {name:'⚡ Master',     req:1500, passes:150,coins:0,    balance:200.0,
      desc:'1500 refs! Mastery ka alag hi level!',
-     reward_txt:'150 Passes + ₹200 milega!',
+     reward_txt:'150 Passes + 20K pts milega!',
      img:'https://i.postimg.cc/Gtwdrpyr/c2ade26d-3347-49bb-a8d9-82a76f43f867.jpg'},
     {name:'🖤 GrandMaster',req:2000, passes:200,coins:0,    balance:300.0,
      desc:'2000 refs! GrandMaster — sirf gine chune hain!',
-     reward_txt:'200 Passes + ₹300 milega!',
+     reward_txt:'200 Passes + 30K pts milega!',
      img:'https://i.postimg.cc/wvsgSN37/f846a6d0-069f-45b3-91ce-0bfe4a946cb8.jpg'},
     {name:'🌈 Mythic',     req:5000, passes:500,coins:0,    balance:1000.0,
      desc:'5000 refs! Mythic level — ek alag duniya!',
-     reward_txt:'500 Passes + ₹1000 milega!',
+     reward_txt:'500 Passes + 1L pts milega!',
      img:'https://i.postimg.cc/XYQjF3Ty/46ab69f4-1be9-4a0c-8ee6-68af4835b755.jpg'},
     {name:'✨ God Tier',   req:10000,passes:1000,coins:0,   balance:5000.0,
      desc:'10000 refs! GOD TIER — Tum EarnZone ke bhagwan ho!',
-     reward_txt:'1000 Passes + ₹5000 milega!',
+     reward_txt:'1000 Passes + 5L pts milega!',
      img:'https://i.postimg.cc/66vpPkv6/c00ea6a7-6f2e-4726-b6b7-4167f8497c42.jpg'},
 ];
 
@@ -2330,7 +2394,7 @@ function openBadgeClaim(idx){
     document.getElementById('claimBadgeDesc').textContent=b.desc;
 
     const pTxt=b.passes>0?'🎟️ '+b.passes+' Passes':'';
-    const bTxt=b.balance>0?'💰 ₹'+b.balance+' Balance':'';
+    const bTxt=b.balance>0?'💰 '+toPoints(b.balance)+' pts':'';
     document.getElementById('claimBadgeRewardPasses').textContent=pTxt;
     document.getElementById('claimBadgeRewardBalance').textContent=bTxt;
 
@@ -2360,9 +2424,9 @@ async function doClaimBadge(){
         updateUI();
         document.getElementById('claimBadgeBtn').style.display='none';
         document.getElementById('claimBadgeAlready').style.display='block';
-        document.getElementById('claimBadgeAlready').innerHTML='🎉 Claimed! +'+b.passes+' Passes'+(b.balance>0?' +₹'+b.balance:'');
+        document.getElementById('claimBadgeAlready').innerHTML='🎉 Claimed! +'+b.passes+' Passes'+(b.balance>0?' +'+toPoints(b.balance)+' pts':'');
         playSound('jackpot');
-        showToast('🎉 Badge Reward! +'+b.passes+' Passes'+(b.balance>0?' +₹'+b.balance:''));
+        showToast('🎉 Badge Reward! +'+b.passes+' Passes'+(b.balance>0?' +'+toPoints(b.balance)+' pts':''));
     }else{
         showToast('❌ '+(r?.message||'Error'));
     }
@@ -2608,7 +2672,7 @@ function buildTrainChain(){
         const base=0.05,extra=Math.min((claimedDates.length)*0.05,0.30);
         const car=document.createElement('div');car.className='train-car';
         const connFilled=isClaimed&&idx>0&&claimedDates.includes(days[idx-1]);
-        car.innerHTML=`${idx>0?`<div class="train-connector ${connFilled?'filled':''}"></div>`:'<div style="width:16px;margin-bottom:22px;"></div>'}<div class="train-node ${isClaimed?'claimed':isToday?'today':'future'}" onclick="${isToday&&!isClaimed?'claimBonus()':''}"><div>${isClaimed?'✅':isToday?'🎁':isPast?'⭕':'🔒'}</div></div><div class="train-date">${dayNum} ${mon}</div><div class="train-reward">${isClaimed||isToday?'₹'+(base+extra).toFixed(2):'--'}</div>`;
+        car.innerHTML=`${idx>0?`<div class="train-connector ${connFilled?'filled':''}"></div>`:'<div style="width:16px;margin-bottom:22px;"></div>'}<div class="train-node ${isClaimed?'claimed':isToday?'today':'future'}" onclick="${isToday&&!isClaimed?'claimBonus()':''}"><div>${isClaimed?'✅':isToday?'🎁':isPast?'⭕':'🔒'}</div></div><div class="train-date">${dayNum} ${mon}</div><div class="train-reward">${isClaimed||isToday?toPoints(base+extra)+' pts':'--'}</div>`;
         chain.appendChild(car);
     });
     setTimeout(()=>{const node=chain.querySelector('.today');if(node)node.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});},100);
@@ -2618,9 +2682,9 @@ function buildTrainChain(){
     const effectiveStreak=streakBroken?0:userStreak;
     // UPDATED formula
     const base=0.05,extra=Math.min(effectiveStreak*0.05,0.30);
-    document.getElementById('todayBonusAmt').textContent=`₹${(base+extra).toFixed(2)}`;
+    document.getElementById('todayBonusAmt').textContent=toPoints(base+extra)+' pts';
     document.getElementById('streakDays2').textContent=effectiveStreak;
-    document.getElementById('bonusTotal').textContent=`₹${(userData.total_earned||0).toFixed(2)}`;
+    document.getElementById('bonusTotal').textContent=fmtPts(toPoints(userData.total_earned||0));
     document.getElementById('todayClaimBox').style.display=claimed?'none':'block';
     document.getElementById('alreadyClaimedMsg').style.display=claimed?'block':'none';
     document.getElementById('streakBrokenMsg').style.display=streakBroken?'block':'none';
@@ -2639,7 +2703,7 @@ async function claimBonus(){
         userStreak=r.streak;claimedDates.push(today);
         if(missionStates['m_daily']){missionStates['m_daily'].progress=1;missionStates['m_daily'].completed=true;}
         updateUI();updateDailyBonusCard();updateMissionsUI();
-        playSound('levelup');showToast(`🎉 +₹${r.bonus.toFixed(2)} + 1 Pass! Streak: ${userStreak}🔥`);
+        playSound('levelup');showToast('🎉 +'+toPoints(r.bonus)+' pts + 1 Pass! Streak: '+userStreak+'🔥');
         setTimeout(()=>closeModal('dailyBonus'),1600);
     }else showToast('❌ '+(r?.message||'Failed'));
 }
@@ -2663,11 +2727,11 @@ function renderLiveActivity(acts){
         const initial=(nm||'U')[0].toUpperCase();
         const [c1,c2]=nameColor(nm);
         const dpEl='<div class="live-dp" style="background:linear-gradient(135deg,'+c1+','+c2+');color:#fff;font-size:14px;font-weight:900;">'+initial+'</div>';
-        const amtEl=a.amount?'<div class="live-amount">'+(a.amount>0?'+':'')+'₹'+parseFloat(a.amount).toFixed(2)+'</div>':'';
+        const amtEl=a.amount?'<div class="live-amount">'+(a.amount>0?'+':'')+toPoints(a.amount)+' pts</div>':'';
         let desc=a.description||'active';
         let icon='⚡';
-        if(a.type==='referral'){icon='👥';const rn=a.referred_name||'someone';desc='👥 '+rn+' ko refer kiya! +₹'+parseFloat(a.amount||0).toFixed(2)+' +3 Passes';}
-        else if(a.type==='daily_search'&&a.referred_name){icon='🎬';desc='🎬 '+a.referred_name+' ne movie search ki → +₹'+parseFloat(a.amount||0).toFixed(2);}
+        if(a.type==='referral'){icon='👥';const rn=a.referred_name||'someone';desc='👥 '+rn+' ko refer kiya! +'+toPoints(a.amount||0)+' pts +3 Passes';}
+        else if(a.type==='daily_search'&&a.referred_name){icon='🎬';desc='🎬 '+a.referred_name+' ne movie search ki → +'+toPoints(a.amount||0)+' pts';}
         else if(a.type==='join'){icon='🎉';desc='🎉 EarnZone join kiya';}
         else if(a.type==='bonus'){icon='🎁';}
         else if(a.type==='mission'){icon='🎯';}
@@ -2702,7 +2766,7 @@ async function viewUserProfile(userId,name){
             document.getElementById('upBadgeName').textContent='User not found';
             return;
         }
-        document.getElementById('upBal').textContent=`₹${(d.balance||0).toFixed(2)}`;
+        document.getElementById('upBal').textContent=fmtPts(toPoints(d.balance||0));
         document.getElementById('upRefs').textContent=d.total_refs||0;
         document.getElementById('upActiveRefs').textContent=d.active_refs||0;
 
@@ -2747,7 +2811,7 @@ function openBadgeShowcase(){
     document.getElementById('bsCurrentDesc').textContent=badge.desc;
     document.getElementById('bsRewardTxt').textContent=(badge.passes>0?badge.passes+' Passes':'')+
         (badge.passes>0&&badge.balance>0?' + ':'')+
-        (badge.balance>0?'₹'+badge.balance:'');
+        (badge.balance>0?toPoints(badge.balance)+' pts':'');
 
     // Progress bar
     if(nextBadge){
@@ -2786,7 +2850,7 @@ function openBadgeShowcase(){
                 <img src="${b.img}" style="width:48px;height:48px;object-fit:contain;${isCur?'filter:drop-shadow(0 0 10px rgba(240,192,64,.5));':''}${!unlocked?'filter:grayscale(1) brightness(.4);':''}">
                 <div style="font-size:10px;font-weight:900;color:${isCur?'var(--gold)':unlocked?'var(--text)':'var(--text3)'};margin-top:5px;">${b.name}</div>
                 <div style="font-size:8px;color:var(--text3);margin-top:2px;">${b.req===0?'Free':''+b.req+' refs'}</div>
-                <div style="font-size:8px;color:var(--purple2);margin-top:3px;font-weight:700;">${b.passes>0?b.passes+' Passes':''}${b.balance>0?' +₹'+b.balance:''}</div>
+                <div style="font-size:8px;color:var(--purple2);margin-top:3px;font-weight:700;">${b.passes>0?b.passes+' Passes':''}${b.balance>0?' +'+toPoints(b.balance)+' pts':''}</div>
             </div>
         </div>`;
     }).join('');
@@ -2821,7 +2885,7 @@ async function doClaimBadgeByIdx(idx){
         if(b.balance>0){userData.balance=(userData.balance||0)+b.balance;userData.today_earned=(userData.today_earned||0)+b.balance;}
         updateUI();
         playSound('jackpot');
-        showToast('🎉 Badge Reward! +'+b.passes+' Passes'+(b.balance>0?' +₹'+b.balance:''));
+        showToast('🎉 Badge Reward! +'+b.passes+' Passes'+(b.balance>0?' +'+toPoints(b.balance)+' pts':''));
     }else{
         showToast('❌ '+(r?.message||'Error'));
     }
@@ -2830,8 +2894,24 @@ function renderRefActivity(acts){
     const el=document.getElementById('refActivityList');
     if(!acts||!acts.length){el.innerHTML=`<div style="color:var(--text3);font-size:11px;text-align:center;padding:12px;">${lang==='en'?'No referred users yet':'Koi referred user nahi abhi'}</div>`;return;}
     el.innerHTML=acts.map(u=>{
-        const pendingEarning=u.pending_daily?`<span style="color:var(--gold);font-weight:700;">+₹0.30 pending</span>`:u.today_searched?`<span style="color:var(--green);font-weight:700;">✅ ₹0.30 earned today</span>`:`<span style="color:var(--text3);">Search nahi kiya aaj</span>`;
-        return`<div class="ref-act-item"><div class="ref-act-dp">${(u.first_name||'U').charAt(0)}</div><div class="ref-act-info"><div class="ref-act-name">${u.first_name||'User'} ${u.username?`<span style="color:var(--blue);font-size:9px;">@${u.username}</span>`:''}</div><div class="ref-act-detail">${pendingEarning}</div></div><span class="ref-act-badge ${u.is_active?'badge-active':'badge-pending'}">${u.is_active?'Active':'Pending'}</span></div>`;
+        const nm=u.first_name||'User';
+        const initial=nm[0].toUpperCase();
+        const [c1,c2]=nameColor(nm);
+        const searchStatus=u.today_searched
+            ?'<span style="color:var(--green);font-weight:800;font-size:10px;">✅ 30 pts aaj mila</span>'
+            :u.is_active
+                ?'<span style="color:var(--text3);font-size:10px;">Aaj search nahi ki</span>'
+                :'<span style="color:var(--gold);font-size:10px;">⏳ Pending verify</span>';
+        const lastSearch=u.last_search_date?'<div style="font-size:8px;color:var(--text3);">Last: '+u.last_search_date+'</div>':'';
+        return'<div class="ref-act-item">'
+            +'<div class="ref-act-dp" style="background:linear-gradient(135deg,'+c1+','+c2+');color:#fff;font-size:14px;font-weight:900;">'+initial+'</div>'
+            +'<div class="ref-act-info">'
+                +'<div class="ref-act-name">'+nm+(u.username?'<span style="color:var(--blue);font-size:9px;margin-left:4px;">@'+u.username+'</span>':'')+'</div>'
+                +'<div class="ref-act-detail">'+searchStatus+'</div>'
+                +lastSearch
+            +'</div>'
+            +'<span class="ref-act-badge '+(u.is_active?'badge-active':'badge-pending')+'">'+(u.is_active?'Active':'Pending')+'</span>'
+        +'</div>';
     }).join('');
 }
 function showCongratsPopup(){
@@ -2855,7 +2935,7 @@ function updateMissionsUI(){
         const isClaimed=state.claimed;
         if(isClaimed)doneCount++;
         if(isDone&&!isClaimed)compCount++;
-        const rewardTxt=m.reward>=1?'₹'+m.reward:'₹'+m.reward.toFixed(2);
+        const rewardTxt=toPoints(m.reward)+' pts';
         // Separate mission reward — NOT game/bonus earnings
         let statusHtml='';
         if(isClaimed){
@@ -2886,11 +2966,91 @@ function updateMissionsUI(){
     document.getElementById('missionsTotal').textContent=MISSIONS_DEF.length;
     document.getElementById('missionBarFill').style.width=(doneCount/MISSIONS_DEF.length*100)+'%';
 }
+// ============================================================
+// SELF SEARCH (48 hr bonus)
+// ============================================================
+let selfSearchStatus={can_search:true,hours_left:0,minutes_left:0};
+
+async function loadSelfSearchStatus(){
+    if(!userData.user_id)return;
+    const d=await apiGet(`/api/self-search-status/${userData.user_id}`);
+    if(d){
+        selfSearchStatus=d;
+        updateSelfSearchUI();
+    }
+}
+
+function updateSelfSearchUI(){
+    const btn=document.getElementById('selfSearchBtn');
+    const timer=document.getElementById('selfSearchTimer');
+    if(!btn||!timer)return;
+    if(selfSearchStatus.can_search){
+        btn.disabled=false;
+        btn.style.opacity='1';
+        btn.textContent='🔍 Search! (+30 pts)';
+        timer.textContent='✅ Ab search kar sakte ho!';
+        timer.style.color='var(--green)';
+    }else{
+        btn.disabled=true;
+        btn.style.opacity='0.5';
+        btn.textContent='⏳ Wait karo';
+        const h=selfSearchStatus.hours_left||0;
+        const m=selfSearchStatus.minutes_left||0;
+        timer.textContent=`⏱️ ${h}h ${m}m baad available hoga`;
+        timer.style.color='var(--text3)';
+    }
+    // Update mission progress
+    if(selfSearchStatus.can_search===false&&missionStates['m_self_search']){
+        // User searched recently — mission complete
+        missionStates['m_self_search'].progress=1;
+        missionStates['m_self_search'].completed=true;
+    }
+}
+
+async function doSelfSearch(){
+    const btn=document.getElementById('selfSearchBtn');
+    if(btn)btn.disabled=true;
+    const r=await apiPost('/api/self-search',{user_id:userData.user_id});
+    if(r&&r.success){
+        const pts=r.points||30;
+        userData.balance=(userData.balance||0)+fromPoints(pts);
+        userData.today_earned=(userData.today_earned||0)+fromPoints(pts);
+        updateUI();
+        // Update self search status
+        selfSearchStatus={can_search:false,hours_left:48,minutes_left:0};
+        updateSelfSearchUI();
+        // Update mission
+        if(missionStates['m_self_search']){
+            missionStates['m_self_search'].progress=1;
+            missionStates['m_self_search'].completed=true;
+        }
+        updateMissionsUI();
+        playSound('earn');
+        showToast('🔍 Movie Search! +'+pts+' pts mila! Agle 48 ghante baad phir milega!');
+    }else{
+        if(btn)btn.disabled=false;
+        const reason=r?.reason||'';
+        if(reason==='too_soon'){
+            const h=r?.next_in_hours||47;
+            const m=r?.next_in_minutes||59;
+            showToast('⏳ Abhi nahi! '+h+'h '+m+'m baad try karo');
+            selfSearchStatus={can_search:false,hours_left:h,minutes_left:m};
+            updateSelfSearchUI();
+        }else{
+            showToast('❌ '+(r?.message||'Error'));
+            if(btn)btn.disabled=false;
+        }
+    }
+}
+
 async function claimSingleMission(missionId,reward){
     // Init state if missing
     if(!missionStates[missionId])missionStates[missionId]={progress:0,completed:true,claimed:false};
     // Block if already claimed locally
-    if(missionStates[missionId].claimed){showToast('✅ Already claimed!');return;}
+    if(missionStates[missionId].claimed){
+        // Silently ignore — already shows green tick in UI
+        return;
+    }
     // IMMEDIATELY mark claimed locally — button disappears at once
     // This prevents double-tap completely
     missionStates[missionId].claimed=true;
@@ -2906,7 +3066,7 @@ async function claimSingleMission(missionId,reward){
         // today_earned updates from server on next loadUser — keeps it clean
         updateUI();
         playSound('mission');
-        showToast('🎯 Mission Reward! +₹'+mReward.toFixed(2)+' mila!');
+        showToast('🎯 Mission Reward! +'+toPoints(mReward)+' pts mila!');
     }else{
         // Backend rejected — revert local state
         missionStates[missionId].claimed=false;
@@ -2927,7 +3087,7 @@ function renderAds(claimedIds=[]){
             ${adminEditMode?`<div class="ad-del-btn" onclick="event.stopPropagation();delAd(${ad.id})">✕</div><div class="ad-edit-btn" onclick="event.stopPropagation();editAd(${ad.id})">✎</div>`:''}
             <div class="ad-icon-box">${ad.icon||'📢'}</div>
             <div class="ad-info"><div class="ad-title">${ad.title}${ad.claim_code?'  🔑':''}${adminEditMode&&ad.claim_code?` <span style="font-size:9px;color:var(--blue);background:rgba(54,182,245,.1);padding:2px 6px;border-radius:8px;">Code: ${ad.claim_code}</span>`:''}</div><div class="ad-meta">${ad.meta||''}</div></div>
-            ${isClaimed&&!adminEditMode?`<div class="ad-claimed-badge">✅ Claimed</div>`:`<div class="ad-reward">+₹${ad.reward}</div>`}
+            ${isClaimed&&!adminEditMode?`<div class="ad-claimed-badge">✅ Claimed</div>`:`<div class="ad-reward">+${toPoints(ad.reward)} pts</div>`}
         </div>`;
     }).join('');
 }
@@ -2976,7 +3136,7 @@ async function doClaimAd(ad){
         userData.balance+=ad.reward;userData.today_earned+=ad.reward;
         userData.passes=(userData.passes||0)+1;
         if(missionStates['m_passes']){missionStates['m_passes'].progress=1;missionStates['m_passes'].completed=true;}
-        updateUI();updateMissionsUI();showToast(`✅ +₹${ad.reward}! +1 Pass`);playSound('earn');
+        updateUI();updateMissionsUI();showToast('✅ +'+toPoints(ad.reward)+' pts! +1 Pass');playSound('earn');
         await loadAds();
     }else showToast('❌ '+(r?.message||'Already claimed'));
 }
@@ -3097,21 +3257,21 @@ function renderLeaderboard(data){
             <div class="podium-name">${sorted[1].name||'User'}</div>
             ${podiumRefsLine(sorted[1])}
             <div class="podium-bar">🥈</div>
-            ${(sorted[1].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">₹${prizes[1]}</div>`:''}
+            ${(sorted[1].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">${toPoints(prizes[1])} pts</div>`:''}
         </div>`;
         html+=`<div class="podium-slot p1">
             <div class="podium-dp" style="background:linear-gradient(135deg,${nameColor(sorted[0].name||'U')[0]},${nameColor(sorted[0].name||'U')[1]});color:#fff;">${(sorted[0].name||'U')[0].toUpperCase()}</div>
             <div class="podium-name">${sorted[0].name||'User'}</div>
             ${podiumRefsLine(sorted[0])}
             <div class="podium-bar"><img src="https://i.postimg.cc/7Zp6zfyg/1773974341500.png" style="width:44px;height:44px;object-fit:contain;"></div>
-            ${(sorted[0].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">₹${prizes[0]}</div>`:''}
+            ${(sorted[0].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">${toPoints(prizes[0])} pts</div>`:''}
         </div>`;
         if(sorted.length>=3)html+=`<div class="podium-slot p3">
             <div class="podium-dp" style="background:linear-gradient(135deg,${nameColor(sorted[2].name||'U')[0]},${nameColor(sorted[2].name||'U')[1]});color:#fff;">${(sorted[2].name||'U')[0].toUpperCase()}</div>
             <div class="podium-name">${sorted[2].name||'User'}</div>
             ${podiumRefsLine(sorted[2])}
             <div class="podium-bar">🥉</div>
-            ${(sorted[2].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">₹${prizes[2]}</div>`:''}
+            ${(sorted[2].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">${toPoints(prizes[2])} pts</div>`:''}
         </div>`;
         html+=`</div>`;
     }
@@ -3126,7 +3286,7 @@ function renderLeaderboard(data){
                     <div class="lb-name">${u.name||'User'}</div>
                     <div class="lb-refs">${refsLine(u)} refs</div>
                 </div>
-                ${hasPrize?`<div class="lb-prize">₹${prizes[i+3]||0}</div>`:`<div style="font-size:10px;color:var(--text3);">${prizeMin}+ needed</div>`}
+                ${hasPrize?`<div class="lb-prize">${toPoints(prizes[i+3]||0)} pts</div>`:`<div style="font-size:10px;color:var(--text3);">${prizeMin}+ needed</div>`}
             </div>`;
         });
         html+=`</div>`;
@@ -3136,7 +3296,7 @@ function renderLeaderboard(data){
 function renderHistory(data){
     const el=document.getElementById('histContainer');
     if(!data||!data.length){el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--text3);">${lang==='en'?'No withdrawals yet':'Koi withdrawal nahi abhi'}</div>`;return;}
-    el.innerHTML=data.map(h=>`<div class="hist-item"><div class="hist-top"><span class="hist-amt">₹${h.amount}</span><span class="hist-status status-${h.status||'pending'}">${h.status||'pending'}</span></div><div class="hist-bot"><span>${h.request_date?new Date(h.request_date).toLocaleDateString():'-'}</span><span>${h.method||'UPI'}</span></div></div>`).join('');
+    el.innerHTML=data.map(h=>`<div class="hist-item"><div class="hist-top"><span class="hist-amt">${toPoints(h.amount)+'pts'}</span><span class="hist-status status-${h.status||'pending'}">${h.status||'pending'}</span></div><div class="hist-bot"><span>${h.request_date?new Date(h.request_date).toLocaleDateString():'-'}</span><span>${h.method||'UPI'}</span></div></div>`).join('');
 }
 
 // ============================================================
@@ -3152,7 +3312,7 @@ function selMethod(m){
 }
 async function doWithdraw(){
     const amt=parseFloat(document.getElementById('wdrawAmt').value);
-    if(!amt||amt<20){showToast('❌ Minimum ₹20');return;}
+    if(!amt||amt<20){showToast('❌ Minimum ₹20 (2000 pts) (2000 pts)');return;}
     if(amt>userData.balance){showToast('❌ Balance kam hai');return;}
     if(!selectedMethod){showToast('❌ Method select karo');return;}
     // Check 20 month active refs condition
@@ -3235,12 +3395,12 @@ async function doSpin(){
         // ✅ FIX: Update balance + today_earned immediately
         userData.balance=(userData.balance||0)+spinActual;
         userData.today_earned=(userData.today_earned||0)+spinActual;
-        if(happyHoursActive)showToast(`⚡ Happy Hours! +₹${spinActual.toFixed(2)} (2x!)`);
+        if(happyHoursActive)showToast('⚡ Happy Hours! +'+toPoints(spinActual)+' pts (2x!)');
         gameState.today_game_earned=(gameState.today_game_earned||0)+spinActual;
         gameState.wins=(gameState.wins||0)+1;
         if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
         updateUI();updateMissionsUI();
-        document.getElementById('spinResultAmt').textContent=`+₹${parseFloat(spinActual).toFixed(2)}`;
+        document.getElementById('spinResultAmt').textContent='+'+toPoints(spinActual)+' pts';
         document.getElementById('spinResultTxt').textContent=spinActual>=2?'🎉 Jackpot!':'✅ Badhaai ho!';
         document.getElementById('spinResultBox').style.display='block';
         playSound(spinActual>=2?'jackpot':'earn');btn.disabled=false;btn.textContent='🎰 SPIN (1 Pass)';
@@ -3259,10 +3419,10 @@ function startGuess(){
     renderNumGrid();
 }
 function renderNumGrid(){document.getElementById('numGrid').innerHTML=[...Array(10)].map((_,i)=>`<button class="num-btn" id="nb${i+1}" onclick="makeGuess(${i+1})">${i+1}</button>`).join('');}
-function selGuessBet(a,el){if(a>userData.balance){showToast('❌ Balance kam hai!');return;}guessBet=a;document.querySelectorAll('#guessModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');document.getElementById('guessBetDisp').textContent=`₹${guessBet}`;}
+function selGuessBet(a,el){if(a>userData.balance){showToast('❌ Points kam hain!');return;}guessBet=a;document.querySelectorAll('#guessModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');document.getElementById('guessBetDisp').textContent=toPoints(guessBet)+' pts';}
 async function makeGuess(num){
     if(!guessActive)return;
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
     if(userData.balance<guessBet){showToast('❌ Balance kam hai!');return;}
     guessAttempts++;
     playSound('tap');
@@ -3286,11 +3446,11 @@ async function makeGuess(num){
         // ✅ FIX: Update balance immediately
         userData.balance=(userData.balance||0)+guessReward;
         userData.today_earned=(userData.today_earned||0)+guessReward;
-        document.getElementById('guessHint').textContent='🎉 +₹'+guessReward.toFixed(2);
+        document.getElementById('guessHint').textContent='🎉 +'+toPoints(guessReward)+' pts';
         gameState.wins=(gameState.wins||0)+1;
         gameState.today_game_earned=(gameState.today_game_earned||0)+guessReward;
         if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
-        playSound('earn');showToast('🎉 +₹'+guessReward.toFixed(2));
+        playSound('earn');showToast('🎉 +'+toPoints(guessReward)+' pts!');
         updateUI();updateMissionsUI();
         guessActive=false;
         setTimeout(startGuess,2000);
@@ -3321,11 +3481,11 @@ async function makeGuess(num){
 // ============================================================
 function resetCoinUI(){coinChoice=null;coinBet=1;coinFlipping=false;document.getElementById('coinChoiceH').classList.remove('sel');document.getElementById('coinChoiceT').classList.remove('sel');document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';const btn=document.getElementById('flipBtn');if(btn){btn.disabled=false;btn.textContent='🪙 FLIP!';}document.getElementById('theCoin').style.transform='rotateY(0deg)';}
 function chooseCoin(s){if(coinFlipping)return;coinChoice=s;document.getElementById('coinChoiceH').classList.toggle('sel',s==='heads');document.getElementById('coinChoiceT').classList.toggle('sel',s==='tails');playSound('tap');}
-function selCoinBet(a,el){if(a>userData.balance){showToast('❌ Balance kam hai!');return;}coinBet=a;document.querySelectorAll('#coinModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+function selCoinBet(a,el){if(a>userData.balance){showToast('❌ Points kam hain!');return;}coinBet=a;document.querySelectorAll('#coinModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
 async function doFlip(){
     if(!coinChoice){showToast('❌ Pehle Heads ya Tails choose karo!');return;}
     if(coinFlipping)return;
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
     if(userData.balance<coinBet){showToast('❌ Balance kam hai!');return;}
     coinFlipping=true;document.getElementById('flipBtn').disabled=true;
     document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';
@@ -3339,8 +3499,8 @@ async function doFlip(){
         coinFlipping=false;
         if(r&&r.success){
             userData.passes=Math.max(0,(userData.passes||1)-1);
-            if(r.won){document.getElementById('coinWinAmt').textContent=`+₹${parseFloat(r.reward||0).toFixed(2)}`;document.getElementById('coinResWin').style.display='block';playSound('earn');showToast(`🎉 +₹${parseFloat(r.reward||0).toFixed(2)}`);gameState.wins=(gameState.wins||0)+1;if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}}
-            else{document.getElementById('coinLoseAmt').textContent=`-₹${coinBet}`;document.getElementById('coinResLose').style.display='block';playSound('lose');showToast('😢 Haar gaye!');}
+            if(r.won){document.getElementById('coinWinAmt').textContent='+'+toPoints(r.reward||0)+' pts';document.getElementById('coinResWin').style.display='block';playSound('earn');showToast('🎉 +'+toPoints(r.reward||0)+' pts!');gameState.wins=(gameState.wins||0)+1;if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}}
+            else{document.getElementById('coinLoseAmt').textContent='-'+toPoints(coinBet)+' pts';document.getElementById('coinResLose').style.display='block';playSound('lose');showToast('😢 Haar gaye! -'+toPoints(coinBet)+' pts');}
             await loadUser();updateUI();updateMissionsUI();
         }
         setTimeout(()=>{document.getElementById('flipBtn').disabled=false;document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';coinChoice=null;document.getElementById('coinChoiceH').classList.remove('sel');document.getElementById('coinChoiceT').classList.remove('sel');coin.style.transition='none';coin.style.transform='rotateY(0deg)';},2500);
@@ -3423,14 +3583,14 @@ async function doDiceRoll(){
             const diceReward=parseFloat(r.reward||0.50);
             userData.balance=(userData.balance||0)+diceReward;
             userData.today_earned=(userData.today_earned||0)+diceReward;
-            document.getElementById('diceWinAmt').textContent=`+₹${diceReward.toFixed(2)}`;
+            document.getElementById('diceWinAmt').textContent='+'+toPoints(diceReward)+' pts';
             document.getElementById('diceResWin').style.display='block';
             document.getElementById('diceResultTxt').textContent=`🎉 Sahi! ${diceChoice} aaya!`;
             document.getElementById('diceResultTxt').style.color='var(--green)';
             gameState.wins=(gameState.wins||0)+1;
             gameState.today_game_earned=(gameState.today_game_earned||0)+diceReward;
             if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
-            playSound('earn');showToast(`🎉 +₹${parseFloat(r.reward||0.50).toFixed(2)}`);
+            playSound('earn');showToast('🎉 +'+toPoints(r.reward||0.50)+' pts!');
         }else{
             document.getElementById('diceLoseNum').textContent=`Number tha: ${actual}`;
             document.getElementById('diceResLose').style.display='block';
@@ -3482,7 +3642,7 @@ function chooseColor(c,el){
     playSound('tap');
 }
 function selColorBet(a,el){
-    if(a>userData.balance){showToast('❌ Balance kam hai!');return;}
+    if(a>userData.balance){showToast('❌ Points kam hain!');return;}
     colorBet=a;
     document.querySelectorAll('#colorModal .bet-chip').forEach(c=>c.classList.remove('sel'));
     el.classList.add('sel');
@@ -3490,7 +3650,7 @@ function selColorBet(a,el){
 async function doColorPredict(){
     if(!colorChoice){showToast('❌ Pehle color choose karo!');return;}
     if(colorPlaying)return;
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
     if(userData.balance<colorBet){showToast('❌ Balance kam hai!');return;}
     colorPlaying=true;
     const btn=document.getElementById('colorPlayBtn');btn.disabled=true;btn.textContent='⏳ Spinning...';
@@ -3547,14 +3707,14 @@ async function doColorPredict(){
             const colorReward=parseFloat(r.reward||0);
             userData.balance=(userData.balance||0)+colorReward;
             userData.today_earned=(userData.today_earned||0)+colorReward;
-            document.getElementById('colorWinAmt').textContent=`+₹${colorReward.toFixed(2)}`;
+            document.getElementById('colorWinAmt').textContent='+'+toPoints(colorReward)+' pts';
             document.getElementById('colorResWin').style.display='block';
             document.getElementById('colorResultTxt').textContent=`🎉 ${result.toUpperCase()} aaya! ${rc?.mult||2}x WIN!`;
             document.getElementById('colorResultTxt').style.color='var(--green)';
             gameState.wins=(gameState.wins||0)+1;
             gameState.today_game_earned=(gameState.today_game_earned||0)+(r.reward||0);
             if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
-            playSound('earn');showToast(`🎉 ${rc?.emoji||''} +₹${parseFloat(r.reward||0).toFixed(2)}`);
+            playSound('earn');showToast('🎉 '+(rc?.emoji||'')+' +'+toPoints(r.reward||0)+' pts!');
         }else{
             document.getElementById('colorLoseInfo').textContent=`${result.toUpperCase()} aaya, aapne ${colorChoice.toUpperCase()} chuna`;
             document.getElementById('colorResLose').style.display='block';
@@ -3627,7 +3787,7 @@ function renderCrashHistory(){
 
 async function startCrash(){
     if(crashState!=='idle')return;
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
     if(userData.balance<crashBet){showToast('❌ Balance kam hai!');return;}
 
     // Backend deducts both pass and bet
@@ -3694,7 +3854,7 @@ async function startCrash(){
 
             if(!crashCashedOut){
                 playSound('crash_boom');
-                showToast(`💥 Crash at ${crashPoint}x! Haare ₹${crashBet}`);
+                showToast('💥 Crash at '+crashPoint+'x! Haare '+toPoints(crashBet)+' pts');
             }
 
             crashHistory.push(crashPoint);
@@ -3725,8 +3885,8 @@ async function doCrashCashout(){
         if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
         updateUI();updateMissionsUI();
         playSound('cashout');
-        showToast(`💸 Cashout! ${mult}x = +₹${reward.toFixed(2)}`);
-        document.getElementById('crashStatus').textContent=`✅ Cashout at ${mult}x! +₹${reward.toFixed(2)}`;
+        showToast('💸 Cashout! '+mult+'x = +'+toPoints(reward)+' pts');
+        document.getElementById('crashStatus').textContent='✅ Cashout at '+mult+'x! +'+toPoints(reward)+' pts';
         const multEl=document.getElementById('crashMultiplier');
         if(multEl){multEl.textContent=mult.toFixed(2)+'x';multEl.className='crash-multiplier safe';}
     }else{
@@ -3781,7 +3941,7 @@ const PLATFORM_TEMPLATES=[
 
 function openRunnerGame(){
     document.getElementById('runnerPassCount').textContent=userData.passes||0;
-    document.getElementById('runnerBalDisplay').textContent=`₹${(userData.balance||0).toFixed(2)}`;
+    document.getElementById('runnerBalDisplay').textContent=fmtPts(toPoints(userData.balance||0));
     document.getElementById('runnerSetup').style.display='block';
     document.getElementById('runnerGameScreen').style.display='none';
     document.getElementById('runnerResult').style.display='none';
@@ -3812,13 +3972,13 @@ function updateRunnerPreview(){
     const preview=document.getElementById('runnerRewardPreview');
     const txt=document.getElementById('runnerRewardTxt');
     preview.style.display='block';
-    txt.innerHTML='Bet: <b style="color:var(--gold);">₹'+runnerBet+'</b> • Time: <b>'+runnerMode+'</b><br>Max earn: <b style="color:var(--green);">₹'+maxEarn+'</b> + bet back<br>Per second: <b style="color:var(--purple2);">₹'+m.r+'</b>';
+    txt.innerHTML='Bet: <b style="color:var(--gold);">'+toPoints(runnerBet)+' pts</b> • Time: <b>'+runnerMode+'</b><br>Max earn: <b style="color:var(--green);">'+toPoints(maxEarn)+' pts</b> + bet back<br>Per sec: <b style="color:var(--purple2);">'+toPoints(m.r)+' pts</b>';
 }
 
 async function startRunnerGame(){
     if(!runnerMode){showToast('❌ Mode chuno!');return;}
     if(runnerBet<=0){showToast('❌ Bet chuno!');return;}
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
     if(userData.balance<runnerBet){showToast('❌ Balance kam hai!');return;}
 
     const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:runnerMode,bet:runnerBet});
@@ -3930,7 +4090,7 @@ function runnerLoop(){
     const mins=Math.floor(remaining/60),secs=Math.max(0,Math.floor(remaining%60));
     document.getElementById('runnerTimer').textContent=`${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
     runnerEarningTotal=parseFloat((runnerSurvivedSecs*runnerRewardPerSec).toFixed(4));
-    document.getElementById('runnerEarning').textContent=`+₹${runnerEarningTotal.toFixed(3)}`;
+    document.getElementById('runnerEarning').textContent='+'+toPoints(runnerEarningTotal)+' pts';
     document.getElementById('runnerLives').textContent='❤️'.repeat(runnerLives)+'🖤'.repeat(Math.max(0,3-runnerLives));
 
     // Time up — win!
@@ -4192,9 +4352,9 @@ async function finishRunnerGame(won){
     document.getElementById('runnerResultEmoji').textContent=won?'🏆':'💀';
     document.getElementById('runnerResultTitle').textContent=won?'CHAMPION! 🎉':'Game Over!';
     document.getElementById('runnerResultSub').textContent=`Survived: ${runnerSurvivedSecs}s of ${runnerMaxSecs}s`;
-    document.getElementById('runnerResultReward').textContent=`+₹${parseFloat(reward).toFixed(3)}`;
+    document.getElementById('runnerResultReward').textContent='+'+toPoints(reward)+' pts';
     document.getElementById('runnerResultBreakdown').textContent=
-        `Bet back: ₹${(r?.bet_back||0).toFixed(2)} + Earned: ₹${(r?.earned||0).toFixed(4)}`;
+        'Bet back: '+toPoints(r?.bet_back||0)+' pts + Earned: '+toPoints(r?.earned||0)+' pts';
 
     if(reward>0){
         userData.balance=(userData.balance||0)+parseFloat(reward);
@@ -4218,17 +4378,41 @@ function resetRunnerGame(){
 }
 
 // ============================================================
-// 🗺️ MAZE ESCAPE GAME
+// 🗺️ MAZE ESCAPE — Rewritten: points system, proper rewards
 // ============================================================
 let mazeBet=1,mazeDiff='easy',mazeTimer=0,mazeInterval=null;
 let mazeGrid=[],mazePlayer={x:1,y:1},mazeGoal={x:0,y:0};
-let mazeMoveCount=0,mazeEarned=0,mazeActive=false;
-const MAZE_DIFFS={easy:{time:60,mult:3,size:11},medium:{time:40,mult:5,size:13},hard:{time:25,mult:8,size:15}};
+let mazeMoveCount=0,mazeEarned=0,mazeActive=false,mazeFrameId=null;
+// Points rewards: Easy=300x, Medium=500x, Hard=800x (bet in rupees, reward in points)
+const MAZE_DIFFS={
+    easy:  {time:60, mult:300, size:11, label:'Easy 60s',  color:'var(--green)'},
+    medium:{time:45, mult:500, size:13, label:'Medium 45s', color:'var(--gold)'},
+    hard:  {time:30, mult:800, size:15, label:'Hard 30s',   color:'var(--red)'}
+};
 
-function openMazeGame(){document.getElementById('mazeBal').textContent='₹'+(userData.balance||0).toFixed(2);document.getElementById('mazeSetup').style.display='block';document.getElementById('mazeGame').style.display='none';document.getElementById('mazeResult').style.display='none';openModal('maze');}
-function selMazeBet(a,el){if(a>userData.balance){showToast('❌ Balance kam!');return;}mazeBet=a;document.querySelectorAll('#mazeModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
-function selMazeDiff(d,el){mazeDiff=d;document.querySelectorAll('#mazeModal .runner-mode-btn').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
-
+function openMazeGame(){
+    document.getElementById('mazeBal').textContent=fmtPts(toPoints(userData.balance||0));
+    document.getElementById('mazeSetup').style.display='block';
+    document.getElementById('mazeGame').style.display='none';
+    document.getElementById('mazeResult').style.display='none';
+    openModal('maze');
+}
+function selMazeBet(a,el){
+    if(a>(userData.balance||0)){showToast('❌ Points kam hain!');return;}
+    mazeBet=a;
+    document.querySelectorAll('#mazeModal .bet-chip').forEach(c=>c.classList.remove('sel'));
+    el.classList.add('sel');
+    // Show potential reward
+    const cfg=MAZE_DIFFS[mazeDiff];
+    const pts=toPoints(a)*cfg.mult/100;
+    document.getElementById('mazeRewardPreview').textContent='🏆 Max reward: '+Math.floor(pts)+' pts';
+}
+function selMazeDiff(d,el){
+    mazeDiff=d;
+    document.querySelectorAll('#mazeModal .runner-mode-btn').forEach(c=>c.classList.remove('sel'));
+    el.classList.add('sel');
+    selMazeBet(mazeBet,document.querySelector('#mazeModal .bet-chip.sel')||document.querySelector('#mazeModal .bet-chip'));
+}
 function generateMaze(size){
     const g=Array.from({length:size},()=>Array(size).fill(1));
     function carve(x,y){
@@ -4243,66 +4427,83 @@ function generateMaze(size){
     g[1][1]=0;carve(1,1);
     return g;
 }
-
 async function startMaze(){
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
-    if(userData.balance<mazeBet){showToast('❌ Balance kam!');return;}
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
+    if((userData.balance||0)<mazeBet){showToast('❌ Balance kam!');return;}
     const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'maze',bet:mazeBet});
     if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
     userData.passes=Math.max(0,(userData.passes||1)-1);
-    userData.balance=Math.max(0,userData.balance-mazeBet);
+    userData.balance=Math.max(0,(userData.balance||0)-mazeBet);
     updateUI();
-
     const cfg=MAZE_DIFFS[mazeDiff];
     mazeGrid=generateMaze(cfg.size);
     mazePlayer={x:1,y:1};
     mazeGoal={x:cfg.size-2,y:cfg.size-2};
     mazeGrid[mazeGoal.y][mazeGoal.x]=0;
     mazeTimer=cfg.time;mazeMoveCount=0;mazeEarned=0;mazeActive=true;
-
     document.getElementById('mazeSetup').style.display='none';
     document.getElementById('mazeGame').style.display='block';
     document.getElementById('mazeResult').style.display='none';
-
     drawMaze();
     mazeInterval=setInterval(()=>{
+        if(!mazeActive)return;
         mazeTimer--;
-        const earned=parseFloat((Math.floor((cfg.time-mazeTimer)/5)*mazeBet*0.2).toFixed(2));
-        mazeEarned=earned;
-        document.getElementById('mazeTimer').textContent='⏱️ '+(Math.floor(mazeTimer/60)+':'+String(mazeTimer%60).padStart(2,'0'));
-        document.getElementById('mazeEarning').textContent='₹'+earned.toFixed(2);
+        // Points earned per 5s = bet × 20% of mult
+        const ptsSoFar=Math.floor(toPoints(mazeBet)*(mazeTimer<cfg.time?(cfg.time-mazeTimer)/cfg.time*cfg.mult/5:0));
+        document.getElementById('mazeTimer').textContent='⏱️ '+Math.floor(mazeTimer/60)+':'+String(mazeTimer%60).padStart(2,'0');
+        document.getElementById('mazeEarning').textContent=ptsSoFar+' pts';
         document.getElementById('mazeMoves').textContent='Moves: '+mazeMoveCount;
         if(mazeTimer<=0){mazeActive=false;clearInterval(mazeInterval);finishMaze(false);}
     },1000);
     playSound('tap');
-    // Keyboard
-    document.onkeydown=e=>{
-        const map={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};
-        if(map[e.code])mazeMove(map[e.code]);
-    };
+    document.onkeydown=e=>{const map={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};if(map[e.code])mazeMove(map[e.code]);};
 }
 
 function drawMaze(){
     const canvas=document.getElementById('mazeCanvas');
+    if(!canvas)return;
     const size=MAZE_DIFFS[mazeDiff].size;
-    const W=canvas.parentElement.offsetWidth-20||320;
+    const W=Math.min(canvas.parentElement.offsetWidth-20,360)||320;
     canvas.width=W;canvas.height=W;
-    const cell=W/size;
+    const cell=Math.floor(W/size);
     const ctx=canvas.getContext('2d');
-    ctx.fillStyle='#0a1628';ctx.fillRect(0,0,W,W);
+    // Dark background
+    ctx.fillStyle='#050d18';ctx.fillRect(0,0,W,W);
+    // Draw walls and paths
     for(let y=0;y<size;y++){
         for(let x=0;x<size;x++){
             if(mazeGrid[y][x]===1){
-                ctx.fillStyle='#1a3a5a';
+                // Wall — dark blue with subtle gradient
+                ctx.fillStyle='#0d2040';
+                ctx.fillRect(x*cell,y*cell,cell,cell);
+                // Wall edge highlight
+                ctx.fillStyle='rgba(54,182,245,0.08)';
+                ctx.fillRect(x*cell,y*cell,cell,1);
+                ctx.fillRect(x*cell,y*cell,1,cell);
+            }else{
+                // Path — slightly lighter
+                ctx.fillStyle='rgba(54,182,245,0.03)';
                 ctx.fillRect(x*cell,y*cell,cell,cell);
             }
         }
     }
-    // Goal flag
-    ctx.font=(cell*0.8)+'px serif';ctx.textAlign='center';
-    ctx.fillText('🚩',mazeGoal.x*cell+cell/2,mazeGoal.y*cell+cell*0.85);
-    // Player
-    ctx.fillText('🏃',mazePlayer.x*cell+cell/2,mazePlayer.y*cell+cell*0.85);
+    // Draw path trail (visited cells glow)
+    // Goal — glowing flag
+    const gx=mazeGoal.x*cell,gy=mazeGoal.y*cell;
+    const grd=ctx.createRadialGradient(gx+cell/2,gy+cell/2,0,gx+cell/2,gy+cell/2,cell);
+    grd.addColorStop(0,'rgba(25,216,158,0.4)');grd.addColorStop(1,'transparent');
+    ctx.fillStyle=grd;ctx.fillRect(gx-cell,gy-cell,cell*3,cell*3);
+    ctx.font=Math.floor(cell*0.8)+'px serif';ctx.textAlign='center';
+    ctx.fillText('🚩',gx+cell/2,gy+cell*0.85);
+    // Player — glowing blue square
+    const px=mazePlayer.x*cell,py=mazePlayer.y*cell;
+    const pGrd=ctx.createRadialGradient(px+cell/2,py+cell/2,0,px+cell/2,py+cell/2,cell);
+    pGrd.addColorStop(0,'rgba(124,92,252,0.5)');pGrd.addColorStop(1,'transparent');
+    ctx.fillStyle=pGrd;ctx.fillRect(px-cell/2,py-cell/2,cell*2,cell*2);
+    ctx.fillStyle='#7c5cfc';
+    ctx.beginPath();ctx.roundRect(px+2,py+2,cell-4,cell-4,4);ctx.fill();
+    ctx.fillStyle='#fff';
+    ctx.font=Math.floor(cell*0.55)+'px serif';ctx.fillText('😀',px+cell/2,py+cell*0.78);
 }
 
 function mazeMove(dir){
@@ -4313,199 +4514,338 @@ function mazeMove(dir){
     if(x<0||y<0||x>=size||y>=size||mazeGrid[y][x]===1)return;
     mazePlayer={x,y};mazeMoveCount++;
     drawMaze();
-    if(x===mazeGoal.x&&y===mazeGoal.y){
-        mazeActive=false;clearInterval(mazeInterval);finishMaze(true);
-    }
-    playSound('tap');
+    if(x===mazeGoal.x&&y===mazeGoal.y){mazeActive=false;clearInterval(mazeInterval);finishMaze(true);}
+    playSound('click');
 }
 
 async function finishMaze(won){
     clearInterval(mazeInterval);mazeActive=false;document.onkeydown=null;
     const cfg=MAZE_DIFFS[mazeDiff];
-    let reward=0;
+    const betPts=toPoints(mazeBet);
+    let rewardPts=0;
     if(won){
-        const timeBonus=mazeTimer/cfg.time;
-        reward=parseFloat((mazeBet*cfg.mult*timeBonus).toFixed(2));
+        const timePct=mazeTimer/cfg.time;
+        // More time left = more bonus: full reward if <10 moves used
+        const speedBonus=mazeMoveCount<cfg.size*2?1.5:1;
+        rewardPts=Math.floor(betPts*(cfg.mult/100)*timePct*speedBonus+betPts);
     }else{
-        reward=mazeEarned;
+        // Partial reward based on time survived
+        const survived=cfg.time-mazeTimer;
+        rewardPts=Math.floor(betPts*(survived/cfg.time)*(cfg.mult/200));
     }
-    if(reward>0){
+    // Convert back to rupees for server
+    const rewardRupees=fromPoints(rewardPts);
+    if(rewardRupees>0){
         const r=await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'maze',bet:mazeBet,survived_seconds:cfg.time-mazeTimer});
-        if(r?.reward)reward=r.reward;
-        userData.balance=(userData.balance||0)+reward;
-        userData.today_earned=(userData.today_earned||0)+reward;
-        gameState.today_game_earned=(gameState.today_game_earned||0)+reward;
+        const actualReward=r?.reward||rewardRupees;
+        userData.balance=(userData.balance||0)+actualReward;
+        userData.today_earned=(userData.today_earned||0)+actualReward;
+        gameState.today_game_earned=(gameState.today_game_earned||0)+actualReward;
         updateUI();
     }
     document.getElementById('mazeGame').style.display='none';
     document.getElementById('mazeResult').style.display='block';
     document.getElementById('mazeResultEmoji').textContent=won?'🏆':'😵';
-    document.getElementById('mazeResultTitle').textContent=won?'NIKAL GAYE! 🎉':'Time Out!';
-    document.getElementById('mazeResultSub').textContent=won?`${mazeMoveCount} moves mein!`:`${cfg.time-mazeTimer}s survive kiya`;
-    document.getElementById('mazeResultReward').textContent='+₹'+reward.toFixed(2);
+    document.getElementById('mazeResultTitle').textContent=won?'NIKAL GAYE! 🎉':(mazeTimer<=0?'Time Out! ⏱️':'Almost!');
+    document.getElementById('mazeResultSub').textContent=won?mazeMoveCount+' moves mein nikle!':'Survived '+(cfg.time-mazeTimer)+'s';
+    document.getElementById('mazeResultReward').textContent='+'+rewardPts+' pts';
     playSound(won?'jackpot':'lose');
+    if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
+    updateMissionsUI();
 }
 function resetMaze(){document.getElementById('mazeSetup').style.display='block';document.getElementById('mazeGame').style.display='none';document.getElementById('mazeResult').style.display='none';}
 function exitMaze(){if(mazeInterval)clearInterval(mazeInterval);mazeActive=false;document.onkeydown=null;closeModal('maze');}
 
 // ============================================================
-// 🐍 SNAKE GAME
+// 🐍 SNAKE GAME — Proper snake with visible snake body
 // ============================================================
 let snakeBet=1,snakeActive=false,snakeTimer=60,snakeInterval=null;
-let snake=[],snakeDir_v={x:1,y:0},snakeNextDir={x:1,y:0};
-let snakeFood={x:5,y:5},snakeScore_v=0,snakeCellSize=20;
-const SNAKE_GRID=15;
+let snake=[],snakeDirV={x:1,y:0},snakeNextDirV={x:1,y:0};
+let snakeFood={x:7,y:7},snakeScoreV=0,snakeCellSz=20,snakeCanvas=null,snakeCtx=null;
+const SNAKE_GRID=16;
 
-function openSnakeGame(){document.getElementById('snakeBal').textContent='₹'+(userData.balance||0).toFixed(2);document.getElementById('snakeSetup').style.display='block';document.getElementById('snakeGame').style.display='none';document.getElementById('snakeResult').style.display='none';openModal('snake');}
-function selSnakeBet(a,el){if(a>userData.balance){showToast('❌ Balance kam!');return;}snakeBet=a;document.querySelectorAll('#snakeModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
-function snakeDir(d){const map={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}};const nd=map[d];if(nd.x===-snakeDir_v.x&&nd.y===-snakeDir_v.y)return;snakeNextDir=nd;}
+function openSnakeGame(){
+    document.getElementById('snakeBal').textContent=fmtPts(toPoints(userData.balance||0));
+    document.getElementById('snakeSetup').style.display='block';
+    document.getElementById('snakeGame').style.display='none';
+    document.getElementById('snakeResult').style.display='none';
+    openModal('snake');
+}
+function selSnakeBet(a,el){
+    if(a>(userData.balance||0)){showToast('❌ Points kam!');return;}
+    snakeBet=a;
+    document.querySelectorAll('#snakeModal .bet-chip').forEach(c=>c.classList.remove('sel'));
+    el.classList.add('sel');
+}
+function snakeDir(d){
+    const map={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}};
+    const nd=map[d];
+    if(nd&&(nd.x!==-snakeDirV.x||nd.y!==-snakeDirV.y))snakeNextDirV=nd;
+}
 
 function placeSnakeFood(){
-    let f;do{f={x:Math.floor(Math.random()*SNAKE_GRID),y:Math.floor(Math.random()*SNAKE_GRID)};}
-    while(snake.some(s=>s.x===f.x&&s.y===f.y));
+    let f;
+    let tries=0;
+    do{
+        f={x:Math.floor(Math.random()*SNAKE_GRID),y:Math.floor(Math.random()*SNAKE_GRID)};
+        tries++;
+    }while(snake.some(s=>s.x===f.x&&s.y===f.y)&&tries<100);
     snakeFood=f;
 }
 
 async function startSnake(){
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
-    if(userData.balance<snakeBet){showToast('❌ Balance kam!');return;}
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
+    if((userData.balance||0)<snakeBet){showToast('❌ Balance kam!');return;}
     const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'snake',bet:snakeBet});
     if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
     userData.passes=Math.max(0,(userData.passes||1)-1);
-    userData.balance=Math.max(0,userData.balance-snakeBet);
+    userData.balance=Math.max(0,(userData.balance||0)-snakeBet);
     updateUI();
-
-    snake=[{x:7,y:7},{x:6,y:7},{x:5,y:7}];
-    snakeDir_v={x:1,y:0};snakeNextDir={x:1,y:0};
-    snakeScore_v=0;snakeTimer=60;snakeActive=true;
+    snake=[{x:8,y:8},{x:7,y:8},{x:6,y:8}];
+    snakeDirV={x:1,y:0};snakeNextDirV={x:1,y:0};
+    snakeScoreV=0;snakeTimer=60;snakeActive=true;
     placeSnakeFood();
-
-    const canvas=document.getElementById('snakeCanvas');
-    const W=canvas.parentElement.offsetWidth-16||320;
-    canvas.width=W;canvas.height=W;
-    snakeCellSize=Math.floor(W/SNAKE_GRID);
-
+    snakeCanvas=document.getElementById('snakeCanvas');
+    const W=Math.min(snakeCanvas.parentElement.offsetWidth-16,360)||320;
+    snakeCanvas.width=W;snakeCanvas.height=W;
+    snakeCellSz=Math.floor(W/SNAKE_GRID);
+    snakeCtx=snakeCanvas.getContext('2d');
     document.getElementById('snakeSetup').style.display='none';
     document.getElementById('snakeGame').style.display='block';
     document.getElementById('snakeResult').style.display='none';
-
-    document.onkeydown=e=>{
-        const map={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};
-        if(map[e.code])snakeDir(map[e.code]);
-    };
-
-    snakeInterval=setInterval(()=>{
+    document.onkeydown=e=>{const m={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};if(m[e.code])snakeDir(m[e.code]);};
+    drawSnake();
+    let lastMove=0;
+    function gameLoop(ts){
         if(!snakeActive)return;
-        // Timer
+        snakeFrameId=requestAnimationFrame(gameLoop);
+        if(ts-lastMove<180)return; // ~5.5 moves/sec
+        lastMove=ts;
+        // Move
+        snakeDirV=snakeNextDirV;
+        const head={x:snake[0].x+snakeDirV.x,y:snake[0].y+snakeDirV.y};
+        if(head.x<0||head.x>=SNAKE_GRID||head.y<0||head.y>=SNAKE_GRID){snakeActive=false;finishSnake();return;}
+        if(snake.some(s=>s.x===head.x&&s.y===head.y)){snakeActive=false;finishSnake();return;}
+        snake.unshift(head);
+        if(head.x===snakeFood.x&&head.y===snakeFood.y){snakeScoreV++;placeSnakeFood();playSound('tap');}
+        else snake.pop();
+        drawSnake();
+        document.getElementById('snakeScore').textContent='🍎 '+snakeScoreV;
+        const pts=snakeScoreV*toPoints(snakeBet)*15;
+        document.getElementById('snakeEarning').textContent=pts+' pts';
+    }
+    snakeFrameId=requestAnimationFrame(gameLoop);
+    // Timer
+    snakeInterval=setInterval(()=>{
+        if(!snakeActive){clearInterval(snakeInterval);return;}
         snakeTimer--;
         document.getElementById('snakeTimer').textContent=snakeTimer+'s';
-        const earned=parseFloat((snakeScore_v*snakeBet*0.10).toFixed(2));
-        document.getElementById('snakeEarning').textContent='₹'+earned.toFixed(2);
-        document.getElementById('snakeScore').textContent='Score: '+snakeScore_v;
-        if(snakeTimer<=0){snakeActive=false;clearInterval(snakeInterval);finishSnake();}
-        // Move snake
-        snakeDir_v=snakeNextDir;
-        const head={x:snake[0].x+snakeDir_v.x,y:snake[0].y+snakeDir_v.y};
-        // Wall collision
-        if(head.x<0||head.x>=SNAKE_GRID||head.y<0||head.y>=SNAKE_GRID){snakeActive=false;clearInterval(snakeInterval);finishSnake();return;}
-        // Self collision
-        if(snake.some(s=>s.x===head.x&&s.y===head.y)){snakeActive=false;clearInterval(snakeInterval);finishSnake();return;}
-        snake.unshift(head);
-        if(head.x===snakeFood.x&&head.y===snakeFood.y){
-            snakeScore_v++;placeSnakeFood();playSound('tap');
-        }else{snake.pop();}
-        drawSnake();
-    },200);
+        if(snakeTimer<=0){snakeActive=false;clearInterval(snakeInterval);cancelAnimationFrame(snakeFrameId);finishSnake();}
+    },1000);
 }
 
 function drawSnake(){
-    const canvas=document.getElementById('snakeCanvas');
-    const ctx=canvas.getContext('2d');
-    const cs=snakeCellSize;
-    ctx.fillStyle='#0a1a0a';ctx.fillRect(0,0,canvas.width,canvas.height);
-    // Grid
-    ctx.strokeStyle='rgba(25,216,158,.08)';ctx.lineWidth=0.5;
-    for(let i=0;i<SNAKE_GRID;i++){
-        ctx.beginPath();ctx.moveTo(i*cs,0);ctx.lineTo(i*cs,canvas.height);ctx.stroke();
-        ctx.beginPath();ctx.moveTo(0,i*cs);ctx.lineTo(canvas.width,i*cs);ctx.stroke();
+    if(!snakeCtx||!snakeCanvas)return;
+    const cs=snakeCellSz,ctx=snakeCtx;
+    const W=snakeCanvas.width;
+    // BG
+    ctx.fillStyle='#050d05';ctx.fillRect(0,0,W,W);
+    // Grid lines
+    ctx.strokeStyle='rgba(25,216,158,0.05)';ctx.lineWidth=0.5;
+    for(let i=0;i<=SNAKE_GRID;i++){
+        ctx.beginPath();ctx.moveTo(i*cs,0);ctx.lineTo(i*cs,W);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(0,i*cs);ctx.lineTo(W,i*cs);ctx.stroke();
     }
-    // Snake
-    snake.forEach((s,i)=>{
-        ctx.fillStyle=i===0?'#19d89e':'rgba(25,216,158,0.7)';
+    // Snake body
+    snake.forEach((seg,i)=>{
+        const isHead=i===0;
+        const t=1-i/snake.length;
+        if(isHead){
+            // Head glow
+            const g=ctx.createRadialGradient(seg.x*cs+cs/2,seg.y*cs+cs/2,0,seg.x*cs+cs/2,seg.y*cs+cs/2,cs);
+            g.addColorStop(0,'rgba(25,216,158,0.3)');g.addColorStop(1,'transparent');
+            ctx.fillStyle=g;ctx.fillRect(seg.x*cs-cs/2,seg.y*cs-cs/2,cs*2,cs*2);
+        }
+        // Body segment
+        ctx.fillStyle=isHead?'#19d89e':`rgba(${Math.floor(25+t*50)},${Math.floor(216-t*80)},${Math.floor(158+t*20)},${0.5+t*0.5})`;
         ctx.beginPath();
-        ctx.roundRect(s.x*cs+1,s.y*cs+1,cs-2,cs-2,i===0?5:2);
+        ctx.roundRect(seg.x*cs+1,seg.y*cs+1,cs-2,cs-2,isHead?6:2);
         ctx.fill();
-        if(i===0){ctx.fillStyle='#000';ctx.fillRect(s.x*cs+cs*0.6,s.y*cs+cs*0.25,2,2);ctx.fillRect(s.x*cs+cs*0.6,s.y*cs+cs*0.55,2,2);}
+        // Head eyes
+        if(isHead){
+            ctx.fillStyle='#000';
+            const ex=snakeDirV.y===0?cs*0.65:cs*0.35;
+            const ey=snakeDirV.x===0?cs*0.35:cs*0.65;
+            ctx.fillRect(seg.x*cs+ex,seg.y*cs+ey,2,2);
+            ctx.fillRect(seg.x*cs+(cs-ex-2),seg.y*cs+(cs-ey-2),2,2);
+        }
     });
-    // Food
-    ctx.font=(cs*0.9)+'px serif';ctx.textAlign='center';
-    ctx.fillText('🍎',snakeFood.x*cs+cs/2,snakeFood.y*cs+cs*0.9);
+    // Food — pulsing apple
+    const pulse=0.85+Math.sin(Date.now()/200)*0.15;
+    ctx.font=Math.floor(cs*0.8*pulse)+'px serif';ctx.textAlign='center';
+    ctx.fillText('🍎',snakeFood.x*cs+cs/2,snakeFood.y*cs+cs*0.85);
 }
 
+let snakeFrameId=null;
+
 async function finishSnake(){
-    clearInterval(snakeInterval);snakeActive=false;document.onkeydown=null;
-    const earned=parseFloat((snakeScore_v*snakeBet*0.10).toFixed(2));
-    if(earned>0){
-        await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'snake',bet:snakeBet,survived_seconds:snakeScore_v});
-        userData.balance=(userData.balance||0)+earned;
-        userData.today_earned=(userData.today_earned||0)+earned;
-        gameState.today_game_earned=(gameState.today_game_earned||0)+earned;
+    if(snakeInterval)clearInterval(snakeInterval);
+    if(snakeFrameId)cancelAnimationFrame(snakeFrameId);
+    snakeActive=false;document.onkeydown=null;
+    const rewardPts=snakeScoreV*toPoints(snakeBet)*15;
+    const rewardRupees=fromPoints(rewardPts);
+    if(rewardRupees>0){
+        await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'snake',bet:snakeBet,survived_seconds:snakeScoreV});
+        userData.balance=(userData.balance||0)+rewardRupees;
+        userData.today_earned=(userData.today_earned||0)+rewardRupees;
+        gameState.today_game_earned=(gameState.today_game_earned||0)+rewardRupees;
         updateUI();
     }
     document.getElementById('snakeGame').style.display='none';
     document.getElementById('snakeResult').style.display='block';
-    document.getElementById('snakeResultEmoji').textContent=snakeScore_v>=10?'🏆':'🐍';
-    document.getElementById('snakeResultTitle').textContent=snakeScore_v>=10?'Snake Master!':snakeScore_v>0?'Not bad!':'Oops!';
-    document.getElementById('snakeFinalScore').textContent=snakeScore_v;
-    document.getElementById('snakeResultReward').textContent='+₹'+earned.toFixed(2);
-    playSound(snakeScore_v>0?'earn':'lose');
+    document.getElementById('snakeResultEmoji').textContent=snakeScoreV>=10?'🏆':snakeScoreV>0?'🐍':'😅';
+    document.getElementById('snakeResultTitle').textContent=snakeScoreV>=15?'Snake Master! 🏆':snakeScoreV>=5?'Badiya khela!':'Aur practice karo!';
+    document.getElementById('snakeFinalScore').textContent=snakeScoreV;
+    document.getElementById('snakeResultReward').textContent='+'+rewardPts+' pts';
+    playSound(snakeScoreV>0?'earn':'lose');
+    if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
+    updateMissionsUI();
 }
 function resetSnake(){document.getElementById('snakeSetup').style.display='block';document.getElementById('snakeGame').style.display='none';document.getElementById('snakeResult').style.display='none';}
-function exitSnake(){if(snakeInterval)clearInterval(snakeInterval);snakeActive=false;document.onkeydown=null;closeModal('snake');}
+function exitSnake(){if(snakeInterval)clearInterval(snakeInterval);if(snakeFrameId)cancelAnimationFrame(snakeFrameId);snakeActive=false;document.onkeydown=null;closeModal('snake');}
 
 // ============================================================
-// ♟️ CHESS TIMER GAME (Simplified board, AI)
+// ♟️ CHESS TIMER — PROPER AI that plays real chess moves
 // ============================================================
 let chessBet=1,chessTimeLeft=60,chessAiTime=60,chessMult=2;
-let chessBoard=[],chessSelected=null,chessTurn_v='white',chessActive=false;
-let chessInterval=null,chessPlayerElapsed=0,chessMoveCount=0;
-// 0=empty,1=wP,2=wR,3=wN,4=wB,5=wQ,6=wK,7=bP,8=bR,9=bN,10=bB,11=bQ,12=bK
-const CHESS_INIT=[
-    [8,9,10,11,12,10,9,8],[7,7,7,7,7,7,7,7],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1],[2,3,4,5,6,4,3,2]
+let chessBoard=[],chessSelected=null,chessTurnV='white',chessActive=false;
+let chessInterval=null,chessMoveCount=0,chessLastCanvas=null;
+const CHESS_INIT_FEN=[
+    [8,9,10,11,12,10,9,8],
+    [7,7,7,7,7,7,7,7],
+    [0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
+    [1,1,1,1,1,1,1,1],
+    [2,3,4,5,6,4,3,2]
 ];
-const CHESS_EMOJI=['','♟','♜','♞','♝','♛','♚','♟','♜','♞','♝','♛','♚'];
-const CHESS_COLOR=['','#fff','#fff','#fff','#fff','#fff','#fff','#888','#888','#888','#888','#888','#888'];
+// 0=empty,1=wP,2=wR,3=wN,4=wB,5=wQ,6=wK,7=bP,8=bR,9=bN,10=bB,11=bQ,12=bK
+const C_WHITE_PIECE=[0,1,2,3,4,5,6];
+const C_BLACK_PIECE=[7,8,9,10,11,12];
+const CHESS_SYMBOLS=['','♙','♖','♘','♗','♕','♔','♟','♜','♞','♝','♛','♚'];
 
-function openChessGame(){document.getElementById('chessBal').textContent='₹'+(userData.balance||0).toFixed(2);document.getElementById('chessSetup').style.display='block';document.getElementById('chessGame').style.display='none';document.getElementById('chessResult').style.display='none';openModal('chess');}
-function selChessBet(a,el){if(a>userData.balance){showToast('❌ Balance kam!');return;}chessBet=a;document.querySelectorAll('#chessModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
-function selChessTime(t,el){chessTimeLeft=t;chessAiTime=t;const mults={60:2,30:4,15:8};chessMult=mults[t]||2;document.querySelectorAll('#chessModal .runner-mode-btn').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+function isWhite(p){return p>=1&&p<=6;}
+function isBlack(p){return p>=7&&p<=12;}
+function isEmpty(p){return p===0;}
+
+function getValidMoves(board,r,c){
+    const p=board[r][c];
+    if(!p)return[];
+    const moves=[];
+    const friendly=isWhite(p)?isWhite:isBlack;
+    const enemy=isWhite(p)?isBlack:isWhite;
+    const dr=isWhite(p)?-1:1; // pawn direction
+
+    function addMove(tr,tc){
+        if(tr>=0&&tr<8&&tc>=0&&tc<8&&!friendly(board[tr][tc]))moves.push([tr,tc]);
+    }
+    function slide(drs,dcs){
+        for(let i=1;i<8;i++){const tr=r+drs*i,tc=c+dcs*i;if(tr<0||tr>=8||tc<0||tc>=8)break;if(friendly(board[tr][tc]))break;moves.push([tr,tc]);if(enemy(board[tr][tc]))break;}
+    }
+
+    const type=p>6?p-6:p; // normalize to 1-6
+    if(type===1){ // Pawn
+        if(!board[r+dr]?.[c])moves.push([r+dr,c]);
+        if(r===(isWhite(p)?6:1)&&!board[r+dr]?.[c]&&!board[r+dr*2]?.[c])moves.push([r+dr*2,c]);
+        if(enemy(board[r+dr]?.[c-1]))moves.push([r+dr,c-1]);
+        if(enemy(board[r+dr]?.[c+1]))moves.push([r+dr,c+1]);
+    }else if(type===2){ // Rook
+        [[1,0],[-1,0],[0,1],[0,-1]].forEach(([a,b])=>slide(a,b));
+    }else if(type===3){ // Knight
+        [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(([a,b])=>addMove(r+a,c+b));
+    }else if(type===4){ // Bishop
+        [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([a,b])=>slide(a,b));
+    }else if(type===5){ // Queen
+        [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([a,b])=>slide(a,b));
+    }else if(type===6){ // King
+        [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]].forEach(([a,b])=>addMove(r+a,c+b));
+    }
+    return moves.filter(([tr,tc])=>tr>=0&&tr<8&&tc>=0&&tc<8);
+}
+
+function chessAiMoveSmart(){
+    // Get all black pieces and valid moves
+    const allMoves=[];
+    for(let r=0;r<8;r++){
+        for(let c=0;c<8;c++){
+            if(isBlack(chessBoard[r][c])){
+                const moves=getValidMoves(chessBoard,r,c);
+                moves.forEach(([tr,tc])=>allMoves.push({fr:r,fc:c,tr,tc,target:chessBoard[tr][tc]}));
+            }
+        }
+    }
+    if(!allMoves.length)return false;
+    // Prioritize: capture > check > random
+    const captures=allMoves.filter(m=>isWhite(m.target));
+    // Avoid moves that expose king
+    const safeMoves=allMoves.filter(m=>{
+        // Simulate move
+        const b2=chessBoard.map(row=>[...row]);
+        b2[m.tr][m.tc]=b2[m.fr][m.fc];b2[m.fr][m.fc]=0;
+        // Check if black king is safe after this move
+        const bk=b2.flat().indexOf(12);
+        if(bk===-1)return false;
+        return true;
+    });
+    const pool=captures.length>0?captures:(safeMoves.length>0?safeMoves:allMoves);
+    const m=pool[Math.floor(Math.random()*pool.length)];
+    chessBoard[m.tr][m.tc]=chessBoard[m.fr][m.fc];
+    chessBoard[m.fr][m.fc]=0;
+    // Pawn promotion
+    if(chessBoard[m.tr][m.tc]===7&&m.tr===7)chessBoard[m.tr][m.tc]=11; // black queen
+    return m;
+}
+
+function openChessGame(){
+    document.getElementById('chessBal').textContent=fmtPts(toPoints(userData.balance||0));
+    document.getElementById('chessSetup').style.display='block';
+    document.getElementById('chessGame').style.display='none';
+    document.getElementById('chessResult').style.display='none';
+    openModal('chess');
+}
+function selChessBet(a,el){
+    if(a>(userData.balance||0)){showToast('❌ Points kam!');return;}
+    chessBet=a;
+    document.querySelectorAll('#chessModal .bet-chip').forEach(c=>c.classList.remove('sel'));
+    el.classList.add('sel');
+}
+function selChessTime(t,el){
+    chessTimeLeft=t;chessAiTime=t;
+    const mults={60:2,30:4,15:8};chessMult=mults[t]||2;
+    document.querySelectorAll('#chessModal .runner-mode-btn').forEach(c=>c.classList.remove('sel'));
+    el.classList.add('sel');
+}
 
 async function startChess(){
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
-    if(userData.balance<chessBet){showToast('❌ Balance kam!');return;}
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
+    if((userData.balance||0)<chessBet){showToast('❌ Balance kam!');return;}
     const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'chess',bet:chessBet});
     if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
     userData.passes=Math.max(0,(userData.passes||1)-1);
-    userData.balance=Math.max(0,userData.balance-chessBet);
+    userData.balance=Math.max(0,(userData.balance||0)-chessBet);
     updateUI();
-
-    chessBoard=CHESS_INIT.map(row=>[...row]);
-    chessSelected=null;chessTurn_v='white';chessActive=true;chessMoveCount=0;chessPlayerElapsed=0;
-
+    chessBoard=CHESS_INIT_FEN.map(row=>[...row]);
+    chessSelected=null;chessTurnV='white';chessActive=true;chessMoveCount=0;
     document.getElementById('chessSetup').style.display='none';
     document.getElementById('chessGame').style.display='block';
     document.getElementById('chessResult').style.display='none';
-
     const canvas=document.getElementById('chessCanvas');
-    const W=canvas.parentElement.offsetWidth-16||320;
+    const W=Math.min(canvas.parentElement.offsetWidth-16,360)||320;
     canvas.width=W;canvas.height=W;
-
-    drawChess();
+    chessLastCanvas=canvas;
+    drawChessBoard();
     chessInterval=setInterval(()=>{
         if(!chessActive)return;
-        if(chessTurn_v==='white'){
-            chessPlayerElapsed++;
+        if(chessTurnV==='white'){
             chessTimeLeft--;
             document.getElementById('chessPlayerTimer').textContent=chessTimeLeft+'s';
             if(chessTimeLeft<=0){chessActive=false;clearInterval(chessInterval);finishChess('timeout');}
@@ -4514,118 +4854,136 @@ async function startChess(){
     },1000);
 }
 
-function drawChess(){
-    const canvas=document.getElementById('chessCanvas');
+function drawChessBoard(highlightMoves=[]){
+    const canvas=chessLastCanvas||document.getElementById('chessCanvas');
+    if(!canvas)return;
     const ctx=canvas.getContext('2d');
     const W=canvas.width,cs=W/8;
     for(let r=0;r<8;r++){
         for(let c=0;c<8;c++){
-            ctx.fillStyle=(r+c)%2===0?'#f0d9b5':'#b58863';
+            // Square color
+            const isLight=(r+c)%2===0;
+            ctx.fillStyle=isLight?'#f0d9b5':'#b58863';
             ctx.fillRect(c*cs,r*cs,cs,cs);
+            // Highlight selected
             if(chessSelected&&chessSelected.r===r&&chessSelected.c===c){
                 ctx.fillStyle='rgba(255,255,0,0.4)';ctx.fillRect(c*cs,r*cs,cs,cs);
             }
+            // Highlight valid moves
+            if(highlightMoves.some(([mr,mc])=>mr===r&&mc===c)){
+                ctx.fillStyle=chessBoard[r][c]?'rgba(255,0,0,0.3)':'rgba(0,255,0,0.25)';
+                ctx.fillRect(c*cs,r*cs,cs,cs);
+                if(!chessBoard[r][c]){
+                    ctx.fillStyle='rgba(0,200,0,0.4)';
+                    ctx.beginPath();ctx.arc(c*cs+cs/2,r*cs+cs/2,cs*0.2,0,Math.PI*2);ctx.fill();
+                }
+            }
+            // Draw piece
             const p=chessBoard[r][c];
-            if(p!==0){
-                ctx.font=(cs*0.72)+'px serif';ctx.textAlign='center';
-                ctx.fillStyle=CHESS_COLOR[p];
-                ctx.strokeStyle=p<=6?'#000':'#fff';ctx.lineWidth=0.5;
-                ctx.strokeText(CHESS_EMOJI[p],c*cs+cs/2,r*cs+cs*0.78);
-                ctx.fillText(CHESS_EMOJI[p],c*cs+cs/2,r*cs+cs*0.78);
+            if(p){
+                const sym=CHESS_SYMBOLS[p];
+                ctx.font=(cs*0.75)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+                // Shadow for visibility
+                ctx.fillStyle=isWhite(p)?'#1a1a1a':'#f5f5f5';
+                ctx.fillText(sym,c*cs+cs/2+1,r*cs+cs/2+1);
+                ctx.fillStyle=isWhite(p)?'#fff':'#1a1a1a';
+                ctx.fillText(sym,c*cs+cs/2,r*cs+cs/2);
             }
         }
     }
+    // File/rank labels
+    ctx.font=(cs*0.18)+'px sans-serif';ctx.textAlign='left';ctx.textBaseline='top';
+    'abcdefgh'.split('').forEach((l,i)=>{ctx.fillStyle=(i%2===0)?'#b58863':'#f0d9b5';ctx.fillText(l,i*cs+2,7*cs+cs*0.75);});
+    for(let i=0;i<8;i++){ctx.fillStyle=(i%2===0)?'#f0d9b5':'#b58863';ctx.fillText(8-i,1,i*cs+2);}
 }
 
 function chessClick(evt){
-    if(!chessActive||chessTurn_v!=='white')return;
-    const canvas=document.getElementById('chessCanvas');
+    if(!chessActive||chessTurnV!=='white')return;
+    const canvas=chessLastCanvas||document.getElementById('chessCanvas');
     const rect=canvas.getBoundingClientRect();
+    const scaleX=canvas.width/rect.width;
+    const scaleY=canvas.height/rect.height;
     const cs=canvas.width/8;
-    const c=Math.floor((evt.clientX-rect.left)*(canvas.width/rect.width)/cs);
-    const r=Math.floor((evt.clientY-rect.top)*(canvas.height/rect.height)/cs);
+    const c=Math.floor((evt.clientX-rect.left)*scaleX/cs);
+    const r=Math.floor((evt.clientY-rect.top)*scaleY/cs);
     if(r<0||r>7||c<0||c>7)return;
-
     const p=chessBoard[r][c];
     if(chessSelected){
-        const sp=chessBoard[chessSelected.r][chessSelected.c];
-        // Simple move validation: can't capture own pieces
-        if(p>0&&p<=6){chessSelected={r,c};drawChess();return;}
-        // Make move
-        chessBoard[r][c]=sp;chessBoard[chessSelected.r][chessSelected.c]=0;
-        chessMoveCount++;chessSelected=null;
-        drawChess();
-        // Check if black king captured (win!)
-        const bKing=chessBoard.flat().includes(12);
-        if(!bKing){chessActive=false;clearInterval(chessInterval);finishChess('checkmate');return;}
-        // AI move
-        chessTurn_v='black';
-        document.getElementById('chessTurn').textContent='🤖 AI Thinking...';
-        setTimeout(()=>{chessAiMove();chessTurn_v='white';document.getElementById('chessTurn').textContent='♟️ Your Turn';},600);
-        playSound('tap');
+        const validMoves=getValidMoves(chessBoard,chessSelected.r,chessSelected.c);
+        const isValid=validMoves.some(([mr,mc])=>mr===r&&mc===c);
+        if(isValid){
+            // Make move
+            chessBoard[r][c]=chessBoard[chessSelected.r][chessSelected.c];
+            chessBoard[chessSelected.r][chessSelected.c]=0;
+            // Pawn promotion
+            if(chessBoard[r][c]===1&&r===0)chessBoard[r][c]=5; // white queen
+            chessMoveCount++;chessSelected=null;
+            drawChessBoard();
+            // Check if black king gone = win
+            if(!chessBoard.flat().includes(12)){chessActive=false;clearInterval(chessInterval);finishChess('checkmate');return;}
+            // AI turn
+            chessTurnV='black';
+            document.getElementById('chessTurn').textContent='🤖 AI soch raha hai...';
+            setTimeout(()=>{
+                if(!chessActive)return;
+                chessAiMoveSmart();
+                chessMoveCount++;
+                drawChessBoard();
+                // Check if white king gone = lose
+                if(!chessBoard.flat().includes(6)){chessActive=false;clearInterval(chessInterval);finishChess('lost');return;}
+                chessTurnV='white';
+                document.getElementById('chessTurn').textContent='♟️ Aapki baari';
+                playSound('click');
+            },700);
+            playSound('tap');
+        }else if(isWhite(p)){
+            // Select new piece
+            chessSelected={r,c};
+            drawChessBoard(getValidMoves(chessBoard,r,c));
+            playSound('click');
+        }else{
+            chessSelected=null;drawChessBoard();
+        }
     }else{
-        if(p>0&&p<=6){chessSelected={r,c};drawChess();playSound('click');}
-    }
-}
-
-function chessAiMove(){
-    // Simple AI: find all black pieces, make a random legal move
-    const moves=[];
-    for(let r=0;r<8;r++){
-        for(let c=0;c<8;c++){
-            const p=chessBoard[r][c];
-            if(p>=7&&p<=12){
-                // Simple: move to adjacent empty or white piece
-                const dirs=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
-                for(const[dr,dc]of dirs){
-                    const nr=r+dr,nc=c+dc;
-                    if(nr>=0&&nr<8&&nc>=0&&nc<8){
-                        const tp=chessBoard[nr][nc];
-                        if(tp===0||(tp>=1&&tp<=6))moves.push({fr:r,fc:c,tr:nr,tc:nc,tp});
-                    }
-                }
-            }
+        if(isWhite(p)){
+            chessSelected={r,c};
+            drawChessBoard(getValidMoves(chessBoard,r,c));
+            playSound('click');
         }
     }
-    if(moves.length===0)return;
-    const m=moves[Math.floor(Math.random()*moves.length)];
-    chessBoard[m.tr][m.tc]=chessBoard[m.fr][m.fc];
-    chessBoard[m.fr][m.fc]=0;
-    drawChess();
-    // Check if white king captured (lose)
-    if(!chessBoard.flat().includes(6)){chessActive=false;clearInterval(chessInterval);finishChess('lost');}
 }
 
 async function finishChess(reason){
     clearInterval(chessInterval);chessActive=false;
-    let reward=0;
-    let title='',sub='',emoji='♟️';
+    const betPts=toPoints(chessBet);
+    let rewardPts=0,title='',emoji='♟️',sub='';
     if(reason==='checkmate'){
-        reward=parseFloat((chessBet*chessMult*1.5).toFixed(2));
-        title='CHECKMATE! 🏆';sub='AI ko haara diya!';emoji='🏆';
+        rewardPts=betPts*chessMult*2;
+        title='CHECKMATE! 🏆';emoji='🏆';sub='AI ko haraaya! Zabardast!';
     }else if(reason==='timeout'){
-        title='Time Out! ⏱️';sub='Zyada socha!';emoji='⏱️';
+        title='Time Out! ⏱️';emoji='⏱️';sub='Zyada soch liya!';
+        rewardPts=Math.floor(betPts*0.3);
     }else{
-        title='Haar Gaye!';sub='AI ne checkmate kar diya!';emoji='😔';
+        title='Haar Gaye!';emoji='😔';sub='AI ne checkmate kar diya!';
+        rewardPts=0;
     }
-    // Reward based on time left
-    if(reason!=='checkmate'&&chessTimeLeft>0&&chessMoveCount>0){
-        reward=parseFloat((chessBet*0.5*(chessTimeLeft/60)).toFixed(2));
-    }
-    if(reward>0){
+    const rewardRupees=fromPoints(rewardPts);
+    if(rewardRupees>0){
         await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'chess',bet:chessBet,survived_seconds:chessMoveCount});
-        userData.balance=(userData.balance||0)+reward;
-        userData.today_earned=(userData.today_earned||0)+reward;
-        gameState.today_game_earned=(gameState.today_game_earned||0)+reward;
+        userData.balance=(userData.balance||0)+rewardRupees;
+        userData.today_earned=(userData.today_earned||0)+rewardRupees;
+        gameState.today_game_earned=(gameState.today_game_earned||0)+rewardRupees;
         updateUI();
     }
     document.getElementById('chessGame').style.display='none';
     document.getElementById('chessResult').style.display='block';
     document.getElementById('chessResultEmoji').textContent=emoji;
     document.getElementById('chessResultTitle').textContent=title;
-    document.getElementById('chessResultSub').textContent=sub+' • '+chessMoveCount+' moves';
-    document.getElementById('chessResultReward').textContent='+₹'+reward.toFixed(2);
+    document.getElementById('chessResultSub').textContent=sub+' ('+chessMoveCount+' moves)';
+    document.getElementById('chessResultReward').textContent='+'+rewardPts+' pts';
     playSound(reason==='checkmate'?'jackpot':reason==='lost'?'lose':'earn');
+    if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
+    updateMissionsUI();
 }
 function resetChess(){document.getElementById('chessSetup').style.display='block';document.getElementById('chessGame').style.display='none';document.getElementById('chessResult').style.display='none';}
 function exitChess(){if(chessInterval)clearInterval(chessInterval);chessActive=false;closeModal('chess');}
