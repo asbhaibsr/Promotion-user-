@@ -585,6 +585,52 @@
         .support-reply-row{display:flex;gap:8px;margin-top:9px;}
         .support-reply-inp{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);font-size:12px;font-family:inherit;}
         .support-reply-btn{background:var(--gold);color:#000;border:none;border-radius:9px;padding:9px 14px;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;}
+        /* ═══ PREMIUM ANIMATIONS ═══════════════════════════════ */
+        @keyframes shine{0%{background-position:-200% center;}100%{background-position:200% center;}}
+        @keyframes shimmerBg{0%{opacity:.6;}50%{opacity:1;}100%{opacity:.6;}}
+        @keyframes glowPulse{0%,100%{box-shadow:0 0 8px rgba(240,192,64,.3);}50%{box-shadow:0 0 24px rgba(240,192,64,.7),0 0 48px rgba(240,192,64,.2);}}
+        @keyframes floatUp{0%{transform:translateY(0);opacity:1;}100%{transform:translateY(-30px);opacity:0;}}
+        @keyframes typing{from{width:0;}to{width:100%;}}
+        @keyframes blink{50%{border-color:transparent;}}
+        @keyframes gradientShift{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+        @keyframes scaleIn{from{transform:scale(0.8);opacity:0;}to{transform:scale(1);opacity:1;}}
+        @keyframes progressGlow{0%,100%{box-shadow:0 0 4px rgba(25,216,158,.3);}50%{box-shadow:0 0 12px rgba(25,216,158,.8);}}
+
+        /* Shining text effect */
+        .shine-text{background:linear-gradient(90deg,var(--gold) 0%,#fff 40%,var(--gold) 60%,#d97706 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shine 3s linear infinite;}
+
+        /* Shining button */
+        .btn-shine{position:relative;overflow:hidden;}
+        .btn-shine::after{content:'';position:absolute;top:-50%;left:-75%;width:50%;height:200%;background:linear-gradient(to right,rgba(255,255,255,0) 0%,rgba(255,255,255,0.3) 50%,rgba(255,255,255,0) 100%);transform:skewX(-25deg);animation:btnShine 2.5s infinite;}
+        @keyframes btnShine{0%{left:-75%;}100%{left:125%;}}
+
+        /* Glow border cards */
+        .glow-card{border:1.5px solid rgba(240,192,64,.3);animation:glowPulse 2.5s ease-in-out infinite;}
+
+        /* Progress bars — animated fill */
+        .progress-animated{position:relative;overflow:hidden;}
+        .progress-animated::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);animation:shine 1.5s linear infinite;}
+
+        /* Circular image borders */
+        .img-circle{border-radius:50%;border:2px solid rgba(240,192,64,.4);box-shadow:0 0 12px rgba(240,192,64,.2);}
+        .img-rounded-box{border-radius:16px;border:1.5px solid rgba(255,255,255,.1);box-shadow:0 4px 20px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.05);}
+        .game-img{border-radius:18px;box-shadow:0 4px 18px rgba(0,0,0,.5),0 0 0 2px rgba(255,255,255,.08);transition:transform .2s,box-shadow .2s;background:#111;}
+        .game-img:hover{transform:scale(1.05);box-shadow:0 6px 24px rgba(0,0,0,.6),0 0 0 2px rgba(240,192,64,.3),0 0 28px rgba(240,192,64,.2);}
+
+        /* Balance card — animated gradient */
+        .balance-card{background:linear-gradient(135deg,#0d0d2e,#1a0a3e,#0d1a3e,#0a1a0d);background-size:300% 300%;animation:gradientShift 6s ease infinite;}
+
+        /* Points display — big glow */
+        .pts-display{font-size:42px!important;background:linear-gradient(135deg,#FFD700,#FFF,#FFD700);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shine 2s linear infinite;}
+
+        /* Leaderboard rank badges */
+        .rank-1{background:linear-gradient(135deg,#FFD700,#FFA500)!important;color:#000!important;box-shadow:0 0 15px rgba(255,215,0,.5)!important;}
+        .rank-2{background:linear-gradient(135deg,#C0C0C0,#A8A8A8)!important;color:#000!important;}
+        .rank-3{background:linear-gradient(135deg,#CD7F32,#8B4513)!important;color:#fff!important;}
+
+        /* Floating points animation */
+        .float-pts{position:fixed;font-weight:900;font-size:18px;color:var(--gold);pointer-events:none;z-index:9999;animation:floatUp 1.2s ease-out forwards;}
+
     </style>
 </head>
 <body>
@@ -665,7 +711,7 @@
     <div class="page-inner">
         <div class="balance-card">
             <div class="balance-label" data-t="your_balance">🪙 Aapke Points</div>
-            <div class="balance-main" id="balAmt" style="font-size:32px;">0 pts</div>
+            <div class="balance-main pts-display" id="balAmt">0 pts</div>
             <div id="balRupees" style="font-size:11px;color:var(--text2);margin-top:-4px;font-weight:700;">= ₹0.00 withdrawal value</div>
             <div class="balance-sub">
                 <div class="bsub-item"><div class="bsub-label" data-t="today_earned">Aaj Kamaya</div><div class="bsub-val" id="todayEarned">0 pts</div></div>
@@ -679,7 +725,7 @@
                     <span id="wdProgressTxt">0/20 refs</span>
                 </div>
                 <div style="height:6px;background:var(--bg2);border-radius:6px;overflow:hidden;">
-                    <div id="wdProgressBar" style="height:100%;background:linear-gradient(90deg,#f0c040,#19d89e);border-radius:6px;width:0%;transition:width .5s;"></div>
+                    <div id="wdProgressBar" class="progress-animated" style="height:100%;background:linear-gradient(90deg,#f0c040,#19d89e);border-radius:6px;width:0%;transition:width .8s cubic-bezier(.4,0,.2,1);"></div>
                 </div>
                 <div id="wdProgressMsg" style="font-size:9px;color:var(--text3);margin-top:2px;text-align:right;"></div>
             </div>
@@ -707,7 +753,7 @@
                 <div class="passes-text"><div class="passes-count" id="passCount">0</div><div class="passes-lbl" data-t="game_passes">Game Passes</div></div>
             </div>
             <div style="display:flex;flex-direction:column;gap:5px;">
-                <button class="passes-earn-btn" onclick="openModal('earnPasses')" data-t="earn_passes">+ Earn Free</button>
+                <button class="passes-earn-btn btn-shine" onclick="openModal('earnPasses')" data-t="earn_passes">+ Earn Free</button>
                 <button style="background:linear-gradient(135deg,#f0c040,#d97706);color:#000;border:none;border-radius:20px;padding:6px 13px;font-weight:900;font-size:10px;cursor:pointer;white-space:nowrap;" onclick="openModal('buyPasses')">🛒 Buy Passes</button>
             </div>
         </div>
@@ -2063,7 +2109,7 @@ async function loadWithdrawalHistory(){
     const d=await apiGet(`/api/user/${userData.user_id}/withdrawals`);
     renderHistory(d||[]);
 }
-async function loadLeaderboard(){const d=await apiGet('/api/leaderboard');renderLeaderboard(d||[]);}
+async function loadLeaderboard(){const d=await apiGet('/api/leaderboard?mode='+lbMode);renderLeaderboard(d||[]);}
 async function loadRefActivity(){
     if(!userData.user_id)return;
     const d=await apiGet(`/api/user/${userData.user_id}/ref-activity`);
@@ -2295,7 +2341,7 @@ function updateMilestoneCard(){
                 <div class="milestone-name">${m.label}</div>
                 <div class="milestone-req">${m.refs} active refs chahiye</div>
             </div>
-            <div class="milestone-reward">+toPoints(${m.reward}) pts</div>
+            <div class="milestone-reward">+${toPoints(m.reward)} pts</div>
             ${btn}
         </div>`;
     }).join('');
@@ -3251,69 +3297,67 @@ function switchLB(mode){
 }
 function renderLeaderboard(data){
     const el=document.getElementById('lbContent');
-    if(!data||!data.length){el.innerHTML=`<div style="text-align:center;padding:26px;color:var(--text3);">No data yet</div>`;return;}
+    if(!data||!data.length){
+        el.innerHTML='<div style="text-align:center;padding:26px;color:var(--text3);">'+
+        '<div style="font-size:32px;margin-bottom:8px;">🏆</div>'+
+        '<div>'+( lbMode==='weekly'?'Is hafte abhi koi nahi!':'Is mahine abhi koi nahi!')+' Refer karo aur 1st bano!</div></div>';
+        return;
+    }
     const prizeMin=lbMode==='weekly'?50:200;
-    const prizes=lbMode==='weekly'?[150,65,30,10,10,10,10,10,10,10]:[300,200,200,30,30,30,30,30,30,30];
+    const prizes=lbMode==='weekly'?[150,65,30,10,10,10,10,10,10,10]:[300,200,100,30,30,30,30,30,30,30];
     const sorted=[...data].sort((a,b)=>(b.active_refs||0)-(a.active_refs||0));
+    const periodLabel=lbMode==='weekly'?'This Week':'This Month';
 
-    // Helper — show active + pending refs for each user
-    const refsLine=(u)=>{
-        const act=u.active_refs||0;
-        const pend=u.pending_refs||0;
-        return `<span style="color:var(--green);font-weight:700;">✅ ${act}</span>${pend>0?` <span style="color:var(--gold);">⏳ ${pend}</span>`:''}`;
-    };
-    const podiumRefsLine=(u)=>{
-        const act=u.active_refs||0;
-        const pend=u.pending_refs||0;
-        let s=`<div style="font-size:9px;color:var(--green);font-weight:700;">✅ ${act} active</div>`;
-        if(pend>0) s+=`<div style="font-size:9px;color:var(--gold);">⏳ ${pend} pending</div>`;
-        return s;
-    };
+    const refsLine=(u)=>`<span style="color:var(--green);font-weight:800;">✅ ${u.active_refs||0}</span><span style="font-size:9px;color:var(--text3);"> ${periodLabel}</span>`;
+    const podiumLine=(u)=>`<div style="font-size:10px;color:var(--green);font-weight:800;">✅ ${u.active_refs||0} refs<br><span style="color:var(--text3);font-size:9px;">${periodLabel}</span></div>`;
 
     let html='';
     if(sorted.length>=1){
-        html+=`<div class="lb-podium">`;
+        html+='<div class="lb-podium">';
         if(sorted.length>=2)html+=`<div class="podium-slot p2">
-            <div class="podium-dp" style="background:linear-gradient(135deg,${nameColor(sorted[1].name||'U')[0]},${nameColor(sorted[1].name||'U')[1]});color:#fff;">${(sorted[1].name||'U')[0].toUpperCase()}</div>
+            <div class="podium-dp" style="background:linear-gradient(135deg,${nameColor(sorted[1].name||'U')[0]},${nameColor(sorted[1].name||'U')[1]});color:#fff;font-size:22px;font-weight:900;">${(sorted[1].name||'U')[0].toUpperCase()}</div>
             <div class="podium-name">${sorted[1].name||'User'}</div>
-            ${podiumRefsLine(sorted[1])}
+            ${podiumLine(sorted[1])}
             <div class="podium-bar">🥈</div>
-            ${(sorted[1].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">${toPoints(prizes[1])} pts</div>`:''}
+            ${(sorted[1].active_refs||0)>=prizeMin?`<div style="font-size:10px;color:var(--gold);font-weight:800;margin-top:3px;">₹${prizes[1]} Prize</div>`:''}
         </div>`;
-        html+=`<div class="podium-slot p1">
-            <div class="podium-dp" style="background:linear-gradient(135deg,${nameColor(sorted[0].name||'U')[0]},${nameColor(sorted[0].name||'U')[1]});color:#fff;">${(sorted[0].name||'U')[0].toUpperCase()}</div>
-            <div class="podium-name">${sorted[0].name||'User'}</div>
-            ${podiumRefsLine(sorted[0])}
-            <div class="podium-bar"><img src="https://i.postimg.cc/7Zp6zfyg/1773974341500.png" style="width:44px;height:44px;object-fit:contain;"></div>
-            ${(sorted[0].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">${toPoints(prizes[0])} pts</div>`:''}
+        html+=`<div class="podium-slot p1" style="animation:glowPulse 2s infinite;">
+            <div class="podium-dp rank-1" style="font-size:26px;font-weight:900;">${(sorted[0].name||'U')[0].toUpperCase()}</div>
+            <div class="podium-name" style="color:var(--gold);">${sorted[0].name||'User'}</div>
+            ${podiumLine(sorted[0])}
+            <div class="podium-bar"><img src="https://i.postimg.cc/7Zp6zfyg/1773974341500.png" style="width:44px;height:44px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(240,192,64,.6));"></div>
+            ${(sorted[0].active_refs||0)>=prizeMin?`<div style="font-size:11px;color:var(--gold);font-weight:900;margin-top:3px;">🏆 ₹${prizes[0]} Prize!</div>`:''}
         </div>`;
         if(sorted.length>=3)html+=`<div class="podium-slot p3">
-            <div class="podium-dp" style="background:linear-gradient(135deg,${nameColor(sorted[2].name||'U')[0]},${nameColor(sorted[2].name||'U')[1]});color:#fff;">${(sorted[2].name||'U')[0].toUpperCase()}</div>
+            <div class="podium-dp" style="background:linear-gradient(135deg,${nameColor(sorted[2].name||'U')[0]},${nameColor(sorted[2].name||'U')[1]});color:#fff;font-size:20px;font-weight:900;">${(sorted[2].name||'U')[0].toUpperCase()}</div>
             <div class="podium-name">${sorted[2].name||'User'}</div>
-            ${podiumRefsLine(sorted[2])}
+            ${podiumLine(sorted[2])}
             <div class="podium-bar">🥉</div>
-            ${(sorted[2].active_refs||0)>=prizeMin?`<div style="font-size:9px;color:var(--gold);font-weight:800;">${toPoints(prizes[2])} pts</div>`:''}
+            ${(sorted[2].active_refs||0)>=prizeMin?`<div style="font-size:10px;color:var(--gold);font-weight:800;margin-top:3px;">₹${prizes[2]} Prize</div>`:''}
         </div>`;
-        html+=`</div>`;
+        html+='</div>';
     }
     if(sorted.length>3){
-        html+=`<div class="lb-list">`;
+        html+='<div class="lb-list">';
         sorted.slice(3).forEach((u,i)=>{
             const hasPrize=(u.active_refs||0)>=prizeMin;
+            const [c1,c2]=nameColor(u.name||'U');
             html+=`<div class="lb-item">
-                <div class="lb-rank">${i+4}</div>
-                <div class="live-dp" style="width:30px;height:30px;font-size:12px;background:linear-gradient(135deg,${nameColor(u.name||'U')[0]},${nameColor(u.name||'U')[1]});color:#fff;font-weight:900;flex-shrink:0;">${(u.name||'U')[0].toUpperCase()}</div>
+                <div class="lb-rank" style="${i<3?'background:var(--gold);color:#000;':''}">${i+4}</div>
+                <div class="live-dp" style="width:32px;height:32px;font-size:13px;border-radius:50%;background:linear-gradient(135deg,${c1},${c2});color:#fff;font-weight:900;flex-shrink:0;display:flex;align-items:center;justify-content:center;">${(u.name||'U')[0].toUpperCase()}</div>
                 <div class="lb-info">
                     <div class="lb-name">${u.name||'User'}</div>
-                    <div class="lb-refs">${refsLine(u)} refs</div>
+                    <div class="lb-refs">${refsLine(u)}</div>
                 </div>
-                ${hasPrize?`<div class="lb-prize">${toPoints(prizes[i+3]||0)} pts</div>`:`<div style="font-size:10px;color:var(--text3);">${prizeMin}+ needed</div>`}
+                ${hasPrize?`<div class="lb-prize">₹${prizes[i+3]||0}</div>`:`<div style="font-size:9px;color:var(--text3);">${prizeMin}+</div>`}
             </div>`;
         });
-        html+=`</div>`;
+        html+='</div>';
     }
     el.innerHTML=html;
 }
+
+
 function renderHistory(data){
     const el=document.getElementById('histContainer');
     if(!data||!data.length){el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--text3);">${lang==='en'?'No withdrawals yet':'Koi withdrawal nahi abhi'}</div>`;return;}
@@ -3416,7 +3460,7 @@ async function doSpin(){
         // ✅ FIX: Update balance + today_earned immediately
         userData.balance=(userData.balance||0)+spinActual;
         userData.today_earned=(userData.today_earned||0)+spinActual;
-        if(happyHoursActive)showToast('⚡ Happy Hours! +'+toPoints(spinActual)+' pts (2x!)');
+        if(happyHoursActive)showToast('⚡ Happy Hours! +'+toPoints(spinActual)+' pts (2x!)');showFloatingPts(toPoints(spinActual));
         gameState.today_game_earned=(gameState.today_game_earned||0)+spinActual;
         gameState.wins=(gameState.wins||0)+1;
         if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
@@ -3471,7 +3515,7 @@ async function makeGuess(num){
         gameState.wins=(gameState.wins||0)+1;
         gameState.today_game_earned=(gameState.today_game_earned||0)+guessReward;
         if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
-        playSound('earn');showToast('🎉 +'+toPoints(guessReward)+' pts!');
+        playSound('earn');showToast('🎉 +'+toPoints(guessReward)+' pts!');showFloatingPts(toPoints(guessReward));
         updateUI();updateMissionsUI();
         guessActive=false;
         setTimeout(startGuess,2000);
@@ -5094,6 +5138,17 @@ function playNoise(dur,vol=0.05,startDelay=0){
     g.gain.setValueAtTime(vol,t);
     g.gain.exponentialRampToValueAtTime(0.001,t+dur);
     src.start(t);src.stop(t+dur+0.05);
+}
+
+// Floating points animation
+function showFloatingPts(pts,x,y){
+    const el=document.createElement('div');
+    el.className='float-pts';
+    el.textContent='+'+pts+' pts';
+    el.style.left=(x||window.innerWidth/2-30)+'px';
+    el.style.top=(y||window.innerHeight*0.6)+'px';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),1200);
 }
 
 function playSound(type){
