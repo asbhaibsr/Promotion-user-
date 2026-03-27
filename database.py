@@ -1462,24 +1462,80 @@ class Database:
 
     # ========== LEADERBOARD ==========
 
-    def get_leaderboard(self, limit=20):
+    def get_leaderboard(self, limit=20, mode='weekly'):
+        """
+        Weekly = refs activated THIS week (Mon-Sun)
+        Monthly = refs activated THIS month
+        Both are fresh — no overlap with previous periods
+        """
         try:
-            users = self.users.find(
-                {'suspicious_activity': False},
-                {'user_id': 1, 'first_name': 1, 'active_refs': 1, 'pending_refs': 1, 'total_earned': 1, 'balance': 1, 'tier': 1}
-            ).sort('active_refs', -1).limit(limit)
+            now = datetime.now()
+
+            if mode == 'weekly':
+                # Monday of this week
+                days_since_monday = now.weekday()
+                week_start = (now - timedelta(days=days_since_monday)).replace(
+                    hour=0, minute=0, second=0, microsecond=0
+                ).isoformat()
+                date_filter = week_start
+                label = 'weekly'
+            else:
+                # First day of this month
+                month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
+                date_filter = month_start
+                label = 'monthly'
+
+            # Count refs activated in this period per user
+            pipeline = [
+                {'$match': {
+                    'is_active': True,
+                    'activation_date': {'$gte': date_filter}
+                }},
+                {'$group': {
+                    '_id': '$referrer_id',
+                    'period_refs': {'$sum': 1}
+                }},
+                {'$sort': {'period_refs': -1}},
+                {'$limit': limit}
+            ]
+
+            period_data = list(self.referrals.aggregate(pipeline))
+
             result = []
-            for i, user in enumerate(users):
+            for i, item in enumerate(period_data):
+                uid = item['_id']
+                user = self.get_user(uid)
+                if not user:
+                    continue
                 result.append({
                     'rank': i + 1,
                     'name': user.get('first_name', 'User')[:15],
-                    'active_refs': user.get('active_refs', 0),
+                    'active_refs': item['period_refs'],  # THIS period's refs
+                    'total_active': user.get('active_refs', 0),  # all-time
                     'pending_refs': user.get('pending_refs', 0),
                     'total_earned': user.get('total_earned', 0),
-                    'balance': user.get('balance', 0),
-                    'tier': user.get('tier', 1)
+                    'period': label
                 })
+
+            # If no period data yet, fall back to all-time active refs
+            if not result:
+                users = self.users.find(
+                    {'suspicious_activity': False},
+                    {'user_id': 1, 'first_name': 1, 'active_refs': 1, 'pending_refs': 1}
+                ).sort('active_refs', -1).limit(limit)
+                for i, user in enumerate(users):
+                    result.append({
+                        'rank': i + 1,
+                        'name': user.get('first_name', 'User')[:15],
+                        'active_refs': user.get('active_refs', 0),
+                        'total_active': user.get('active_refs', 0),
+                        'pending_refs': user.get('pending_refs', 0),
+                        'total_earned': user.get('total_earned', 0),
+                        'period': label
+                    })
+
             return result
+
         except Exception as e:
             logger.error(f"Leaderboard error: {e}")
             return []
