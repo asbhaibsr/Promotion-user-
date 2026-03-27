@@ -268,7 +268,8 @@ def leaderboard_api():
     try:
         if not db or not db.ensure_connection():
             return jsonify([])
-        leaderboard = db.get_leaderboard(20)
+        mode = request.args.get('mode', 'weekly')
+        leaderboard = db.get_leaderboard(20, mode=mode)
         return jsonify(leaderboard)
     except Exception as e:
         logger.error(f"Leaderboard error: {e}")
