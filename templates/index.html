@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
 ╔══════════════════════════════════════════════════════════╗
-║           EarnZone / FilmyFund Telegram Mini App         ║
+║           FilmyFund / FilmyFund Telegram Mini App         ║
 ║                                                          ║
 ║  Owner    : @asbhaibsr                                   ║
 ║  Channel  : @asbhai_bsr                                  ║
@@ -19,12 +19,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>💰 EarnZone - Play & Win</title>
+    <title>🎬 FilmyFund - Earn & Win</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Oxanium:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
 /*
- * EarnZone / FilmyFund — Telegram Mini App Styles
+ * FilmyFund / FilmyFund — Telegram Mini App Styles
  * Owner   : @asbhaibsr | Channel: @asbhai_bsr
  * Contact : https://t.me/asbhaibsr
  * © 2025 @asbhaibsr — Unauthorized use prohibited
@@ -631,7 +631,40 @@
         /* Floating points animation */
         .float-pts{position:fixed;font-weight:900;font-size:18px;color:var(--gold);pointer-events:none;z-index:9999;animation:floatUp 1.2s ease-out forwards;}
 
-    </style>
+    
+    /* ═══ SHINE ANIMATION ═══ */
+    @keyframes shine{0%{background-position:-200% center;}100%{background-position:200% center;}}
+    @keyframes glowPulse{0%,100%{box-shadow:0 0 8px rgba(240,192,64,.3);}50%{box-shadow:0 0 24px rgba(240,192,64,.7);}}
+    @keyframes confettiFall{0%{transform:translateY(-10px) rotate(0deg);opacity:1;}100%{transform:translateY(100vh) rotate(720deg);opacity:0;}}
+    @keyframes slideInLeft{from{transform:translateX(-16px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+    /* ═══ BUTTON SHINE ═══ */
+    .btn-shine{position:relative;overflow:hidden;}
+    .btn-shine::after{content:'';position:absolute;top:-50%;left:-75%;width:50%;height:200%;background:linear-gradient(to right,rgba(255,255,255,0),rgba(255,255,255,.3),rgba(255,255,255,0));transform:skewX(-25deg);animation:btnShine 2.5s infinite;}
+    @keyframes btnShine{0%{left:-75%;}100%{left:125%;}}
+
+    /* ═══ FLOAT POINTS ═══ */
+    .float-pts{position:fixed;font-weight:900;font-size:20px;color:var(--gold);pointer-events:none;z-index:9999;animation:floatUp 1.4s ease-out forwards;text-shadow:0 0 10px rgba(240,192,64,.8);}
+
+    /* ═══ MISSION IMPROVEMENTS ═══ */
+    .mission-item{transition:all .2s;}
+    .mission-item-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);animation:shine 2s linear infinite;}
+
+    /* ═══ GAME CARD IMPROVEMENTS ═══ */
+    .game-card:active{transform:scale(.96);}
+    .bet-chip{transition:all .15s;}
+    .bet-chip.sel{transform:scale(1.06)!important;box-shadow:0 0 14px rgba(240,192,64,.3)!important;}
+
+    /* ═══ PROGRESS BAR SHINE ═══ */
+    .mission-item-bar::before{content:'';display:none;}
+
+    /* ═══ NAV ACTIVE GLOW ═══ */
+    .nav-item.active .ni{filter:drop-shadow(0 0 4px currentColor);}
+
+    /* ═══ BALANCE CARD ═══ */
+    .balance-card{animation:gradientShift 6s ease infinite;}
+    @keyframes gradientShift{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+</style>
 </head>
 <body>
 
@@ -640,7 +673,7 @@
     <div class="onboard-card">
         <div class="onboard-header">
             <div style="font-size:36px;margin-bottom:6px;">💰</div>
-            <h2>EarnZone - Swagat Hai!</h2>
+            <h2>FilmyFund - Swagat Hai!</h2>
             <p>Pehle yeh zarur padho — samjho kaise use karna hai</p>
         </div>
         <div class="onboard-lang-row">
@@ -660,7 +693,7 @@
         <div class="onboard-header">
             <div style="font-size:32px;margin-bottom:4px;">💡</div>
             <h2>How to Earn</h2>
-            <p>EarnZone guide — Hindi / English</p>
+            <p>FilmyFund guide — Hindi / English</p>
         </div>
         <div class="onboard-lang-row">
             <div class="onboard-lang-btn active" id="he_hi" onclick="setHowEarnLang('hi')">🇮🇳 हिंदी</div>
@@ -679,7 +712,7 @@
 <!-- SIDEBAR -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <div class="sidebar" id="sidebar">
-    <div class="sidebar-header"><div class="sidebar-logo"><img src="https://i.postimg.cc/xT43NypN/IMG-20260320-075702-067.jpg" style="height:28px;border-radius:6px;vertical-align:middle;margin-right:7px;"> EarnZone</div></div>
+    <div class="sidebar-header"><div class="sidebar-logo"><img src="https://i.postimg.cc/xT43NypN/IMG-20260320-075702-067.jpg" style="height:28px;border-radius:6px;vertical-align:middle;margin-right:7px;"><span style="background:linear-gradient(90deg,#fbbf24,#fff,#fbbf24);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shine 3s linear infinite;">FilmyFund</span></div></div>
     <div class="sidebar-item" onclick="closeSidebar();openModal('settings')"><div class="si-icon">⚙️</div><span data-t="settings">Settings</span></div>
     <div class="sidebar-item" onclick="closeSidebar();openModal('support')"><div class="si-icon">📩</div><span data-t="help_support">Help & Support</span></div>
     <div class="sidebar-divider"></div>
@@ -702,7 +735,7 @@
 <!-- TOP BAR -->
 <div class="topbar">
     <div class="hamburger-btn" onclick="openSidebar()"><span></span><span></span><span></span></div>
-    <div class="topbar-logo"><img src="https://i.postimg.cc/xT43NypN/IMG-20260320-075702-067.jpg" style="height:32px;border-radius:8px;vertical-align:middle;margin-right:6px;"> EarnZone</div>
+    <div class="topbar-logo"><img src="https://i.postimg.cc/xT43NypN/IMG-20260320-075702-067.jpg" style="height:32px;border-radius:8px;vertical-align:middle;margin-right:6px;"><span style="background:linear-gradient(90deg,#fbbf24,#fff,#fbbf24);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shine 3s linear infinite;">FilmyFund</span></div>
     <div class="topbar-balance" id="topbarBalance">0 pts</div>
 </div>
 
@@ -1810,7 +1843,7 @@
 
 <script>
 // ═══════════════════════════════════════════════════════════
-// EarnZone Mini App — Owner: @asbhaibsr | Channel: @asbhai_bsr
+// FilmyFund Mini App — Owner: @asbhaibsr | Channel: @asbhai_bsr
 // Contact: https://t.me/asbhaibsr
 // ⚠️ Unauthorized modification will break this application.
 // © 2025 @asbhaibsr — All Rights Reserved
@@ -1832,7 +1865,7 @@ function fmtRupees(rupees){ return '₹'+parseFloat(rupees).toFixed(2); }
 (function(){
     const _own='@asbhaibsr'; // @asbhaibsr
     const _ch='@asbhai_bsr'; // @asbhai_bsr
-    const _sig=[_own,_ch,'EarnZone','FilmyFund'].join('|');
+    const _sig=[_own,_ch,'FilmyFund','FilmyFund'].join('|');
     // Store signature for runtime verification
     window.__ez_sig=btoa(_sig);
     // Verify on load — if tampered, break silently
@@ -1867,8 +1900,8 @@ function toggleLang(){setLang(lang==='hi'?'en':'hi');}
 // ONBOARDING CONTENT
 // ============================================================
 const ONBOARD_CONTENT={
-    hi:`<div class="onboard-section"><div class="onboard-section-title">💡 EarnZone Kya Hai?</div><div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">EarnZone ek <b>Telegram Mini App</b> hai jahan aap refer karke, daily bonus lekar aur games khelkar <b>asli paise kama sakte ho</b>.</div></div></div><div class="onboard-section"><div class="onboard-section-title">💰 Paise Kaise Kamayein?</div><div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Apna referral link share karo</b> — jab koi aapke link se join kare, movie group pe jakar movie search kare aur shortlink complete kare, to aapko <b>3 Passes + 60 pts</b> milega.</div></div><div class="onboard-item"><div class="onboard-item-icon">🔁</div><div class="onboard-item-text"><b>Daily ₹0.30 per active user</b> — jo user roz movie search kare aur shortlink complete kare, us har user se tumhe roz 30 pts milega!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — roz login karke bonus claim karo. Streak badhao to bonus amount bhi badhega!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — har din missions complete karo, alag-alag paise aur passes jeetenge.</div></div><div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — offers claim karo, paise aur passes pao.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Games Khelo</b> — Passes use karke Spin, Guess, Coin Flip ya Dice Roll khelke aur paise jeeto.</div></div></div><div class="onboard-section"><div class="onboard-section-title">📅 Daily Kya Karna Hai?</div><div class="onboard-item"><div class="onboard-item-icon">✅</div><div class="onboard-item-text"><b>Daily bonus claim karo</b> — streak mat totne do, warna ₹0.05 se shuru karna hoga.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily missions complete karo</b> — har mission alag claim karo.</div></div><div class="onboard-item"><div class="onboard-item-icon">📱</div><div class="onboard-item-text"><b>Apne referred users ko daily yaad dilao</b> — movie search karo aur shortlink puri karo → tumhe 30 pts milega.</div></div></div><div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div><div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Passes earn karo: refer karke (+3), daily bonus (+1), offers claim karke (+1).</div></div></div><div class="onboard-section"><div class="onboard-section-title">💸 Paise Withdraw Karna</div><div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Minimum <b>₹20</b> hone par UPI ya Bank Transfer se withdraw kar sakte ho. Zaruri: <b>Is mahine 20 active referrals</b> hone chahiye. Admin 24-48 ghante mein process karega.</div></div></div>`,
-    en:`<div class="onboard-section"><div class="onboard-section-title">💡 What is EarnZone?</div><div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">EarnZone is a <b>Telegram Mini App</b> where you can earn <b>real money</b> by referring friends, claiming daily bonuses, and playing games.</div></div></div><div class="onboard-section"><div class="onboard-section-title">💰 How to Earn Money?</div><div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Share your referral link</b> — when someone joins via your link, searches a movie & completes shortlink, you get <b>3 Passes + 60 pts</b>.</div></div><div class="onboard-item"><div class="onboard-item-icon">🔁</div><div class="onboard-item-text"><b>Daily ₹0.30 per active user</b> — for each referred user who completes shortlink daily, you earn ₹0.30!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — claim bonus every day. Maintain streak to increase bonus!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — complete missions, claim each one separately.</div></div><div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — claim offers to earn money and passes.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Play Games</b> — use Passes to play Spin, Guess, Coin Flip or Dice Roll!</div></div></div><div class="onboard-section"><div class="onboard-section-title">📅 Daily Tasks</div><div class="onboard-item"><div class="onboard-item-icon">✅</div><div class="onboard-item-text"><b>Claim daily bonus</b> — don't break streak or restart from ₹0.05.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Complete daily missions</b> — claim each mission separately.</div></div><div class="onboard-item"><div class="onboard-item-icon">📱</div><div class="onboard-item-text"><b>Remind referred users daily</b> — search movie → you get ₹0.30.</div></div></div><div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div><div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Earn passes: refer (+3), daily bonus (+1), offers (+1).</div></div></div><div class="onboard-section"><div class="onboard-section-title">💸 Withdrawals</div><div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Minimum <b>₹20</b>. Required: <b>20 active referrals this month</b>. Admin processes in 24-48 hrs.</div></div></div>`
+    hi:`<div class="onboard-section"><div class="onboard-section-title">💡 FilmyFund Kya Hai?</div><div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">FilmyFund ek <b>Telegram Mini App</b> hai jahan aap refer karke, daily bonus lekar aur games khelkar <b>asli paise kama sakte ho</b>.</div></div></div><div class="onboard-section"><div class="onboard-section-title">💰 Paise Kaise Kamayein?</div><div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Apna referral link share karo</b> — jab koi aapke link se join kare, movie group pe jakar movie search kare aur shortlink complete kare, to aapko <b>3 Passes + 60 pts</b> milega.</div></div><div class="onboard-item"><div class="onboard-item-icon">🔁</div><div class="onboard-item-text"><b>Daily ₹0.30 per active user</b> — jo user roz movie search kare aur shortlink complete kare, us har user se tumhe roz 30 pts milega!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — roz login karke bonus claim karo. Streak badhao to bonus amount bhi badhega!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — har din missions complete karo, alag-alag paise aur passes jeetenge.</div></div><div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — offers claim karo, paise aur passes pao.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Games Khelo</b> — Passes use karke Spin, Guess, Coin Flip ya Dice Roll khelke aur paise jeeto.</div></div></div><div class="onboard-section"><div class="onboard-section-title">📅 Daily Kya Karna Hai?</div><div class="onboard-item"><div class="onboard-item-icon">✅</div><div class="onboard-item-text"><b>Daily bonus claim karo</b> — streak mat totne do, warna ₹0.05 se shuru karna hoga.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily missions complete karo</b> — har mission alag claim karo.</div></div><div class="onboard-item"><div class="onboard-item-icon">📱</div><div class="onboard-item-text"><b>Apne referred users ko daily yaad dilao</b> — movie search karo aur shortlink puri karo → tumhe 30 pts milega.</div></div></div><div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div><div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Passes earn karo: refer karke (+3), daily bonus (+1), offers claim karke (+1).</div></div></div><div class="onboard-section"><div class="onboard-section-title">💸 Paise Withdraw Karna</div><div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Minimum <b>₹20</b> hone par UPI ya Bank Transfer se withdraw kar sakte ho. Zaruri: <b>Is mahine 20 active referrals</b> hone chahiye. Admin 24-48 ghante mein process karega.</div></div></div>`,
+    en:`<div class="onboard-section"><div class="onboard-section-title">💡 What is FilmyFund?</div><div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">FilmyFund is a <b>Telegram Mini App</b> where you can earn <b>real money</b> by referring friends, claiming daily bonuses, and playing games.</div></div></div><div class="onboard-section"><div class="onboard-section-title">💰 How to Earn Money?</div><div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Share your referral link</b> — when someone joins via your link, searches a movie & completes shortlink, you get <b>3 Passes + 60 pts</b>.</div></div><div class="onboard-item"><div class="onboard-item-icon">🔁</div><div class="onboard-item-text"><b>Daily ₹0.30 per active user</b> — for each referred user who completes shortlink daily, you earn ₹0.30!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — claim bonus every day. Maintain streak to increase bonus!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — complete missions, claim each one separately.</div></div><div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — claim offers to earn money and passes.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Play Games</b> — use Passes to play Spin, Guess, Coin Flip or Dice Roll!</div></div></div><div class="onboard-section"><div class="onboard-section-title">📅 Daily Tasks</div><div class="onboard-item"><div class="onboard-item-icon">✅</div><div class="onboard-item-text"><b>Claim daily bonus</b> — don't break streak or restart from ₹0.05.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Complete daily missions</b> — claim each mission separately.</div></div><div class="onboard-item"><div class="onboard-item-icon">📱</div><div class="onboard-item-text"><b>Remind referred users daily</b> — search movie → you get ₹0.30.</div></div></div><div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div><div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Earn passes: refer (+3), daily bonus (+1), offers (+1).</div></div></div><div class="onboard-section"><div class="onboard-section-title">💸 Withdrawals</div><div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Minimum <b>₹20</b>. Required: <b>20 active referrals this month</b>. Admin processes in 24-48 hrs.</div></div></div>`
 };
 
 let obLang='hi';
@@ -2383,11 +2416,11 @@ const BADGES=[
      reward_txt:'20 Passes + 1000 pts milega!',
      img:'https://i.postimg.cc/MpKxzNvf/fbfcb89d-2e8f-4d33-93f7-40073ca1e608.jpg'},
     {name:'👑 Champion',   req:500,  passes:50, coins:0,    balance:50.0,
-     desc:'500 refs! Tum EarnZone ke champion ho!',
+     desc:'500 refs! Tum FilmyFund ke champion ho!',
      reward_txt:'50 Passes + 5000 pts milega!',
      img:'https://i.postimg.cc/wTzgG7zX/e820347b-40d8-412d-95cc-0c7ca35c4cb9.jpg'},
     {name:'🔥 Legend',     req:1000, passes:100,coins:0,    balance:100.0,
-     desc:'1000 refs! Tera naam EarnZone history mein darz!',
+     desc:'1000 refs! Tera naam FilmyFund history mein darz!',
      reward_txt:'100 Passes + 10K pts milega!',
      img:'https://i.postimg.cc/VsnzgX3x/4c0d9789-6fd6-40f8-a9df-e8e840dce66b.jpg'},
     {name:'⚡ Master',     req:1500, passes:150,coins:0,    balance:200.0,
@@ -2403,7 +2436,7 @@ const BADGES=[
      reward_txt:'500 Passes + 1L pts milega!',
      img:'https://i.postimg.cc/XYQjF3Ty/46ab69f4-1be9-4a0c-8ee6-68af4835b755.jpg'},
     {name:'✨ God Tier',   req:10000,passes:1000,coins:0,   balance:5000.0,
-     desc:'10000 refs! GOD TIER — Tum EarnZone ke bhagwan ho!',
+     desc:'10000 refs! GOD TIER — Tum FilmyFund ke bhagwan ho!',
      reward_txt:'1000 Passes + 5L pts milega!',
      img:'https://i.postimg.cc/66vpPkv6/c00ea6a7-6f2e-4726-b6b7-4167f8497c42.jpg'},
 ];
@@ -2782,7 +2815,7 @@ function renderLiveActivity(acts){
         let icon='⚡';
         if(a.type==='referral'){icon='👥';const rn=a.referred_name||'someone';desc='👥 '+rn+' ko refer kiya! +'+toPoints(a.amount||0)+' pts +3 Passes';}
         else if(a.type==='daily_search'&&a.referred_name){icon='🎬';desc='🎬 '+a.referred_name+' ne movie search ki → +'+toPoints(a.amount||0)+' pts';}
-        else if(a.type==='join'){icon='🎉';desc='🎉 EarnZone join kiya';}
+        else if(a.type==='join'){icon='🎉';desc='🎉 FilmyFund join kiya';}
         else if(a.type==='bonus'){icon='🎁';}
         else if(a.type==='mission'){icon='🎯';}
         else if(a.type==='runner'){icon='🏃';}
@@ -3123,7 +3156,7 @@ async function claimSingleMission(missionId,reward){
             userData.today_earned=(userData.today_earned||0)+mReward;
             updateUI();
             playSound('mission');
-            showToast('🎯 Mission! +'+toPoints(mReward)+' pts mila!');
+            showToast('🎯 Mission! +'+toPoints(mReward)+' pts!');showFloatingPts(toPoints(mReward));triggerConfetti();
         }else if(r?.message==='Already claimed'){
             // Backend also says claimed — keep our local claimed=true, dont revert
             // silently accept
@@ -3279,10 +3312,10 @@ async function replySupport(msgId,userId){
 function copyRef(){navigator.clipboard.writeText(getRefLink()).then(()=>showToast('✅ Link copied!'));playSound('tap');}
 function shareOn(platform){
     const link=getRefLink();
-    const text=lang==='hi'?`EarnZone se paise kamao! 💰\nMere referral link se join karo:\n${link}`:`Earn money with EarnZone! 💰\nJoin using my referral link:\n${link}`;
-    if(platform==='telegram'){window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('EarnZone se paise kamao!')}`, '_blank');}
+    const text=lang==='hi'?`FilmyFund se paise kamao! 💰\nMere referral link se join karo:\n${link}`:`Earn money with FilmyFund! 💰\nJoin using my referral link:\n${link}`;
+    if(platform==='telegram'){window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('FilmyFund se paise kamao!')}`, '_blank');}
     else if(platform==='whatsapp'){window.open(`https://wa.me/?text=${encodeURIComponent(text)}`,'_blank');}
-    else{if(navigator.share){navigator.share({title:'EarnZone',text,url:link}).catch(()=>{navigator.clipboard.writeText(link);showToast('✅ Link copied!');});}else{navigator.clipboard.writeText(link);showToast('✅ Link copied!');}}
+    else{if(navigator.share){navigator.share({title:'FilmyFund',text,url:link}).catch(()=>{navigator.clipboard.writeText(link);showToast('✅ Link copied!');});}else{navigator.clipboard.writeText(link);showToast('✅ Link copied!');}}
     playSound('tap');
 }
 
@@ -5141,6 +5174,20 @@ function playNoise(dur,vol=0.05,startDelay=0){
 }
 
 // Floating points animation
+function triggerConfetti(){
+    const colors=['#FFD700','#FF6B6B','#4ECDC4','#7C5CFC','#19d89e','#ff9f43'];
+    for(let i=0;i<20;i++){
+        const el=document.createElement('div');
+        el.style.cssText='position:fixed;width:8px;height:8px;border-radius:50%;pointer-events:none;z-index:9999;';
+        el.style.background=colors[i%colors.length];
+        el.style.left=Math.random()*100+'vw';
+        el.style.top='-10px';
+        el.style.animation='confettiFall '+(1+Math.random()*1.5)+'s ease-in forwards';
+        el.style.animationDelay=Math.random()*0.4+'s';
+        document.body.appendChild(el);
+        setTimeout(()=>el.remove(),2500);
+    }
+}
 function showFloatingPts(pts,x,y){
     const el=document.createElement('div');
     el.className='float-pts';
@@ -5296,4 +5343,4 @@ document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
 </html>
-<!-- EarnZone © 2025 | Owner: @asbhaibsr | Channel: @asbhai_bsr | t.me/asbhaibsr -->
+<!-- FilmyFund © 2025 | Owner: @asbhaibsr | Channel: @asbhai_bsr | t.me/asbhaibsr -->
