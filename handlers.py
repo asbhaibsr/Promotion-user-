@@ -289,19 +289,22 @@ class Handlers:
 
     async def handle_log_channel_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """
-        Log channel se 2 tarah ke messages detect karo:
+        Log channel se messages detect karo.
 
-        FORMAT 1 — Shortlink Verified (daily search / activation):
-            ✅ Shortlink Verified
-            👤 Name (userid)
-            🔗 softurl.in
-            🔢 #1
-            🕐 25 Mar 17:30 IST
-
-        FORMAT 2 — NewUser (purana format, backup):
+        FORMAT 1 — #NewUser (new user joined via referral):
             #NewUser
-            ID - 123456789
-            Name - username
+            ID - 8098997823
+            Nᴀᴍᴇ - Sandip
+
+        FORMAT 2 — #Verifyshortlink (user completed shortlink):
+            #Verifyshortlink
+            ID - 8098997823
+            Nᴀᴍᴇ - Sandip
+
+        FORMAT 3 — ✅ Shortlink Verified (alternate format):
+            ✅ Shortlink Verified
+            👤 Sandip (8098997823)
+            🔗 softurl.in
         """
         try:
             message = update.channel_post or update.message
@@ -309,54 +312,190 @@ class Handlers:
                 return
 
             chat_id = message.chat.id
-            if chat_id != LOG_CHANNEL_ID:
+            if str(chat_id) != str(LOG_CHANNEL_ID):
+                logger.debug(f"Ignoring chat {chat_id} (expected {LOG_CHANNEL_ID})")
                 return
 
-            text = message.text or ""
+            text = (message.text or message.caption or "").strip()
             if not text:
                 return
 
-            # ── FORMAT 1: Shortlink Verified ─────────────────────
-            if '✅ Shortlink Verified' in text or 'Shortlink Verified' in text:
-                await self._handle_shortlink_verified(text, context)
-                return
+            logger.info(f"📨 Log channel msg: {text[:80]}")
 
-            # ── FORMAT 2: #NewUser (backup/old format) ────────────
-            if '#NewUser' in text:
-                await self._handle_new_user_log(text, context)
-                return
+            # Detect message type
+            has_newuser      = '#NewUser' in text or 'NewUser' in text
+            has_verifyshort  = '#Verifyshortlink' in text or 'Verifyshortlink' in text or '#Verify' in text
+            has_shortlink_v  = 'Shortlink Verified' in text or '✅ Shortlink' in text
+
+            if has_newuser or has_verifyshort or has_shortlink_v:
+                user_id, name = self._parse_id_and_name(text)
+                if not user_id:
+                    logger.warning(f"Could not parse user_id from: {text[:100]}")
+                    return
+
+                logger.info(f"✅ Parsed: user_id={user_id} name={name} type={'NewUser' if has_newuser else 'Verify'}")
+
+                # Both types: try activate referral first, then record daily search
+                await self._process_log_event(user_id, name, has_newuser, context)
+            else:
+                logger.debug(f"Unrecognized log message: {text[:60]}")
 
         except Exception as e:
-            logger.error(f"Log channel handler error: {e}")
+            logger.error(f"Log channel handler error: {e}", exc_info=True)
 
-    def _parse_user_id_from_shortlink(self, text):
+    def _parse_id_and_name(self, text):
         """
-        Parse user_id from Shortlink Verified message.
-        Formats:
-          👤 Aditya (5705625663)
-          👤 Aditya(5705625663)
-          User: Aditya (5705625663)
+        Parse user_id and name from log channel message.
+        Handles formats:
+          ID - 8098997823 / Nᴀᴍᴇ - Sandip
+          👤 Sandip (8098997823)
+        Returns (user_id, name) or (None, None)
         """
         import re
-        lines = text.split('\n')
+        user_id = None
+        name = "User"
+        lines = [l.strip() for l in text.split('\n')]
+
         for line in lines:
-            line = line.strip()
-            # Match (digits) anywhere in line — that's the user ID
-            if '👤' in line or line.lower().startswith('user'):
-                matches = re.findall(r'\((\d{5,12})\)', line)
-                if matches:
-                    try:
-                        return int(matches[-1])  # last match = user ID
-                    except:
-                        pass
-            # Also try: just a long number in parentheses anywhere
-            matches = re.findall(r'\((\d{7,12})\)', line)
-            if matches:
+            # Format: ID - 1234567890 or ID: 1234567890
+            if re.match(r'^ID\s*[-:]\s*\d', line, re.IGNORECASE):
+                m = re.search(r'(\d{6,12})', line)
+                if m:
+                    try: user_id = int(m.group(1))
+                    except: pass
+
+            # Name line: Nᴀᴍᴇ - Sandip or Name - Sandip
+            if re.match(r'^N[^\s]*\s*[-:]\s*', line, re.IGNORECASE) and 'ID' not in line.upper():
+                parts = re.split(r'[-:]', line, 1)
+                if len(parts) == 2:
+                    name = parts[1].strip() or "User"
+
+            # Format: 👤 Name (1234567890)
+            if '👤' in line:
+                m = re.search(r'\((\d{6,12})\)', line)
+                if m:
+                    try: user_id = int(m.group(1))
+                    except: pass
+                name_part = line.replace('👤','').strip()
+                name_part = re.sub(r'\(\d+\)', '', name_part).strip()
+                if name_part: name = name_part
+
+        # Fallback: any 7-12 digit number
+        if not user_id:
+            nums = re.findall(r'\b(\d{7,12})\b', text)
+            if nums:
+                try: user_id = int(nums[0])
+                except: pass
+
+        return user_id, name
+
+    async def _process_log_event(self, user_id, name, is_new_user, context):
+        """Handle both NewUser and Verifyshortlink events"""
+        # 1. Get or check user in DB
+        user = self.db.get_user(user_id)
+        if not user:
+            logger.warning(f"User {user_id} not in DB yet — may join bot later")
+            return
+
+        # 2. Try to activate referral (works for both first-time and subsequent)
+        ref_result = self.db.activate_referral_by_log_channel(user_id)
+
+        if ref_result and ref_result.get('activated'):
+            # First time activation!
+            referrer_id   = ref_result.get('referrer_id')
+            referrer_name = ref_result.get('referrer_name', 'Unknown')
+
+            logger.info(f"✅ Referral activated: {user_id} ({name}) → {referrer_id}")
+
+            # Notify referrer
+            if referrer_id:
                 try:
-                    return int(matches[0])
-                except:
-                    pass
-        return None
+                    await context.bot.send_message(
+                        chat_id=referrer_id,
+                        text=(
+                            f"🎉 **Referral Active Ho Gaya!**\n\n"
+                            f"👤 **User:** {name}\n"
+                            f"✅ Verification complete!\n\n"
+                            f"🎟️ **+3 Passes** aur **₹{self.config.REFERRAL_BONUS}** add ho gaya!\n\n"
+                            f"💡 Ab jab bhi ye user movie search karega,\n"
+                            f"aapko **₹{self.config.DAILY_REFERRAL_EARNING} daily** milega!"
+                        ),
+                        parse_mode=ParseMode.MARKDOWN
+                    )
+                except Exception as e:
+                    logger.error(f"Could not notify referrer {referrer_id}: {e}")
+
+            # Notify new user
+            try:
+                await context.bot.send_message(
+                    chat_id=user_id,
+                    text=(
+                        f"✅ **Aap Verify Ho Gaye!**\n\n"
+                        f"Shortlink complete ho gayi!\n"
+                        f"Aapke referrer **{referrer_name}** ko bonus mil gaya.\n\n"
+                        f"📱 Mini App kholo aur daily earning shuru karo!"
+                    ),
+                    parse_mode=ParseMode.MARKDOWN
+                )
+            except Exception as e:
+                logger.error(f"Could not notify user {user_id}: {e}")
+
+        else:
+            # Already active — record daily search
+            reason = ref_result.get('reason', '') if ref_result else 'no_result'
+            logger.info(f"Referral already active for {user_id} ({reason}) — recording daily search")
+
+            search_result = self.db.record_daily_search(user_id)
+            if search_result.get('success'):
+                referrer_id = search_result.get('referrer_id')
+                earning     = search_result.get('earning', self.config.DAILY_REFERRAL_EARNING)
+                logger.info(f"✅ Daily search: user={user_id} referrer={referrer_id} +₹{earning}")
+
+                if referrer_id:
+                    try:
+                        await context.bot.send_message(
+                            chat_id=referrer_id,
+                            text=(
+                                f"💰 **Daily Earning!**\n\n"
+                                f"👤 {name} ne aaj movie search ki!\n"
+                                f"✅ +₹{earning} aapke account mein add ho gaya!"
+                            ),
+                            parse_mode=ParseMode.MARKDOWN
+                        )
+                    except Exception as e:
+                        logger.error(f"Could not notify referrer {referrer_id}: {e}")
+
+            elif search_result.get('reason') == 'already_credited_today':
+                logger.info(f"Already credited today for {user_id}")
+            else:
+                logger.info(f"No active referral for {user_id}: {search_result.get('reason','')}")
+
+    def _parse_shortlink_url(self, text):
+        """Parse shortlink URL from message"""
+        import re
+        for line in text.split('\n'):
+            if '🔗' in line or 'softurl' in line.lower():
+                m = re.search(r'[\w\-\.]+\.(?:in|com|net|link|io)\S*', line)
+                if m: return m.group(0)
+                parts = line.replace('🔗','').strip()
+                if parts: return parts
+        return 'shortlink'
+
+    async def _handle_shortlink_verified(self, text, context):
+        """Handle ✅ Shortlink Verified format (alternate)"""
+        user_id, name = self._parse_id_and_name(text)
+        if not user_id:
+            logger.warning(f"Shortlink Verified: could not parse user_id from: {text[:100]}")
+            return
+        await self._process_log_event(user_id, name, False, context)
+
+    async def _handle_new_user_log(self, text, context):
+        """Handle #NewUser format"""
+        user_id, name = self._parse_id_and_name(text)
+        if not user_id:
+            logger.warning(f"#NewUser: could not parse from: {text[:100]}")
+            return
+        await self._process_log_event(user_id, name, True, context)
 
     def _parse_shortlink_url(self, text):
         """Parse shortlink URL from message"""
