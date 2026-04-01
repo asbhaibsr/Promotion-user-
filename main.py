@@ -1035,9 +1035,36 @@ def stats_api():
     if db and db.connected:
         try:
             stats.update(db.get_system_stats())
+            # Add admin panel stats
+            stats['total_users'] = db.users.count_documents({})
+            stats['pending_withdrawals'] = db.withdrawals.count_documents({'status': 'pending'})
+            stats['pending_support'] = db.issues.count_documents({'status': 'pending'}) if hasattr(db, 'issues') else 0
         except:
             pass
     return jsonify(stats)
+
+# In-memory announcement (persists while server is running)
+_announcement = {'text': '', 'ts': 0}
+
+@app.route('/api/set-announcement', methods=['POST'])
+def set_announcement_api():
+    global _announcement
+    try:
+        data = request.get_json()
+        admin_id = data.get('admin_id')
+        if not admin_id or not config.is_admin(admin_id):
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+        text = data.get('text', '').strip()
+        _announcement = {'text': text, 'ts': datetime.now().timestamp()}
+        logger.info(f"Announcement set by admin {admin_id}: {text[:50]}")
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/get-announcement')
+def get_announcement_api():
+    global _announcement
+    return jsonify(_announcement)
 
 @app.route('/health')
 def health():
@@ -1167,8 +1194,15 @@ def run_bot():
         bot_app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handlers.handle_webapp_data))
 
         # ===== LOG CHANNEL HANDLER =====
+        # Channel posts aate hain — TEXT filter + UpdateType.CHANNEL_POST dono chahiye
+        from telegram.ext import filters as tg_filters
         bot_app.add_handler(MessageHandler(
-            filters.Chat(LOG_CHANNEL_ID) & filters.TEXT,
+            tg_filters.Chat(LOG_CHANNEL_ID) & tg_filters.TEXT,
+            handlers.handle_log_channel_message
+        ))
+        # Also handle channel_post explicitly (for channel messages)
+        bot_app.add_handler(MessageHandler(
+            tg_filters.Chat(LOG_CHANNEL_ID) & tg_filters.UpdateType.CHANNEL_POSTS & tg_filters.TEXT,
             handlers.handle_log_channel_message
         ))
 
