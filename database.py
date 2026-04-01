@@ -1123,7 +1123,6 @@ class Database:
             completed = doc.get('completed', False) if doc else False
             progress  = doc.get('progress', 0)      if doc else 0
 
-            # Cross-check with live data for key missions
             if not completed or progress < mdef['total']:
                 user = self.get_user(user_id)
                 if mission_id == 'm_refer5' and user:
@@ -1135,34 +1134,39 @@ class Database:
                     progress    = 1 if bonus_today else 0
                 elif mission_id == 'm_game':
                     state     = self.game_states.find_one({'user_id': user_id, 'date': today})
-                    progress  = state.get('wins', 0) if state else 0
+                    plays     = (state.get('wins', 0) if state else 0) + (state.get('plays', 0) if state else 0)
+                    progress  = min(plays, mdef['total'])
                     completed = progress >= mdef['total']
+                elif mission_id == 'm_self_search':
+                    completed = bool(user and user.get('last_self_search', '')[:10] == today)
+                    progress  = 1 if completed else 0
+                elif mission_id == 'm_streak3' and user:
+                    streak    = user.get('daily_streak', 0)
+                    progress  = min(streak, mdef['total'])
+                    completed = streak >= mdef['total']
+                elif mission_id == 'm_game5win' and user:
+                    wins      = user.get('games_won', 0)
+                    progress  = min(wins, mdef['total'])
+                    completed = wins >= mdef['total']
                 elif mission_id == 'm_withdraw':
-                    wd = self.withdrawals.find_one({
-                        'user_id': user_id, 'request_date': {'$gte': today}
-                    })
-                    completed = bool(wd);  progress = 1 if wd else 0
+                    wd        = self.withdrawals.find_one({'user_id': user_id, 'request_date': {'$gte': today}})
+                    completed = bool(wd); progress = 1 if wd else 0
                 elif mission_id == 'm_passes':
-                    cl = self.daily_claims.find_one({
-                        'user_id': user_id, 'claimed_at': {'$gte': today}
-                    })
-                    completed = bool(cl);  progress = 1 if cl else 0
-                # m_search5 / m_shortlink — rely on stored doc progress only
+                    cl        = self.daily_claims.find_one({'user_id': user_id, 'claimed_at': {'$gte': today}})
+                    completed = bool(cl); progress = 1 if cl else 0
                 else:
                     completed = progress >= mdef['total']
 
             if not completed:
-                return {'success': False, 'message': 'Mission abhi puri nahi hui'}
+                return {'success': False, 'message': 'Mission abhi puri nahi hui — pehle complete karo!'}
 
-            # ── STEP 3: ATOMIC claim — findAndModify pattern ───────────
-            # Only set claimed=True if it is NOT already claimed.
-            # This is the single source-of-truth write.
-            result = self.missions.find_one_and_update(
+            # ── STEP 3: Safe upsert using update_one (no unique conflict) ─
+            update_result = self.missions.update_one(
                 {
                     'user_id':    user_id,
                     'date':       today,
                     'mission_id': mission_id,
-                    'claimed':    {'$ne': True}   # ← guard: skip if already claimed
+                    'claimed':    {'$ne': True}  # only update if NOT already claimed
                 },
                 {
                     '$set': {
@@ -1170,31 +1174,32 @@ class Database:
                         'completed':    True,
                         'progress':     progress,
                         'reward_given': float(reward),
-                        'claimed_date': today   # frontend checks this
+                        'claimed_date': today,
+                        'user_id':      user_id,
+                        'date':         today,
+                        'mission_id':   mission_id,
                     }
                 },
-                upsert=True,
-                return_document=False  # return old doc (None if upserted)
+                upsert=True
             )
-            # If result is not None it means we matched an EXISTING unclaimed doc — fine.
-            # If result is None it means either upserted (new) or doc didn't exist — also fine.
-            # Either way we proceed to credit. But we must guard against the case where
-            # find_one_and_update matched nothing because 'claimed' was already True
-            # (that would raise DuplicateKeyError on upsert, caught below).
 
-            # ── STEP 4: Credit balance AFTER atomic write succeeds ─────
+            # If matched_count==0 and upserted_id==None → already claimed by race condition
+            if update_result.matched_count == 0 and update_result.upserted_id is None:
+                return {'success': False, 'message': 'Already claimed'}
+
+            # ── STEP 4: Credit balance ────────────────────────────────
             self.add_balance(user_id, float(reward), f"Mission {mission_id} reward")
-            self.add_live_activity('mission', user_id, reward, f"claimed mission +₹{reward}")
-            logger.info(f"Mission claimed: user={user_id} mission={mission_id} reward=₹{reward}")
-            return {'success': True, 'message': f'Claimed! +₹{reward}'}
+            self.add_live_activity('mission', user_id, reward, f"Mission complete! +{int(float(reward)*100)} pts")
+            logger.info(f"✅ Mission claimed: user={user_id} {mission_id} +₹{reward}")
+            return {'success': True, 'reward': float(reward)}
 
         except Exception as e:
             err = str(e)
-            # DuplicateKeyError means another request already claimed — safe to block
             if 'duplicate' in err.lower() or 'E11000' in err:
+                # Race condition — already claimed by another request, silently accept
                 return {'success': False, 'message': 'Already claimed'}
-            logger.error(f"Error claiming single mission {mission_id}: {e}")
-            return {'success': False, 'message': 'Server error, try again'}
+            logger.error(f"Mission claim error {mission_id}: {e}")
+            return {'success': False, 'message': 'Try again'}
 
     # ========== ADS — UPDATED: timer_seconds field ==========
 
