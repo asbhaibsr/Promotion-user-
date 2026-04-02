@@ -19,7 +19,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🎬 FilmyFund - Earn & Win</title>
+    <title>💰 FilmyFund - Play & Win</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Oxanium:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -631,40 +631,7 @@
         /* Floating points animation */
         .float-pts{position:fixed;font-weight:900;font-size:18px;color:var(--gold);pointer-events:none;z-index:9999;animation:floatUp 1.2s ease-out forwards;}
 
-    
-    /* ═══ SHINE ANIMATION ═══ */
-    @keyframes shine{0%{background-position:-200% center;}100%{background-position:200% center;}}
-    @keyframes glowPulse{0%,100%{box-shadow:0 0 8px rgba(240,192,64,.3);}50%{box-shadow:0 0 24px rgba(240,192,64,.7);}}
-    @keyframes confettiFall{0%{transform:translateY(-10px) rotate(0deg);opacity:1;}100%{transform:translateY(100vh) rotate(720deg);opacity:0;}}
-    @keyframes slideInLeft{from{transform:translateX(-16px);opacity:0;}to{transform:translateX(0);opacity:1;}}
-
-    /* ═══ BUTTON SHINE ═══ */
-    .btn-shine{position:relative;overflow:hidden;}
-    .btn-shine::after{content:'';position:absolute;top:-50%;left:-75%;width:50%;height:200%;background:linear-gradient(to right,rgba(255,255,255,0),rgba(255,255,255,.3),rgba(255,255,255,0));transform:skewX(-25deg);animation:btnShine 2.5s infinite;}
-    @keyframes btnShine{0%{left:-75%;}100%{left:125%;}}
-
-    /* ═══ FLOAT POINTS ═══ */
-    .float-pts{position:fixed;font-weight:900;font-size:20px;color:var(--gold);pointer-events:none;z-index:9999;animation:floatUp 1.4s ease-out forwards;text-shadow:0 0 10px rgba(240,192,64,.8);}
-
-    /* ═══ MISSION IMPROVEMENTS ═══ */
-    .mission-item{transition:all .2s;}
-    .mission-item-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);animation:shine 2s linear infinite;}
-
-    /* ═══ GAME CARD IMPROVEMENTS ═══ */
-    .game-card:active{transform:scale(.96);}
-    .bet-chip{transition:all .15s;}
-    .bet-chip.sel{transform:scale(1.06)!important;box-shadow:0 0 14px rgba(240,192,64,.3)!important;}
-
-    /* ═══ PROGRESS BAR SHINE ═══ */
-    .mission-item-bar::before{content:'';display:none;}
-
-    /* ═══ NAV ACTIVE GLOW ═══ */
-    .nav-item.active .ni{filter:drop-shadow(0 0 4px currentColor);}
-
-    /* ═══ BALANCE CARD ═══ */
-    .balance-card{animation:gradientShift 6s ease infinite;}
-    @keyframes gradientShift{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
-</style>
+    </style>
 </head>
 <body>
 
@@ -712,7 +679,7 @@
 <!-- SIDEBAR -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <div class="sidebar" id="sidebar">
-    <div class="sidebar-header"><div class="sidebar-logo"><img src="https://i.postimg.cc/xT43NypN/IMG-20260320-075702-067.jpg" style="height:28px;border-radius:6px;vertical-align:middle;margin-right:7px;"><span style="background:linear-gradient(90deg,#fbbf24,#fff,#fbbf24);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shine 3s linear infinite;">FilmyFund</span></div></div>
+    <div class="sidebar-header"><div class="sidebar-logo"><img src="https://i.postimg.cc/xT43NypN/IMG-20260320-075702-067.jpg" style="height:28px;border-radius:6px;vertical-align:middle;margin-right:7px;"> FilmyFund</div></div>
     <div class="sidebar-item" onclick="closeSidebar();openModal('settings')"><div class="si-icon">⚙️</div><span data-t="settings">Settings</span></div>
     <div class="sidebar-item" onclick="closeSidebar();openModal('support')"><div class="si-icon">📩</div><span data-t="help_support">Help & Support</span></div>
     <div class="sidebar-divider"></div>
@@ -735,7 +702,7 @@
 <!-- TOP BAR -->
 <div class="topbar">
     <div class="hamburger-btn" onclick="openSidebar()"><span></span><span></span><span></span></div>
-    <div class="topbar-logo"><img src="https://i.postimg.cc/xT43NypN/IMG-20260320-075702-067.jpg" style="height:32px;border-radius:8px;vertical-align:middle;margin-right:6px;"><span style="background:linear-gradient(90deg,#fbbf24,#fff,#fbbf24);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shine 3s linear infinite;">FilmyFund</span></div>
+    <div class="topbar-logo"><img src="https://i.postimg.cc/xT43NypN/IMG-20260320-075702-067.jpg" style="height:32px;border-radius:8px;vertical-align:middle;margin-right:6px;"> FilmyFund</div>
     <div class="topbar-balance" id="topbarBalance">0 pts</div>
 </div>
 
@@ -1675,11 +1642,11 @@
         <canvas id="mazeCanvas" style="width:100%;border-radius:12px;display:block;"></canvas>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;">
             <div></div>
-            <button ontouchstart="mazeMove('up')" onclick="mazeMove('up')" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;">⬆️</button>
+            <button ontouchstart="mazeMove(0,-1)" onclick="mazeMove(0,-1)" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;">⬆️</button>
             <div></div>
-            <button ontouchstart="mazeMove('left')" onclick="mazeMove('left')" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;">⬅️</button>
-            <button ontouchstart="mazeMove('down')" onclick="mazeMove('down')" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;">⬇️</button>
-            <button ontouchstart="mazeMove('right')" onclick="mazeMove('right')" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;">➡️</button>
+            <button ontouchstart="mazeMove(-1,0)" onclick="mazeMove(-1,0)" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;">⬅️</button>
+            <button ontouchstart="mazeMove(0,1)" onclick="mazeMove(0,1)" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;">⬇️</button>
+            <button ontouchstart="mazeMove(1,0)" onclick="mazeMove(1,0)" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;">➡️</button>
         </div>
     </div>
     <div id="mazeResult" style="display:none;padding:20px;text-align:center;">
@@ -3156,7 +3123,7 @@ async function claimSingleMission(missionId,reward){
             userData.today_earned=(userData.today_earned||0)+mReward;
             updateUI();
             playSound('mission');
-            showToast('🎯 Mission! +'+toPoints(mReward)+' pts!');showFloatingPts(toPoints(mReward));triggerConfetti();
+            showToast('🎯 Mission! +'+toPoints(mReward)+' pts mila!');
         }else if(r?.message==='Already claimed'){
             // Backend also says claimed — keep our local claimed=true, dont revert
             // silently accept
@@ -4476,54 +4443,30 @@ function resetRunnerGame(){
 }
 
 // ============================================================
-// ============================================================
-// 🗺️ MAZE ESCAPE — Sokoban style: push boxes to flags!
+// 📦 SOKOBAN — Push ALL boxes to targets (real Sokoban!)
 // ============================================================
 let mazeBet=1,mazeDiff='easy',mazeTimer=0,mazeInterval=null;
-let mazeActive=false,mazeMoveCount=0,mazeLevel=0;
-let mazeMap=[],mazePlayerPos={x:0,y:0},mazeBoxes=[],mazeTargets=[];
-const MAZE_DIFFS={
-    easy:  {time:90, mult:200, label:'Easy 90s',   color:'var(--green)',  boxes:2},
-    medium:{time:60, mult:400, label:'Medium 60s',  color:'var(--gold)',   boxes:3},
-    hard:  {time:40, mult:700, label:'Hard 40s',    color:'var(--red)',    boxes:4}
-};
-// Tile types
-const FLOOR=0,WALL=1,TARGET=2;
+let mazeActive=false,mazeMoveCount=0;
+let mazeGrid=[],mazePlayer={x:1,y:1},mazeBoxes=[],mazeTargets=[];
+const MAZE_DIFFS={easy:{time:120,pts:300,boxes:2,sz:7},medium:{time:90,pts:600,boxes:3,sz:9},hard:{time:60,pts:1000,boxes:4,sz:11}};
 
-function generateSokoban(size,numBoxes){
-    // Build open grid with border walls
-    const g=Array.from({length:size},(_,y)=>Array.from({length:size},(_,x)=>(x===0||y===0||x===size-1||y===size-1)?WALL:FLOOR));
-    // Add some internal walls for challenge
-    for(let i=0;i<size*2;i++){
-        const wx=1+Math.floor(Math.random()*(size-2));
-        const wy=1+Math.floor(Math.random()*(size-2));
-        g[wy][wx]=WALL;
-    }
-    // Place targets
-    const targets=[];
-    while(targets.length<numBoxes){
-        const tx=1+Math.floor(Math.random()*(size-2));
-        const ty=1+Math.floor(Math.random()*(size-2));
-        if(g[ty][tx]===FLOOR&&!targets.some(t=>t.x===tx&&t.y===ty)){
-            targets.push({x:tx,y:ty});
-            g[ty][tx]=TARGET;
-        }
-    }
-    // Place boxes NOT on targets
-    const boxes=[];
-    while(boxes.length<numBoxes){
-        const bx=1+Math.floor(Math.random()*(size-2));
-        const by=1+Math.floor(Math.random()*(size-2));
-        if(g[by][bx]===FLOOR&&!boxes.some(b=>b.x===bx&&b.y===by)&&!targets.some(t=>t.x===bx&&t.y===by)){
-            boxes.push({x:bx,y:by});
-        }
-    }
-    // Player start — away from boxes
-    let px,py;
-    do{px=1+Math.floor(Math.random()*(size-2));py=1+Math.floor(Math.random()*(size-2));}
-    while(g[py][px]!==FLOOR||boxes.some(b=>b.x===px&&b.y===py));
-    return {grid:g,boxes,targets,player:{x:px,y:py}};
-}
+// Premade Sokoban levels (guaranteed solvable)
+const SOKOBAN_LEVELS={
+    easy:[
+        {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,2,0,2,0,1],[1,0,0,0,0,0,1],[1,0,0,3,0,0,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]],
+         boxes:[{x:2,y:2},{x:4,y:2}],targets:[{x:2,y:4},{x:4,y:4}],player:{x:3,y:5}},
+        {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,2,0,0,0,1],[1,0,0,0,2,0,1],[1,0,0,0,0,0,1],[1,0,3,0,0,0,1],[1,1,1,1,1,1,1]],
+         boxes:[{x:2,y:2},{x:4,y:3}],targets:[{x:3,y:4},{x:1,y:4}],player:{x:2,y:5}},
+    ],
+    medium:[
+        {grid:[[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,2,0,0,2,0,0,1],[1,0,0,0,0,0,2,0,1],[1,0,0,3,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1]],
+         boxes:[{x:2,y:2},{x:5,y:2},{x:6,y:3}],targets:[{x:4,y:4},{x:6,y:4},{x:2,y:6}],player:{x:3,y:4}},
+    ],
+    hard:[
+        {grid:[[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,2,0,2,0,0,0,0,0,1],[1,0,0,0,0,2,0,2,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,3,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1]],
+         boxes:[{x:2,y:2},{x:4,y:2},{x:5,y:3},{x:7,y:3}],targets:[{x:2,y:7},{x:4,y:7},{x:6,y:7},{x:8,y:7}],player:{x:3,y:5}},
+    ]
+};
 
 function openMazeGame(){
     document.getElementById('mazeBal').textContent=fmtPts(toPoints(userData.balance||0));
@@ -4538,164 +4481,162 @@ function selMazeBet(a,el){
     document.querySelectorAll('#mazeModal .bet-chip').forEach(c=>c.classList.remove('sel'));
     el.classList.add('sel');
     const cfg=MAZE_DIFFS[mazeDiff];
-    document.getElementById('mazeRewardPreview').textContent='🏆 Win: '+Math.floor(toPoints(a)*cfg.mult/100)+' pts';
+    const pr=document.getElementById('mazeRewardPreview');
+    if(pr)pr.textContent='🏆 Win: ~'+Math.floor(toPoints(a)*cfg.pts/100)+' pts';
 }
 function selMazeDiff(d,el){
     mazeDiff=d;
     document.querySelectorAll('#mazeModal .runner-mode-btn').forEach(c=>c.classList.remove('sel'));
     el.classList.add('sel');
-    const el2=document.querySelector('#mazeModal .bet-chip.sel');
-    if(el2)selMazeBet(mazeBet,el2);
+    const selBet=document.querySelector('#mazeModal .bet-chip.sel');
+    if(selBet)selMazeBet(mazeBet,selBet);
 }
 
 async function startMaze(){
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
     if((userData.balance||0)<mazeBet){showToast('❌ Points kam hain!');return;}
     const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'maze',bet:mazeBet});
     if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
     userData.passes=Math.max(0,(userData.passes||1)-1);
     userData.balance=Math.max(0,(userData.balance||0)-mazeBet);
     updateUI();
-
     const cfg=MAZE_DIFFS[mazeDiff];
-    const size=mazeDiff==='hard'?9:mazeDiff==='medium'?8:7;
-    const level=generateSokoban(size,cfg.boxes);
-    mazeMap=level.grid;
-    mazeBoxes=level.boxes.map(b=>({...b}));
-    mazeTargets=level.targets;
-    mazePlayerPos={...level.player};
-    mazeTimer=cfg.time;mazeMoveCount=0;mazeActive=true;
-
+    const levels=SOKOBAN_LEVELS[mazeDiff];
+    const lvl=levels[Math.floor(Math.random()*levels.length)];
+    mazeGrid=lvl.grid.map(r=>[...r]);
+    mazeBoxes=lvl.boxes.map(b=>({...b}));
+    mazeTargets=lvl.targets.map(t=>({...t}));
+    mazePlayer={...lvl.player};
+    mazeTimer=cfg.time; mazeMoveCount=0; mazeActive=true;
     document.getElementById('mazeSetup').style.display='none';
     document.getElementById('mazeGame').style.display='block';
     document.getElementById('mazeResult').style.display='none';
-    document.getElementById('mazeMoves').textContent='Moves: 0';
     drawSokoban();
-
     mazeInterval=setInterval(()=>{
         if(!mazeActive)return;
         mazeTimer--;
-        const solved=checkMazeSolved();
+        const done=mazeBoxes.filter(b=>mazeTargets.some(t=>t.x===b.x&&t.y===b.y)).length;
         document.getElementById('mazeTimer').textContent='⏱️ '+Math.floor(mazeTimer/60)+':'+String(mazeTimer%60).padStart(2,'0');
-        const pctDone=mazeBoxes.filter(b=>mazeTargets.some(t=>t.x===b.x&&t.y===b.y)).length/mazeBoxes.length;
-        document.getElementById('mazeEarning').textContent=Math.floor(toPoints(mazeBet)*pctDone*cfg.mult/100)+' pts';
+        document.getElementById('mazeEarning').textContent=done+'/'+mazeBoxes.length+' boxes';
+        document.getElementById('mazeMoves').textContent='Moves: '+mazeMoveCount;
+        if(mazeBoxes.every(b=>mazeTargets.some(t=>t.x===b.x&&t.y===b.y))){mazeActive=false;clearInterval(mazeInterval);playSound('jackpot');finishMaze(true);}
         if(mazeTimer<=0){mazeActive=false;clearInterval(mazeInterval);finishMaze(false);}
-        if(solved){mazeActive=false;clearInterval(mazeInterval);finishMaze(true);}
     },1000);
-
     playSound('tap');
     document.onkeydown=e=>{
-        const map={ArrowUp:{dx:0,dy:-1},ArrowDown:{dx:0,dy:1},ArrowLeft:{dx:-1,dy:0},ArrowRight:{dx:1,dy:0}};
-        if(map[e.code]){e.preventDefault();mazeMove(map[e.code].dx,map[e.code].dy);}
+        const km={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};
+        const d=km[e.code];if(d){e.preventDefault();mazeMove(d[0],d[1]);}
     };
-}
-
-function checkMazeSolved(){
-    return mazeBoxes.every(b=>mazeTargets.some(t=>t.x===b.x&&t.y===b.y));
 }
 
 function drawSokoban(){
     const canvas=document.getElementById('mazeCanvas');
-    if(!canvas||!mazeMap.length)return;
-    const size=mazeMap.length;
-    const W=Math.min(canvas.parentElement.offsetWidth-16,340)||300;
-    canvas.width=W;canvas.height=W;
-    const cs=Math.floor(W/size);
+    if(!canvas||!mazeGrid.length)return;
+    const sz=mazeGrid.length;
+    const W=Math.min(canvas.parentElement.offsetWidth-8||300,340);
+    canvas.width=W; canvas.height=W;
+    const cs=Math.floor(W/sz);
     const ctx=canvas.getContext('2d');
-    ctx.fillStyle='#060d18';ctx.fillRect(0,0,W,W);
-
-    for(let y=0;y<size;y++){
-        for(let x=0;x<size;x++){
-            const tile=mazeMap[y][x];
-            const bx=x*cs,by=y*cs;
-            if(tile===WALL){
-                ctx.fillStyle='#1a3555';
-                ctx.fillRect(bx,by,cs,cs);
-                ctx.fillStyle='rgba(54,182,245,0.15)';
-                ctx.fillRect(bx,by,cs,2);
-                ctx.fillRect(bx,by,2,cs);
-            }else if(tile===TARGET){
-                ctx.fillStyle='#060d18';ctx.fillRect(bx,by,cs,cs);
-                ctx.strokeStyle='rgba(25,216,158,0.8)';ctx.lineWidth=2;
-                ctx.beginPath();
-                ctx.arc(bx+cs/2,by+cs/2,cs*0.28,0,Math.PI*2);
-                ctx.stroke();
-                ctx.fillStyle='rgba(25,216,158,0.2)';
-                ctx.fill();
+    // Dark bg
+    ctx.fillStyle='#050c18'; ctx.fillRect(0,0,W,W);
+    for(let y=0;y<sz;y++){
+        for(let x=0;x<sz;x++){
+            const t=mazeGrid[y][x];
+            const px=x*cs, py=y*cs;
+            if(t===1){
+                // Wall — 3D brick look
+                ctx.fillStyle='#1a3560'; ctx.fillRect(px,py,cs,cs);
+                ctx.fillStyle='rgba(100,160,255,0.15)'; ctx.fillRect(px,py,cs,2);
+                ctx.fillRect(px,py,2,cs);
+                ctx.fillStyle='rgba(0,0,0,0.3)'; ctx.fillRect(px+cs-2,py,2,cs);
+                ctx.fillRect(px,py+cs-2,cs,2);
             }else{
-                ctx.fillStyle='#060d18';ctx.fillRect(bx,by,cs,cs);
+                ctx.fillStyle='#080f1e'; ctx.fillRect(px,py,cs,cs);
+                ctx.strokeStyle='rgba(54,182,245,0.06)'; ctx.lineWidth=0.5;
+                ctx.strokeRect(px,py,cs,cs);
             }
         }
     }
-    // Draw boxes
-    mazeBoxes.forEach(b=>{
-        const onTarget=mazeTargets.some(t=>t.x===b.x&&t.y===b.y);
-        const bx=b.x*cs+2,by=b.y*cs+2,bw=cs-4;
-        ctx.fillStyle=onTarget?'rgba(25,216,158,0.9)':'rgba(240,192,64,0.9)';
-        ctx.beginPath();ctx.roundRect(bx,by,bw,bw,4);ctx.fill();
-        ctx.strokeStyle=onTarget?'#fff':'rgba(240,192,64,0.5)';
-        ctx.lineWidth=1.5;ctx.stroke();
-        ctx.fillStyle='#000';ctx.font='bold '+(cs*0.55)+'px sans-serif';
-        ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.fillText(onTarget?'✓':'📦',b.x*cs+cs/2,b.y*cs+cs/2);
+    // Targets — glowing X
+    mazeTargets.forEach(t=>{
+        const bx=t.x*cs+2,by=t.y*cs+2,s2=cs-4;
+        ctx.fillStyle='rgba(25,216,158,0.12)'; ctx.fillRect(bx,by,s2,s2);
+        ctx.strokeStyle='rgba(25,216,158,0.7)'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.moveTo(bx+4,by+4); ctx.lineTo(bx+s2-4,by+s2-4); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(bx+s2-4,by+4); ctx.lineTo(bx+4,by+s2-4); ctx.stroke();
+        // Glow
+        ctx.shadowColor='rgba(25,216,158,0.5)'; ctx.shadowBlur=8;
+        ctx.stroke(); ctx.shadowBlur=0;
     });
-    // Draw player
-    ctx.font=(cs*0.72)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText('🏃',mazePlayerPos.x*cs+cs/2,mazePlayerPos.y*cs+cs/2);
-    // Progress top
-    const done=mazeBoxes.filter(b=>mazeTargets.some(t=>t.x===b.x&&t.y===b.y)).length;
-    document.getElementById('mazeMoves').textContent=done+'/'+mazeBoxes.length+' boxes • '+mazeMoveCount+' moves';
+    // Boxes
+    mazeBoxes.forEach(b=>{
+        const onTgt=mazeTargets.some(t=>t.x===b.x&&t.y===b.y);
+        const bx=b.x*cs+2, by=b.y*cs+2, bs=cs-4;
+        ctx.shadowColor=onTgt?'rgba(25,216,158,0.6)':'rgba(240,192,64,0.4)'; ctx.shadowBlur=10;
+        ctx.fillStyle=onTgt?'rgba(25,216,158,0.85)':'rgba(240,192,64,0.85)';
+        ctx.beginPath(); ctx.roundRect(bx,by,bs,bs,4); ctx.fill();
+        ctx.shadowBlur=0;
+        ctx.strokeStyle=onTgt?'rgba(255,255,255,0.6)':'rgba(255,255,255,0.3)'; ctx.lineWidth=1.5; ctx.stroke();
+        // Icon
+        ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.font='bold '+(cs*0.45)+'px sans-serif';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(onTgt?'✓':'▪',b.x*cs+cs/2,b.y*cs+cs/2);
+    });
+    // Player — glowing hero
+    const pg=ctx.createRadialGradient(mazePlayer.x*cs+cs/2,mazePlayer.y*cs+cs/2,0,mazePlayer.x*cs+cs/2,mazePlayer.y*cs+cs/2,cs);
+    pg.addColorStop(0,'rgba(139,92,246,0.4)'); pg.addColorStop(1,'transparent');
+    ctx.fillStyle=pg; ctx.fillRect(mazePlayer.x*cs-cs/2,mazePlayer.y*cs-cs/2,cs*2,cs*2);
+    ctx.font=(cs*0.72)+'px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('🏃',mazePlayer.x*cs+cs/2,mazePlayer.y*cs+cs*0.58);
 }
 
 function mazeMove(dx,dy){
     if(!mazeActive)return;
-    const nx=mazePlayerPos.x+dx,ny=mazePlayerPos.y+dy;
-    if(ny<0||ny>=mazeMap.length||nx<0||nx>=mazeMap[0].length)return;
-    if(mazeMap[ny][nx]===WALL)return;
-    // Check if pushing a box
-    const boxIdx=mazeBoxes.findIndex(b=>b.x===nx&&b.y===ny);
-    if(boxIdx>=0){
-        const bx=nx+dx,by=ny+dy;
-        if(by<0||by>=mazeMap.length||bx<0||bx>=mazeMap[0].length)return;
-        if(mazeMap[by][bx]===WALL)return;
-        if(mazeBoxes.some(b=>b.x===bx&&b.y===by))return; // box-on-box
-        mazeBoxes[boxIdx]={x:bx,y:by};
-    }
-    mazePlayerPos={x:nx,y:ny};
-    mazeMoveCount++;
+    const nx=mazePlayer.x+dx, ny=mazePlayer.y+dy;
+    if(ny<0||ny>=mazeGrid.length||nx<0||nx>=mazeGrid[0].length)return;
+    if(mazeGrid[ny][nx]===1)return;
+    const bi=mazeBoxes.findIndex(b=>b.x===nx&&b.y===ny);
+    if(bi>=0){
+        const bx2=nx+dx, by2=ny+dy;
+        if(by2<0||by2>=mazeGrid.length||bx2<0||bx2>=mazeGrid[0].length)return;
+        if(mazeGrid[by2][bx2]===1)return;
+        if(mazeBoxes.some(b=>b.x===bx2&&b.y===by2))return;
+        mazeBoxes[bi]={x:bx2,y:by2};
+        playSound('earn');
+    }else{playSound('click');}
+    mazePlayer={x:nx,y:ny}; mazeMoveCount++;
     drawSokoban();
-    playSound('click');
 }
 
 async function finishMaze(won){
-    clearInterval(mazeInterval);mazeActive=false;document.onkeydown=null;
+    clearInterval(mazeInterval); mazeActive=false; document.onkeydown=null;
     const cfg=MAZE_DIFFS[mazeDiff];
     const betPts=toPoints(mazeBet);
-    let rewardPts=0;
+    let pts=0;
     if(won){
-        // Time bonus: faster = more pts; also moves bonus
-        const timePct=mazeTimer/cfg.time;
-        const movePenalty=Math.max(0,1-mazeMoveCount/(cfg.boxes*20));
-        rewardPts=Math.floor(betPts*(cfg.mult/100)*(0.5+timePct*0.3+movePenalty*0.2)+betPts*0.5);
+        const tBonus=mazeTimer/cfg.time;
+        const mBonus=Math.max(0,1-mazeMoveCount/(mazeBoxes.length*30));
+        pts=Math.floor(betPts*(cfg.pts/100)*(0.6+tBonus*0.25+mBonus*0.15)+betPts*0.5);
     }else{
-        const boxesDone=mazeBoxes.filter(b=>mazeTargets.some(t=>t.x===b.x&&t.y===b.y)).length;
-        rewardPts=Math.floor(betPts*(boxesDone/mazeBoxes.length)*(cfg.mult/300));
+        const done=mazeBoxes.filter(b=>mazeTargets.some(t=>t.x===b.x&&t.y===b.y)).length;
+        pts=Math.floor(betPts*(done/Math.max(mazeBoxes.length,1))*(cfg.pts/400));
     }
-    const rewardRupees=fromPoints(rewardPts);
-    if(rewardRupees>0){
+    const rup=fromPoints(pts);
+    if(rup>0){
         await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'maze',bet:mazeBet,survived_seconds:cfg.time-mazeTimer});
-        userData.balance=(userData.balance||0)+rewardRupees;
-        userData.today_earned=(userData.today_earned||0)+rewardRupees;
-        gameState.today_game_earned=(gameState.today_game_earned||0)+rewardRupees;
+        userData.balance=(userData.balance||0)+rup;
+        userData.today_earned=(userData.today_earned||0)+rup;
+        gameState.today_game_earned=(gameState.today_game_earned||0)+rup;
         gameState.totalPlays=(gameState.totalPlays||0)+1;
-        updateUI();
+        if(won)gameState.wins=(gameState.wins||0)+1;
+        updateUI(); if(won)showFloatingPts(pts);
     }
     document.getElementById('mazeGame').style.display='none';
     document.getElementById('mazeResult').style.display='block';
     document.getElementById('mazeResultEmoji').textContent=won?'🏆':'⏱️';
-    document.getElementById('mazeResultTitle').textContent=won?'Sab Boxes Place! 🎉':(mazeTimer<=0?'Time Out!':'Almost!');
-    document.getElementById('mazeResultSub').textContent=won?mazeMoveCount+' moves mein!':'Boxes placed: '+mazeBoxes.filter(b=>mazeTargets.some(t=>t.x===b.x&&t.y===b.y)).length+'/'+mazeBoxes.length;
-    document.getElementById('mazeResultReward').textContent='+'+rewardPts+' pts';
+    document.getElementById('mazeResultTitle').textContent=won?'Sab Boxes Place! 🎉':'Time Out!';
+    document.getElementById('mazeResultSub').textContent=won?(mazeMoveCount+' moves mein!'):'Boxes: '+mazeBoxes.filter(b=>mazeTargets.some(t=>t.x===b.x&&t.y===b.y)).length+'/'+mazeBoxes.length;
+    document.getElementById('mazeResultReward').textContent='+'+pts+' pts';
     playSound(won?'jackpot':'lose');
     if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
     updateMissionsUI();
@@ -4704,19 +4645,13 @@ function resetMaze(){document.getElementById('mazeSetup').style.display='block';
 function exitMaze(){if(mazeInterval)clearInterval(mazeInterval);mazeActive=false;document.onkeydown=null;closeModal('maze');}
 
 // ============================================================
-// 🐍 SNAKE GAME — Smooth rAF, proper visibility, time targets
+// 🐍 SNAKE — Smooth, visible snake, big food, speed targets
 // ============================================================
 let snakeBet=1,snakeActive=false,snakeTimer=60,snakeInterval=null,snakeFrameId=null;
-let snake=[],snakeDirV={x:1,y:0},snakeNextDirV={x:1,y:0};
-let snakeFood={x:7,y:7},snakeScoreV=0,snakeCellSz=20,snakeCanvas=null,snakeCtx=null;
-let snakeLastMove=0;
-const SNAKE_GRID=16;
-// Targets for bonus
-const SNAKE_TARGETS=[
-    {time:60,dots:5,bonus:50,label:'5 dots in 60s = +50 pts'},
-    {time:45,dots:10,bonus:150,label:'10 dots in 45s = +150 pts'},
-    {time:30,dots:15,bonus:400,label:'15 dots in 30s = +400 pts'},
-];
+let snake=[],snakeDirV={x:1,y:0},snakeNextDir={x:1,y:0};
+let snakeFood={x:5,y:5},snakeScore=0,snakeCS=20,snakeCvs=null,snakeCTX=null,snakeLastMove=0;
+const SN=16;
+const SN_TARGETS=[{dots:5,secs:60,bonus:50,txt:'5 dots=+50'},{dots:10,secs:45,bonus:150,txt:'10 dots=+150'},{dots:15,secs:30,bonus:400,txt:'15 dots=+400'}];
 
 function openSnakeGame(){
     document.getElementById('snakeBal').textContent=fmtPts(toPoints(userData.balance||0));
@@ -4725,26 +4660,12 @@ function openSnakeGame(){
     document.getElementById('snakeResult').style.display='none';
     openModal('snake');
 }
-function selSnakeBet(a,el){
-    if(a>(userData.balance||0)){showToast('❌ Points kam hain!');return;}
-    snakeBet=a;
-    document.querySelectorAll('#snakeModal .bet-chip').forEach(c=>c.classList.remove('sel'));
-    el.classList.add('sel');
-}
-function snakeDir(d){
-    const map={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}};
-    const nd=map[d];
-    if(nd&&!(nd.x===-snakeDirV.x&&nd.y===-snakeDirV.y))snakeNextDirV=nd;
-}
-function placeSnakeFood(){
-    let f,tries=0;
-    do{f={x:1+Math.floor(Math.random()*(SNAKE_GRID-2)),y:1+Math.floor(Math.random()*(SNAKE_GRID-2))};tries++;}
-    while(snake.some(s=>s.x===f.x&&s.y===f.y)&&tries<200);
-    snakeFood=f;
-}
+function selSnakeBet(a,el){if(a>(userData.balance||0)){showToast('❌ Points kam hain!');return;}snakeBet=a;document.querySelectorAll('#snakeModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+function snakeDir(d){const m={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}};const nd=m[d];if(nd&&!(nd.x===-snakeDirV.x&&nd.y===-snakeDirV.y))snakeNextDir=nd;}
+function placeFood(){let f,t=0;do{f={x:1+Math.floor(Math.random()*(SN-2)),y:1+Math.floor(Math.random()*(SN-2))};t++;}while(snake.some(s=>s.x===f.x&&s.y===f.y)&&t<300);snakeFood=f;}
 
 async function startSnake(){
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
     if((userData.balance||0)<snakeBet){showToast('❌ Points kam hain!');return;}
     const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'snake',bet:snakeBet});
     if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
@@ -4752,131 +4673,101 @@ async function startSnake(){
     userData.balance=Math.max(0,(userData.balance||0)-snakeBet);
     updateUI();
     snake=[{x:8,y:8},{x:7,y:8},{x:6,y:8},{x:5,y:8}];
-    snakeDirV={x:1,y:0};snakeNextDirV={x:1,y:0};
-    snakeScoreV=0;snakeTimer=60;snakeActive=true;snakeLastMove=0;
-    placeSnakeFood();
-    snakeCanvas=document.getElementById('snakeCanvas');
-    const W=Math.min(snakeCanvas.parentElement.offsetWidth-16,340)||300;
-    snakeCanvas.width=W;snakeCanvas.height=W;
-    snakeCellSz=Math.floor(W/SNAKE_GRID);
-    snakeCtx=snakeCanvas.getContext('2d');
+    snakeDirV={x:1,y:0}; snakeNextDir={x:1,y:0};
+    snakeScore=0; snakeTimer=60; snakeActive=true; snakeLastMove=0;
+    placeFood();
+    snakeCvs=document.getElementById('snakeCanvas');
+    const W=Math.min(snakeCvs.parentElement.offsetWidth-8||300,340);
+    snakeCvs.width=W; snakeCvs.height=W; snakeCS=Math.floor(W/SN);
+    snakeCTX=snakeCvs.getContext('2d');
     document.getElementById('snakeSetup').style.display='none';
     document.getElementById('snakeGame').style.display='block';
     document.getElementById('snakeResult').style.display='none';
-    // Show targets
-    const tgt=document.getElementById('snakeTargetInfo');
-    if(tgt)tgt.textContent=SNAKE_TARGETS.map(t=>t.label).join(' | ');
+    const tEl=document.getElementById('snakeTargetInfo');
+    if(tEl)tEl.textContent=SN_TARGETS.map(t=>t.txt).join(' • ');
     document.onkeydown=e=>{const m={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};if(m[e.code]){e.preventDefault();snakeDir(m[e.code]);}};
     drawSnake();
-    function gameLoop(ts){
-        if(!snakeActive){return;}
-        snakeFrameId=requestAnimationFrame(gameLoop);
-        const speed=Math.max(100,180-snakeScoreV*5); // faster as score increases
-        if(ts-snakeLastMove<speed)return;
+    function loop(ts){
+        if(!snakeActive)return;
+        snakeFrameId=requestAnimationFrame(loop);
+        const spd=Math.max(90,180-snakeScore*7);
+        if(ts-snakeLastMove<spd)return;
         snakeLastMove=ts;
-        snakeDirV=snakeNextDirV;
+        snakeDirV=snakeNextDir;
         const head={x:snake[0].x+snakeDirV.x,y:snake[0].y+snakeDirV.y};
-        if(head.x<0||head.x>=SNAKE_GRID||head.y<0||head.y>=SNAKE_GRID){snakeActive=false;clearInterval(snakeInterval);cancelAnimationFrame(snakeFrameId);finishSnake();return;}
-        if(snake.some(s=>s.x===head.x&&s.y===head.y)){snakeActive=false;clearInterval(snakeInterval);cancelAnimationFrame(snakeFrameId);finishSnake();return;}
+        if(head.x<0||head.x>=SN||head.y<0||head.y>=SN||snake.some(s=>s.x===head.x&&s.y===head.y)){
+            snakeActive=false;clearInterval(snakeInterval);cancelAnimationFrame(snakeFrameId);finishSnake();return;
+        }
         snake.unshift(head);
-        if(head.x===snakeFood.x&&head.y===snakeFood.y){snakeScoreV++;placeSnakeFood();playSound('tap');}
-        else snake.pop();
+        if(head.x===snakeFood.x&&head.y===snakeFood.y){snakeScore++;placeFood();playSound('tap');}else snake.pop();
         drawSnake();
-        const pts=snakeScoreV*toPoints(snakeBet)*15;
-        document.getElementById('snakeScore').textContent='🍎 '+snakeScoreV;
-        document.getElementById('snakeEarning').textContent=pts+' pts';
+        document.getElementById('snakeScore').textContent='🍎 '+snakeScore;
+        document.getElementById('snakeEarning').textContent=(snakeScore*toPoints(snakeBet)*15)+' pts';
     }
-    snakeFrameId=requestAnimationFrame(gameLoop);
-    snakeInterval=setInterval(()=>{
-        if(!snakeActive){clearInterval(snakeInterval);return;}
-        snakeTimer--;
-        document.getElementById('snakeTimer').textContent=snakeTimer+'s';
-        if(snakeTimer<=0){snakeActive=false;clearInterval(snakeInterval);if(snakeFrameId)cancelAnimationFrame(snakeFrameId);finishSnake();}
-    },1000);
+    snakeFrameId=requestAnimationFrame(loop);
+    snakeInterval=setInterval(()=>{if(!snakeActive){clearInterval(snakeInterval);return;}snakeTimer--;document.getElementById('snakeTimer').textContent=snakeTimer+'s';if(snakeTimer<=0){snakeActive=false;clearInterval(snakeInterval);cancelAnimationFrame(snakeFrameId);finishSnake();}},1000);
 }
 
 function drawSnake(){
-    if(!snakeCtx||!snakeCanvas)return;
-    const cs=snakeCellSz,ctx=snakeCtx,W=snakeCanvas.width;
-    ctx.fillStyle='#040e04';ctx.fillRect(0,0,W,W);
-    // Border glow
-    ctx.strokeStyle='rgba(25,216,158,0.3)';ctx.lineWidth=2;
-    ctx.strokeRect(1,1,W-2,W-2);
+    if(!snakeCTX||!snakeCvs)return;
+    const cs=snakeCS,ctx=snakeCTX,W=snakeCvs.width;
+    // Dark BG
+    ctx.fillStyle='#030f03'; ctx.fillRect(0,0,W,W);
     // Grid
-    ctx.strokeStyle='rgba(25,216,158,0.04)';ctx.lineWidth=0.5;
-    for(let i=0;i<=SNAKE_GRID;i++){
-        ctx.beginPath();ctx.moveTo(i*cs,0);ctx.lineTo(i*cs,W);ctx.stroke();
-        ctx.beginPath();ctx.moveTo(0,i*cs);ctx.lineTo(W,i*cs);ctx.stroke();
-    }
-    // Snake — draw each segment
+    ctx.strokeStyle='rgba(25,216,158,0.05)'; ctx.lineWidth=0.5;
+    for(let i=0;i<=SN;i++){ctx.beginPath();ctx.moveTo(i*cs,0);ctx.lineTo(i*cs,W);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i*cs);ctx.lineTo(W,i*cs);ctx.stroke();}
+    ctx.strokeStyle='rgba(25,216,158,0.2)'; ctx.lineWidth=2; ctx.strokeRect(1,1,W-2,W-2);
+    // Snake
     snake.forEach((seg,i)=>{
         const isHead=i===0;
         const ratio=1-i/Math.max(snake.length,1);
-        const g=Math.floor(158+ratio*58);
-        const r2=Math.floor(25-ratio*25);
-        ctx.fillStyle=isHead?`rgb(${r2},${g},${Math.floor(158*ratio)})`:`rgba(${r2},${g},${Math.floor(100*ratio)},${0.4+ratio*0.6})`;
-        if(isHead){
-            // Head with glow
-            ctx.shadowColor='rgba(25,216,158,0.6)';ctx.shadowBlur=8;
-        }else{ctx.shadowBlur=0;}
-        ctx.beginPath();
-        ctx.roundRect(seg.x*cs+1,seg.y*cs+1,cs-2,cs-2,isHead?cs*0.35:cs*0.2);
-        ctx.fill();
+        if(isHead){ctx.fillStyle='#00ff88';ctx.shadowColor='rgba(0,255,136,0.7)';ctx.shadowBlur=12;}
+        else{ctx.fillStyle=`rgba(0,${Math.floor(120+ratio*136)},60,${0.35+ratio*0.65})`;ctx.shadowBlur=0;}
+        ctx.beginPath();ctx.roundRect(seg.x*cs+1,seg.y*cs+1,cs-2,cs-2,isHead?cs*0.38:cs*0.2);ctx.fill();
         ctx.shadowBlur=0;
         if(isHead){
-            // Eyes based on direction
-            ctx.fillStyle='#fff';
-            const ex1=snakeDirV.y===0?(snakeDirV.x>0?cs*0.65:cs*0.1):cs*0.25;
-            const ey1=snakeDirV.x===0?(snakeDirV.y>0?cs*0.65:cs*0.1):cs*0.25;
-            const ex2=snakeDirV.y===0?(snakeDirV.x>0?cs*0.65:cs*0.1):cs*0.65;
-            const ey2=snakeDirV.x===0?(snakeDirV.y>0?cs*0.65:cs*0.1):cs*0.65;
-            ctx.beginPath();ctx.arc(seg.x*cs+ex1,seg.y*cs+ey1,cs*0.1,0,Math.PI*2);ctx.fill();
-            ctx.beginPath();ctx.arc(seg.x*cs+ex2,seg.y*cs+ey2,cs*0.1,0,Math.PI*2);ctx.fill();
             ctx.fillStyle='#000';
-            ctx.beginPath();ctx.arc(seg.x*cs+ex1+cs*0.02,seg.y*cs+ey1+cs*0.02,cs*0.05,0,Math.PI*2);ctx.fill();
-            ctx.beginPath();ctx.arc(seg.x*cs+ex2+cs*0.02,seg.y*cs+ey2+cs*0.02,cs*0.05,0,Math.PI*2);ctx.fill();
+            const d=snakeDirV;
+            const [ex1,ey1,ex2,ey2]=d.x!==0
+                ?[seg.x*cs+(d.x>0?cs*0.68:cs*0.12),seg.y*cs+cs*0.28,seg.x*cs+(d.x>0?cs*0.68:cs*0.12),seg.y*cs+cs*0.62]
+                :[seg.x*cs+cs*0.28,seg.y*cs+(d.y>0?cs*0.68:cs*0.12),seg.x*cs+cs*0.62,seg.y*cs+(d.y>0?cs*0.68:cs*0.12)];
+            const er=Math.max(2,cs*0.11);
+            ctx.beginPath();ctx.arc(ex1,ey1,er,0,Math.PI*2);ctx.fill();
+            ctx.beginPath();ctx.arc(ex2,ey2,er,0,Math.PI*2);ctx.fill();
         }
     });
-    // Food — big pulsing apple
-    const pulse=0.85+Math.sin(Date.now()/180)*0.15;
-    const foodSz=cs*0.85*pulse;
-    ctx.font=Math.floor(foodSz)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.shadowColor='rgba(255,50,50,0.5)';ctx.shadowBlur=6;
-    ctx.fillText('🍎',snakeFood.x*cs+cs/2,snakeFood.y*cs+cs*0.58);
-    ctx.shadowBlur=0;
+    // BIG pulsing food
+    const pulse=0.82+Math.sin(Date.now()/200)*0.18;
+    const fx=snakeFood.x*cs+cs/2, fy=snakeFood.y*cs+cs/2;
+    const gr=ctx.createRadialGradient(fx,fy,0,fx,fy,cs*1.1);
+    gr.addColorStop(0,'rgba(255,60,60,0.5)');gr.addColorStop(1,'rgba(255,60,60,0)');
+    ctx.fillStyle=gr;ctx.fillRect(snakeFood.x*cs-cs/2,snakeFood.y*cs-cs/2,cs*2,cs*2);
+    ctx.shadowColor='rgba(255,80,80,0.9)';ctx.shadowBlur=14;
+    ctx.font=Math.floor(cs*pulse)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('🍎',fx,fy+cs*0.06);ctx.shadowBlur=0;
 }
 
 async function finishSnake(){
-    if(snakeInterval)clearInterval(snakeInterval);
-    if(snakeFrameId)cancelAnimationFrame(snakeFrameId);
+    if(snakeInterval)clearInterval(snakeInterval);if(snakeFrameId)cancelAnimationFrame(snakeFrameId);
     snakeActive=false;document.onkeydown=null;
     const betPts=toPoints(snakeBet);
-    let rewardPts=snakeScoreV*betPts*15;
-    // Check target bonuses
+    let pts=snakeScore*betPts*15;
     const elapsed=60-snakeTimer;
-    SNAKE_TARGETS.forEach(tgt=>{
-        if(snakeScoreV>=tgt.dots&&elapsed<=tgt.time){
-            rewardPts+=tgt.bonus;
-            showToast('🎯 Target! +'+tgt.bonus+' pts bonus!');
-        }
-    });
-    const rewardRupees=fromPoints(rewardPts);
-    if(rewardRupees>0){
-        await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'snake',bet:snakeBet,survived_seconds:snakeScoreV});
-        userData.balance=(userData.balance||0)+rewardRupees;
-        userData.today_earned=(userData.today_earned||0)+rewardRupees;
-        gameState.today_game_earned=(gameState.today_game_earned||0)+rewardRupees;
-        gameState.wins=(gameState.wins||0)+(snakeScoreV>=5?1:0);
-        gameState.totalPlays=(gameState.totalPlays||0)+1;
-        updateUI();
+    SN_TARGETS.forEach(t=>{if(snakeScore>=t.dots&&elapsed<=t.secs){pts+=t.bonus;showToast('🎯 Target! +'+t.bonus+' pts!');}});
+    const rup=fromPoints(pts);
+    if(rup>0){
+        await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'snake',bet:snakeBet,survived_seconds:snakeScore});
+        userData.balance=(userData.balance||0)+rup;userData.today_earned=(userData.today_earned||0)+rup;
+        gameState.today_game_earned=(gameState.today_game_earned||0)+rup;gameState.totalPlays=(gameState.totalPlays||0)+1;
+        if(snakeScore>=5)gameState.wins=(gameState.wins||0)+1;
+        updateUI();if(pts>0)showFloatingPts(pts);
     }
-    document.getElementById('snakeGame').style.display='none';
-    document.getElementById('snakeResult').style.display='block';
-    document.getElementById('snakeResultEmoji').textContent=snakeScoreV>=15?'🏆':snakeScoreV>=5?'🐍':'😅';
-    document.getElementById('snakeResultTitle').textContent=snakeScoreV>=15?'Snake Master! 🏆':snakeScoreV>=5?'Badiya khela!':'Aur practice karo!';
-    document.getElementById('snakeFinalScore').textContent=snakeScoreV;
-    document.getElementById('snakeResultReward').textContent='+'+rewardPts+' pts';
-    playSound(snakeScoreV>0?'earn':'lose');
+    document.getElementById('snakeGame').style.display='none';document.getElementById('snakeResult').style.display='block';
+    document.getElementById('snakeResultEmoji').textContent=snakeScore>=15?'🏆':snakeScore>=5?'🐍':'😅';
+    document.getElementById('snakeResultTitle').textContent=snakeScore>=15?'Snake Master! 🏆':snakeScore>=5?'Badiya khela!':'Aur try karo!';
+    document.getElementById('snakeFinalScore').textContent=snakeScore;
+    document.getElementById('snakeResultReward').textContent='+'+pts+' pts';
+    playSound(snakeScore>0?'earn':'lose');
     if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
     updateMissionsUI();
 }
@@ -4884,96 +4775,111 @@ function resetSnake(){document.getElementById('snakeSetup').style.display='block
 function exitSnake(){if(snakeInterval)clearInterval(snakeInterval);if(snakeFrameId)cancelAnimationFrame(snakeFrameId);snakeActive=false;document.onkeydown=null;closeModal('snake');}
 
 // ============================================================
-// ♟️ CHESS — Proper piece movement rules, smart AI
+// ♟️ CHESS — Real rules, STRONG AI (minimax), proper highlights
 // ============================================================
-let chessBet=1,chessTimeLeft=60,chessMult=2;
-let chessBoard=[],chessSelected=null,chessTurnV='white',chessActive=false;
-let chessInterval=null,chessMoveCount=0,chessCanvas=null;
-const CHESS_START=[
+let chessBet=1,chessTimeSetting=60,chessMult=2;
+let chessBoard=[],chessSelected=null,chessTurn='white',chessActive=false;
+let chessInterval=null,chessMoveCount=0,chessCanvas=null,chessTimeLeft=60;
+const CHESS_INIT=[
     [8,9,10,11,12,10,9,8],[7,7,7,7,7,7,7,7],
     [0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
     [1,1,1,1,1,1,1,1],[2,3,4,5,6,4,3,2]
 ];
-const W_PIECES=[1,2,3,4,5,6];
-const B_PIECES=[7,8,9,10,11,12];
-const CH_SYM=['','♙','♖','♘','♗','♕','♔','♟','♜','♞','♝','♛','♚'];
+const CH=['','♙','♖','♘','♗','♕','♔','♟','♜','♞','♝','♛','♚'];
+const PIECE_VAL=[0,100,500,320,330,900,20000,100,500,320,330,900,20000];
+function isW(p){return p>=1&&p<=6;}function isB(p){return p>=7&&p<=12;}function pt(p){return p>6?p-6:p;}
 
-function isW(p){return p>=1&&p<=6;}
-function isB(p){return p>=7&&p<=12;}
-function pieceType(p){return p>6?p-6:p;}
-
-function chessValidMoves(board,r,c){
-    const p=board[r][c];
-    if(!p)return[];
-    const moves=[];
-    const friendly=isW(p)?isW:isB;
-    const enemy=isW(p)?isB:isW;
-    const pt=pieceType(p);
-    const pawnDir=isW(p)?-1:1;
-    const pawnStart=isW(p)?6:1;
-
-    function addM(tr,tc){if(tr>=0&&tr<8&&tc>=0&&tc<8&&!friendly(board[tr][tc]))moves.push([tr,tc]);}
-    function slide(dr,dc){for(let i=1;i<8;i++){const tr=r+dr*i,tc=c+dc*i;if(tr<0||tr>=8||tc<0||tc>=8)break;if(friendly(board[tr][tc]))break;moves.push([tr,tc]);if(enemy(board[tr][tc]))break;}}
-
-    if(pt===1){// Pawn
-        const nr=r+pawnDir;
-        if(nr>=0&&nr<8&&!board[nr][c])moves.push([nr,c]);
-        if(r===pawnStart&&!board[r+pawnDir][c]&&!board[r+pawnDir*2][c])moves.push([r+pawnDir*2,c]);
-        [[pawnDir,-1],[pawnDir,1]].forEach(([dr,dc])=>{const tr=r+dr,tc=c+dc;if(tr>=0&&tr<8&&tc>=0&&tc<8&&enemy(board[tr][tc]))moves.push([tr,tc]);});
-    }else if(pt===2){[[1,0],[-1,0],[0,1],[0,-1]].forEach(([a,b])=>slide(a,b));}
-    else if(pt===3){[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(([a,b])=>addM(r+a,c+b));}
-    else if(pt===4){[[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([a,b])=>slide(a,b));}
-    else if(pt===5){[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([a,b])=>slide(a,b));}
-    else if(pt===6){[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]].forEach(([a,b])=>addM(r+a,c+b));}
-    return moves;
+function chessValidMoves(bd,r,c,checkSafety=false){
+    const p=bd[r][c];if(!p)return[];
+    const moves=[];const fr=isW(p)?isW:isB,en=isW(p)?isB:isW;
+    const pd=isW(p)?-1:1,ps=isW(p)?6:1;
+    function add(tr,tc){if(tr>=0&&tr<8&&tc>=0&&tc<8&&!fr(bd[tr][tc]))moves.push([tr,tc]);}
+    function slide(dr,dc){for(let i=1;i<8;i++){const tr=r+dr*i,tc=c+dc*i;if(tr<0||tr>=8||tc<0||tc>=8)break;if(fr(bd[tr][tc]))break;moves.push([tr,tc]);if(en(bd[tr][tc]))break;}}
+    const type=pt(p);
+    if(type===1){const nr=r+pd;if(nr>=0&&nr<8&&bd[nr][c]===0)moves.push([nr,c]);if(r===ps&&bd[r+pd][c]===0&&bd[r+pd*2]&&bd[r+pd*2][c]===0)moves.push([r+pd*2,c]);[[pd,-1],[pd,1]].forEach(([dr,dc])=>{const tr=r+dr,tc=c+dc;if(tr>=0&&tr<8&&tc>=0&&tc<8&&en(bd[tr][tc]))moves.push([tr,tc]);});}
+    else if(type===2){[[1,0],[-1,0],[0,1],[0,-1]].forEach(([a,b])=>slide(a,b));}
+    else if(type===3){[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(([a,b])=>add(r+a,c+b));}
+    else if(type===4){[[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([a,b])=>slide(a,b));}
+    else if(type===5){[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([a,b])=>slide(a,b));}
+    else if(type===6){[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]].forEach(([a,b])=>add(r+a,c+b));}
+    if(!checkSafety)return moves;
+    // Filter moves that leave own king in check
+    const kingPiece=isW(p)?6:12;
+    return moves.filter(([tr,tc])=>{
+        const b2=bd.map(row=>[...row]);b2[tr][tc]=b2[r][c];b2[r][c]=0;
+        if(b2[tr][tc]===1&&tr===0)b2[tr][tc]=5;
+        if(b2[tr][tc]===7&&tr===7)b2[tr][tc]=11;
+        // Find king
+        let kr=-1,kc=-1;
+        for(let rr=0;rr<8;rr++)for(let cc=0;cc<8;cc++)if(b2[rr][cc]===kingPiece){kr=rr;kc=cc;}
+        if(kr<0)return true;
+        // Is king attacked?
+        const attacker=isW(p)?isB:isW;
+        for(let rr=0;rr<8;rr++)for(let cc=0;cc<8;cc++){
+            if(!attacker(b2[rr][cc]))continue;
+            const vm=chessValidMoves(b2,rr,cc,false);
+            if(vm.some(([mr,mc])=>mr===kr&&mc===kc))return false;
+        }
+        return true;
+    });
 }
 
-function chessAI(board){
-    const moves=[];
+// Strong AI using simple evaluation
+function evalBoard(bd){
+    let score=0;
+    const centerBonus=[[0,0,0,0,0,0,0,0],[0,1,1,1,1,1,1,0],[0,1,3,3,3,3,1,0],[0,1,3,5,5,3,1,0],[0,1,3,5,5,3,1,0],[0,1,3,3,3,3,1,0],[0,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0]];
     for(let r=0;r<8;r++)for(let c=0;c<8;c++){
-        if(isB(board[r][c])){
-            chessValidMoves(board,r,c).forEach(([tr,tc])=>{
-                // Score: captures worth more, center control, avoid king exposure
-                const captureVal=board[tr][tc]?[0,1,5,3,3,9,100][pieceType(board[tr][tc])]:0;
-                const center=4-Math.max(Math.abs(tr-3.5),Math.abs(tc-3.5));
-                moves.push({fr:r,fc:c,tr,tc,score:captureVal*10+center+Math.random()*2});
-            });
-        }
+        const p=bd[r][c];if(!p)continue;
+        const v=PIECE_VAL[p];const cb=centerBonus[r][c];
+        if(isB(p))score+=v+cb*2;else score-=v+cb;
     }
-    if(!moves.length)return null;
-    moves.sort((a,b)=>b.score-a.score);
-    // Pick from top 3 to add randomness
-    return moves[Math.floor(Math.random()*Math.min(3,moves.length))];
+    return score;
+}
+function minimax(bd,depth,alpha,beta,maximizing){
+    if(depth===0)return evalBoard(bd);
+    if(maximizing){
+        let best=-Infinity;
+        for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+            if(!isB(bd[r][c]))continue;
+            const mvs=chessValidMoves(bd,r,c,false);
+            for(const[tr,tc]of mvs){
+                const b2=bd.map(row=>[...row]);b2[tr][tc]=b2[r][c];b2[r][c]=0;
+                const v=minimax(b2,depth-1,alpha,beta,false);
+                best=Math.max(best,v);alpha=Math.max(alpha,best);
+                if(beta<=alpha)break;
+            }
+        }
+        return best===-Infinity?evalBoard(bd):best;
+    }else{
+        let best=Infinity;
+        for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+            if(!isW(bd[r][c]))continue;
+            const mvs=chessValidMoves(bd,r,c,false);
+            for(const[tr,tc]of mvs){
+                const b2=bd.map(row=>[...row]);b2[tr][tc]=b2[r][c];b2[r][c]=0;
+                const v=minimax(b2,depth-1,alpha,beta,true);
+                best=Math.min(best,v);beta=Math.min(beta,best);
+                if(beta<=alpha)break;
+            }
+        }
+        return best===Infinity?evalBoard(bd):best;
+    }
 }
 
-function drawChessGame(highlights=[]){
-    if(!chessCanvas)chessCanvas=document.getElementById('chessCanvas');
-    if(!chessCanvas)return;
-    const ctx=chessCanvas.getContext('2d');
-    const W=chessCanvas.width,cs=W/8;
+function chessAI(){
+    let bestMove=null,bestScore=-Infinity;
+    const depth=2; // depth 2 = very strong, won't lose queen easily
     for(let r=0;r<8;r++)for(let c=0;c<8;c++){
-        const light=(r+c)%2===0;
-        ctx.fillStyle=light?'#f0d9b5':'#b58863';
-        ctx.fillRect(c*cs,r*cs,cs,cs);
-        if(chessSelected&&chessSelected.r===r&&chessSelected.c===c){
-            ctx.fillStyle='rgba(255,255,0,0.5)';ctx.fillRect(c*cs,r*cs,cs,cs);
-        }
-        if(highlights.some(([hr,hc])=>hr===r&&hc===c)){
-            if(chessBoard[r][c]){ctx.fillStyle='rgba(220,50,50,0.4)';ctx.fillRect(c*cs,r*cs,cs,cs);}
-            else{ctx.fillStyle='rgba(20,200,60,0.35)';ctx.fillRect(c*cs,r*cs,cs,cs);ctx.fillStyle='rgba(20,200,60,0.5)';ctx.beginPath();ctx.arc(c*cs+cs/2,r*cs+cs/2,cs*0.18,0,Math.PI*2);ctx.fill();}
-        }
-        const p=chessBoard[r][c];
-        if(p){
-            ctx.font=(cs*0.72)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';
-            ctx.fillStyle=isW(p)?'rgba(0,0,0,0.25)':'rgba(255,255,255,0.2)';
-            ctx.fillText(CH_SYM[p],c*cs+cs/2+1,r*cs+cs/2+1);
-            ctx.fillStyle=isW(p)?'#ffffff':'#1a1a1a';
-            ctx.fillText(CH_SYM[p],c*cs+cs/2,r*cs+cs/2);
+        if(!isB(chessBoard[r][c]))continue;
+        const mvs=chessValidMoves(chessBoard,r,c,false);
+        for(const[tr,tc]of mvs){
+            const b2=chessBoard.map(row=>[...row]);b2[tr][tc]=b2[r][c];b2[r][c]=0;
+            const score=minimax(b2,depth-1,-Infinity,Infinity,false);
+            if(score>bestScore){bestScore=score;bestMove={fr:r,fc:c,tr,tc};}
         }
     }
-    'abcdefgh'.split('').forEach((l,i)=>{ctx.font=(cs*0.16)+'px sans-serif';ctx.fillStyle=(i%2===0)?'#b58863':'#f0d9b5';ctx.textAlign='left';ctx.textBaseline='bottom';ctx.fillText(l,i*cs+2,8*cs-1);});
-    for(let i=0;i<8;i++){ctx.font=(cs*0.16)+'px sans-serif';ctx.fillStyle=(i%2===0)?'#f0d9b5':'#b58863';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(8-i,1,i*cs+1);}
+    return bestMove;
 }
 
 function openChessGame(){
@@ -4984,102 +4890,93 @@ function openChessGame(){
     openModal('chess');
 }
 function selChessBet(a,el){if(a>(userData.balance||0)){showToast('❌ Points kam hain!');return;}chessBet=a;document.querySelectorAll('#chessModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
-function selChessTime(t,el){chessTimeLeft=t;const m={60:2,30:4,15:8};chessMult=m[t]||2;document.querySelectorAll('#chessModal .runner-mode-btn').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+function selChessTime(t,el){chessTimeSetting=t;chessMult={60:2,30:4,15:8}[t]||2;document.querySelectorAll('#chessModal .runner-mode-btn').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
 
 async function startChess(){
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi!');return;}
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
     if((userData.balance||0)<chessBet){showToast('❌ Points kam hain!');return;}
     const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'chess',bet:chessBet});
     if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
-    userData.passes=Math.max(0,(userData.passes||1)-1);
-    userData.balance=Math.max(0,(userData.balance||0)-chessBet);
-    updateUI();
-    chessBoard=CHESS_START.map(row=>[...row]);
-    chessSelected=null;chessTurnV='white';chessActive=true;chessMoveCount=0;
-    document.getElementById('chessSetup').style.display='none';
-    document.getElementById('chessGame').style.display='block';
-    document.getElementById('chessResult').style.display='none';
+    userData.passes=Math.max(0,(userData.passes||1)-1);userData.balance=Math.max(0,(userData.balance||0)-chessBet);updateUI();
+    chessBoard=CHESS_INIT.map(row=>[...row]);chessSelected=null;chessTurn='white';chessActive=true;chessMoveCount=0;chessTimeLeft=chessTimeSetting;
+    document.getElementById('chessSetup').style.display='none';document.getElementById('chessGame').style.display='block';document.getElementById('chessResult').style.display='none';
     chessCanvas=document.getElementById('chessCanvas');
-    const W=Math.min(chessCanvas.parentElement.offsetWidth-16,340)||300;
-    chessCanvas.width=W;chessCanvas.height=W;
+    const W=Math.min(chessCanvas.parentElement.offsetWidth-8||300,340);chessCanvas.width=W;chessCanvas.height=W;
     drawChessGame();
-    let timeLeft=chessTimeLeft;
     chessInterval=setInterval(()=>{
         if(!chessActive)return;
-        if(chessTurnV==='white'){timeLeft--;document.getElementById('chessPlayerTimer').textContent=timeLeft+'s';if(timeLeft<=0){chessActive=false;clearInterval(chessInterval);finishChess('timeout');}}
-        document.getElementById('chessMoveCount').textContent='Moves: '+chessMoveCount;
-        // Store in outer scope
-        chessTimeLeft=timeLeft;
+        if(chessTurn==='white'){chessTimeLeft--;const tEl=document.getElementById('chessPlayerTimer');if(tEl)tEl.textContent=chessTimeLeft+'s';if(chessTimeLeft<=0){chessActive=false;clearInterval(chessInterval);finishChess('timeout');}}
+        const mEl=document.getElementById('chessMoveCount');if(mEl)mEl.textContent='Moves: '+chessMoveCount;
     },1000);
-    chessTimeLeft=timeLeft;
+}
+
+function drawChessGame(hilights=[]){
+    if(!chessCanvas)return;
+    const ctx=chessCanvas.getContext('2d');const W=chessCanvas.width,cs=W/8;
+    ctx.clearRect(0,0,W,W);
+    for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+        const light=(r+c)%2===0;
+        ctx.fillStyle=light?'#f0d9b5':'#b58863';ctx.fillRect(c*cs,r*cs,cs,cs);
+        if(chessSelected&&chessSelected.r===r&&chessSelected.c===c){ctx.fillStyle='rgba(255,255,0,0.55)';ctx.fillRect(c*cs,r*cs,cs,cs);}
+        if(hilights.some(([hr,hc])=>hr===r&&hc===c)){
+            if(chessBoard[r][c]){ctx.fillStyle='rgba(255,50,50,0.45)';ctx.fillRect(c*cs,r*cs,cs,cs);}
+            else{ctx.fillStyle='rgba(20,180,60,0.35)';ctx.fillRect(c*cs,r*cs,cs,cs);ctx.fillStyle='rgba(20,200,60,0.6)';ctx.beginPath();ctx.arc(c*cs+cs/2,r*cs+cs/2,cs*0.17,0,Math.PI*2);ctx.fill();}
+        }
+        const p=chessBoard[r][c];
+        if(p){ctx.font=(cs*0.74)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=isW(p)?'rgba(0,0,0,0.18)':'rgba(255,255,255,0.15)';ctx.fillText(CH[p],c*cs+cs/2+1,r*cs+cs/2+1);ctx.fillStyle=isW(p)?'#fff':'#1a1a1a';ctx.fillText(CH[p],c*cs+cs/2,r*cs+cs/2);}
+    }
+    for(let i=0;i<8;i++){ctx.font=(cs*0.17)+'px sans-serif';ctx.fillStyle=(i%2===0)?'#b58863':'#f0d9b5';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(8-i,1,i*cs+1);ctx.textAlign='right';ctx.textBaseline='bottom';ctx.fillStyle=(i%2===0)?'#f0d9b5':'#b58863';ctx.fillText('abcdefgh'[i],(i+1)*cs-1,8*cs-1);}
 }
 
 function chessClick(evt){
-    if(!chessActive||chessTurnV!=='white')return;
+    if(!chessActive||chessTurn!=='white')return;
     if(!chessCanvas)return;
     const rect=chessCanvas.getBoundingClientRect();
-    const scaleX=chessCanvas.width/rect.width;
-    const scaleY=chessCanvas.height/rect.height;
-    const cs=chessCanvas.width/8;
-    const c=Math.floor((evt.clientX-rect.left)*scaleX/cs);
-    const r=Math.floor((evt.clientY-rect.top)*scaleY/cs);
+    const cs=rect.width/8;
+    const c=Math.floor((evt.clientX-rect.left)/cs);
+    const r=Math.floor((evt.clientY-rect.top)/cs);
     if(r<0||r>7||c<0||c>7)return;
     const p=chessBoard[r][c];
     if(chessSelected){
-        const vm=chessValidMoves(chessBoard,chessSelected.r,chessSelected.c);
+        const vm=chessValidMoves(chessBoard,chessSelected.r,chessSelected.c,true);
         if(vm.some(([mr,mc])=>mr===r&&mc===c)){
-            // Make move
-            chessBoard[r][c]=chessBoard[chessSelected.r][chessSelected.c];
-            chessBoard[chessSelected.r][chessSelected.c]=0;
-            // Pawn promotion
+            chessBoard[r][c]=chessBoard[chessSelected.r][chessSelected.c];chessBoard[chessSelected.r][chessSelected.c]=0;
             if(chessBoard[r][c]===1&&r===0)chessBoard[r][c]=5;
             chessMoveCount++;chessSelected=null;drawChessGame();
             if(!chessBoard.flat().includes(12)){chessActive=false;clearInterval(chessInterval);finishChess('checkmate');return;}
-            chessTurnV='black';
-            document.getElementById('chessTurn').textContent='🤖 AI soch raha hai...';
+            chessTurn='black';const tEl=document.getElementById('chessTurn');if(tEl)tEl.textContent='🤖 AI soch raha hai...';
+            playSound('tap');
             setTimeout(()=>{
                 if(!chessActive)return;
-                const aiMove=chessAI(chessBoard);
-                if(aiMove){
-                    chessBoard[aiMove.tr][aiMove.tc]=chessBoard[aiMove.fr][aiMove.fc];
-                    chessBoard[aiMove.fr][aiMove.fc]=0;
-                    if(chessBoard[aiMove.tr][aiMove.tc]===7&&aiMove.tr===7)chessBoard[aiMove.tr][aiMove.tc]=11;
-                    chessMoveCount++;
-                }
+                const mv=chessAI();
+                if(mv){chessBoard[mv.tr][mv.tc]=chessBoard[mv.fr][mv.fc];chessBoard[mv.fr][mv.fc]=0;if(chessBoard[mv.tr][mv.tc]===7&&mv.tr===7)chessBoard[mv.tr][mv.tc]=11;chessMoveCount++;}
                 drawChessGame();
                 if(!chessBoard.flat().includes(6)){chessActive=false;clearInterval(chessInterval);finishChess('lost');return;}
-                chessTurnV='white';document.getElementById('chessTurn').textContent='♟️ Aapki baari';
-                playSound('click');
-            },600);
-            playSound('tap');
-        }else if(isW(p)){chessSelected={r,c};drawChessGame(chessValidMoves(chessBoard,r,c));playSound('click');}
+                chessTurn='white';if(tEl)tEl.textContent='♟️ Aapki baari';playSound('click');
+            },600+Math.random()*400);
+        }else if(isW(p)){chessSelected={r,c};drawChessGame(chessValidMoves(chessBoard,r,c,true));playSound('click');}
         else{chessSelected=null;drawChessGame();}
-    }else if(isW(p)){chessSelected={r,c};drawChessGame(chessValidMoves(chessBoard,r,c));playSound('click');}
+    }else if(isW(p)){chessSelected={r,c};drawChessGame(chessValidMoves(chessBoard,r,c,true));playSound('click');}
 }
 
 async function finishChess(reason){
     clearInterval(chessInterval);chessActive=false;
-    const betPts=toPoints(chessBet);
-    let rewardPts=0,title='',emoji='♟️',sub='';
-    if(reason==='checkmate'){rewardPts=betPts*chessMult*2;title='CHECKMATE! 🏆';emoji='🏆';sub='AI ko haraaya!';}
-    else if(reason==='timeout'){rewardPts=Math.floor(betPts*0.3);title='Time Out! ⏱️';emoji='⏱️';sub='Zyada time lag gaya!';}
-    else{rewardPts=0;title='Haar Gaye!';emoji='😔';sub='AI ne checkmate kiya!';}
-    const rewardRupees=fromPoints(rewardPts);
-    if(rewardRupees>0){
+    const betPts=toPoints(chessBet);let pts=0,title='',emoji='♟️';
+    if(reason==='checkmate'){pts=betPts*chessMult*2;title='CHECKMATE! 🏆';emoji='🏆';}
+    else if(reason==='timeout'){pts=Math.floor(betPts*0.3);title='Time Out! ⏱️';emoji='⏱️';}
+    else{pts=0;title='Haar Gaye!';emoji='😔';}
+    const rup=fromPoints(pts);
+    if(rup>0){
         await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'chess',bet:chessBet,survived_seconds:chessMoveCount});
-        userData.balance=(userData.balance||0)+rewardRupees;
-        userData.today_earned=(userData.today_earned||0)+rewardRupees;
-        gameState.today_game_earned=(gameState.today_game_earned||0)+rewardRupees;
-        gameState.wins=(gameState.wins||0)+(reason==='checkmate'?1:0);
-        gameState.totalPlays=(gameState.totalPlays||0)+1;
-        updateUI();
+        userData.balance=(userData.balance||0)+rup;userData.today_earned=(userData.today_earned||0)+rup;
+        gameState.today_game_earned=(gameState.today_game_earned||0)+rup;gameState.totalPlays=(gameState.totalPlays||0)+1;
+        if(reason==='checkmate')gameState.wins=(gameState.wins||0)+1;
+        updateUI();if(pts>0)showFloatingPts(pts);
     }
-    document.getElementById('chessGame').style.display='none';
-    document.getElementById('chessResult').style.display='block';
-    document.getElementById('chessResultEmoji').textContent=emoji;
-    document.getElementById('chessResultTitle').textContent=title;
-    document.getElementById('chessResultSub').textContent=sub+' • '+chessMoveCount+' moves';
-    document.getElementById('chessResultReward').textContent='+'+rewardPts+' pts';
+    document.getElementById('chessGame').style.display='none';document.getElementById('chessResult').style.display='block';
+    document.getElementById('chessResultEmoji').textContent=emoji;document.getElementById('chessResultTitle').textContent=title;
+    document.getElementById('chessResultSub').textContent=(reason==='checkmate'?'AI ko haraaya! Zabardast!':reason==='timeout'?'Jaldi karo agle baar!':'AI bahut strong hai!')+' • '+chessMoveCount+' moves';
+    document.getElementById('chessResultReward').textContent='+'+pts+' pts';
     playSound(reason==='checkmate'?'jackpot':reason==='lost'?'lose':'earn');
     if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
     updateMissionsUI();
@@ -5174,20 +5071,7 @@ function playNoise(dur,vol=0.05,startDelay=0){
 }
 
 // Floating points animation
-function triggerConfetti(){
-    const colors=['#FFD700','#FF6B6B','#4ECDC4','#7C5CFC','#19d89e','#ff9f43'];
-    for(let i=0;i<20;i++){
-        const el=document.createElement('div');
-        el.style.cssText='position:fixed;width:8px;height:8px;border-radius:50%;pointer-events:none;z-index:9999;';
-        el.style.background=colors[i%colors.length];
-        el.style.left=Math.random()*100+'vw';
-        el.style.top='-10px';
-        el.style.animation='confettiFall '+(1+Math.random()*1.5)+'s ease-in forwards';
-        el.style.animationDelay=Math.random()*0.4+'s';
-        document.body.appendChild(el);
-        setTimeout(()=>el.remove(),2500);
-    }
-}
+function triggerConfetti(){const colors=['#FFD700','#FF6B6B','#4ECDC4','#7C5CFC','#19d89e'];for(let i=0;i<20;i++){const el=document.createElement('div');el.style.cssText='position:fixed;width:8px;height:8px;border-radius:50%;pointer-events:none;z-index:9999;';el.style.background=colors[i%colors.length];el.style.left=Math.random()*100+'vw';el.style.top='-10px';el.style.animation='confettiFall '+(1+Math.random()*1.5)+'s ease-in forwards';el.style.animationDelay=Math.random()*0.4+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),2500);}}
 function showFloatingPts(pts,x,y){
     const el=document.createElement('div');
     el.className='float-pts';
