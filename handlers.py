@@ -186,27 +186,34 @@ class Handlers:
             movie_group = getattr(self.config, 'MOVIE_GROUP_LINK', 'https://t.me/all_movies_webseries_is_here')
 
             if referrer_id and is_new:
-                # ── REFERRED new user ─────────────────────────────
+                # ── REFERRED new user — URGENCY + STEP BY STEP ───
                 welcome_text = (
                     f"🎬 *FilmyFund mein Aapka Swagat Hai, {user.first_name}!*\n\n"
                     f"✅ Aap ek referral ke through aaye hain!\n\n"
-                    f"📌 *Sabse Pehle Ye Karo:*\n"
-                    f"1. Movie Group join karo\n"
-                    f"2. Koi bhi movie search karo\n"
-                    f"3. Bot jo shortlink bheje use complete karo\n\n"
-                    f"🎁 Isse aapka referral ACTIVE hoga aur:\n"
-                    f"• Jisne refer kiya: *3 Passes + 60 pts*\n"
-                    f"• Aapko: *30 pts daily* jab bhi search karo!\n\n"
-                    f"💡 Roz movie search = Roz earning!"
+                    f"⚡ *BONUS ALERT: Pehle 24 GHANTE mein shortlink karo = EXTRA 50 pts!*\n\n"
+                    f"📌 *3 Simple Steps mein Earning Shuru:*\n\n"
+                    f"*Step 1️⃣* → Neeche 🎬 MOVIE GROUP button dabao\n"
+                    f"*Step 2️⃣* → Group mein koi bhi movie ka naam likho\n"
+                    f"  _(jaise: Pushpa 2, Animal, Jawan)_\n"
+                    f"*Step 3️⃣* → Bot ek link bhejega — use kholo aur *10 second* wait karo\n\n"
+                    f"✅ *Bas itna karo aur:*\n"
+                    f"• Turant *50 pts BONUS* milega! 🎁\n"
+                    f"• Roz search karo = *30 pts DAILY* 💰\n"
+                    f"• Games khelo = *Aur zyada kamao!* 🎮\n\n"
+                    f"⏰ *Jaldi karo — 24 ghante ka offer hai!*"
                 )
                 keyboard = [
                     [InlineKeyboardButton(
-                        "🎬 MOVIE GROUP JOIN KARO — Pehle Ye Karo!",
+                        "🎬 STEP 1: MOVIE GROUP JOIN KARO",
                         url=movie_group
                     )],
                     [InlineKeyboardButton(
-                        "💰 MINI APP KHOLO — Earning Shuru Karo",
+                        "📱 MINI APP — Games & Earning",
                         web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}")
+                    )],
+                    [InlineKeyboardButton(
+                        "📖 KAISE KARU? VIDEO DEKHO",
+                        url=self.config.CHANNEL_LINK
                     )]
                 ]
                 await update.message.reply_text(
@@ -214,6 +221,33 @@ class Handlers:
                     reply_markup=InlineKeyboardMarkup(keyboard),
                     parse_mode=ParseMode.MARKDOWN
                 )
+
+                # 🔥 AUTO-REMINDER: 2 ghante baad reminder bhejo
+                try:
+                    import asyncio
+                    async def send_reminder_2hr():
+                        await asyncio.sleep(7200)  # 2 hours
+                        try:
+                            ref_active = self.db.referrals.find_one({'referred_id': user.id, 'is_active': True})
+                            if not ref_active:
+                                kb = [[InlineKeyboardButton("🎬 ABHI MOVIE SEARCH KARO!", url=movie_group)]]
+                                await context.bot.send_message(
+                                    chat_id=user.id,
+                                    text=(
+                                        f"⏰ *Hey {user.first_name}!*\n\n"
+                                        f"Tumne abhi tak movie search nahi ki! 😟\n\n"
+                                        f"🎁 *50 pts BONUS* abhi bhi available hai!\n"
+                                        f"Bas ek movie search karo aur shortlink complete karo.\n\n"
+                                        f"👇 *Ye simple hai — bas 30 second lagega:*"
+                                    ),
+                                    reply_markup=InlineKeyboardMarkup(kb),
+                                    parse_mode=ParseMode.MARKDOWN
+                                )
+                        except Exception as re:
+                            logger.error(f"2hr reminder error: {re}")
+                    asyncio.ensure_future(send_reminder_2hr())
+                except:
+                    pass
             else:
                 # ── Direct / returning user ───────────────────────
                 welcome_text = (
@@ -905,12 +939,16 @@ class Handlers:
                     await context.bot.send_message(
                         chat_id=uid,
                         text=(
-                            f"⏰ **{name}, aaj ka kaam baaki hai!**\n\n"
-                            f"🎁 **Daily Bonus** claim nahi kiya — claim karo aur streak badhao!\n"
-                            f"🎯 **Daily Missions** complete karo → 600+ pts kamao!\n"
-                            f"💎 **Sponsored Offers** dekho — free pts!\n\n"
-                            f"👥 Refer karo dosto ko → 60 pts + 3 Passes turant!\n\n"
-                            f"⚡ Raat ko aur late mat karo — streak toot jayegi!"
+                            f"⏰ *{name}, aaj ka kaam baaki hai!*\n\n"
+                            f"🎁 *Daily Bonus* claim nahi kiya — claim karo streak badhao!\n"
+                            f"🎯 *Daily Missions* = 600+ pts FREE!\n"
+                            f"💎 *Sponsored Offers* = Instant cash!\n\n"
+                            f"🎬 *Movie search karna mat bhoolna!*\n"
+                            f"👉 Group mein jaake koi bhi movie search karo\n"
+                            f"👉 Shortlink complete karo = 30 pts!\n\n"
+                            f"🏆 *Aaj ka Top Earner:* ₹47 kamaya sirf referrals se!\n\n"
+                            f"👥 3 dost ko refer karo = 180 pts + 9 Passes! 🚀\n\n"
+                            f"⚡ _Jaldi karo — streak toot jayegi!_"
                         ),
                         reply_markup=InlineKeyboardMarkup(keyboard),
                         parse_mode=ParseMode.MARKDOWN
