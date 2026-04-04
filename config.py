@@ -62,23 +62,32 @@ class Config:
             raise ValueError("MONGODB_URI is required")
         self.MONGODB_DB = os.getenv('MONGODB_DB', 'filmyfund_bot')
 
-        # EARNINGS — UPDATED
+        # EARNINGS — OPTIMIZED FOR MAX ENGAGEMENT
         self.REFERRAL_BONUS          = float(os.getenv('REFERRAL_BONUS', '0.60'))       # ₹0.60 per activation
         self.DAILY_REFERRAL_EARNING  = float(os.getenv('DAILY_REFERRAL_EARNING', '0.30')) # ₹0.30 per daily search
         self.DAILY_BONUS             = float(os.getenv('DAILY_BONUS', '0.05'))           # Base daily bonus
         self.MIN_WITHDRAWAL          = float(os.getenv('MIN_WITHDRAWAL', '20.0'))        # Min ₹20
+        self.FIRST_SHORTLINK_BONUS   = float(os.getenv('FIRST_SHORTLINK_BONUS', '0.50')) # First shortlink = extra 50pts
+        self.STREAK_7_BONUS          = float(os.getenv('STREAK_7_BONUS', '2.0'))         # 7 din streak = ₹2
+        self.STREAK_30_BONUS         = float(os.getenv('STREAK_30_BONUS', '10.0'))       # 30 din streak = ₹10
 
         # ANTI-CHEAT
         self.MAX_SEARCHES_PER_DAY      = int(os.getenv('MAX_SEARCHES_PER_DAY', '1'))
         self.MIN_TIME_BETWEEN_SEARCHES = int(os.getenv('MIN_TIME_BETWEEN_SEARCHES', '300'))
 
-        # TIERS
+        # TIERS — More achievable + better rewards
         self.TIERS = {
-            1: {'name': '🥉 BASIC',   'rate': 0.30, 'required_refs': 0},
-            2: {'name': '🥈 SILVER',  'rate': 0.40, 'required_refs': 50},
-            3: {'name': '🥇 GOLD',    'rate': 0.50, 'required_refs': 100},
-            4: {'name': '💎 DIAMOND', 'rate': 0.75, 'required_refs': 200},
+            1: {'name': '🥉 BASIC',    'rate': 0.30, 'required_refs': 0},
+            2: {'name': '🥈 SILVER',   'rate': 0.40, 'required_refs': 25},
+            3: {'name': '🥇 GOLD',     'rate': 0.55, 'required_refs': 75},
+            4: {'name': '💎 DIAMOND',  'rate': 0.75, 'required_refs': 150},
+            5: {'name': '👑 ROYAL',    'rate': 1.00, 'required_refs': 300},
         }
+
+        # HAPPY HOURS CONFIG
+        self.HAPPY_HOUR_START = int(os.getenv('HAPPY_HOUR_START', '20'))  # 8 PM
+        self.HAPPY_HOUR_END   = int(os.getenv('HAPPY_HOUR_END', '22'))    # 10 PM
+        self.HAPPY_HOUR_MULTIPLIER = float(os.getenv('HAPPY_HOUR_MULTIPLIER', '2.0'))
 
         # SERVER
         self.PORT             = int(os.getenv('PORT', '10000'))
