@@ -631,6 +631,33 @@
         /* Floating points animation */
         .float-pts{position:fixed;font-weight:900;font-size:18px;color:var(--gold);pointer-events:none;z-index:9999;animation:floatUp 1.2s ease-out forwards;}
 
+        /* Game earn tag */
+        .game-earn-tag{display:inline-block;background:rgba(25,216,158,.12);border:1px solid rgba(25,216,158,.3);color:var(--green);padding:3px 10px;border-radius:20px;font-size:9px;font-weight:800;margin-top:4px;}
+
+        /* Premium card hover effects */
+        .game-card-skill{transition:transform .18s,box-shadow .2s,border-color .2s !important;}
+        .game-card-skill:active{transform:scale(.93) !important;box-shadow:0 4px 20px rgba(0,0,0,.5) !important;}
+
+        /* Confetti animation */
+        @keyframes confettiFall{0%{transform:translateY(-10px) rotate(0deg);opacity:1;}100%{transform:translateY(100vh) rotate(720deg);opacity:0;}}
+
+        /* Quiz option hover */
+        .quiz-opt-btn:active{transform:scale(.96);border-color:var(--gold) !important;background:rgba(240,192,64,.08) !important;}
+
+        /* Smooth page transitions */
+        .page{transition:opacity .2s ease;}
+
+        /* Better scrollbar on mobile */
+        .page-inner{-webkit-overflow-scrolling:touch;}
+
+        /* Shortlink reminder pulse */
+        #shortlinkReminder{box-shadow:0 0 0 0 rgba(255,78,106,.4);animation:reminderPulse 2s infinite;}
+        @keyframes reminderPulse{0%{box-shadow:0 0 0 0 rgba(255,78,106,.4);}70%{box-shadow:0 0 0 12px rgba(255,78,106,0);}100%{box-shadow:0 0 0 0 rgba(255,78,106,0);}}
+
+        /* Neon glow for important CTAs */
+        .neon-glow{box-shadow:0 0 15px rgba(240,192,64,.3),0 0 30px rgba(240,192,64,.1);transition:box-shadow .3s;}
+        .neon-glow:active{box-shadow:0 0 20px rgba(240,192,64,.5),0 0 40px rgba(240,192,64,.2);}
+
     </style>
 </head>
 <body>
@@ -751,6 +778,33 @@
                 </div>
             </div>
         </div>
+        <!-- 🔥 SHORTLINK REMINDER BANNER — for pending referred users -->
+        <div id="shortlinkReminder" style="display:none;background:linear-gradient(135deg,#ff6b35,#ff4e6a);border-radius:16px;padding:14px;margin-bottom:12px;animation:glowPulse 2s infinite;cursor:pointer;" onclick="window.open(MOVIE_GROUP_LINK,'_blank')">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div style="font-size:32px;animation:badgeFloat 2s infinite;">🎬</div>
+                <div style="flex:1;">
+                    <div style="font-family:'Oxanium',sans-serif;font-size:14px;font-weight:900;color:#fff;">⚡ MOVIE SEARCH KARO = 50 pts FREE!</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,.85);margin-top:3px;">Group mein jaake koi bhi movie search karo → Shortlink complete karo → Turant bonus!</div>
+                </div>
+                <div style="background:rgba(255,255,255,.25);padding:8px 12px;border-radius:28px;font-weight:900;font-size:11px;color:#fff;white-space:nowrap;">GO →</div>
+            </div>
+        </div>
+
+        <!-- 🔥 STREAK CHALLENGE BANNER -->
+        <div id="streakChallenge" style="display:none;background:linear-gradient(135deg,#0f2027,#2c5364);border:1.5px solid rgba(25,216,158,.4);border-radius:16px;padding:12px 14px;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div style="font-size:26px;">🔥</div>
+                <div style="flex:1;">
+                    <div style="font-family:'Oxanium',sans-serif;font-size:12px;font-weight:900;color:var(--green);" id="streakChallengeTitle">7-Day Streak Challenge!</div>
+                    <div style="font-size:10px;color:var(--text2);margin-top:2px;" id="streakChallengeSub">7 din daily bonus claim karo = ₹2 bonus!</div>
+                </div>
+                <div id="streakChallengeBtn" style="background:var(--green);color:#000;padding:6px 12px;border-radius:28px;font-weight:900;font-size:10px;cursor:pointer;display:none;" onclick="claimStreakBonus()">CLAIM!</div>
+            </div>
+            <div style="height:5px;background:rgba(255,255,255,.1);border-radius:4px;margin-top:8px;overflow:hidden;">
+                <div id="streakChallengeBar" style="height:100%;background:linear-gradient(90deg,var(--green),var(--gold));border-radius:4px;width:0%;transition:width .5s;"></div>
+            </div>
+        </div>
+
         <div class="passes-card">
             <div class="passes-info">
                 <div class="passes-icon"><img src="https://i.postimg.cc/15X5YpmT/1773974388103.png" style="width:38px;height:38px;object-fit:contain;"></div>
@@ -915,6 +969,26 @@
                 </div>
             </div>
         </div>
+        <!-- QUIZ GAME ROW -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+            <div class="game-card game-card-skill" onclick="openQuizGame()" style="background:linear-gradient(135deg,#2a1a0a,#3a2a10);border:1.5px solid rgba(240,192,64,.4);">
+                <div style="font-size:44px;text-align:center;padding:10px 0;">🧠</div>
+                <div style="padding:10px;">
+                    <div class="game-name" style="color:var(--gold);">🧠 Quiz</div>
+                    <div class="game-desc">GK questions • Daily new!</div>
+                    <span class="game-earn-tag">100 pts/correct</span>
+                </div>
+            </div>
+            <div class="game-card game-card-skill" onclick="openMemoryGame()" style="background:linear-gradient(135deg,#1a0a28,#2a1040);border:1.5px solid rgba(168,85,247,.4);">
+                <div style="font-size:44px;text-align:center;padding:10px 0;">🃏</div>
+                <div style="padding:10px;">
+                    <div class="game-name" style="color:var(--purple2);">🃏 Memory</div>
+                    <div class="game-desc">Cards flip karo • Match banao!</div>
+                    <span class="game-earn-tag" style="background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.3);color:var(--purple2);">50 pts/match</span>
+                </div>
+            </div>
+        </div>
+
         <!-- DIVIDER -->
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
             <div style="flex:1;height:1px;background:var(--border);"></div>
@@ -997,7 +1071,15 @@
         </div>
 
         <div class="ref-activity-section">
-            <div class="ref-activity-title" data-t="referred_users">👥 Referred Users Activity</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;">
+                <div class="ref-activity-title" style="margin-bottom:0;" data-t="referred_users">👥 Referred Users Activity</div>
+                <button onclick="sendBulkNudge()" style="background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;border:none;border-radius:28px;padding:6px 12px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;">
+                    📩 Nudge All Pending
+                </button>
+            </div>
+            <div style="background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.2);border-radius:10px;padding:8px 10px;margin-bottom:9px;font-size:10px;color:var(--text2);">
+                💡 <b>Nudge</b> = Pending users ko reminder bhejta hai ki movie search karo. Isse shortlink completion badhta hai!
+            </div>
             <div id="refActivityList"><div style="color:var(--text3);font-size:12px;">Loading...</div></div>
         </div>
         <div style="background:var(--bg3);border-radius:14px;padding:13px;margin-top:11px;border:1px solid var(--border);">
@@ -5997,6 +6079,182 @@ function showToast(msg){const t2=document.getElementById('toast');t2.textContent
 // ============================================================
 // INIT
 // ============================================================
+// ═══════ SHORTLINK REMINDER + STREAK CHALLENGE ═══════
+const MOVIE_GROUP_LINK = '{{ movie_group_link }}';
+
+function checkShortlinkReminder(){
+    const el = document.getElementById('shortlinkReminder');
+    if(!el) return;
+    // Show if user is referred and not yet active
+    if(userData.referrer_id && !userData.referral_active && userData.active_refs === 0){
+        el.style.display = 'block';
+    } else {
+        el.style.display = 'none';
+    }
+}
+
+function checkStreakChallenge(){
+    const el = document.getElementById('streakChallenge');
+    const bar = document.getElementById('streakChallengeBar');
+    const title = document.getElementById('streakChallengeTitle');
+    const sub = document.getElementById('streakChallengeSub');
+    const btn = document.getElementById('streakChallengeBtn');
+    if(!el || !bar) return;
+
+    const streak = userData.daily_streak || 0;
+    el.style.display = 'block';
+
+    if(streak >= 30){
+        title.textContent = '🏆 30-Day Legend Challenge!';
+        sub.textContent = `${streak}/30 days done • ₹10 mega bonus!`;
+        bar.style.width = Math.min(100, (streak/30)*100) + '%';
+        if(streak === 30 && !userData.streak_30_claimed) btn.style.display = 'block';
+    } else if(streak >= 7){
+        title.textContent = '🔥 30-Day Legend Challenge!';
+        sub.textContent = `${streak}/30 days • 7-day done ✅ • ₹10 bonus at 30!`;
+        bar.style.width = (streak/30)*100 + '%';
+    } else {
+        title.textContent = '🔥 7-Day Streak Challenge!';
+        sub.textContent = `${streak}/7 days • Roz claim karo = ₹2 bonus!`;
+        bar.style.width = (streak/7)*100 + '%';
+        if(streak === 7 && !userData.streak_7_claimed) btn.style.display = 'block';
+    }
+}
+
+async function claimStreakBonus(){
+    try{
+        const r = await apiPost('/api/streak-challenge', {user_id: userData.user_id});
+        if(r && r.success){
+            showToast('🎉 ' + r.message);
+            triggerConfetti();
+            showFloatingPts(r.bonus * 100);
+            await loadUser(); updateUI();
+            checkStreakChallenge();
+        } else {
+            showToast(r?.message || 'Not available yet');
+        }
+    } catch(e){ showToast('Error'); }
+}
+
+// ═══════ QUIZ GAME ═══════
+const QUIZ_QUESTIONS = [
+    {q: "Bharat ka sabse bada rajya kaunsa hai?", opts: ["Rajasthan", "Madhya Pradesh", "Uttar Pradesh", "Maharashtra"], correct: 0},
+    {q: "Pani ka chemical formula kya hai?", opts: ["H2O", "CO2", "O2", "NaCl"], correct: 0},
+    {q: "India ka national animal kaun hai?", opts: ["Sher", "Hathi", "Baagh", "Mor"], correct: 2},
+    {q: "1 GB mein kitne MB hote hain?", opts: ["500", "1000", "1024", "2048"], correct: 2},
+    {q: "Telegram kisne banaya?", opts: ["Mark Zuckerberg", "Pavel Durov", "Elon Musk", "Jack Dorsey"], correct: 1},
+    {q: "Bollywood ki sabse mehengi film kaun si hai?", opts: ["Bahubali 2", "RRR", "2.0", "Kalki 2898 AD"], correct: 3},
+    {q: "India mein kitne states hain (2024)?", opts: ["28", "29", "30", "31"], correct: 0},
+    {q: "Earth se Moon kitna door hai?", opts: ["3.84 lakh km", "1.5 lakh km", "10 lakh km", "50,000 km"], correct: 0},
+    {q: "WhatsApp kisne banaya?", opts: ["Brian Acton & Jan Koum", "Mark Zuckerberg", "Sundar Pichai", "Tim Cook"], correct: 0},
+    {q: "Cricket World Cup 2023 mein kaunsa desh jeeta?", opts: ["India", "Australia", "England", "Pakistan"], correct: 1},
+    {q: "Python ek kya hai?", opts: ["Saanp", "Programming Language", "Dono", "Koi nahi"], correct: 2},
+    {q: "India ka sabse lamba bridge kaunsa hai?", opts: ["Dhola Sadiya", "Bandra-Worli", "Howrah", "Pamban"], correct: 0},
+    {q: "Bitcoin kisne invent kiya?", opts: ["Elon Musk", "Satoshi Nakamoto", "Vitalik Buterin", "Jeff Bezos"], correct: 1},
+    {q: "Instagram kab launch hua?", opts: ["2008", "2010", "2012", "2014"], correct: 1},
+    {q: "UPI full form kya hai?", opts: ["Unified Payments Interface", "Universal Payment India", "United Pay Interface", "Unified Pay India"], correct: 0},
+];
+
+function openQuizGame(){
+    // Pick random question
+    const qi = Math.floor(Math.random() * QUIZ_QUESTIONS.length);
+    const q = QUIZ_QUESTIONS[qi];
+
+    const overlay = document.createElement('div');
+    overlay.id = 'quizOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:900;display:flex;align-items:center;justify-content:center;padding:16px;animation:scaleIn .3s ease;';
+
+    overlay.innerHTML = `
+        <div style="background:linear-gradient(135deg,#0e1220,#1a0a2e);border:1.5px solid rgba(240,192,64,.3);border-radius:24px;padding:24px;width:100%;max-width:400px;text-align:center;">
+            <div style="font-size:38px;margin-bottom:10px;">🧠</div>
+            <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--gold);margin-bottom:4px;">Daily Quiz!</div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:16px;">1 Pass lagega • Sahi jawab = 100 pts!</div>
+            <div style="background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:16px;border:1px solid var(--border);">
+                <div style="font-size:14px;font-weight:700;color:var(--text);line-height:1.6;">${q.q}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;" id="quizOptions">
+                ${q.opts.map((opt, i) => `
+                    <button onclick="submitQuiz(${i}, ${q.correct}, this)" class="quiz-opt-btn"
+                        style="background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;padding:13px;font-weight:700;font-size:13px;cursor:pointer;color:var(--text);transition:all .2s;font-family:inherit;text-align:left;">
+                        ${['A','B','C','D'][i]}. ${opt}
+                    </button>
+                `).join('')}
+            </div>
+            <button onclick="document.getElementById('quizOverlay').remove();"
+                style="margin-top:14px;background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:12px;padding:10px;width:100%;color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit;">
+                ❌ Cancel (No Pass used)
+            </button>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+
+async function submitQuiz(answerIdx, correctIdx, btn){
+    // Disable all buttons
+    document.querySelectorAll('#quizOptions .quiz-opt-btn').forEach(b => {
+        b.disabled = true;
+        b.style.opacity = '0.5';
+    });
+    btn.style.opacity = '1';
+
+    try {
+        const r = await apiPost('/api/game/quiz', {
+            user_id: userData.user_id,
+            answer: answerIdx,
+            correct: correctIdx
+        });
+
+        if(r && r.success){
+            if(r.correct){
+                btn.style.background = 'linear-gradient(135deg,#22c55e,#15803d)';
+                btn.style.borderColor = '#22c55e';
+                btn.style.color = '#fff';
+                playSound('win');
+                triggerConfetti();
+                showFloatingPts(100);
+                showToast('🎉 Sahi Jawab! +100 pts!');
+            } else {
+                btn.style.background = 'linear-gradient(135deg,#ef4444,#b91c1c)';
+                btn.style.borderColor = '#ef4444';
+                btn.style.color = '#fff';
+                // Highlight correct
+                document.querySelectorAll('#quizOptions .quiz-opt-btn')[correctIdx].style.background = 'linear-gradient(135deg,#22c55e,#15803d)';
+                document.querySelectorAll('#quizOptions .quiz-opt-btn')[correctIdx].style.borderColor = '#22c55e';
+                document.querySelectorAll('#quizOptions .quiz-opt-btn')[correctIdx].style.color = '#fff';
+                document.querySelectorAll('#quizOptions .quiz-opt-btn')[correctIdx].style.opacity = '1';
+                playSound('lose');
+                showToast('❌ Galat! Sahi jawab dekho ↑');
+            }
+            await loadUser(); updateUI();
+        } else {
+            showToast('❌ ' + (r?.message || 'Error'));
+        }
+    } catch(e){ showToast('Network error'); }
+
+    setTimeout(() => {
+        const ol = document.getElementById('quizOverlay');
+        if(ol) ol.remove();
+    }, 2500);
+}
+
+// ═══════ MEMORY GAME (Simple card flip) ═══════
+function openMemoryGame(){
+    showToast('🃏 Coming soon! Abhi Quiz khelo!');
+    openQuizGame();
+}
+
+// ═══════ PENDING REFS NUDGE BUTTON ═══════
+async function sendBulkNudge(){
+    try{
+        const r = await apiPost('/api/send-shortlink-reminder', {user_id: userData.user_id});
+        if(r && r.success){
+            showToast(`✅ ${r.sent} pending users ko message bheja!`);
+        } else {
+            showToast('❌ ' + (r?.message || 'Error'));
+        }
+    }catch(e){showToast('Network error');}
+}
+
 async function init(){
     try{const sv=localStorage.getItem('ez_lang');if(sv)lang=sv;}catch(e){}
     document.getElementById('langFab').style.display='block';
@@ -6005,15 +6263,18 @@ async function init(){
     else{const uid=new URLSearchParams(location.search).get('user_id');if(uid)userData.user_id=parseInt(uid);}
     showToast('⏳ Loading...');
     await Promise.all([loadUser(),loadGameState(),loadBonusDays(),loadMissions(),loadAds(),loadLiveActivity()]);
-    checkHappyHours(); // Check happy hours on load
+    checkHappyHours();
     drawWheel(0);updateUI();updateMissionsUI();
     setLang(lang);
+    // NEW: Check shortlink reminder + streak challenge
+    checkShortlinkReminder();
+    checkStreakChallenge();
     showToast('✅ Ready!');
     setInterval(loadLiveActivity,30000);
     loadNotifications();
     setTimeout(checkBroadcastNotifications, 2000);
     setInterval(checkBroadcastNotifications, 60000);
-    setInterval(async()=>{await loadUser();await loadGameState();},60000);
+    setInterval(async()=>{await loadUser();await loadGameState();checkShortlinkReminder();checkStreakChallenge();},60000);
 }
 document.addEventListener('DOMContentLoaded',init);
 </script>
