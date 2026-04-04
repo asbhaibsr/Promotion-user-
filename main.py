@@ -1124,6 +1124,141 @@ def send_ref_nudge():
         return jsonify({'success': False, 'message': str(ex)[:100]})
 
 
+# ========== NEW: SHORTLINK REMINDER API ==========
+
+@app.route('/api/send-shortlink-reminder', methods=['POST'])
+def send_shortlink_reminder_api():
+    """Send reminder to pending referrals who haven't completed shortlink"""
+    try:
+        data = request.get_json()
+        user_id = int(data.get('user_id', 0))
+        if not user_id:
+            return jsonify({'success': False, 'message': 'Missing user_id'})
+        if not db or not db.ensure_connection():
+            return jsonify({'success': False, 'message': 'DB error'})
+
+        # Find pending referrals for this user
+        pending = list(db.referrals.find({
+            'referrer_id': user_id,
+            'is_active': False
+        }).limit(10))
+
+        sent = 0
+        for ref in pending:
+            ref_user_id = ref.get('referred_id')
+            ref_user = db.get_user(ref_user_id)
+            if not ref_user:
+                continue
+            ref_name = ref_user.get('first_name', 'Dost')
+            try:
+                import asyncio
+                async def _send(rid, rname):
+                    kb = [[InlineKeyboardButton("🎬 MOVIE SEARCH KARO!", url=config.MOVIE_GROUP_LINK)]]
+                    await bot_app.bot.send_message(
+                        chat_id=rid,
+                        text=(
+                            f"👋 *{rname}, yaad hai?*\n\n"
+                            f"Tumne abhi tak movie search nahi ki! 😔\n\n"
+                            f"🎁 *Abhi karo = 50 pts INSTANT bonus!*\n"
+                            f"🎬 Group mein koi bhi movie search karo\n"
+                            f"🔗 Shortlink kholo — bas 10 second!\n\n"
+                            f"💰 Roz search = Roz 30 pts!\n"
+                            f"🎮 Games khelo = Unlimited earning!\n\n"
+                            f"⏰ *Offer limited hai — jaldi karo!*"
+                        ),
+                        reply_markup=InlineKeyboardMarkup(kb),
+                        parse_mode='Markdown'
+                    )
+                if bot_loop and bot_loop.is_running():
+                    future = asyncio.run_coroutine_threadsafe(_send(ref_user_id, ref_name), bot_loop)
+                    future.result(timeout=10)
+                    sent += 1
+            except:
+                pass
+
+        return jsonify({'success': True, 'sent': sent, 'total_pending': len(pending)})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+# ========== NEW: DAILY STREAK CHALLENGE API ==========
+
+@app.route('/api/streak-challenge', methods=['POST'])
+def streak_challenge_api():
+    """7/30 day streak challenge — extra bonus"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        if not user_id or not db or not db.ensure_connection():
+            return jsonify({'success': False, 'message': 'Missing data'})
+
+        user = db.get_user(int(user_id))
+        if not user:
+            return jsonify({'success': False, 'message': 'User not found'})
+
+        streak = user.get('daily_streak', 0)
+        result = {'success': False, 'message': 'No milestone reached'}
+
+        if streak == 7 and not user.get('streak_7_claimed'):
+            bonus = config.STREAK_7_BONUS
+            db.add_balance(int(user_id), bonus, f"7-day streak bonus!")
+            db.users.update_one({'user_id': int(user_id)}, {'$set': {'streak_7_claimed': True}})
+            db.add_live_activity('bonus', int(user_id), bonus, f"🔥 7-day streak bonus +₹{bonus}!")
+            db.user_cache.pop(f"user_{user_id}", None)
+            result = {'success': True, 'bonus': bonus, 'message': f'🔥 7-day streak! +₹{bonus}!'}
+
+        elif streak == 30 and not user.get('streak_30_claimed'):
+            bonus = config.STREAK_30_BONUS
+            db.add_balance(int(user_id), bonus, f"30-day streak bonus!")
+            db.users.update_one({'user_id': int(user_id)}, {'$set': {'streak_30_claimed': True}})
+            db.add_live_activity('bonus', int(user_id), bonus, f"🏆 30-day streak bonus +₹{bonus}!")
+            db.user_cache.pop(f"user_{user_id}", None)
+            result = {'success': True, 'bonus': bonus, 'message': f'🏆 30-day streak! +₹{bonus}!'}
+
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+# ========== NEW: QUIZ GAME API ==========
+
+@app.route('/api/game/quiz', methods=['POST'])
+def game_quiz_api():
+    """Daily quiz game — 1 pass, answer correctly = 100 pts"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        answer_idx = data.get('answer')
+        correct_idx = data.get('correct')
+        if not user_id:
+            return jsonify({'success': False, 'message': 'Missing data'})
+        if not db or not db.ensure_connection():
+            return jsonify({'success': False, 'message': 'DB error'})
+
+        user = db.get_user(int(user_id))
+        if not user:
+            return jsonify({'success': False, 'message': 'User not found'})
+        if user.get('passes', 0) < 1:
+            return jsonify({'success': False, 'message': 'Not enough passes! Earn or buy passes.'})
+
+        # Deduct 1 pass
+        db.users.update_one({'user_id': int(user_id)}, {'$inc': {'passes': -1}})
+
+        is_correct = (int(answer_idx) == int(correct_idx))
+        reward = 0
+        if is_correct:
+            reward = 1.0  # ₹1 = 100pts
+            db.add_balance(int(user_id), reward, "Quiz correct answer!")
+            db.add_live_activity('game', int(user_id), reward, "🧠 Quiz correct! +100 pts")
+
+        db.user_cache.pop(f"user_{user_id}", None)
+        return jsonify({
+            'success': True,
+            'correct': is_correct,
+            'reward': reward,
+            'message': f'+{int(reward*100)} pts! 🎉' if is_correct else 'Wrong answer! 😞'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
 @app.route('/health')
 def health():
     status = {'status': 'ok', 'time': datetime.now().isoformat(), 'db_connected': db.connected if db else False}
