@@ -687,6 +687,7 @@
     <div class="sidebar-toggle-row"><div class="sidebar-toggle-lbl"><span>🔊</span> <span data-t="sounds">Sounds</span></div><div class="toggle on" id="soundToggleEl" onclick="toggleSound()"><div class="toggle-knob"></div></div></div>
     <div class="sidebar-divider"></div>
     <div class="sidebar-item" id="adminSidebarBtn" style="display:none;" onclick="closeSidebar();toggleAdminEdit()"><div class="si-icon">✏️</div><span data-t="admin_edit">Admin Edit Mode</span></div>
+    <div class="sidebar-item" id="adminPanelBtn" style="display:none;" onclick="closeSidebar();openAdminPanel()"><div class="si-icon">👑</div><span>Admin Panel</span></div>
     <div class="sidebar-item" id="adminSupportBtn" style="display:none;" onclick="closeSidebar();openAdminSupport()"><div class="si-icon">🛡️</div><span>Admin: Support</span></div>
     <div class="sidebar-item" onclick="closeSidebar();openModal('referral')"><div class="si-icon">👥</div><span data-t="refer_earn">Refer & Earn</span></div>
     <div class="sidebar-divider"></div>
@@ -703,12 +704,15 @@
 <div class="topbar">
     <div class="hamburger-btn" onclick="openSidebar()"><span></span><span></span><span></span></div>
     <div class="topbar-logo"><img src="https://i.postimg.cc/xT43NypN/IMG-20260320-075702-067.jpg" style="height:32px;border-radius:8px;vertical-align:middle;margin-right:6px;"> FilmyFund</div>
+    <div id="notifBell" onclick="openNotifPanel()" style="position:relative;width:36px;height:36px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-right:6px;flex-shrink:0;font-size:18px;">🔔<div id="notifDot" style="display:none;position:absolute;top:5px;right:5px;width:8px;height:8px;background:#ef4444;border-radius:50%;border:1.5px solid var(--bg);"></div></div>
     <div class="topbar-balance" id="topbarBalance">0 pts</div>
 </div>
 
 <!-- HOME PAGE -->
 <div class="page active" id="homePage">
     <div class="page-inner">
+        <!-- Announcement Banner -->
+        <div id="announcementBanner" style="display:none;background:linear-gradient(135deg,rgba(139,92,252,.9),rgba(56,189,248,.85));padding:10px 14px;border-radius:14px;margin-bottom:10px;animation:scaleIn .3s ease;border:1px solid rgba(255,255,255,.15);"><div style="display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">📢</span><div style="flex:1;font-size:12px;font-weight:700;color:#fff;" id="announcementText"></div><button onclick="dismissAnnouncement()" style="background:rgba(255,255,255,.2);border:none;border-radius:8px;color:#fff;width:22px;height:22px;font-size:14px;cursor:pointer;flex-shrink:0;">×</button></div></div>
         <div class="balance-card">
             <div class="balance-label" data-t="your_balance">🪙 Aapke Points</div>
             <div class="balance-main pts-display" id="balAmt">0 pts</div>
@@ -853,68 +857,83 @@
 <!-- GAMES PAGE -->
 <div class="page" id="gamesPage">
     <div class="page-inner">
-        <div class="games-hero">
-            <h2>🎮 Play & Earn</h2>
-            <p data-t="use_passes">Passes use karo, paise jeeto!</p>
-            <div class="games-hero-badge">🎟️ <span data-t="passes">Passes</span>: <span id="gameBadgePasses">0</span></div>
+        <!-- SKILL GAMES ROW 1 — Runner + Chess side by side -->
+        <div style="font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">⚡ Skill Games</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div class="game-card game-card-skill" onclick="openGame('runner')" style="background:linear-gradient(135deg,#0d0a20,#1a0d38);border:1.5px solid rgba(139,92,246,.4);">
+                <img src="https://i.postimg.cc/zGbqh2Rk/89cdcea2-faf0-4d66-9011-7309cf5978fa.jpg" class="game-img" alt="Runner">
+                <div style="padding:10px;">
+                    <div class="game-name" style="color:var(--purple2);">🏃 Runner</div>
+                    <div class="game-desc">Survive karo • Har second = pts!</div>
+                    <span class="game-earn-tag">0.5 pts/sec</span>
+                </div>
+            </div>
+            <div class="game-card game-card-skill" onclick="openGame('chess')" style="background:linear-gradient(135deg,#1a1200,#2a1e00);border:1.5px solid rgba(240,192,64,.4);">
+                <img src="https://i.postimg.cc/7LzPFtHD/a4ee8463-c918-40e5-ac55-82e4dcbc9164.jpg" class="game-img" alt="Chess">
+                <div style="padding:10px;">
+                    <div class="game-name" style="color:var(--gold);">♟️ Chess</div>
+                    <div class="game-desc">AI ko harao • Strong minimax AI</div>
+                    <span class="game-earn-tag">Checkmate = 4x!</span>
+                </div>
+            </div>
         </div>
-        <div class="games-info-banner">🎟️ 1 Pass = 1 Game • Passes earn karo refer karke!</div>
-        <div class="games-stats">
-            <div class="gstat"><div class="gstat-val" id="gameWins">0</div><div class="gstat-lbl" data-t="total_wins">Wins</div></div>
-            <div class="gstat"><div class="gstat-val" id="gameTodayEarned">0 pts</div><div class="gstat-lbl" data-t="today">Today</div></div>
-            <div class="gstat"><div class="gstat-val" id="gameStreak">0🔥</div><div class="gstat-lbl" data-t="streak">Streak</div></div>
+        <!-- SKILL GAMES ROW 2 — Sokoban + Snake side by side -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+            <div class="game-card game-card-skill" onclick="openGame('maze')" style="background:linear-gradient(135deg,#0a1628,#0d2040);border:1.5px solid rgba(54,182,245,.4);">
+                <img src="https://i.postimg.cc/3rX44NH8/b6b10c99-9c7a-4404-93fe-afdb9750fedc.jpg" class="game-img" alt="Sokoban">
+                <div style="padding:10px;">
+                    <div class="game-name" style="color:var(--blue);">📦 Sokoban</div>
+                    <div class="game-desc">Box push karo • Target pe rakho!</div>
+                    <span class="game-earn-tag" style="background:rgba(54,182,245,.12);border-color:rgba(54,182,245,.3);color:var(--blue);">300–1000 pts</span>
+                </div>
+            </div>
+            <div class="game-card game-card-skill" onclick="openGame('snake')" style="background:linear-gradient(135deg,#0a2e0a,#0d3010);border:1.5px solid rgba(25,216,158,.4);">
+                <img src="https://i.postimg.cc/76g62sjH/0db283bd-58ae-4317-b6b8-aed3f78c45f1.jpg" class="game-img" alt="Snake">
+                <div style="padding:10px;">
+                    <div class="game-name" style="color:var(--green);">🐍 Snake</div>
+                    <div class="game-desc">Apple khao • Speed badhti hai!</div>
+                    <span class="game-earn-tag" style="background:rgba(25,216,158,.12);border-color:rgba(25,216,158,.3);color:var(--green);">15 pts/dot</span>
+                </div>
+            </div>
+        </div>
+        <!-- SKILL GAMES ROW 3 — Block Blast + Gem Match -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+            <div class="game-card game-card-skill" onclick="openBlockGame()" style="background:linear-gradient(135deg,#1a0a2e,#2e0a1a);border:1.5px solid rgba(139,92,246,.4);">
+                <img src="https://i.postimg.cc/7fL1Z55D/IMG-20260320-075702-067.jpg" class="game-img" alt="Block Blast" onerror="this.style.display='none'">
+                <div style="padding:10px;">
+                    <div class="game-name" style="color:var(--purple2);">🧱 Block Blast</div>
+                    <div class="game-desc">Blocks fit karo • Lines clear karo!</div>
+                    <span class="game-earn-tag" style="background:rgba(139,92,246,.12);border-color:rgba(139,92,246,.3);color:var(--purple2);">50 pts/line</span>
+                </div>
+            </div>
+            <div class="game-card game-card-skill" onclick="openGemGame()" style="background:linear-gradient(135deg,#0a1e2e,#0a2e2e);border:1.5px solid rgba(56,189,248,.4);">
+                <div style="font-size:36px;text-align:center;padding:12px 0 4px;">💎🔥⭐</div>
+                <div style="padding:10px;">
+                    <div class="game-name" style="color:var(--blue);">💎 Gem Match</div>
+                    <div class="game-desc">3 gems match karo • Chain bonus!</div>
+                    <span class="game-earn-tag" style="background:rgba(56,189,248,.12);border-color:rgba(56,189,248,.3);color:var(--blue);">20 pts/match</span>
+                </div>
+            </div>
+        </div>
+        <!-- DIVIDER -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <div style="flex:1;height:1px;background:var(--border);"></div>
+            <div style="font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;">🎰 Chance Games</div>
+            <div style="flex:1;height:1px;background:var(--border);"></div>
         </div>
         <div class="games-grid">
-            <div class="game-card" onclick="openGame('spin')"><img src="https://image2url.com/r2/default/images/1773972096056-ea04e437-9a04-470c-98ac-4da8383bdc75.jpg" class="game-img" alt="Spin"><div class="game-name">Spin & Earn</div><div class="game-desc">Wheel ghumao • ₹0.10–₹2</div><span class="game-reward" style="background:linear-gradient(135deg,#f59e0b,#d97706);">Win: 50 pts avg</span></div>
-            <div class="game-card" onclick="openGame('guess')"><img src="https://image2url.com/r2/default/images/1773972255665-85ed9fa1-283e-44ce-8bfb-3aa2eed64ea3.png" class="game-img" alt="Guess"><div class="game-name">Number Guess</div><div class="game-desc">1-10 guess • 10% chance</div><span class="game-reward">8x Reward</span></div>
-            <div class="game-card" onclick="openGame('coin')"><img src="https://image2url.com/r2/default/images/1773972404884-e233660e-0845-4937-8f72-560d43048197.jpg" class="game-img" alt="Coin"><div class="game-name">Coin Flip</div><div class="game-desc">50/50 chance • Double bet</div><span class="game-reward">2x Win</span></div>
-            <div class="game-card" onclick="openGame('dice')"><img src="https://image2url.com/r2/default/images/1773972553734-03239078-a6c1-4c1f-a486-3cf3afe78f23.jpg" class="game-img" alt="Dice"><div class="game-name">Dice Roll</div><div class="game-desc">1-6 guess • ~17% chance</div><span class="game-reward">Win ₹0.50</span></div>
-            <div class="game-card" onclick="openGame('color')"><img src="https://image2url.com/r2/default/images/1773972774324-44a03873-7e05-4729-bbec-c5945f0bca06.png" class="game-img" alt="Color"><div class="game-name">Color Predict</div><div class="game-desc">6 colors • 2x to 9x!</div><span class="game-reward">Max 9x!</span></div>
-            <div class="game-card" onclick="openGame('crash')"><img src="https://i.postimg.cc/K85csJXs/Rocket-soaring-along-neon-graph-line.png" class="game-img" alt="Crash"><div class="game-name">Crash Game</div><div class="game-desc">Rocket fly • Cashout first!</div><span class="game-reward">Up to 10x</span></div>
-            <div class="game-card" style="grid-column:span 2;background:linear-gradient(135deg,#0a1628,#1a0a2e);border-color:rgba(240,192,64,.3);" onclick="openGame('runner')">
-                <div style="display:flex;align-items:center;gap:14px;">
-                    <div style="font-size:48px;filter:drop-shadow(0 0 8px rgba(240,192,64,.5));">🦊</div>
-                    <div style="text-align:left;">
-                        <div class="game-name" style="color:var(--gold);font-size:16px;">🏃 Runner Challenge</div>
-                        <div class="game-desc">Obstacles se bacho • Har second = paise!</div>
-                        <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;">
-                            <span style="background:rgba(240,192,64,.15);color:var(--gold);padding:2px 7px;border-radius:10px;font-size:9px;font-weight:800;">10s • 30s • 1m • 5m • 10m</span>
-                            <span style="background:rgba(25,216,158,.15);color:var(--green);padding:2px 7px;border-radius:10px;font-size:9px;font-weight:800;">Survive = Earn!</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- NEW GAMES ROW -->
-            <div class="game-card" style="background:linear-gradient(135deg,#0a1628,#0d2040);border-color:rgba(54,182,245,.3);" onclick="openGame('maze')">
-                <img src="https://i.postimg.cc/3rX44NH8/b6b10c99-9c7a-4404-93fe-afdb9750fedc.jpg" class="game-img" alt="Maze">
-                <div class="game-name" style="color:var(--blue);">📦 Sokoban</div>
-                <div class="game-desc">Bhulbhulaiya se niklo!</div>
-                <div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;">
-                    <span style="background:rgba(54,182,245,.15);color:var(--blue);padding:1px 6px;border-radius:8px;font-size:8px;font-weight:800;">3x-8x</span>
-                    <span style="background:rgba(255,78,106,.15);color:var(--red);padding:1px 6px;border-radius:8px;font-size:8px;font-weight:800;">HARD!</span>
-                </div>
-            </div>
-            <div class="game-card" style="background:linear-gradient(135deg,#0a2e0a,#0d3010);border-color:rgba(25,216,158,.3);" onclick="openGame('snake')">
-                <img src="https://i.postimg.cc/76g62sjH/0db283bd-58ae-4317-b6b8-aed3f78c45f1.jpg" class="game-img" alt="Snake">
-                <div class="game-name" style="color:var(--green);">Snake Game</div>
-                <div class="game-desc">Dot khao, paise kamao!</div>
-                <div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;">
-                    <span style="background:rgba(25,216,158,.15);color:var(--green);padding:1px 6px;border-radius:8px;font-size:8px;font-weight:800;">10% per dot</span>
-                </div>
-            </div>
-            <div class="game-card" style="grid-column:span 2;background:linear-gradient(135deg,#1a1200,#2a2000);border-color:rgba(240,192,64,.3);" onclick="openGame('chess')">
-                <div style="display:flex;align-items:center;gap:14px;">
-                    <img src="https://i.postimg.cc/7LzPFtHD/a4ee8463-c918-40e5-ac55-82e4dcbc9164.jpg" style="width:60px;height:60px;object-fit:cover;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.5);flex-shrink:0;">
-                    <div style="text-align:left;">
-                        <div class="game-name" style="color:var(--gold);">Chess Timer</div>
-                        <div class="game-desc">AI se chess khelo • Time ke saath jeeto!</div>
-                        <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;">
-                            <span style="background:rgba(240,192,64,.15);color:var(--gold);padding:2px 7px;border-radius:10px;font-size:9px;font-weight:800;">1min | 30s | 15s</span>
-                            <span style="background:rgba(255,78,106,.15);color:var(--red);padding:2px 7px;border-radius:10px;font-size:9px;font-weight:800;">2x-8x Reward</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div class="game-card" onclick="openGame('spin')"><img src="https://image2url.com/r2/default/images/1773972096056-ea04e437-9a04-470c-98ac-4da8383bdc75.jpg" class="game-img" alt="Spin"><div style="padding:8px;"><div class="game-name">🎡 Spin</div><div class="game-desc">Wheel ghumao!</div><span class="game-earn-tag">50 pts avg</span></div></div>
+            <div class="game-card" onclick="openGame('crash')"><img src="https://i.postimg.cc/K85csJXs/Rocket-soaring-along-neon-graph-line.png" class="game-img" alt="Crash"><div style="padding:8px;"><div class="game-name">🚀 Crash</div><div class="game-desc">Rocket fly!</div><span class="game-earn-tag">Up to 10x</span></div></div>
+            <div class="game-card" onclick="openGame('coin')"><img src="https://image2url.com/r2/default/images/1773972404884-e233660e-0845-4937-8f72-560d43048197.jpg" class="game-img" alt="Coin"><div style="padding:8px;"><div class="game-name">🪙 Coin</div><div class="game-desc">50/50!</div><span class="game-earn-tag">2x Win</span></div></div>
+            <div class="game-card" onclick="openGame('dice')"><img src="https://image2url.com/r2/default/images/1773972553734-03239078-a6c1-4c1f-a486-3cf3afe78f23.jpg" class="game-img" alt="Dice"><div style="padding:8px;"><div class="game-name">🎲 Dice</div><div class="game-desc">~17% chance</div><span class="game-earn-tag">5x Win</span></div></div>
+            <div class="game-card" onclick="openGame('color')"><img src="https://image2url.com/r2/default/images/1773972774324-44a03873-7e05-4729-bbec-c5945f0bca06.png" class="game-img" alt="Color"><div style="padding:8px;"><div class="game-name">🎨 Color</div><div class="game-desc">6 colors!</div><span class="game-earn-tag">Max 9x</span></div></div>
+            <div class="game-card" onclick="openGame('guess')"><img src="https://image2url.com/r2/default/images/1773972255665-85ed9fa1-283e-44ce-8bfb-3aa2eed64ea3.png" class="game-img" alt="Guess"><div style="padding:8px;"><div class="game-name">🔢 Guess</div><div class="game-desc">1-10 guess!</div><span class="game-earn-tag">8x Reward</span></div></div>
+        </div>
+        <!-- GAME STATS -->
+        <div style="display:flex;gap:8px;margin-top:12px;">
+            <div class="gstat"><div class="gstat-val" id="gameWins">0</div><div class="gstat-lbl">Wins</div></div>
+            <div class="gstat"><div class="gstat-val" id="gameTodayEarned">0 pts</div><div class="gstat-lbl">Today</div></div>
+            <div class="gstat"><div class="gstat-val" id="gameStreak">0🔥</div><div class="gstat-lbl">Streak</div></div>
         </div>
     </div>
 </div>
@@ -1013,6 +1032,76 @@
 <!-- ======= MODALS ======= -->
 
 <!-- DAILY BONUS -->
+<!-- ANNOUNCEMENT BANNER -->
+<div id="announcementBanner" style="display:none;background:linear-gradient(135deg,rgba(139,92,246,.95),rgba(54,182,245,.9));padding:12px 14px;margin:8px 14px;border-radius:14px;position:relative;border:1px solid rgba(255,255,255,.15);box-shadow:0 4px 16px rgba(124,92,252,.3);animation:scaleIn .3s ease;z-index:100;">
+    <div style="display:flex;align-items:center;gap:10px;">
+        <div style="font-size:20px;flex-shrink:0;">📢</div>
+        <div style="flex:1;font-size:13px;font-weight:700;color:#fff;" id="announcementText"></div>
+        <button onclick="dismissAnnouncement()" style="background:rgba(255,255,255,.2);border:none;border-radius:8px;width:24px;height:24px;color:#fff;font-size:16px;cursor:pointer;flex-shrink:0;line-height:1;">×</button>
+    </div>
+</div>
+
+<!-- ADMIN PANEL MODAL -->
+<!-- NOTIFICATION PANEL -->
+<div class="modal" id="notifModal">
+    <div class="modal-hdr">
+        <div class="back-btn" onclick="closeModal('notif')">←</div>
+        <div class="modal-title">🔔 Notifications</div>
+        <div id="notifClearBtn" onclick="clearNotifs()" style="font-size:11px;color:var(--text3);cursor:pointer;padding:4px 8px;background:var(--bg3);border-radius:8px;">Clear All</div>
+    </div>
+    <div style="padding:14px;">
+        <div id="notifList">
+            <div style="text-align:center;color:var(--text3);padding:40px 0;font-size:13px;">📭 Koi notification nahi abhi</div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="adminPanelModal">
+    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('adminPanel')">←</div><div class="modal-title">👑 Admin Panel</div></div>
+    <div style="padding:14px;">
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+        <div style="background:var(--card);border-radius:14px;padding:12px;text-align:center;border:1px solid var(--border);">
+            <div id="apTotalUsers" style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--blue);">-</div>
+            <div style="font-size:9px;color:var(--text3);">USERS</div>
+        </div>
+        <div style="background:var(--card);border-radius:14px;padding:12px;text-align:center;border:1px solid var(--border);">
+            <div id="apPendingWD" style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--gold);">-</div>
+            <div style="font-size:9px;color:var(--text3);">PENDING WD</div>
+        </div>
+        <div style="background:var(--card);border-radius:14px;padding:12px;text-align:center;border:1px solid var(--border);">
+            <div id="apPendingSupport" style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--red);">-</div>
+            <div style="font-size:9px;color:var(--text3);">SUPPORT</div>
+        </div>
+    </div>
+    <!-- Announcement -->
+    <div style="background:var(--card);border:1.5px solid rgba(139,92,246,.3);border-radius:16px;padding:14px;margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:900;color:var(--purple2);margin-bottom:8px;">📢 Announcement Banner</div>
+        <textarea id="announcementInput" rows="3" class="inp" placeholder="Users ko message do... Mini App kholne par dikhega" style="width:100%;resize:none;font-size:12px;margin-bottom:8px;"></textarea>
+        <div style="display:flex;gap:8px;">
+            <button onclick="setAnnouncement()" style="flex:1;background:var(--purple);color:#fff;border:none;border-radius:10px;padding:9px;font-weight:800;font-size:11px;cursor:pointer;">📢 Set</button>
+            <button onclick="clearAnnouncement()" style="flex:1;background:rgba(255,78,106,.12);border:1px solid var(--red);color:var(--red);border-radius:10px;padding:9px;font-weight:800;font-size:11px;cursor:pointer;">🗑️ Clear</button>
+        </div>
+    </div>
+    <!-- Quick Actions -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+        <button onclick="openAdminSupport()" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;font-weight:800;font-size:11px;cursor:pointer;color:var(--text);">🛡️ Support Msgs</button>
+        <button onclick="toggleAdminEdit();closeModal('adminPanel')" style="background:var(--card);border:1px solid rgba(240,192,64,.3);border-radius:12px;padding:12px;font-weight:800;font-size:11px;cursor:pointer;color:var(--gold);">✏️ Edit Offers</button>
+        <button onclick="openAdminCreateOffer();closeModal('adminPanel')" style="background:var(--card);border:1px solid rgba(25,216,158,.3);border-radius:12px;padding:12px;font-weight:800;font-size:11px;cursor:pointer;color:var(--green);">➕ Add Offer</button>
+        <button onclick="switchTab(1);closeModal('adminPanel')" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;font-weight:800;font-size:11px;cursor:pointer;color:var(--text);">🏆 Leaderboard</button>
+    </div>
+    <!-- User Search -->
+    <div style="background:var(--card);border-radius:14px;padding:12px;border:1px solid var(--border);">
+        <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:8px;">🔍 User Search</div>
+        <div style="display:flex;gap:8px;">
+            <input type="number" id="apSearchId" class="inp" placeholder="User ID..." style="flex:1;font-size:12px;">
+            <button onclick="adminSearchUser()" style="background:var(--blue);color:#fff;border:none;border-radius:10px;padding:9px 14px;font-weight:800;font-size:11px;cursor:pointer;">Go</button>
+        </div>
+        <div id="apUserResult" style="margin-top:8px;font-size:11px;color:var(--text2);"></div>
+    </div>
+    </div>
+</div>
+
 <div class="modal" id="dailyBonusModal">
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('dailyBonus')">←</div><div class="modal-title"><img src="https://i.postimg.cc/50DFNn2V/image.png" style="width:30px;height:30px;object-fit:contain;vertical-align:middle;margin-right:6px;border-radius:8px;"> Daily Bonus</div></div>
     <div style="text-align:center;font-size:11px;color:var(--text2);margin-bottom:5px;" data-t="bonus_subtitle">Roz claim karo, streak badhao, zyada pao!</div>
@@ -1037,21 +1126,76 @@
 
 <!-- EARN PASSES -->
 <div class="modal" id="earnPassesModal">
-    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('earnPasses')">←</div><div class="modal-title">🎟️ <span data-t="earn_passes">Earn Passes</span></div></div>
-    <div class="earn-passes-hero"><h2>Game Passes</h2><div class="ep-count" id="epPassCount">0</div><div style="font-size:11px;color:var(--purple2);">Passes se khelo, paise jeeto!</div></div>
-    <div style="background:rgba(240,192,64,.07);border:1px solid rgba(240,192,64,.2);border-radius:14px;padding:13px;margin-bottom:14px;">
-        <div style="font-size:12px;color:var(--gold);font-weight:800;margin-bottom:6px;">💡 Apne referred users ko batao:</div>
-        <div style="font-size:11px;color:var(--text2);line-height:1.8;">
-            📱 <b style="color:var(--text);">Roz movie search karo</b> group pe aur ek shortlink puri karo<br>
-            → Tumhe <b style="color:var(--gold);">30 pts daily bonus</b> milega ek user se<br>
+    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('earnPasses')">←</div><div class="modal-title">🎟️ Earn Passes & Paise Kaise Kamayein</div></div>
+    <div style="padding:14px;">
+    <div style="background:linear-gradient(135deg,rgba(139,92,246,.12),rgba(56,189,248,.08));border:1.5px solid rgba(139,92,246,.3);border-radius:18px;padding:16px;margin-bottom:14px;">
+        <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--gold);margin-bottom:4px;">🎟️ Aapke Passes</div>
+        <div style="font-family:'Oxanium',sans-serif;font-size:36px;font-weight:900;color:var(--text);" id="epPassCount">0</div>
+        <div style="font-size:11px;color:var(--text2);">1 Pass = 1 Game khelne ka mauka!</div>
+    </div>
+
+    <!-- DETAILED REFER GUIDE -->
+    <div style="font-family:'Oxanium',sans-serif;font-size:15px;font-weight:900;color:var(--gold);margin-bottom:10px;">💰 Refer Karke Paise Kaise Kamayein — Poori Jankari</div>
+    
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;">
+        <div style="font-weight:900;color:var(--green);font-size:13px;margin-bottom:8px;">STEP 1️⃣ — Referral Link Share Karo</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.8;">
+            • Apna referral link copy karo (Profile page se)<br>
+            • WhatsApp, Telegram, Instagram pe share karo<br>
+            • Jitne zyada dost join karein, utna zyada kamao
         </div>
     </div>
-    <div style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:800;color:var(--gold);margin-bottom:9px;">📌 Kaise milte hain Passes?</div>
-    <div class="ep-method"><div class="ep-method-icon">👥</div><div class="ep-method-info"><div class="ep-method-title">Dost ko Refer karo</div><div class="ep-method-desc">Har active referral pe 3 passes + 60 pts</div></div><div class="ep-method-badge">+3 Pass</div></div>
-    <div class="ep-method"><div class="ep-method-icon"><img src="https://i.postimg.cc/50DFNn2V/image.png" style="width:32px;height:32px;object-fit:contain;border-radius:8px;"></div><div class="ep-method-info"><div class="ep-method-title">Daily Bonus Claim karo</div><div class="ep-method-desc">Roz claim karo, 1 pass milega</div></div><div class="ep-method-badge">+1 Pass</div></div>
-    <div class="ep-method"><div class="ep-method-icon"><img src="https://i.postimg.cc/15X5YpmT/1773974388103.png" style="width:32px;height:32px;object-fit:contain;border-radius:8px;"></div><div class="ep-method-info"><div class="ep-method-title">Offer claim karo</div><div class="ep-method-desc">Sponsored offer claim karo, 1 pass milega</div></div><div class="ep-method-badge">+1 Pass</div></div>
-</div>
 
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;">
+        <div style="font-weight:900;color:var(--blue);font-size:13px;margin-bottom:8px;">STEP 2️⃣ — Dost Bot Join Kare</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.8;">
+            • Dost aapke link se bot join kare<br>
+            • Woh FilmyFund bot start kare<br>
+            • Status: ⏳ <b style="color:var(--gold);">PENDING</b> ho jaata hai
+        </div>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;">
+        <div style="font-weight:900;color:var(--gold);font-size:13px;margin-bottom:8px;">STEP 3️⃣ — Movie Search + Shortlink Complete Kare</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.8;">
+            • Dost hamara Movie Group join kare<br>
+            • Woh koi bhi movie search kare group mein<br>
+            • Bot ek shortlink bhejega — woh complete kare<br>
+            • ✅ <b style="color:var(--green);">Referral ACTIVE</b> ho jaayega!<br>
+            • Aapko milega: <b style="color:var(--gold);">3 Passes + 60 pts</b> turant!
+        </div>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;">
+        <div style="font-weight:900;color:var(--purple2);font-size:13px;margin-bottom:8px;">STEP 4️⃣ — Roz Ki Kamaai (Daily Earning)</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.8;">
+            • Jab bhi aapka referred dost movie search kare<br>
+            • Aur shortlink complete kare (roz 1 baar)<br>
+            • Aapko milte hain: <b style="color:var(--green);">30 pts (₹0.30)</b><br>
+            • 10 active refs = <b style="color:var(--gold);">₹3 daily = ₹90/month!</b><br>
+            • 50 active refs = <b style="color:var(--gold);">₹15 daily = ₹450/month!</b>
+        </div>
+    </div>
+
+    <div style="background:linear-gradient(135deg,rgba(240,192,64,.08),rgba(240,192,64,.02));border:1.5px solid rgba(240,192,64,.3);border-radius:16px;padding:14px;margin-bottom:14px;">
+        <div style="font-weight:900;color:var(--gold);font-size:13px;margin-bottom:8px;">🏆 BONUS KAMAAI</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.9;">
+            🎖️ <b style="color:var(--text);">Milestone Bonuses:</b> 5 refs=200pts, 10 refs=500pts, 25 refs=1500pts<br>
+            📅 <b style="color:var(--text);">Weekly Leaderboard:</b> Top 3 = ₹150, ₹65, ₹30<br>
+            📆 <b style="color:var(--text);">Monthly Leaderboard:</b> Top 3 = ₹300, ₹200, ₹100<br>
+            🔍 <b style="color:var(--text);">Self Search:</b> Khud movie search karo = 30 pts (48hr mein 1 baar)<br>
+            🎁 <b style="color:var(--text);">Daily Bonus:</b> Roz 1 pass claim karo = streak bonus!<br>
+            🎯 <b style="color:var(--text);">Daily Missions:</b> 10 missions complete karo = 600+ pts!
+        </div>
+    </div>
+
+    <div style="font-family:'Oxanium',sans-serif;font-size:14px;font-weight:900;color:var(--text);margin-bottom:10px;">📌 Aur Passes Kaise Kamayein?</div>
+    <div class="ep-method"><div class="ep-method-icon">👥</div><div class="ep-method-info"><div class="ep-method-title">Dost Refer Karo</div><div class="ep-method-desc">Har active refer = 3 Passes + 60 pts turant!</div></div><div class="ep-method-badge">+3 Pass</div></div>
+    <div class="ep-method"><div class="ep-method-icon">🎁</div><div class="ep-method-info"><div class="ep-method-title">Daily Bonus Claim</div><div class="ep-method-desc">Roz click karo — 1 Pass milega + streak bonus!</div></div><div class="ep-method-badge">+1 Pass</div></div>
+    <div class="ep-method"><div class="ep-method-icon">💎</div><div class="ep-method-info"><div class="ep-method-title">Sponsored Offers</div><div class="ep-method-desc">Offers complete karo — passes milenge!</div></div><div class="ep-method-badge">+1-5 Pass</div></div>
+    <div class="ep-method"><div class="ep-method-icon">🛒</div><div class="ep-method-info"><div class="ep-method-title">Passes Kharido</div><div class="ep-method-desc">Direct ₹ se passes buy karo</div></div><div onclick="closeModal('earnPasses');openModal('buyPasses');" class="ep-method-badge" style="cursor:pointer;background:var(--grad-gold);color:#000;">Buy →</div></div>
+    </div>
+</div>
 <!-- MISSIONS -->
 <div class="modal" id="missionsModal">
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('missions')">←</div><div class="modal-title">🎯 <span data-t="missions">Missions</span></div></div>
@@ -1131,6 +1275,13 @@
     <input id="promoTitle" class="inp" placeholder="Offer Title" type="text">
     <input id="promoDesc" class="inp" placeholder="Description" type="text">
     <input id="promoReward" class="inp" placeholder="Reward Amount (in ₹, auto-converts)" type="number" step="0.1">
+    <div style="display:flex;gap:8px;align-items:center;margin-top:8px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 14px;">
+        <div style="flex:1;">
+            <div style="font-size:11px;font-weight:800;color:var(--text);">🎟️ Passes bhi do?</div>
+            <div style="font-size:10px;color:var(--text3);">0 = sirf paise, 1+ = passes bhi</div>
+        </div>
+        <input id="promoPassReward" class="inp" type="number" min="0" value="0" style="width:70px;text-align:center;font-size:14px;font-weight:900;">
+    </div>
     <input id="promoLink" class="inp" placeholder="Link URL" type="url">
     <input id="promoIcon" class="inp" placeholder="Icon emoji (e.g. 📱)" type="text">
     <input id="promoMeta" class="inp" placeholder="Meta text (e.g. ⏱️ 2 min)" type="text">
@@ -1808,7 +1959,10 @@
     </div>
 </div>
 
-<script>
+<script charset="utf-8">
+function setEl(id,val){const e=document.getElementById(id);if(e)e.textContent=val;}
+function setHtml(id,val){const e=document.getElementById(id);if(e)e.innerHTML=val;}
+
 // ═══════════════════════════════════════════════════════════
 // FilmyFund Mini App — Owner: @asbhaibsr | Channel: @asbhai_bsr
 // Contact: https://t.me/asbhaibsr
@@ -1849,7 +2003,7 @@ function fmtRupees(rupees){ return '₹'+parseFloat(rupees).toFixed(2); }
 // ============================================================
 const T={
     hi:{settings:'Settings',help_support:'Help & Support',dark_mode:'Dark Mode',sounds:'Sounds',admin_edit:'Admin Edit Mode',refer_earn:'Refer & Earn',language:'Language / भाषा',your_balance:'💰 Aapka Balance',today_earned:'Aaj Kamaya',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Aaj ka bonus claim karo!',claim:'Claim',daily_missions:'🎯 Daily Missions',mission_total_reward:'₹6+ Reward',complete_earn:'Missions complete karo, paise pao!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Dost ko invite karo • 3 Passes + 60 pts!',copy:'Copy',share_more:'Share',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',lb_note:'📌 50+ active refs = weekly prize • 200+ = monthly prize',use_passes:'Passes use karo, paise jeeto!',passes:'Passes',total_wins:'Total Wins',today:'Aaj',streak:'Streak',balance:'Balance',total_earned:'Total Kamaya',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Paise Nikalo',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'Naya Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',already_claimed:'Aaj ka bonus claim ho gaya!',referred_users:'👥 Referred Users Activity',missions:'Missions',bonus_subtitle:'Roz claim karo, streak badhao, zyada pao!',onboard_confirm:'Samajh Gaya! Shuru Karo'},
-    en:{settings:'Settings',help_support:'Help & Support',dark_mode:'Dark Mode',sounds:'Sounds',admin_edit:'Admin Edit Mode',refer_earn:'Refer & Earn',language:'Language',your_balance:'💰 Your Balance',today_earned:'Today Earned',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Claim your daily bonus!',claim:'Claim',daily_missions:'🎯 Daily Missions',mission_total_reward:'₹6+ Reward',complete_earn:'Complete missions, earn money!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Invite friends • 3 Passes + 60 pts!',copy:'Copy',share_more:'Share',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',lb_note:'📌 50+ active refs = weekly prize • 200+ = monthly prize',use_passes:'Use passes, win money!',passes:'Passes',total_wins:'Total Wins',today:'Today',streak:'Streak',balance:'Balance',total_earned:'Total Earned',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Withdraw Balance',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'New Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',already_claimed:"Today's bonus claimed!",referred_users:'👥 Referred Users Activity',missions:'Missions',bonus_subtitle:'Claim daily, build streak, earn more!',onboard_confirm:"Got it! Let's Start"}
+    en:{settings:'Settings',help_support:'Help & Support',dark_mode:'Dark Mode',sounds:'Sounds',admin_edit:'Admin Edit Mode',refer_earn:'Refer & Earn',language:'Language',your_balance:'💰 Your Balance',today_earned:'Today Earned',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Claim your daily bonus!',claim:'Claim',daily_missions:'🎯 Daily Missions',mission_total_reward:'₹6+ Reward',complete_earn:'Complete missions, earn money!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Invite friends • 3 Passes + 60 pts!',copy:'Copy',share_more:'Share',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',lb_note:'📌 50+ active refs = weekly prize • 200+ = monthly prize',use_passes:'Use passes, win money!',passes:'Passes',total_wins:'Total Wins',today:'Today',streak:'Streak',balance:'Balance',total_earned:'Total Earned',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Withdraw Balance',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'New Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',already_claimed:'Aaj ka bonus claim ho gaya!',referred_users:'👥 Referred Users Activity',missions:'Missions',bonus_subtitle:'Claim daily, build streak, earn more!',onboard_confirm:'Got it! Start Karo!'}
 };
 let lang='hi';
 function t(key){return(T[lang]&&T[lang][key])||T.hi[key]||key;}
@@ -1982,12 +2136,15 @@ async function loadUser(){
         userStreak=userData.daily_streak||0;
         if(userData.is_admin){
             document.getElementById('adminSidebarBtn').style.display='flex';
+            const apb=document.getElementById('adminPanelBtn');if(apb)apb.style.display='flex';
             document.getElementById('adminSupportBtn').style.display='flex';
             document.getElementById('addOfferBtn').style.display='flex';
         }
         if((userData.active_refs||0)>oldRefs&&oldRefs>0)showCongratsPopup();
         updateUI();
         updateWithdrawCondition();
+        // Show movie group message for newly referred users
+        checkReferralWelcome();
     }
 }
 async function loadGameState(){
@@ -2156,7 +2313,7 @@ function updateUI(){
     const profDp=document.getElementById('profileDp');
     if(userData.photo_url){profDp.innerHTML=`<img src="${userData.photo_url}" alt="${fname.charAt(0)}">`;}
     else{profDp.textContent=fname.charAt(0).toUpperCase();}
-    document.getElementById('gameBadgePasses').textContent=userData.passes||0;
+    const _gbp=document.getElementById('gameBadgePasses');if(_gbp)_gbp.textContent=userData.passes||0;
     document.getElementById('gameWins').textContent=gameState.wins||0;
     document.getElementById('gameTodayEarned').textContent=fmtPts(toPoints(gameState.today_game_earned||0));
     document.getElementById('gameStreak').textContent=`${gameState.win_streak||0}🔥`;
@@ -2787,10 +2944,10 @@ function renderLiveActivity(acts){
         else if(a.type==='mission'){icon='🎯';}
         else if(a.type==='runner'){icon='🏃';}
         else if(a.type==='milestone'){icon='🏆';}
-        return'<div class="live-item" onclick="viewUserProfile('+(a.user_id||0)+',' + "'"+nm.replace(/'/g,"\'")+"'"+')">'+
-            dpEl+'<div class="live-info"><div class="live-name">'+nm+'</div><div class="live-act">'+icon+' '+desc+'</div></div>'+
-            '<div style="text-align:right;">'+amtEl+'<div class="live-time">'+(a.time||'now')+'</div></div>'+
-        '</div>';
+        return `<div class="live-item" onclick="viewUserProfile(${a.user_id||0})">` +
+            dpEl+`<div class="live-info"><div class="live-name">${nm}</div><div class="live-act">${icon} ${desc}</div></div>`+
+            `<div style="text-align:right;">${amtEl}<div class="live-time">${a.time||'now'}</div></div>`+
+        `</div>`;
     }).join('');
 }
 async function viewUserProfile(userId,name){
@@ -2881,7 +3038,7 @@ function openBadgeShowcase(){
     if(isClaimed){
         bsClaimWrap.innerHTML='<div style="background:rgba(25,216,158,.15);border:1px solid var(--green);border-radius:12px;padding:8px 16px;font-size:12px;font-weight:800;color:var(--green);display:inline-block;">✅ Badge Reward Claimed!</div>';
     }else{
-        bsClaimWrap.innerHTML='<button onclick="bsClaimCurrentBadge()" style="background:linear-gradient(135deg,#f0c040,#d97706);color:#000;border:none;border-radius:14px;padding:11px 24px;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Oxanium\',sans-serif;box-shadow:0 4px 14px rgba(240,192,64,.35);">🏅 Claim Reward!</button>';
+        bsClaimWrap.innerHTML='<button onclick="bsClaimCurrentBadge()" style="background:linear-gradient(135deg,#f0c040,#d97706);color:#000;border:none;border-radius:14px;padding:11px 24px;font-size:14px;font-weight:900;cursor:pointer;box-shadow:0 4px 14px rgba(240,192,64,.35);">🏅 Claim Reward!</button>';
     }
 
     // All badges grid
@@ -2995,7 +3152,7 @@ function updateMissionsUI(){
                 +'<div style="font-size:9px;color:var(--text3);">Kal naya mission aayega</div></div>'
                 +'</div>';
         }else if(isDone){
-            statusHtml='<button class="mission-claim-btn" style="margin-top:7px;animation:pulse 1.5s infinite;" onclick="claimSingleMission(\''+m.id+'\','+m.reward+')">🎯 Claim '+rewardTxt+' (Mission Reward)</button>';
+            statusHtml='<button class="mission-claim-btn" style="margin-top:7px;" onclick="claimSingleMission('+JSON.stringify(m.id)+','+m.reward+')">🎯 Claim '+rewardTxt+'</button>';
         }
         return'<div class="mission-item" style="'+(isDone&&!isClaimed?'border-color:rgba(240,192,64,.5);box-shadow:0 0 14px rgba(240,192,64,.15);':'')+'">'
             +'<div class="mission-item-header">'
@@ -3153,7 +3310,8 @@ function renderAds(claimedIds=[]){
         return`<div class="ad-card ${adminEditMode?'admin-mode':''} ${isClaimed&&!adminEditMode?'ad-claimed':''}" onclick="handleAdClick(${ad.id})">
             ${adminEditMode?`<div class="ad-del-btn" onclick="event.stopPropagation();delAd(${ad.id})">✕</div><div class="ad-edit-btn" onclick="event.stopPropagation();editAd(${ad.id})">✎</div>`:''}
             <div class="ad-icon-box">${ad.icon||'📢'}</div>
-            <div class="ad-info"><div class="ad-title">${ad.title}${ad.claim_code?'  🔑':''}${adminEditMode&&ad.claim_code?` <span style="font-size:9px;color:var(--blue);background:rgba(54,182,245,.1);padding:2px 6px;border-radius:8px;">Code: ${ad.claim_code}</span>`:''}</div><div class="ad-meta">${ad.meta||''}</div></div>
+            <div class="ad-info"><div class="ad-title">${ad.title}${ad.claim_code?'  🔑':''}${adminEditMode&&ad.claim_code?` <span style="font-size:9px;color:var(--blue);background:rgba(54,182,245,.1);padding:2px 6px;border-radius:8px;">Code: ${ad.claim_code}</span>`:''}</div><div class="ad-meta">${ad.meta||''}</div>
+            ${ad.description?'<div style="font-size:10px;color:var(--text3);margin-top:3px;">'+ad.description.slice(0,80)+(ad.description.length>80?'...':'')+'</div>':''}
             ${isClaimed&&!adminEditMode?`<div class="ad-claimed-badge">✅ Claimed</div>`:`<div class="ad-reward">+${toPoints(ad.reward)} pts</div>`}
         </div>`;
     }).join('');
@@ -3294,6 +3452,10 @@ function switchLB(mode){
     document.getElementById('lbWeeklyTab').classList.toggle('active',mode==='weekly');
     document.getElementById('lbMonthlyTab').classList.toggle('active',mode==='monthly');
     loadLeaderboard();
+}
+async function loadLeaderboard(){
+    const d=await apiGet('/api/leaderboard?mode='+lbMode);
+    renderLeaderboard(d||[]);
 }
 function renderLeaderboard(data){
     const el=document.getElementById('lbContent');
@@ -3882,7 +4044,16 @@ async function startCrash(){
     crashInterval=setInterval(()=>{
         frame++;
         // Multiplier grows: starts slow, accelerates
-        crashCurrentMult=parseFloat((1+frame*0.04+Math.pow(frame*0.008,1.6)).toFixed(2));
+        // Realistic crash: fast start, then variable speed, occasional big runs
+        const t=frame*0.05;
+        // Pattern: varies naturally - sometimes quick crash, sometimes flies high
+        let mult;
+        const seed=crashPoint; // use crash point as seed for pattern
+        if(seed<=1.5){mult=1+t*0.8;} // quick crash
+        else if(seed<=3){mult=1+Math.pow(t*0.6,1.4);} // medium
+        else if(seed<=7){mult=1+Math.pow(t*0.45,1.5)+Math.sin(t*2)*0.1;} // good run
+        else{mult=1+Math.pow(t*0.35,1.7)+Math.sin(t)*0.2;} // big run!
+        crashCurrentMult=parseFloat(Math.max(1,mult).toFixed(2));
         if(crashCurrentMult>crashPoint)crashCurrentMult=crashPoint;
 
         // Update display
@@ -4453,9 +4624,9 @@ const MAZE_DIFFS={easy:{time:120,pts:300,boxes:2,sz:7},medium:{time:90,pts:600,b
 // Premade Sokoban levels (guaranteed solvable)
 const SOKOBAN_LEVELS={
     easy:[
-        {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,2,0,2,0,1],[1,0,0,0,0,0,1],[1,0,0,3,0,0,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]],
+        {grid:[[1,1,1,1,1,1,1],[1,0,0,1,0,0,1],[1,0,2,0,2,0,1],[1,1,0,0,0,1,1],[1,0,0,3,0,0,1],[1,0,1,0,1,0,1],[1,1,1,1,1,1,1]],
          boxes:[{x:2,y:2},{x:4,y:2}],targets:[{x:2,y:4},{x:4,y:4}],player:{x:3,y:5}},
-        {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,2,0,0,0,1],[1,0,0,0,2,0,1],[1,0,0,0,0,0,1],[1,0,3,0,0,0,1],[1,1,1,1,1,1,1]],
+        {grid:[[1,1,1,1,1,1,1],[1,0,0,1,0,0,1],[1,0,2,0,0,0,1],[1,1,0,0,2,0,1],[1,0,0,0,0,1,1],[1,0,3,0,0,0,1],[1,1,1,1,1,1,1]],
          boxes:[{x:2,y:2},{x:4,y:3}],targets:[{x:3,y:4},{x:1,y:4}],player:{x:2,y:5}},
     ],
     medium:[
@@ -4590,17 +4761,20 @@ function drawSokoban(){
     ctx.fillText('🏃',mazePlayer.x*cs+cs/2,mazePlayer.y*cs+cs*0.58);
 }
 
+let _mazeMoveBlock=false;
 function mazeMove(dx,dy){
-    if(!mazeActive)return;
+    if(!mazeActive||_mazeMoveBlock)return;
+    _mazeMoveBlock=true;
+    setTimeout(()=>{_mazeMoveBlock=false;},150); // 150ms between moves
     const nx=mazePlayer.x+dx, ny=mazePlayer.y+dy;
-    if(ny<0||ny>=mazeGrid.length||nx<0||nx>=mazeGrid[0].length)return;
-    if(mazeGrid[ny][nx]===1)return;
+    if(ny<0||ny>=mazeGrid.length||nx<0||nx>=mazeGrid[0].length){_mazeMoveBlock=false;return;}
+    if(mazeGrid[ny][nx]===1){_mazeMoveBlock=false;return;}
     const bi=mazeBoxes.findIndex(b=>b.x===nx&&b.y===ny);
     if(bi>=0){
         const bx2=nx+dx, by2=ny+dy;
-        if(by2<0||by2>=mazeGrid.length||bx2<0||bx2>=mazeGrid[0].length)return;
-        if(mazeGrid[by2][bx2]===1)return;
-        if(mazeBoxes.some(b=>b.x===bx2&&b.y===by2))return;
+        if(by2<0||by2>=mazeGrid.length||bx2<0||bx2>=mazeGrid[0].length){_mazeMoveBlock=false;return;}
+        if(mazeGrid[by2][bx2]===1){_mazeMoveBlock=false;return;}
+        if(mazeBoxes.some(b=>b.x===bx2&&b.y===by2)){_mazeMoveBlock=false;return;}
         mazeBoxes[bi]={x:bx2,y:by2};
         playSound('earn');
     }else{playSound('click');}
@@ -4677,7 +4851,8 @@ async function startSnake(){
     snakeScore=0; snakeTimer=60; snakeActive=true; snakeLastMove=0;
     placeFood();
     snakeCvs=document.getElementById('snakeCanvas');
-    const W=Math.min(snakeCvs.parentElement.offsetWidth-8||300,340);
+    const parentW=snakeCvs.parentElement.offsetWidth||window.innerWidth;
+    const W=Math.min(parentW-8,380);
     snakeCvs.width=W; snakeCvs.height=W; snakeCS=Math.floor(W/SN);
     snakeCTX=snakeCvs.getContext('2d');
     document.getElementById('snakeSetup').style.display='none';
@@ -4982,6 +5157,404 @@ async function finishChess(reason){
     updateMissionsUI();
 }
 function resetChess(){document.getElementById('chessSetup').style.display='block';document.getElementById('chessGame').style.display='none';document.getElementById('chessResult').style.display='none';}
+// ============================================================
+// 🧱 BLOCK BLAST — Tetris-style block clearing game
+// ============================================================
+let blockBet=1,blockActive=false,blockScore=0,blockLevel=1;
+let blockGrid=[],blockPieces=[],blockSelected=null,blockInterval=null;
+const BB_COLS=8,BB_ROWS=8;
+const BB_COLORS=['#8b5cf6','#3b82f6','#10d9a0','#f59e0b','#ef4444','#ec4899'];
+const BB_PIECES=[
+    [[1,1],[1,1]],         // 2x2 square
+    [[1,1,1]],              // 1x3 horizontal
+    [[1],[1],[1]],          // 3x1 vertical
+    [[1,1,1],[0,1,0]],      // T shape
+    [[1,1],[1,0]],          // L small
+    [[1,0],[1,1]],          // J small
+    [[1,1,1,1]],            // 1x4
+    [[1],[1],[1],[1]],      // 4x1
+    [[1,1,0],[0,1,1]],      // S shape
+    [[0,1,1],[1,1,0]],      // Z shape
+];
+
+function openBlockGame(){
+    document.getElementById('blockBal').textContent = fmtPts(toPoints(userData.balance||0));
+    document.getElementById('blockSetup').style.display='block';
+    document.getElementById('blockGameArea').style.display='none';
+    document.getElementById('blockResult').style.display='none';
+    openModal('blockblast');
+}
+function selBlockBet(a,el){
+    if(a>(userData.balance||0)){showToast('❌ Points kam hain!');return;}
+    blockBet=a;
+    document.querySelectorAll('#blockblastModal .bet-chip').forEach(c=>c.classList.remove('sel'));
+    el.classList.add('sel');
+}
+
+function initBlockGrid(){
+    blockGrid=Array.from({length:BB_ROWS},()=>Array(BB_COLS).fill(null));
+}
+function generatePieces(){
+    blockPieces=[];
+    for(let i=0;i<3;i++){
+        const shape=BB_PIECES[Math.floor(Math.random()*BB_PIECES.length)];
+        const color=BB_COLORS[Math.floor(Math.random()*BB_COLORS.length)];
+        blockPieces.push({shape,color,id:Date.now()+i});
+    }
+}
+function canPlace(shape,row,col){
+    for(let r=0;r<shape.length;r++){
+        for(let c=0;c<shape[r].length;c++){
+            if(!shape[r][c])continue;
+            const gr=row+r,gc=col+c;
+            if(gr<0||gr>=BB_ROWS||gc<0||gc>=BB_COLS)return false;
+            if(blockGrid[gr][gc])return false;
+        }
+    }
+    return true;
+}
+function placePiece(shape,color,row,col){
+    for(let r=0;r<shape.length;r++){
+        for(let c=0;c<shape[r].length;c++){
+            if(shape[r][c])blockGrid[row+r][col+c]=color;
+        }
+    }
+}
+function clearLines(){
+    let cleared=0;
+    // Check rows
+    for(let r=BB_ROWS-1;r>=0;r--){
+        if(blockGrid[r].every(c=>c!==null)){
+            blockGrid.splice(r,1);
+            blockGrid.unshift(Array(BB_COLS).fill(null));
+            cleared++;r++;
+        }
+    }
+    // Check columns
+    for(let c=BB_COLS-1;c>=0;c--){
+        if(blockGrid.every(row=>row[c]!==null)){
+            for(let r=0;r<BB_ROWS;r++)blockGrid[r][c]=null;
+            cleared++;
+        }
+    }
+    return cleared;
+}
+function checkGameOver(){
+    return blockPieces.every(p=>{
+        for(let r=0;r<BB_ROWS;r++)for(let c=0;c<BB_COLS;c++)if(canPlace(p.shape,r,c))return false;
+        return true;
+    });
+}
+
+async function startBlockBlast(){
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
+    if((userData.balance||0)<blockBet){showToast('❌ Points kam hain!');return;}
+    const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'blockblast',bet:blockBet});
+    if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
+    userData.passes=Math.max(0,(userData.passes||1)-1);
+    userData.balance=Math.max(0,(userData.balance||0)-blockBet);
+    updateUI();
+    initBlockGrid();generatePieces();
+    blockScore=0;blockLevel=1;blockActive=true;blockSelected=null;
+    document.getElementById('blockSetup').style.display='none';
+    document.getElementById('blockGameArea').style.display='block';
+    document.getElementById('blockResult').style.display='none';
+    drawBlockGame();renderBlockPieces();
+}
+
+function drawBlockGame(){
+    const canvas=document.getElementById('blockCanvas');
+    if(!canvas)return;
+    const W=Math.min(canvas.parentElement.offsetWidth-4||300,340);
+    const cs=Math.floor(W/BB_COLS);
+    canvas.width=cs*BB_COLS;canvas.height=cs*BB_ROWS;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#050810';ctx.fillRect(0,0,canvas.width,canvas.height);
+    // Grid lines
+    ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=0.5;
+    for(let r=0;r<=BB_ROWS;r++){ctx.beginPath();ctx.moveTo(0,r*cs);ctx.lineTo(canvas.width,r*cs);ctx.stroke();}
+    for(let c=0;c<=BB_COLS;c++){ctx.beginPath();ctx.moveTo(c*cs,0);ctx.lineTo(c*cs,canvas.height);ctx.stroke();}
+    // Blocks
+    for(let r=0;r<BB_ROWS;r++){
+        for(let c=0;c<BB_COLS;c++){
+            if(blockGrid[r][c]){
+                const color=blockGrid[r][c];
+                ctx.fillStyle=color;ctx.shadowColor=color;ctx.shadowBlur=6;
+                ctx.beginPath();ctx.roundRect(c*cs+1,r*cs+1,cs-2,cs-2,4);ctx.fill();
+                ctx.shadowBlur=0;
+                // Shine
+                ctx.fillStyle='rgba(255,255,255,.2)';
+                ctx.beginPath();ctx.roundRect(c*cs+3,r*cs+3,cs*0.4,cs*0.2,2);ctx.fill();
+            }
+        }
+    }
+    // Score
+    const se=document.getElementById('blockScore');if(se)se.textContent=blockScore+' pts';
+    const le=document.getElementById('blockLevel');if(le)le.textContent='Level '+blockLevel;
+}
+
+function renderBlockPieces(){
+    const container=document.getElementById('blockPiecesRow');
+    if(!container)return;
+    container.innerHTML='';
+    blockPieces.forEach((piece,idx)=>{
+        if(!piece)return;
+        const cs=Math.min(32, Math.floor((container.offsetWidth||280)/3/piece.shape[0].length));
+        const canvas=document.createElement('canvas');
+        canvas.width=piece.shape[0].length*cs+4;
+        canvas.height=piece.shape.length*cs+4;
+        canvas.style.cursor='pointer';
+        canvas.style.filter=blockSelected===idx?'drop-shadow(0 0 8px '+piece.color+')':'none';
+        canvas.style.transform=blockSelected===idx?'scale(1.1)':'scale(1)';
+        canvas.style.transition='all .15s';
+        const ctx=canvas.getContext('2d');
+        piece.shape.forEach((row,r)=>{row.forEach((cell,c)=>{
+            if(cell){
+                ctx.fillStyle=piece.color;ctx.shadowColor=piece.color;ctx.shadowBlur=4;
+                ctx.beginPath();ctx.roundRect(c*cs+1,r*cs+1,cs-2,cs-2,4);ctx.fill();ctx.shadowBlur=0;
+            }
+        });});
+        canvas.onclick=()=>{blockSelected=idx;renderBlockPieces();showToast('🖱️ Grid pe tap karo!');};
+        container.appendChild(canvas);
+    });
+}
+
+function handleBlockTap(evt){
+    if(!blockActive)return;
+    const canvas=document.getElementById('blockCanvas');
+    const rect=canvas.getBoundingClientRect();
+    const cs=canvas.width/BB_COLS;
+    const col=Math.floor((evt.clientX-rect.left)/cs);
+    const row=Math.floor((evt.clientY-rect.top)/cs);
+    if(blockSelected===null){showToast('Pehle neeche se piece choose karo!');return;}
+    const piece=blockPieces[blockSelected];
+    if(!piece)return;
+    // Try to center the piece on tap
+    const adjRow=Math.max(0,Math.min(row-Math.floor(piece.shape.length/2),BB_ROWS-piece.shape.length));
+    const adjCol=Math.max(0,Math.min(col-Math.floor(piece.shape[0].length/2),BB_COLS-piece.shape[0].length));
+    if(!canPlace(piece.shape,adjRow,adjCol)){showToast('❌ Yahan nahi!');return;}
+    placePiece(piece.shape,piece.color,adjRow,adjCol);
+    blockPieces[blockSelected]=null;blockSelected=null;
+    const cleared=clearLines();
+    if(cleared>0){
+        const bonus=cleared*cleared*50;
+        blockScore+=bonus;
+        showToast('🔥 '+cleared+' line clear! +'+bonus+'pts');
+        playSound('earn');
+        if(blockScore>blockLevel*500){blockLevel++;showToast('⬆️ Level '+blockLevel+'!');}
+    }else{
+        blockScore+=piece.shape.flat().filter(Boolean).length*5;
+        playSound('tap');
+    }
+    drawBlockGame();
+    // Check if all pieces used → new batch
+    if(blockPieces.every(p=>p===null)){
+        generatePieces();
+        if(checkGameOver()){finishBlockBlast();return;}
+    }else if(checkGameOver()){finishBlockBlast();return;}
+    renderBlockPieces();
+}
+
+async function finishBlockBlast(){
+    blockActive=false;
+    const pts=blockScore;const rup=fromPoints(pts);
+    if(rup>0){
+        await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'blockblast',bet:blockBet,survived_seconds:blockScore});
+        userData.balance=(userData.balance||0)+rup;
+        userData.today_earned=(userData.today_earned||0)+rup;
+        updateUI();showFloatingPts(pts);triggerConfetti();
+    }
+    document.getElementById('blockGameArea').style.display='none';
+    document.getElementById('blockResult').style.display='block';
+    const re=document.getElementById('blockResultEmoji');if(re)re.textContent=pts>500?'🏆':pts>200?'🧱':'😅';
+    const rt=document.getElementById('blockResultTitle');if(rt)rt.textContent=pts>500?'Block Master!':pts>200?'Badiya!':'Agli baar aur!';
+    const rr=document.getElementById('blockResultReward');if(rr)rr.textContent='+'+pts+' pts';
+    playSound(pts>100?'jackpot':'earn');
+    if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
+    updateMissionsUI();
+}
+function resetBlockBlast(){document.getElementById('blockSetup').style.display='block';document.getElementById('blockGameArea').style.display='none';document.getElementById('blockResult').style.display='none';}
+function exitBlockBlast(){blockActive=false;closeModal('blockblast');}
+
+// ============================================================
+// 💎 GEM MATCH — Match 3 gems (Candy Crush style)
+// ============================================================
+let gemBet=1,gemActive=false,gemScore=0,gemMoves=20,gemSelected=null,gemGrid=[];
+const GM_ROWS=7,GM_COLS=7;
+const GEM_TYPES=['💎','🔥','⭐','🍀','💜','🧡'];
+const GEM_COLORS=['#38bdf8','#ef4444','#fbbf24','#10d9a0','#8b5cf6','#f97316'];
+
+function openGemGame(){
+    document.getElementById('gemBal').textContent=fmtPts(toPoints(userData.balance||0));
+    document.getElementById('gemSetup').style.display='block';
+    document.getElementById('gemGameArea').style.display='none';
+    document.getElementById('gemResult').style.display='none';
+    openModal('gemmatch');
+}
+function selGemBet(a,el){
+    if(a>(userData.balance||0)){showToast('❌ Points kam hain!');return;}
+    gemBet=a;
+    document.querySelectorAll('#gemmatchModal .bet-chip').forEach(c=>c.classList.remove('sel'));
+    el.classList.add('sel');
+}
+
+function initGemGrid(){
+    gemGrid=Array.from({length:GM_ROWS},()=>
+        Array.from({length:GM_COLS},()=>Math.floor(Math.random()*GEM_TYPES.length))
+    );
+    // Ensure no initial matches
+    let tries=0;
+    while(findMatches().length>0&&tries<100){
+        for(let r=0;r<GM_ROWS;r++)for(let c=0;c<GM_COLS;c++)gemGrid[r][c]=Math.floor(Math.random()*GEM_TYPES.length);
+        tries++;
+    }
+}
+
+function findMatches(){
+    const matches=new Set();
+    for(let r=0;r<GM_ROWS;r++){
+        for(let c=0;c<GM_COLS-2;c++){
+            if(gemGrid[r][c]===gemGrid[r][c+1]&&gemGrid[r][c]===gemGrid[r][c+2]){
+                matches.add(`${r},${c}`);matches.add(`${r},${c+1}`);matches.add(`${r},${c+2}`);
+            }
+        }
+    }
+    for(let c=0;c<GM_COLS;c++){
+        for(let r=0;r<GM_ROWS-2;r++){
+            if(gemGrid[r][c]===gemGrid[r+1][c]&&gemGrid[r][c]===gemGrid[r+2][c]){
+                matches.add(`${r},${c}`);matches.add(`${r+1},${c}`);matches.add(`${r+2},${c}`);
+            }
+        }
+    }
+    return [...matches].map(k=>{const[r,c]=k.split(',').map(Number);return{r,c};});
+}
+
+function clearMatches(matches){
+    let pts=matches.length*20;
+    matches.forEach(({r,c})=>{gemGrid[r][c]=-1;});
+    // Drop gems
+    for(let c=0;c<GM_COLS;c++){
+        let empty=0;
+        for(let r=GM_ROWS-1;r>=0;r--){
+            if(gemGrid[r][c]===-1)empty++;
+            else if(empty>0){gemGrid[r+empty][c]=gemGrid[r][c];gemGrid[r][c]=-1;}
+        }
+        for(let r=0;r<empty;r++)gemGrid[r][c]=Math.floor(Math.random()*GEM_TYPES.length);
+    }
+    return pts;
+}
+
+function swapGems(r1,c1,r2,c2){
+    [gemGrid[r1][c1],gemGrid[r2][c2]]=[gemGrid[r2][c2],gemGrid[r1][c1]];
+}
+
+function processMatches(){
+    let totalPts=0;let chainCount=0;
+    let matches=findMatches();
+    while(matches.length>=3){
+        const pts=clearMatches(matches);
+        chainCount++;
+        totalPts+=pts*chainCount; // Chain multiplier!
+        matches=findMatches();
+    }
+    return totalPts;
+}
+
+async function startGemMatch(){
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
+    if((userData.balance||0)<gemBet){showToast('❌ Points kam hain!');return;}
+    const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'gemmatch',bet:gemBet});
+    if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
+    userData.passes=Math.max(0,(userData.passes||1)-1);
+    userData.balance=Math.max(0,(userData.balance||0)-gemBet);
+    updateUI();
+    initGemGrid();
+    gemScore=0;gemMoves=20;gemActive=true;gemSelected=null;
+    document.getElementById('gemSetup').style.display='none';
+    document.getElementById('gemGameArea').style.display='block';
+    document.getElementById('gemResult').style.display='none';
+    drawGemGrid();
+}
+
+function drawGemGrid(){
+    const container=document.getElementById('gemGrid');
+    if(!container)return;
+    const W=Math.min(container.parentElement.offsetWidth-8||300,340);
+    const cs=Math.floor(W/GM_COLS);
+    container.style.width=cs*GM_COLS+'px';
+    container.style.display='grid';
+    container.style.gridTemplateColumns=`repeat(${GM_COLS},${cs}px)`;
+    container.style.gap='2px';
+    container.innerHTML='';
+    for(let r=0;r<GM_ROWS;r++){
+        for(let c=0;c<GM_COLS;c++){
+            const g=gemGrid[r][c];
+            const cell=document.createElement('div');
+            cell.style.cssText=`width:${cs}px;height:${cs}px;display:flex;align-items:center;justify-content:center;border-radius:${cs*0.2}px;font-size:${cs*0.55}px;cursor:pointer;transition:all .15s;background:${g>=0?GEM_COLORS[g]+'22':'transparent'};border:1.5px solid ${g>=0?GEM_COLORS[g]+'44':'transparent'};`;
+            if(gemSelected&&gemSelected.r===r&&gemSelected.c===c){
+                cell.style.border=`2px solid ${GEM_COLORS[g]}`;
+                cell.style.boxShadow=`0 0 12px ${GEM_COLORS[g]}`;
+                cell.style.transform='scale(1.1)';
+            }
+            cell.textContent=g>=0?GEM_TYPES[g]:'';
+            cell.onclick=()=>handleGemTap(r,c);
+            container.appendChild(cell);
+        }
+    }
+    const se=document.getElementById('gemScore');if(se)se.textContent=gemScore+' pts';
+    const me=document.getElementById('gemMoves');if(me)me.textContent=gemMoves+' moves left';
+    if(gemMoves<=0){finishGemMatch();return;}
+}
+
+function handleGemTap(r,c){
+    if(!gemActive||gemGrid[r][c]<0)return;
+    if(!gemSelected){
+        gemSelected={r,c};drawGemGrid();return;
+    }
+    const {r:r1,c:c1}=gemSelected;
+    if(r===r1&&c===c1){gemSelected=null;drawGemGrid();return;}
+    // Check adjacent
+    if(Math.abs(r-r1)+Math.abs(c-c1)===1){
+        swapGems(r1,c1,r,c);
+        const pts=processMatches();
+        if(pts>0){
+            gemScore+=pts;gemMoves--;
+            showToast('✨ Match! +'+pts+'pts');playSound('earn');
+            if(pts>100)triggerConfetti();
+        }else{
+            swapGems(r1,c1,r,c); // Swap back
+            showToast('❌ Koi match nahi!');playSound('click');
+        }
+        gemSelected=null;
+        drawGemGrid();
+        if(gemMoves<=0)finishGemMatch();
+    }else{
+        gemSelected={r,c};drawGemGrid();
+    }
+}
+
+async function finishGemMatch(){
+    gemActive=false;
+    const pts=gemScore;const rup=fromPoints(pts);
+    if(rup>0){
+        await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'gemmatch',bet:gemBet,survived_seconds:gemScore});
+        userData.balance=(userData.balance||0)+rup;
+        userData.today_earned=(userData.today_earned||0)+rup;
+        updateUI();showFloatingPts(pts);
+        if(pts>300)triggerConfetti();
+    }
+    document.getElementById('gemGameArea').style.display='none';
+    document.getElementById('gemResult').style.display='block';
+    const re=document.getElementById('gemResultEmoji');if(re)re.textContent=pts>400?'💎':pts>150?'⭐':'🍀';
+    const rt=document.getElementById('gemResultTitle');if(rt)rt.textContent=pts>400?'Gem Master! 💎':pts>150?'Badiya Match!':'Agli baar aur!';
+    const rr=document.getElementById('gemResultReward');if(rr)rr.textContent='+'+pts+' pts';
+    playSound(pts>100?'jackpot':'earn');
+    if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
+    updateMissionsUI();
+}
+function resetGemMatch(){document.getElementById('gemSetup').style.display='block';document.getElementById('gemGameArea').style.display='none';document.getElementById('gemResult').style.display='none';}
+function exitGemMatch(){gemActive=false;closeModal('gemmatch');}
+
 function exitChess(){if(chessInterval)clearInterval(chessInterval);chessActive=false;closeModal('chess');}
 
 
@@ -5081,6 +5654,222 @@ function showFloatingPts(pts,x,y){
     document.body.appendChild(el);
     setTimeout(()=>el.remove(),1200);
 }
+
+// ═══════ ANNOUNCEMENT SYSTEM ═══════
+const ANNOUNCE_KEY='ff_announcement';
+
+async function loadAnnouncement(){
+    try{const sv=await apiGet('/api/get-announcement');if(sv&&sv.text&&sv.text.trim()){showAnnouncement(sv.text);return;}}catch(e){}
+    try{const a=localStorage.getItem(ANNOUNCE_KEY);if(a){const obj=JSON.parse(a);if(obj.text&&obj.text.trim())showAnnouncement(obj.text);}}catch(e){}
+}
+function showAnnouncement(text){
+    const b=document.getElementById('announcementBanner');const t=document.getElementById('announcementText');
+    if(!b||!t)return;
+    t.textContent='';b.style.display='block';
+    let i=0;const typ=setInterval(()=>{if(i<text.length){t.textContent+=text[i++];}else clearInterval(typ);},28);
+}
+function dismissAnnouncement(){const b=document.getElementById('announcementBanner');if(b){b.style.opacity='0';setTimeout(()=>{b.style.display='none';b.style.opacity='';},200);}}
+async function setAnnouncement(){
+    const inp=document.getElementById('announcementInput');if(!inp||!inp.value.trim()){showToast('❌ Text likho!');return;}
+    const text=inp.value.trim();
+    try{localStorage.setItem(ANNOUNCE_KEY,JSON.stringify({text,ts:Date.now()}));}catch(e){}
+    showAnnouncement(text);showToast('✅ Banner set!');
+    if(userData.is_admin)apiPost('/api/set-announcement',{text,admin_id:userData.user_id}).catch(()=>{});
+}
+function clearAnnouncement(){
+    try{localStorage.removeItem(ANNOUNCE_KEY);}catch(e){}
+    const b=document.getElementById('announcementBanner');if(b)b.style.display='none';
+    const inp=document.getElementById('announcementInput');if(inp)inp.value='';
+    showToast('🗑️ Cleared!');
+    if(userData.is_admin)apiPost('/api/set-announcement',{text:'',admin_id:userData.user_id}).catch(()=>{});
+}
+
+// ═══════ ADMIN PANEL ═══════
+async function openAdminPanel(){
+    openModal('adminPanel');
+    try{
+        const d=await apiGet('/api/stats');
+        if(d){
+            const tu=document.getElementById('apTotalUsers');const pw=document.getElementById('apPendingWD');const ps=document.getElementById('apPendingSupport');
+            if(tu)tu.textContent=d.total_users||0;if(pw)pw.textContent=d.pending_withdrawals||0;if(ps)ps.textContent=d.pending_support||0;
+        }
+    }catch(e){}
+    try{const a=localStorage.getItem(ANNOUNCE_KEY);if(a){const obj=JSON.parse(a);const inp=document.getElementById('announcementInput');if(inp)inp.value=obj.text||'';}}catch(e){}
+}
+async function adminSearchUser(){
+    const inp=document.getElementById('apSearchId');const res=document.getElementById('apUserResult');
+    if(!inp||!res)return;const uid=parseInt(inp.value);
+    if(!uid){res.textContent='Invalid ID';return;}
+    res.textContent='Searching...';
+    const d=await apiGet(`/api/user/${uid}`);
+    if(!d||d.error){res.textContent='User not found';return;}
+    res.innerHTML=`<div style="background:var(--bg3);border-radius:10px;padding:10px;margin-top:4px;"><b>${d.first_name||'User'}</b> #${uid}<br><small>Balance: ${fmtPts(toPoints(d.balance||0))} | Refs: ${d.active_refs||0} active | Passes: ${d.passes||0}</small></div>`;
+}
+
+
+function checkReferralWelcome(){
+    // Only show to users who were referred AND haven't activated yet
+    if(!userData.referrer_id)return; // not referred
+    if(userData.referral_active)return; // already active
+    const key='ff_ref_welcome_shown_'+userData.user_id;
+    if(localStorage.getItem(key))return; // already shown once
+    localStorage.setItem(key,'1');
+    // Show movie group popup
+    showMovieGroupPopup();
+}
+
+function showMovieGroupPopup(){
+    // Remove existing if any
+    const existing=document.getElementById('movieGroupPopup');
+    if(existing)existing.remove();
+    const popup=document.createElement('div');
+    popup.id='movieGroupPopup';
+    popup.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:8500;display:flex;align-items:center;justify-content:center;padding:20px;animation:scaleIn .3s ease;';
+    popup.innerHTML=`
+        <div style="background:linear-gradient(135deg,#0e1220,#1a0a2e);border:1.5px solid rgba(139,92,246,.4);border-radius:22px;padding:24px;width:100%;max-width:340px;text-align:center;">
+            <div style="font-size:40px;margin-bottom:12px;">🎬</div>
+            <div style="font-family:'Oxanium',sans-serif;font-size:20px;font-weight:900;color:var(--gold);margin-bottom:8px;">Pehle Ye Karo!</div>
+            <div style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:16px;">
+                Aapko <b style="color:var(--text);">jisne refer kiya</b> unhe paisa milega jab aap:<br><br>
+                1️⃣ Movie Group join karo<br>
+                2️⃣ Koi movie search karo<br>
+                3️⃣ Bot ka shortlink complete karo<br><br>
+                <span style="color:var(--green);font-weight:800;">✅ Aapko bhi milenge 30 pts/day!</span>
+            </div>
+            <a href="https://t.me/all_movies_webseries_is_here" target="_blank"
+               style="display:block;background:linear-gradient(135deg,#4ECDC4,#26A69A);color:#000;border-radius:14px;padding:13px;font-weight:900;font-size:14px;text-decoration:none;margin-bottom:10px;">
+                🎬 Movie Group Join Karo
+            </a>
+            <button onclick="document.getElementById('movieGroupPopup').remove();"
+                style="width:100%;background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:14px;padding:12px;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">
+                Baad Mein Karunga
+            </button>
+        </div>`;
+    document.body.appendChild(popup);
+}
+
+async function sendRefNudge(refUserId, refName){
+    // Show confirmation
+    if(!confirm('Send nudge message to '+refName+'?'))return;
+    try{
+        const r=await apiPost('/api/send-ref-nudge',{
+            sender_id:userData.user_id,
+            ref_user_id:refUserId,
+            sender_name:userData.first_name||'Your Referrer'
+        });
+        if(r&&r.success){showToast('✅ Message bhej diya!');}
+        else{showToast('❌ '+(r?.message||'Bot blocked hai'));}
+    }catch(e){showToast('❌ Network error');}
+}
+
+function renderRefActivity(refs){
+    const el=document.getElementById('refActivity');
+    if(!el)return;
+    if(!refs||!refs.length){el.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px;font-size:12px;">Koi refer nahi abhi • Share karo!</div>';return;}
+    el.innerHTML=refs.slice(0,10).map(r=>{
+        const isActive=r.is_active;
+        const isBlocked=r.bot_blocked;
+        const name=r.first_name||'User';
+        const pts=r.today_search?'+30pts aaj':'';
+        return `<div class="ref-act-item">
+            <div class="ref-act-dp" style="background:${isActive?'rgba(25,216,158,.15)':'rgba(251,191,36,.1)'};">
+                ${isBlocked?'🚫':isActive?'✅':'⏳'}
+            </div>
+            <div class="ref-act-info">
+                <div class="ref-act-name">${name}</div>
+                <div class="ref-act-detail">${isBlocked?'Bot block kar diya — message nahi ja sakta':isActive?'Active ✅ '+pts:'Movie search nahi ki abhi'}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                <span class="ref-act-badge ${isActive?'badge-active':'badge-pending'}">${isActive?'ACTIVE':'PENDING'}</span>
+                ${!isBlocked&&!isActive?`<button onclick="sendRefNudge(${r.user_id},'${name}')" style="background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);color:var(--blue);border-radius:8px;padding:3px 8px;font-size:9px;font-weight:800;cursor:pointer;">📩 Nudge</button>`:''}
+            </div>
+        </div>`;
+    }).join('');
+    if(refs.length>10){el.innerHTML+='<div style="text-align:center;font-size:11px;color:var(--text3);padding:8px;">+ '+(refs.length-10)+' more...</div>';}
+}
+// ═══════ NOTIFICATION SYSTEM ═══════
+const NOTIF_KEY = 'ff_notifications';
+let notifications = [];
+
+function loadNotifications(){
+    try {
+        const raw = localStorage.getItem(NOTIF_KEY);
+        notifications = raw ? JSON.parse(raw) : [];
+    } catch(e){ notifications = []; }
+    updateNotifBell();
+}
+
+function addNotification(type, title, body, imageUrl=''){
+    const notif = {
+        id: Date.now(),
+        type, title, body, imageUrl,
+        time: new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),
+        read: false
+    };
+    notifications.unshift(notif);
+    if(notifications.length > 50) notifications = notifications.slice(0,50);
+    try{ localStorage.setItem(NOTIF_KEY, JSON.stringify(notifications)); }catch(e){}
+    updateNotifBell();
+    renderNotifList();
+}
+
+function updateNotifBell(){
+    const unread = notifications.filter(n => !n.read).length;
+    const dot = document.getElementById('notifDot');
+    if(dot) dot.style.display = unread > 0 ? 'block' : 'none';
+}
+
+function openNotifPanel(){
+    notifications.forEach(n => n.read = true);
+    try{ localStorage.setItem(NOTIF_KEY, JSON.stringify(notifications)); }catch(e){}
+    updateNotifBell();
+    renderNotifList();
+    openModal('notif');
+}
+
+function renderNotifList(){
+    const el = document.getElementById('notifList');
+    if(!el) return;
+    if(!notifications.length){
+        el.innerHTML = '<div style="text-align:center;color:var(--text3);padding:40px 0;font-size:13px;">📭 Koi notification nahi abhi</div>';
+        return;
+    }
+    el.innerHTML = notifications.map(n => `
+        <div style="background:var(--bg3);border-radius:14px;padding:12px;margin-bottom:10px;border:1px solid ${n.type==='broadcast'?'rgba(139,92,246,.3)':'var(--border)'};display:flex;gap:10px;align-items:flex-start;">
+            ${n.imageUrl ? `<img src="${n.imageUrl}" style="width:56px;height:56px;border-radius:10px;object-fit:cover;flex-shrink:0;">` : `<div style="width:40px;height:40px;border-radius:12px;background:${n.type==='broadcast'?'rgba(139,92,246,.2)':'rgba(56,189,248,.15)'};display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${n.type==='broadcast'?'📢':'🔔'}</div>`}
+            <div style="flex:1;min-width:0;">
+                <div style="font-weight:800;font-size:13px;color:var(--text);margin-bottom:3px;">${n.title||'FilmyFund Update'}</div>
+                <div style="font-size:12px;color:var(--text2);line-height:1.5;">${n.body||''}</div>
+                <div style="font-size:10px;color:var(--text3);margin-top:4px;">${n.time}</div>
+            </div>
+        </div>`).join('');
+}
+
+function clearNotifs(){
+    notifications = [];
+    try{ localStorage.removeItem(NOTIF_KEY); }catch(e){}
+    updateNotifBell();
+    renderNotifList();
+    showToast('🗑️ Notifications cleared');
+}
+
+// Check for broadcast notifications from server
+async function checkBroadcastNotifications(){
+    try {
+        const d = await apiGet('/api/get-announcement');
+        if(d && d.text && d.text.trim()){
+            // Check if we already have this notification
+            const key = 'ff_last_bc_' + btoa(d.text.slice(0,20)).replace(/=/g,'');
+            if(!localStorage.getItem(key)){
+                localStorage.setItem(key, '1');
+                addNotification('broadcast', '📢 FilmyFund Update', d.text, d.image_url||'');
+                // Also show announcement banner
+                showAnnouncement(d.text);
+            }
+        }
+    } catch(e){}
+}
+
 
 function playSound(type){
     if(!soundOn)return;
@@ -5221,10 +6010,123 @@ async function init(){
     setLang(lang);
     showToast('✅ Ready!');
     setInterval(loadLiveActivity,30000);
+    loadNotifications();
+    setTimeout(checkBroadcastNotifications, 2000);
+    setInterval(checkBroadcastNotifications, 60000);
     setInterval(async()=>{await loadUser();await loadGameState();},60000);
 }
 document.addEventListener('DOMContentLoaded',init);
 </script>
+
+<!-- BLOCK BLAST MODAL -->
+<div class="modal" id="blockblastModal">
+    <div class="modal-hdr">
+        <div class="back-btn" onclick="exitBlockBlast()">←</div>
+        <div class="modal-title">🧱 Block Blast</div>
+        <div id="blockBal" style="font-size:11px;color:var(--gold);font-weight:800;">0 pts</div>
+    </div>
+    <div style="padding:14px;">
+    <!-- SETUP -->
+    <div id="blockSetup">
+        <div style="text-align:center;font-size:40px;margin-bottom:8px;">🧱</div>
+        <div style="text-align:center;font-weight:900;font-size:18px;color:var(--text);margin-bottom:4px;">Block Blast!</div>
+        <div style="text-align:center;font-size:12px;color:var(--text2);margin-bottom:16px;">Pieces lagao • Lines clear karo • Points kamao!</div>
+        <div style="background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);border-radius:14px;padding:12px;margin-bottom:14px;">
+            <div style="font-size:11px;color:var(--purple2);font-weight:800;margin-bottom:6px;">🎮 Kaise khelen:</div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.8;">
+                1️⃣ Neeche se piece select karo<br>
+                2️⃣ Grid pe tap karo jahan place karna hai<br>
+                3️⃣ Puri row/column = Line Clear = Bonus pts!<br>
+                4️⃣ Jab koi piece na fit ho → Game Over
+            </div>
+        </div>
+        <div style="font-weight:800;font-size:12px;color:var(--text2);margin-bottom:8px;">Bet select karo:</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+            <button class="bet-chip sel" onclick="selBlockBet(1,this)">1 pt</button>
+            <button class="bet-chip" onclick="selBlockBet(5,this)">5 pts</button>
+            <button class="bet-chip" onclick="selBlockBet(10,this)">10 pts</button>
+            <button class="bet-chip" onclick="selBlockBet(25,this)">25 pts</button>
+        </div>
+        <button onclick="startBlockBlast()" class="btn-gold btn-shine">🧱 Start (1 Pass)</button>
+    </div>
+    <!-- GAME -->
+    <div id="blockGameArea" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div id="blockScore" style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:900;color:var(--gold);">0 pts</div>
+            <div id="blockLevel" style="font-size:12px;font-weight:800;color:var(--purple2);">Level 1</div>
+            <button onclick="exitBlockBlast()" style="background:rgba(248,113,113,.12);border:1px solid var(--red);color:var(--red);border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;">Exit</button>
+        </div>
+        <canvas id="blockCanvas" onclick="handleBlockTap(event)" style="display:block;border-radius:12px;max-width:100%;touch-action:none;"></canvas>
+        <div id="blockPiecesRow" style="display:flex;justify-content:space-around;align-items:center;margin-top:14px;min-height:60px;background:var(--bg3);border-radius:14px;padding:10px;border:1px solid var(--border);gap:16px;"></div>
+        <div style="text-align:center;font-size:10px;color:var(--text3);margin-top:8px;">Pehle piece select karo → Phir grid pe tap karo</div>
+    </div>
+    <!-- RESULT -->
+    <div id="blockResult" style="display:none;text-align:center;padding:20px 0;">
+        <div id="blockResultEmoji" style="font-size:60px;margin-bottom:12px;">🏆</div>
+        <div id="blockResultTitle" style="font-size:22px;font-weight:900;color:var(--text);margin-bottom:8px;">Block Master!</div>
+        <div id="blockResultReward" style="font-size:28px;font-weight:900;color:var(--gold);font-family:'Oxanium',sans-serif;margin-bottom:20px;">+0 pts</div>
+        <div style="display:flex;gap:10px;">
+            <button onclick="resetBlockBlast()" class="btn-purple" style="flex:1;">🔄 Play Again</button>
+            <button onclick="exitBlockBlast()" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:13px;font-weight:800;cursor:pointer;color:var(--text);">← Back</button>
+        </div>
+    </div>
+    </div>
+</div>
+
+<!-- GEM MATCH MODAL -->
+<div class="modal" id="gemmatchModal">
+    <div class="modal-hdr">
+        <div class="back-btn" onclick="exitGemMatch()">←</div>
+        <div class="modal-title">💎 Gem Match</div>
+        <div id="gemBal" style="font-size:11px;color:var(--gold);font-weight:800;">0 pts</div>
+    </div>
+    <div style="padding:14px;">
+    <!-- SETUP -->
+    <div id="gemSetup">
+        <div style="text-align:center;font-size:40px;margin-bottom:8px;">💎🔥⭐</div>
+        <div style="text-align:center;font-weight:900;font-size:18px;color:var(--text);margin-bottom:4px;">Gem Match 3!</div>
+        <div style="text-align:center;font-size:12px;color:var(--text2);margin-bottom:16px;">Gems match karo • Chain banao • Zyada pts kamao!</div>
+        <div style="background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);border-radius:14px;padding:12px;margin-bottom:14px;">
+            <div style="font-size:11px;color:var(--blue);font-weight:800;margin-bottom:6px;">🎮 Kaise khelen:</div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.8;">
+                1️⃣ Ek gem tap karo (select)<br>
+                2️⃣ Saath wali gem tap karo (swap)<br>
+                3️⃣ 3+ same gems match = Points!<br>
+                4️⃣ Chain reaction = Multiplier bonus! 🔥
+            </div>
+        </div>
+        <div style="font-weight:800;font-size:12px;color:var(--text2);margin-bottom:8px;">Bet select karo:</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+            <button class="bet-chip sel" onclick="selGemBet(1,this)">1 pt</button>
+            <button class="bet-chip" onclick="selGemBet(5,this)">5 pts</button>
+            <button class="bet-chip" onclick="selGemBet(10,this)">10 pts</button>
+            <button class="bet-chip" onclick="selGemBet(25,this)">25 pts</button>
+        </div>
+        <button onclick="startGemMatch()" class="btn-gold btn-shine">💎 Start (1 Pass)</button>
+    </div>
+    <!-- GAME -->
+    <div id="gemGameArea" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div id="gemScore" style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:900;color:var(--gold);">0 pts</div>
+            <div id="gemMoves" style="font-size:12px;font-weight:800;color:var(--purple2);">20 moves left</div>
+            <button onclick="exitGemMatch()" style="background:rgba(248,113,113,.12);border:1px solid var(--red);color:var(--red);border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;">Exit</button>
+        </div>
+        <div id="gemGrid" style="margin:0 auto 8px;"></div>
+        <div style="text-align:center;font-size:10px;color:var(--text3);">Gems swap karke 3+ match banao!</div>
+    </div>
+    <!-- RESULT -->
+    <div id="gemResult" style="display:none;text-align:center;padding:20px 0;">
+        <div id="gemResultEmoji" style="font-size:60px;margin-bottom:12px;">💎</div>
+        <div id="gemResultTitle" style="font-size:22px;font-weight:900;color:var(--text);margin-bottom:8px;">Gem Master!</div>
+        <div id="gemResultReward" style="font-size:28px;font-weight:900;color:var(--gold);font-family:'Oxanium',sans-serif;margin-bottom:20px;">+0 pts</div>
+        <div style="display:flex;gap:10px;">
+            <button onclick="resetGemMatch()" class="btn-purple" style="flex:1;">🔄 Play Again</button>
+            <button onclick="exitGemMatch()" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:13px;font-weight:800;cursor:pointer;color:var(--text);">← Back</button>
+        </div>
+    </div>
+    </div>
+</div>
+
 </body>
 </html>
 <!-- FilmyFund © 2025 | Owner: @asbhaibsr | Channel: @asbhai_bsr | t.me/asbhaibsr -->
