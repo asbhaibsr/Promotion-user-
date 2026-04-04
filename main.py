@@ -1062,9 +1062,67 @@ def set_announcement_api():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/get-announcement')
-def get_announcement_api():
-    global _announcement
-    return jsonify(_announcement)
+def get_announcement():
+    try:
+        import json as _json
+        try:
+            with open('announcement.json', 'r') as f:
+                d = _json.load(f)
+            return jsonify({'text': d.get('text',''), 'image_url': d.get('image_url','')})
+        except Exception:
+            pass
+        try:
+            with open('announcement.txt', 'r') as f:
+                text = f.read().strip()
+            return jsonify({'text': text, 'image_url': ''})
+        except Exception:
+            pass
+        return jsonify({'text': '', 'image_url': ''})
+    except Exception as ex:
+        return jsonify({'text': '', 'image_url': ''})
+
+
+@app.route('/api/send-ref-nudge', methods=['POST'])
+def send_ref_nudge():
+    """Admin/user sends nudge to pending referred user"""
+    try:
+        data = request.get_json()
+        sender_id = int(data.get('sender_id', 0))
+        ref_user_id = int(data.get('ref_user_id', 0))
+        sender_name = str(data.get('sender_name', 'Your Referrer'))[:50]
+        if not sender_id or not ref_user_id:
+            return jsonify({'success': False, 'message': 'Invalid IDs'})
+        # Send via bot async
+        msg = (
+            f"👋 *{sender_name}* ne aapko yaad kiya!\n\n"
+            f"📌 Aapne abhi tak movie search nahi ki hai.\n\n"
+            f"🎬 Movie Group mein jaake koi bhi movie search karo aur shortlink pura karo:\n"
+            f"👉 https://t.me/all_movies_webseries_is_here\n\n"
+            f"✅ Isse *aapko bhi* 30 pts milenge aur jisne refer kiya unhe bhi paise milenge! 💰"
+        )
+        import asyncio as _asyncio
+        async def _send():
+            try:
+                await bot_app.bot.send_message(
+                    chat_id=ref_user_id,
+                    text=msg,
+                    parse_mode='Markdown'
+                )
+                return {'success': True}
+            except Exception as ex:
+                err = str(ex).lower()
+                if 'blocked' in err or 'deactivated' in err:
+                    return {'success': False, 'message': 'Is user ne bot block kar diya hai'}
+                return {'success': False, 'message': str(ex)[:100]}
+        if bot_loop and bot_loop.is_running():
+            future = _asyncio.run_coroutine_threadsafe(_send(), bot_loop)
+            result = future.result(timeout=10)
+            return jsonify(result)
+        return jsonify({'success': False, 'message': 'Bot not running'})
+    except Exception as ex:
+        logger.error(f"send_ref_nudge error: {ex}")
+        return jsonify({'success': False, 'message': str(ex)[:100]})
+
 
 @app.route('/health')
 def health():
@@ -1214,10 +1272,11 @@ def run_bot():
         ))
 
         # Admin private messages
+        # Admin handler — ALL media types for broadcast (photo, video, audio, etc)
         bot_app.add_handler(MessageHandler(
-            filters.TEXT & filters.ChatType.PRIVATE,
+            filters.ChatType.PRIVATE & ~filters.COMMAND,
             admin_handlers.handle_admin_message
-        ))
+        ), group=1)
 
         # General private messages
         bot_app.add_handler(MessageHandler(
