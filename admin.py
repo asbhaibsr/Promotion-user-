@@ -567,47 +567,67 @@ class AdminHandlers:
         context.user_data['admin_action'] = 'broadcast'
         total = self.db.users.count_documents({})
         await query.edit_message_text(
-            f"📢 **Broadcast**\n\nTotal users: {total}\n\nBhejne wala message type karo:",
+            f"📢 **Broadcast**\n\nTotal users: {total}\n\n📩 Aage jo bhi message bhejoge (text/photo/video/audio/sticker) — woh sab users ko broadcast ho jayega!",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀️ BACK", callback_data="back_to_admin")]]),
             parse_mode=ParseMode.MARKDOWN
         )
 
     async def process_broadcast(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Full media broadcast: text, photo, video, audio, voice, document, sticker, animation"""
+        if context.user_data.get('admin_action') != 'broadcast':
+            return
+        context.user_data.pop('admin_action', None)
+
         message = update.message
         users = list(self.db.users.find({}, {'user_id': 1}))
-        sent = 0
-        failed = 0
-        blocked = []
+        sent = 0; failed = 0; blocked = []
 
-        status = await message.reply_text(f"📢 Broadcasting to {len(users)} users...")
+        status_msg = await message.reply_text(
+            f"📢 Broadcasting to {len(users)} users...\n⏳ Please wait..."
+        )
 
         for i, u in enumerate(users):
+            uid = u.get('user_id')
+            if not uid:
+                continue
             try:
-                uid = u['user_id']
-                if message.text:
-                    await context.bot.send_message(chat_id=uid, text=message.text)
-                elif message.photo:
-                    await context.bot.send_photo(chat_id=uid, photo=message.photo[-1].file_id, caption=message.caption)
-                elif message.video:
-                    await context.bot.send_video(chat_id=uid, video=message.video.file_id, caption=message.caption)
+                # Use copy_message — works for ALL types (text, photo, video, audio, voice, doc, sticker, gif)
+                await context.bot.copy_message(
+                    chat_id=uid,
+                    from_chat_id=message.chat_id,
+                    message_id=message.message_id
+                )
                 sent += 1
-                if (i+1) % 100 == 0:
-                    await status.edit_text(f"📢 {i+1}/{len(users)} done...")
-                await asyncio.sleep(0.05)
-            except Exception as e:
-                failed += 1
-                err = str(e).lower()
-                if 'blocked' in err or 'deactivated' in err or 'not found' in err:
-                    blocked.append(u['user_id'])
+                # Rate limit: Telegram allows ~30 msgs/sec
+                if (i + 1) % 30 == 0:
+                    await status_msg.edit_text(
+                        f"📢 Progress: {i+1}/{len(users)} users\n✅ Sent: {sent} | ❌ Failed: {failed}"
+                    )
+                    await asyncio.sleep(1)  # 1 sec pause every 30 msgs
+                else:
+                    await asyncio.sleep(0.035)
 
-        context.user_data['last_broadcast_blocked'] = blocked
-        await status.edit_text(
-            f"✅ **Broadcast Done!**\n\n"
-            f"📨 Sent: {sent}\n❌ Failed: {failed}\n🚫 Blocked: {len(blocked)}",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🧹 CLEAR JUNK", callback_data="admin_clear_junk")]]),
-            parse_mode=ParseMode.MARKDOWN
+            except Exception as ex:
+                failed += 1
+                err = str(ex).lower()
+                if any(w in err for w in ['blocked', 'deactivated', 'not found', 'chat not found', 'user is deactivated']):
+                    blocked.append(uid)
+
+        # Final report
+        await status_msg.edit_text(
+            f"✅ **Broadcast Complete!**\n\n"
+            f"📨 Sent: {sent}\n"
+            f"❌ Failed: {failed}\n"
+            f"🚫 Blocked/Deleted: {len(blocked)}\n"
+            f"👥 Total: {len(users)}",
+            parse_mode='Markdown'
         )
-        context.user_data['admin_action'] = None
+
+        # Save blocked users list
+        if blocked:
+            context.user_data['last_broadcast_blocked'] = blocked
+            logger.info(f"Broadcast blocked by {len(blocked)} users")
+
 
     async def clear_junk_users(self, query, context):
         blocked = context.user_data.get('last_broadcast_blocked', [])
@@ -828,7 +848,8 @@ class AdminHandlers:
         if not action:
             return  # No active action
 
-        logger.info(f"Admin message action: '{action}' from {user_id}: {update.message.text[:30]}")
+        msg_type = "text" if update.message.text else "media"
+        logger.info(f"Admin message action: '{action}' from {user_id} ({msg_type})")
 
         if action == 'broadcast':
             await self.process_broadcast(update, context)
