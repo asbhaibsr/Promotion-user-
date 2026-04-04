@@ -181,35 +181,70 @@ class Handlers:
                     except Exception as e:
                         logger.error(f"Failed to notify referrer: {e}")
 
-            # ── WELCOME MESSAGE (new + returning) ────────────────────
-            welcome_text = (
-                f"🎬 **Welcome {user.first_name}!**\n\n"
-                f"👇 Neeche click karke Mini App kholo:"
-            )
-
-            keyboard = [
-                [InlineKeyboardButton(
-                    "📱 MINI APP KHOLO",
-                    web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}")
-                )],
-                [InlineKeyboardButton(
-                    "🎬 MOVIE GROUP JOIN KARO",
-                    url=self.config.MOVIE_GROUP_LINK
-                )]
-            ]
-
-            await update.message.reply_text(
-                welcome_text,
-                reply_markup=InlineKeyboardMarkup(keyboard),
-                parse_mode=ParseMode.MARKDOWN
-            )
-
+            # ── WELCOME MESSAGE ──────────────────────────────────────
             ref_link = f"https://t.me/{self.config.BOT_USERNAME}?start=ref_{user.id}"
-            await update.message.reply_text(
-                f"🔗 **Aapka Referral Link:**\n`{ref_link}`\n\n"
-                f"📢 Share karo aur passes + paise kamao!",
-                parse_mode=ParseMode.MARKDOWN
-            )
+            movie_group = getattr(self.config, 'MOVIE_GROUP_LINK', 'https://t.me/all_movies_webseries_is_here')
+
+            if referrer_id and is_new:
+                # ── REFERRED new user ─────────────────────────────
+                welcome_text = (
+                    f"🎬 *FilmyFund mein Aapka Swagat Hai, {user.first_name}!*\n\n"
+                    f"✅ Aap ek referral ke through aaye hain!\n\n"
+                    f"📌 *Sabse Pehle Ye Karo:*\n"
+                    f"1. Movie Group join karo\n"
+                    f"2. Koi bhi movie search karo\n"
+                    f"3. Bot jo shortlink bheje use complete karo\n\n"
+                    f"🎁 Isse aapka referral ACTIVE hoga aur:\n"
+                    f"• Jisne refer kiya: *3 Passes + 60 pts*\n"
+                    f"• Aapko: *30 pts daily* jab bhi search karo!\n\n"
+                    f"💡 Roz movie search = Roz earning!"
+                )
+                keyboard = [
+                    [InlineKeyboardButton(
+                        "🎬 MOVIE GROUP JOIN KARO — Pehle Ye Karo!",
+                        url=movie_group
+                    )],
+                    [InlineKeyboardButton(
+                        "💰 MINI APP KHOLO — Earning Shuru Karo",
+                        web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}")
+                    )]
+                ]
+                await update.message.reply_text(
+                    welcome_text,
+                    reply_markup=InlineKeyboardMarkup(keyboard),
+                    parse_mode=ParseMode.MARKDOWN
+                )
+            else:
+                # ── Direct / returning user ───────────────────────
+                welcome_text = (
+                    f"🎬 *FilmyFund mein Swagat Hai, {user.first_name}!*\n\n"
+                    f"🎯 Refer karo • Movie search karo • Paise kamao!\n\n"
+                    f"👇 Mini App kholo aur shuru karo:"
+                )
+                keyboard = [
+                    [InlineKeyboardButton(
+                        "💰 MINI APP KHOLO — Earning Shuru Karo",
+                        web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}")
+                    )],
+                    [InlineKeyboardButton(
+                        "🎬 MOVIE GROUP JOIN KARO",
+                        url=movie_group
+                    )]
+                ]
+                await update.message.reply_text(
+                    welcome_text,
+                    reply_markup=InlineKeyboardMarkup(keyboard),
+                    parse_mode=ParseMode.MARKDOWN
+                )
+
+            if is_new:
+                await update.message.reply_text(
+                    f"🔗 *Aapka Referral Link:*\n`{ref_link}`\n\n"
+                    f"📢 Dosto ko share karo:\n"
+                    f"• Har active refer = 3 Passes + 60 pts\n"
+                    f"• Dost roz search kare = 30 pts/day!",
+                    parse_mode=ParseMode.MARKDOWN
+                )
 
         except Exception as e:
             logger.error(f"Start command error: {e}")
@@ -475,7 +510,7 @@ class Handlers:
         import re
         for line in text.split('\n'):
             if '🔗' in line or 'softurl' in line.lower():
-                m = re.search(r'[\w\-\.]+\.(?:in|com|net|link|io)\S*', line)
+                m = re.search(r'[\w\-.]+.(?:in|com|net|link|io)\S*', line)
                 if m: return m.group(0)
                 parts = line.replace('🔗','').strip()
                 if parts: return parts
@@ -504,7 +539,7 @@ class Handlers:
         for line in lines:
             if '🔗' in line or 'softurl' in line.lower() or '.in' in line:
                 # Extract URL-like string
-                m = re.search(r'[\w\-\.]+\.(?:in|com|net|link|io)\S*', line)
+                m = re.search(r'[\w\-.]+.(?:in|com|net|link|io)\S*', line)
                 if m:
                     return m.group(0)
                 parts = line.replace('🔗','').strip()
