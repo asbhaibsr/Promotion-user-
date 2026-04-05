@@ -358,7 +358,7 @@
         .badge-section-title{font-family:'Oxanium',sans-serif;font-size:13px;font-weight:900;color:var(--gold);margin-bottom:10px;text-align:center;}
         .badge-current{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:12px;}
         .badge-img-lg{width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 0 12px rgba(240,192,64,.4));animation:badgeFloat 3s ease-in-out infinite;}
-        @keyframes badgeFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+        @keyframes badgeFloat{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-8px) scale(1.05);}}
         .badge-name{font-family:'Oxanium',sans-serif;font-size:20px;font-weight:900;color:var(--gold);}
         .badge-refs-needed{font-size:11px;color:var(--text2);margin-top:3px;}
         .badge-progress-wrap{margin-bottom:10px;}
@@ -398,7 +398,7 @@
 
         /* LEADERBOARD */
         .lb-tabs{display:flex;gap:7px;margin-bottom:14px;}
-        .lb-tab{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center;font-weight:700;cursor:pointer;transition:all .18s;font-size:13px;}
+        .lb-tab{flex:1;background:var(--bg3);border:1.5px solid var(--border);border-radius:14px;padding:12px;text-align:center;font-weight:800;cursor:pointer;transition:all .2s;font-size:14px;font-family:'Oxanium',sans-serif;}
         .lb-tab.active{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;}
         .lb-podium{display:flex;align-items:flex-end;justify-content:center;gap:7px;margin:14px 0 20px;padding:0 8px;}
         .podium-slot{display:flex;flex-direction:column;align-items:center;gap:4px;}
@@ -529,7 +529,7 @@
         .color-res-win{background:linear-gradient(135deg,var(--green),#059669);color:#fff;border-radius:14px;padding:14px;text-align:center;display:none;animation:bounceIn .4s;margin:8px 0;}
         .color-res-lose{background:linear-gradient(135deg,var(--red),#dc2626);color:#fff;border-radius:14px;padding:14px;text-align:center;display:none;animation:bounceIn .4s;margin:8px 0;}
         /* CRASH GAME */
-        .crash-arena{background:linear-gradient(160deg,#020b1a,#060d2a,#0c0520);border-radius:20px;padding:16px;margin-bottom:10px;position:relative;overflow:hidden;height:185px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+        .crash-arena{background:linear-gradient(160deg,#020b1a,#060d2a,#0c0520,#0a1428);border-radius:20px;padding:16px;margin-bottom:10px;position:relative;overflow:hidden;height:185px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
         .crash-arena::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(54,182,245,.07),transparent 70%);}
         .crash-multiplier{font-family:Oxanium,sans-serif;font-size:68px;font-weight:900;line-height:1;transition:color .15s;z-index:2;}
         .crash-multiplier.safe{color:var(--green);text-shadow:0 0 30px rgba(25,216,158,.4);}
@@ -590,7 +590,7 @@
         .mission-item-bar{height:6px;background:rgba(255,255,255,.06);border-radius:6px;overflow:hidden;}
         .mission-item-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--gold),var(--gold-dim));transition:width .4s;}
         .mission-claim-btn{margin-top:9px;background:linear-gradient(135deg,var(--green),#059669);color:#fff;border:none;padding:9px 16px;border-radius:28px;font-weight:800;font-size:12px;cursor:pointer;width:100%;font-family:inherit;}
-        .mission-claimed-badge{margin-top:7px;background:rgba(25,216,158,.1);color:var(--green);padding:7px;border-radius:10px;font-size:11px;font-weight:700;text-align:center;}
+        .mission-claimed-badge{margin-top:7px;background:rgba(25,216,158,.15);color:var(--green);padding:9px;border-radius:12px;font-size:12px;font-weight:800;text-align:center;border:1px solid rgba(25,216,158,.3);}
         .mission-progress-text{font-size:10px;color:var(--text3);margin-top:4px;}
 
         /* USER PROFILE */
@@ -858,6 +858,7 @@
             <div style="display:flex;justify-content:space-between;align-items:center;">
                 <div style="font-family:'Oxanium',sans-serif;font-size:14px;font-weight:900;color:var(--blue);">📅 Weekly Bonus</div>
                 <div id="weeklyBonusStatus" style="font-size:11px;color:var(--text2);">7 din claim karo → 100 pts extra!</div>
+                <button id="weeklyClaimBtn" onclick="claimWeeklyBonus()" style="display:none;background:linear-gradient(135deg,var(--green),#059669);color:#fff;border:none;border-radius:28px;padding:7px 16px;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit;">🎁 CLAIM BONUS</button>
             </div>
             <div class="weekly-days" id="weeklyDays"></div>
         </div>
@@ -1018,10 +1019,10 @@
             <div style="flex:1;height:1px;background:var(--border);"></div>
         </div>
         <div class="games-grid">
-            <div class="game-card" onclick="openGame('spin')"><img src="https://image2url.com/r2/default/images/1773972096056-ea04e437-9a04-470c-98ac-4da8383bdc75.jpg" class="game-img" alt="Spin"><div style="padding:8px;"><div class="game-name">🎡 Spin</div><div class="game-desc">Wheel ghumao!</div><span class="game-earn-tag">1–10 pts</span></div></div>
+            <div class="game-card" onclick="openGame('spin')"><img src="https://image2url.com/r2/default/images/1773972096056-ea04e437-9a04-470c-98ac-4da8383bdc75.jpg" class="game-img" alt="Spin"><div style="padding:8px;"><div class="game-name">🎡 Spin</div><div class="game-desc">Wheel ghumao!</div><span class="game-earn-tag">10–100 pts</span></div></div>
             <div class="game-card" onclick="openGame('crash')"><img src="https://i.postimg.cc/K85csJXs/Rocket-soaring-along-neon-graph-line.png" class="game-img" alt="Crash"><div style="padding:8px;"><div class="game-name">🚀 Crash</div><div class="game-desc">Rocket fly!</div><span class="game-earn-tag">Up to 5x</span></div></div>
             <div class="game-card" onclick="openGame('coin')"><img src="https://image2url.com/r2/default/images/1773972404884-e233660e-0845-4937-8f72-560d43048197.jpg" class="game-img" alt="Coin"><div style="padding:8px;"><div class="game-name">🪙 Coin</div><div class="game-desc">50/50!</div><span class="game-earn-tag">2x Win</span></div></div>
-            <div class="game-card" onclick="openGame('dice')"><img src="https://image2url.com/r2/default/images/1773972553734-03239078-a6c1-4c1f-a486-3cf3afe78f23.jpg" class="game-img" alt="Dice"><div style="padding:8px;"><div class="game-name">🎲 Dice</div><div class="game-desc">Pick 1–6!</div><span class="game-earn-tag">5 pts win</span></div></div>
+            <div class="game-card" onclick="openGame('dice')"><img src="https://image2url.com/r2/default/images/1773972553734-03239078-a6c1-4c1f-a486-3cf3afe78f23.jpg" class="game-img" alt="Dice"><div style="padding:8px;"><div class="game-name">🎲 Dice</div><div class="game-desc">Pick 1–6!</div><span class="game-earn-tag">100 pts win</span></div></div>
             <div class="game-card" onclick="openGame('color')"><img src="https://image2url.com/r2/default/images/1773972774324-44a03873-7e05-4729-bbec-c5945f0bca06.png" class="game-img" alt="Color"><div style="padding:8px;"><div class="game-name">🎨 Color</div><div class="game-desc">6 colors!</div><span class="game-earn-tag">Up to 5x</span></div></div>
             <div class="game-card" onclick="openGame('guess')"><img src="https://image2url.com/r2/default/images/1773972255665-85ed9fa1-283e-44ce-8bfb-3aa2eed64ea3.png" class="game-img" alt="Guess"><div style="padding:8px;"><div class="game-name">🔢 Guess</div><div class="game-desc">1-10 guess!</div><span class="game-earn-tag">3x Reward</span></div></div>
         </div>
@@ -1030,6 +1031,16 @@
             <div class="gstat"><div class="gstat-val" id="gameWins">0</div><div class="gstat-lbl">Wins</div></div>
             <div class="gstat"><div class="gstat-val" id="gameTodayEarned">0 pts</div><div class="gstat-lbl">Today</div></div>
             <div class="gstat"><div class="gstat-val" id="gameStreak">0🔥</div><div class="gstat-lbl">Streak</div></div>
+        </div>
+        <!-- TOP EARNERS -->
+        <div style="background:var(--card);border:1.5px solid rgba(240,192,64,.2);border-radius:18px;padding:14px;margin-top:14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                <div style="font-family:Oxanium,sans-serif;font-size:14px;font-weight:900;color:var(--gold);">🏆 Top Earners Today</div>
+                <div style="font-size:10px;color:var(--text3);">Live</div>
+            </div>
+            <div id="topEarnersList" style="max-height:260px;overflow-y:auto;">
+                <div style="text-align:center;color:var(--text3);font-size:11px;padding:12px;">Loading...</div>
+            </div>
         </div>
     </div>
 </div>
@@ -1407,6 +1418,8 @@
     <input id="editAdIcon" class="inp" placeholder="Icon emoji" type="text">
     <input id="editAdCode" class="inp" placeholder="Claim Code (empty = no code)" type="text">
     <input id="editAdTimer" class="inp" placeholder="Timer seconds (0 = no timer)" type="number" min="0">
+    <input id="editAdImageUrl" class="inp" placeholder="Image URL (optional)" type="url">
+    <textarea id="editAdDesc" class="inp" placeholder="Description (optional)" style="height:60px;resize:none;"></textarea>
     <button class="btn-gold" onclick="saveAd()">✅ UPDATE OFFER</button>
     <button class="btn-red" onclick="deleteAdFromEdit()">🗑️ DELETE OFFER</button>
 </div>
@@ -1528,7 +1541,7 @@
         <div class="dice-res-win" id="diceResWin"><div class="dice-res-big">🎉 SAHI!</div><div id="diceWinAmt" style="font-family:'Oxanium',sans-serif;font-size:28px;font-weight:900;margin-top:4px;">+0 pts</div></div>
         <div class="dice-res-lose" id="diceResLose"><div class="dice-res-big">😢 GALAT!</div><div id="diceLoseNum" style="font-size:15px;margin-top:4px;">Number tha: ?</div></div>
         <button class="btn-purple" id="diceRollBtn" onclick="doDiceRoll()">🎲 ROLL (1 Pass)</button>
-        <div class="dice-odds-info">⚠️ Win chance: ~17% (1 in 6) • Win = 50 pts (5x Pass value) • House edge lagu hota hai</div>
+        <div class="dice-odds-info">⚠️ Win chance: ~17% (1 in 6) • Win = 100 pts (10x Pass value) • House edge lagu hota hai</div>
     </div>
 </div>
 
@@ -2237,14 +2250,14 @@ let diceChoice=null,diceRolling=false;
 // SPIN SEGS — MUST match backend SPIN_SEGMENTS exactly (same order, same index)
 // Backend: [{0.10},{0.50},{0.10},{1.0},{0.50},{0.10},{2.0},{0.10}]  weights:[15,6,15,3,6,15,1,15]
 const SEGS=[
-    {l:'1 pt',v:.01,c:'#a78bfa'},
-    {l:'3 pts',v:.03,c:'#f59e0b'},
-    {l:'1 pt',v:.01,c:'#22d3a0'},
-    {l:'5 pts',v:.05,c:'#3b82f6'},
-    {l:'3 pts',v:.03,c:'#38bdf8'},
-    {l:'2 pts',v:.02,c:'#f97316'},
-    {l:'10 pts',v:.10,c:'#ff5b6b'},
-    {l:'1 pt',v:.01,c:'#ec4899'}
+    {l:'10 pts',v:.10,c:'#a78bfa'},
+    {l:'30 pts',v:.30,c:'#f59e0b'},
+    {l:'10 pts',v:.10,c:'#22d3a0'},
+    {l:'50 pts',v:.50,c:'#3b82f6'},
+    {l:'30 pts',v:.30,c:'#38bdf8'},
+    {l:'20 pts',v:.20,c:'#f97316'},
+    {l:'100 pts',v:1.0,c:'#ff5b6b'},
+    {l:'10 pts',v:.10,c:'#ec4899'}
 ];
 
 const MISSIONS_DEF=[
@@ -2604,29 +2617,26 @@ function updateWeeklyBonus(){
 }
 
 async function claimWeeklyBonus(){
-    const r=await apiPost('/api/claim-weekly-bonus',{user_id:userData.user_id});
-    if(r&&r.success){
-        weeklyBonusClaimed=true;
-        userData.balance=(userData.balance||0)+1;
-        userData.today_earned=(userData.today_earned||0)+1;
-        updateUI();updateWeeklyBonus();
-        showToast('🎉 Weekly Bonus! +100 pts!');
-        playSound('levelup');
-    }else{
-        showToast('❌ '+(r?.message||'Already claimed'));
-    }
+    try{
+        const r=await apiPost('/api/claim-weekly-bonus',{user_id:userData.user_id});
+        if(r&&r.success){
+            showToast('🎉 '+r.message);
+            triggerConfetti();
+            showFloatingPts(toPoints(r.reward||1));
+            userData.balance=(userData.balance||0)+(r.reward||1);
+            userData.today_earned=(userData.today_earned||0)+(r.reward||1);
+            updateUI();
+            // Mark as claimed — hide button, show tick
+            const wbBtn=document.getElementById('weeklyClaimBtn');
+            if(wbBtn){wbBtn.style.display='none';}
+            const wbStatus=document.getElementById('weeklyBonusStatus');
+            if(wbStatus){wbStatus.innerHTML='<span style="color:var(--green);font-weight:900;">✅ Claimed! +'+toPoints(r.reward||1)+' pts</span>';}
+            playSound('jackpot');
+        }else{
+            showToast('❌ '+(r?.message||'Not available'));
+        }
+    }catch(e){showToast('❌ Error');}
 }
-
-// ============================================================
-// MILESTONE BONUSES — 5,10,25,50 refs pe one-time bonus
-// ============================================================
-const MILESTONES=[
-    {refs:5,   reward:2.0,  label:'First 5 Refs'},
-    {refs:10,  reward:5.0,  label:'10 Refs Club'},
-    {refs:25,  reward:15.0, label:'25 Refs Warrior'},
-    {refs:50,  reward:40.0, label:'50 Refs Elite'},
-    {refs:100, reward:100.0,label:'100 Refs Champion'},
-];
 
 function updateMilestoneCard(){
     const el=document.getElementById('milestoneList');
@@ -3523,7 +3533,7 @@ function openOfferDetail(adId){
                 <div class="offer-detail-title">${ad.title}</div>
                 <div class="offer-detail-reward">💰 +${toPoints(ad.reward)} pts${ad.pass_reward?' • 🎟️ +'+ad.pass_reward+' Pass':' • 🎟️ +1 Pass'}</div>
                 ${ad.description?`<div class="offer-detail-desc">📋 <b>Kya karna hai:</b><br>${ad.description}</div>`:''}
-                <div class="offer-detail-meta">${ad.meta?`<span>${ad.meta}</span>`:''}</div>
+                ${ad.meta?`<div class="offer-detail-meta"><span>${ad.meta}</span></div>`:''}
                 ${isClaimed?`<div style="background:rgba(25,216,158,.1);border:1.5px solid var(--green);border-radius:16px;padding:16px;text-align:center;"><div style="font-size:28px;margin-bottom:6px;">✅</div><div style="font-weight:900;color:var(--green);font-size:15px;">Already Claimed!</div></div>`
                 :`<button onclick="handleAdClickFromDetail(${ad.id})" class="btn-gold btn-shine" style="width:100%;font-size:16px;padding:16px;border-radius:18px;">🔗 Complete Offer & Claim</button>`}
                 <button onclick="closeOfferDetail()" style="width:100%;margin-top:10px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:13px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">← Back to Offers</button>
@@ -3593,20 +3603,25 @@ async function submitAdminOffer(){
     const desc=(document.getElementById('promoDescription')||{}).value||'';
     if(!title||!rw||!l){showToast('❌ Title, Reward aur Link zaruri hain');return;}
     const newId=Date.now()%100000;
-    const r=await apiPost('/api/update-ad',{ad_id:newId,admin_id:userData.user_id,title,reward:parseFloat(rw),link:l,meta:m2,icon:ic,claim_code:code,timer_seconds:timer,image_url:imgUrl,description:desc});
+    const passRw=parseInt((document.getElementById('promoPassReward')||{}).value)||0;
+    const r=await apiPost('/api/update-ad',{ad_id:newId,admin_id:userData.user_id,title,reward:parseFloat(rw),link:l,meta:m2,icon:ic,claim_code:code,timer_seconds:timer,image_url:imgUrl,description:desc,pass_reward:passRw});
     if(r&&r.success){showToast('✅ Offer created!');loadAds();closeModal('createOffer');['promoTitle','promoDesc','promoReward','promoLink','promoIcon','promoMeta','promoCode','promoTimer','promoImageUrl','promoDescription'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});}
     else showToast('❌ '+(r?.message||'Failed'));
 }
 function editAd(id){
     const ad=adminAds.find(a=>a.id===id);if(!ad)return;
     document.getElementById('editAdId').value=ad.id;document.getElementById('editAdTitle').value=ad.title;document.getElementById('editAdReward').value=ad.reward;document.getElementById('editAdLink').value=ad.link;document.getElementById('editAdMeta').value=ad.meta||'';document.getElementById('editAdIcon').value=ad.icon||'';document.getElementById('editAdCode').value=ad.claim_code||'';document.getElementById('editAdTimer').value=ad.timer_seconds||0;
+    const edDesc=document.getElementById('editAdDesc');if(edDesc)edDesc.value=ad.description||'';
+    const edImg=document.getElementById('editAdImageUrl');if(edImg)edImg.value=ad.image_url||'';
     openModal('editAd');
 }
 async function saveAd(){
     const id=parseInt(document.getElementById('editAdId').value);
     const code=document.getElementById('editAdCode').value.trim().toUpperCase()||null;
     const timer=parseInt(document.getElementById('editAdTimer').value)||0;
-    const r=await apiPost('/api/update-ad',{ad_id:id,admin_id:userData.user_id,title:document.getElementById('editAdTitle').value,reward:parseFloat(document.getElementById('editAdReward').value),link:document.getElementById('editAdLink').value,meta:document.getElementById('editAdMeta').value,icon:document.getElementById('editAdIcon').value,claim_code:code,timer_seconds:timer});
+    const edDesc=(document.getElementById('editAdDesc')||{}).value||'';
+    const edImg=(document.getElementById('editAdImageUrl')||{}).value||'';
+    const r=await apiPost('/api/update-ad',{ad_id:id,admin_id:userData.user_id,title:document.getElementById('editAdTitle').value,reward:parseFloat(document.getElementById('editAdReward').value),link:document.getElementById('editAdLink').value,meta:document.getElementById('editAdMeta').value,icon:document.getElementById('editAdIcon').value,claim_code:code,timer_seconds:timer,description:edDesc,image_url:edImg});
     if(r&&r.success){showToast('✅ Updated! Claims reset.');loadAds();closeModal('editAd');}else showToast('❌ '+(r?.message||'Failed'));
 }
 async function delAd(id){
@@ -5583,10 +5598,10 @@ function handleBlockTap(evt){
 
 async function finishBlockBlast(){
     blockActive=false;
-    let pts=Math.min(blockScore, 200); // Cap at 200 pts max
+    let pts=Math.min(blockScore, 500); // Cap at 500 pts max
     const rup=fromPoints(pts);
     if(rup>0){
-        await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'blockblast',bet:blockBet,survived_seconds:blockScore});
+        await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'blockblast',bet:blockBet,survived_seconds:Math.min(blockScore,120)});
         userData.balance=(userData.balance||0)+rup;
         userData.today_earned=(userData.today_earned||0)+rup;
         updateUI();showFloatingPts(pts);if(pts>80)triggerConfetti();
@@ -5762,10 +5777,10 @@ function handleGemTap(r,c){
 
 async function finishGemMatch(){
     gemActive=false;
-    let pts=Math.min(gemScore, 200); // Cap at 200 pts max
+    let pts=Math.min(gemScore, 500); // Cap at 500 pts max
     const rup=fromPoints(pts);
     if(rup>0){
-        await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'gemmatch',bet:gemBet,survived_seconds:gemScore});
+        await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'gemmatch',bet:gemBet,survived_seconds:Math.min(gemScore,120)});
         userData.balance=(userData.balance||0)+rup;
         userData.today_earned=(userData.today_earned||0)+rup;
         updateUI();showFloatingPts(pts);
@@ -5991,7 +6006,7 @@ async function sendRefNudge(refUserId, refName){
 }
 
 function renderRefActivity(refs){
-    const el=document.getElementById('refActivity');
+    const el=document.getElementById('refActivityList')||document.getElementById('refActivity');
     if(!el)return;
     if(!refs||!refs.length){el.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px;font-size:12px;">Koi refer nahi abhi • Share karo!</div>';return;}
     el.innerHTML=refs.slice(0,10).map(r=>{
@@ -6456,6 +6471,33 @@ async function sendBulkNudge(){
     }catch(e){showToast('Network error');}
 }
 
+async function loadTopEarners(){
+    try{
+        const d=await apiGet('/api/live-activity');
+        const el=document.getElementById('topEarnersList');
+        if(!el||!d)return;
+        // Get unique users with game earnings
+        const earners={};
+        (d||[]).forEach(a=>{
+            if(a.type==='game'&&a.amount>0){
+                const uid=a.user_id;
+                if(!earners[uid])earners[uid]={name:a.user_name||'User',total:0};
+                earners[uid].total+=a.amount;
+            }
+        });
+        const sorted=Object.values(earners).sort((a,b)=>b.total-a.total).slice(0,10);
+        if(!sorted.length){el.innerHTML='<div style="text-align:center;color:var(--text3);font-size:11px;padding:8px;">Abhi koi nahi — pehle aap khelo!</div>';return;}
+        el.innerHTML=sorted.map((u,i)=>{
+            const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
+            return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;${i<sorted.length-1?'border-bottom:1px solid var(--border);':''}">
+                <div style="width:24px;font-size:${i<3?'16px':'11px'};font-weight:900;text-align:center;${i>=3?'color:var(--text3);':''}">${medal}</div>
+                <div style="flex:1;font-size:12px;font-weight:700;">${u.name}</div>
+                <div style="font-size:12px;font-weight:900;color:var(--gold);">+${toPoints(u.total)} pts</div>
+            </div>`;
+        }).join('');
+    }catch(e){}
+}
+
 async function init(){
     try{const sv=localStorage.getItem('ez_lang');if(sv)lang=sv;}catch(e){}
     document.getElementById('langFab').style.display='block';
@@ -6473,6 +6515,8 @@ async function init(){
     checkShortlinkReminder();
     checkStreakChallenge();
     showToast('✅ Ready!');
+    // Load top earners on games page
+    loadTopEarners();
     setInterval(loadLiveActivity,30000);
     loadNotifications();
     setTimeout(checkBroadcastNotifications, 1000);
@@ -6506,10 +6550,10 @@ document.addEventListener('DOMContentLoaded',init);
         </div>
         <div style="font-weight:800;font-size:12px;color:var(--text2);margin-bottom:8px;">Bet select karo:</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
-            <button class="bet-chip sel" onclick="selBlockBet(1,this)">1 pt</button>
-            <button class="bet-chip" onclick="selBlockBet(5,this)">5 pts</button>
-            <button class="bet-chip" onclick="selBlockBet(10,this)">10 pts</button>
-            <button class="bet-chip" onclick="selBlockBet(25,this)">25 pts</button>
+            <button class="bet-chip sel" onclick="selBlockBet(0.5,this)">50 pts</button>
+            <button class="bet-chip" onclick="selBlockBet(1,this)">100 pts</button>
+            <button class="bet-chip" onclick="selBlockBet(2,this)">200 pts</button>
+            <button class="bet-chip" onclick="selBlockBet(5,this)">500 pts</button>
         </div>
         <button onclick="startBlockBlast()" class="btn-gold btn-shine">🧱 Start (1 Pass)</button>
     </div>
@@ -6561,10 +6605,10 @@ document.addEventListener('DOMContentLoaded',init);
         </div>
         <div style="font-weight:800;font-size:12px;color:var(--text2);margin-bottom:8px;">Bet select karo:</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
-            <button class="bet-chip sel" onclick="selGemBet(1,this)">1 pt</button>
-            <button class="bet-chip" onclick="selGemBet(5,this)">5 pts</button>
-            <button class="bet-chip" onclick="selGemBet(10,this)">10 pts</button>
-            <button class="bet-chip" onclick="selGemBet(25,this)">25 pts</button>
+            <button class="bet-chip sel" onclick="selGemBet(0.5,this)">50 pts</button>
+            <button class="bet-chip" onclick="selGemBet(1,this)">100 pts</button>
+            <button class="bet-chip" onclick="selGemBet(2,this)">200 pts</button>
+            <button class="bet-chip" onclick="selGemBet(5,this)">500 pts</button>
         </div>
         <button onclick="startGemMatch()" class="btn-gold btn-shine">💎 Start (1 Pass)</button>
     </div>
