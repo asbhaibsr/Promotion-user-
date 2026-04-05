@@ -21,7 +21,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>💰 FilmyFund - Play & Win</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Oxanium:wght@700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Oxanium:wght@700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
 /*
  * FilmyFund / FilmyFund — Telegram Mini App Styles
@@ -79,6 +79,8 @@
 
         /* LANG FAB */
         .lang-fab{position:fixed;top:calc(env(safe-area-inset-top,0px)+10px);right:14px;z-index:300;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:30px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(124,92,252,.45);display:none;}
+        .how-earn-fab{position:fixed;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 24px);right:14px;z-index:300;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;border-radius:50px;padding:10px 16px;font-size:12px;font-weight:900;cursor:pointer;font-family:'Oxanium',sans-serif;box-shadow:0 6px 20px rgba(240,192,64,.5);display:flex;align-items:center;gap:6px;animation:fabPulse 2s infinite;}
+        @keyframes fabPulse{0%,100%{box-shadow:0 6px 20px rgba(240,192,64,.5);}50%{box-shadow:0 6px 30px rgba(240,192,64,.8);}}
 
         /* TOPBAR */
         .topbar{position:sticky;top:0;z-index:200;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(to bottom,var(--bg) 80%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
@@ -87,6 +89,10 @@
         .hamburger-btn span{width:16px;height:2px;background:var(--text);border-radius:2px;transition:all .3s;}
         .hamburger-btn:active{transform:scale(.9);}
         .topbar-balance{background:linear-gradient(135deg,rgba(240,192,64,.14),rgba(240,192,64,.04));border:1px solid rgba(240,192,64,.22);border-radius:28px;padding:7px 14px;font-family:'Oxanium',sans-serif;font-weight:800;font-size:14px;color:var(--gold);}
+        /* Bell animation when new notification */
+        @keyframes bellShake{0%{transform:rotate(0);}15%{transform:rotate(14deg);}30%{transform:rotate(-14deg);}45%{transform:rotate(10deg);}60%{transform:rotate(-10deg);}75%{transform:rotate(6deg);}90%{transform:rotate(-4deg);}100%{transform:rotate(0);}}
+        .bell-animated{animation:bellShake .8s ease-in-out infinite;}
+        #notifDot.has-notif{display:block!important;animation:pulse 1s infinite;}
 
         /* SIDEBAR */
         .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;opacity:0;transition:opacity .3s;}
@@ -155,8 +161,23 @@
         .section-head h3{font-family:'Oxanium',sans-serif;font-size:17px;font-weight:800;color:var(--gold);}
         .admin-add-btn{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;border-radius:28px;padding:6px 13px;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:inherit;}
 
-        /* AD CARDS */
-        .ad-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px;margin-bottom:9px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:transform .15s;position:relative;}
+        /* AD CARDS — Redesigned */
+        .ad-card{background:linear-gradient(135deg,var(--card),rgba(240,192,64,.03));border:1.5px solid rgba(240,192,64,.12);border-radius:18px;padding:15px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+        .ad-card::before{content:'';position:absolute;top:0;right:0;width:80px;height:80px;background:radial-gradient(circle,rgba(240,192,64,.06),transparent 70%);pointer-events:none;}
+        .ad-card:active{transform:scale(.97);border-color:rgba(240,192,64,.35);}
+        /* Offer Detail Overlay */
+        .offer-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:850;display:none;align-items:flex-end;justify-content:center;padding:0;}
+        .offer-detail-overlay.show{display:flex;animation:fadeIn .2s ease;}
+        @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+        .offer-detail-card{background:var(--bg2);border-radius:26px 26px 0 0;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;padding:0;animation:bonusSlide .35s cubic-bezier(.4,0,.2,1);}
+        .offer-detail-header{position:relative;width:100%;min-height:180px;background:linear-gradient(135deg,#0d1030,#1a0a3e);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+        .offer-detail-header img{width:100%;height:200px;object-fit:cover;}
+        .offer-detail-header .no-img{font-size:64px;}
+        .offer-detail-body{padding:20px 18px 30px;}
+        .offer-detail-title{font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--gold);margin-bottom:6px;}
+        .offer-detail-reward{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(240,192,64,.15),rgba(240,192,64,.05));border:1.5px solid rgba(240,192,64,.3);border-radius:28px;padding:8px 18px;font-family:'Oxanium',sans-serif;font-weight:900;font-size:16px;color:var(--gold);margin-bottom:12px;}
+        .offer-detail-desc{font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:16px;background:var(--bg3);border-radius:14px;padding:14px;border:1px solid var(--border);}
+        .offer-detail-meta{font-size:11px;color:var(--text3);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
         .ad-card:active{transform:scale(.97);}
         .ad-card.admin-mode{border:2px dashed var(--gold);}
         .ad-claimed{opacity:.42;pointer-events:none;}
@@ -702,6 +723,7 @@
 
 <!-- LANG FAB -->
 <button class="lang-fab" id="langFab" onclick="toggleLang()">🌐 EN/HI</button>
+<button class="how-earn-fab" onclick="showHowToEarn()">💰 Kaise Kamayein?</button>
 
 <!-- SIDEBAR -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
@@ -731,7 +753,7 @@
 <div class="topbar">
     <div class="hamburger-btn" onclick="openSidebar()"><span></span><span></span><span></span></div>
     <div class="topbar-logo"><img src="https://i.postimg.cc/xT43NypN/IMG-20260320-075702-067.jpg" style="height:32px;border-radius:8px;vertical-align:middle;margin-right:6px;"> FilmyFund</div>
-    <div id="notifBell" onclick="openNotifPanel()" style="position:relative;width:36px;height:36px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-right:6px;flex-shrink:0;font-size:18px;">🔔<div id="notifDot" style="display:none;position:absolute;top:5px;right:5px;width:8px;height:8px;background:#ef4444;border-radius:50%;border:1.5px solid var(--bg);"></div></div>
+    <div id="notifBell" onclick="openNotifPanel()" style="position:relative;width:36px;height:36px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-right:6px;flex-shrink:0;font-size:18px;"><span id="bellIcon">🔔</span><div id="notifDot" style="display:none;position:absolute;top:3px;right:3px;width:10px;height:10px;background:linear-gradient(135deg,#ef4444,#ff6b6b);border-radius:50%;border:2px solid var(--bg);box-shadow:0 0 6px rgba(239,68,68,.6);"></div><div id="notifCount" style="display:none;position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;background:var(--red);color:#fff;border-radius:50%;font-size:9px;font-weight:900;display:none;align-items:center;justify-content:center;border:2px solid var(--bg);"></div></div>
     <div class="topbar-balance" id="topbarBalance">0 pts</div>
 </div>
 
@@ -919,7 +941,7 @@
                 <div style="padding:10px;">
                     <div class="game-name" style="color:var(--purple2);">🏃 Runner</div>
                     <div class="game-desc">Survive karo • Har second = pts!</div>
-                    <span class="game-earn-tag">0.5 pts/sec</span>
+                    <span class="game-earn-tag">⏱️ Survive = Earn</span>
                 </div>
             </div>
             <div class="game-card game-card-skill" onclick="openGame('chess')" style="background:linear-gradient(135deg,#1a1200,#2a1e00);border:1.5px solid rgba(240,192,64,.4);">
@@ -927,7 +949,7 @@
                 <div style="padding:10px;">
                     <div class="game-name" style="color:var(--gold);">♟️ Chess</div>
                     <div class="game-desc">AI ko harao • Strong minimax AI</div>
-                    <span class="game-earn-tag">Checkmate = 4x!</span>
+                    <span class="game-earn-tag">♟️ Beat AI = Win</span>
                 </div>
             </div>
         </div>
@@ -938,7 +960,7 @@
                 <div style="padding:10px;">
                     <div class="game-name" style="color:var(--blue);">📦 Sokoban</div>
                     <div class="game-desc">Box push karo • Target pe rakho!</div>
-                    <span class="game-earn-tag" style="background:rgba(54,182,245,.12);border-color:rgba(54,182,245,.3);color:var(--blue);">300–1000 pts</span>
+                    <span class="game-earn-tag" style="background:rgba(54,182,245,.12);border-color:rgba(54,182,245,.3);color:var(--blue);">🧩 Puzzle Solve</span>
                 </div>
             </div>
             <div class="game-card game-card-skill" onclick="openGame('snake')" style="background:linear-gradient(135deg,#0a2e0a,#0d3010);border:1.5px solid rgba(25,216,158,.4);">
@@ -946,7 +968,7 @@
                 <div style="padding:10px;">
                     <div class="game-name" style="color:var(--green);">🐍 Snake</div>
                     <div class="game-desc">Apple khao • Speed badhti hai!</div>
-                    <span class="game-earn-tag" style="background:rgba(25,216,158,.12);border-color:rgba(25,216,158,.3);color:var(--green);">15 pts/dot</span>
+                    <span class="game-earn-tag" style="background:rgba(25,216,158,.12);border-color:rgba(25,216,158,.3);color:var(--green);">3 pts/🍎</span>
                 </div>
             </div>
         </div>
@@ -996,12 +1018,12 @@
             <div style="flex:1;height:1px;background:var(--border);"></div>
         </div>
         <div class="games-grid">
-            <div class="game-card" onclick="openGame('spin')"><img src="https://image2url.com/r2/default/images/1773972096056-ea04e437-9a04-470c-98ac-4da8383bdc75.jpg" class="game-img" alt="Spin"><div style="padding:8px;"><div class="game-name">🎡 Spin</div><div class="game-desc">Wheel ghumao!</div><span class="game-earn-tag">50 pts avg</span></div></div>
-            <div class="game-card" onclick="openGame('crash')"><img src="https://i.postimg.cc/K85csJXs/Rocket-soaring-along-neon-graph-line.png" class="game-img" alt="Crash"><div style="padding:8px;"><div class="game-name">🚀 Crash</div><div class="game-desc">Rocket fly!</div><span class="game-earn-tag">Up to 10x</span></div></div>
+            <div class="game-card" onclick="openGame('spin')"><img src="https://image2url.com/r2/default/images/1773972096056-ea04e437-9a04-470c-98ac-4da8383bdc75.jpg" class="game-img" alt="Spin"><div style="padding:8px;"><div class="game-name">🎡 Spin</div><div class="game-desc">Wheel ghumao!</div><span class="game-earn-tag">1–10 pts</span></div></div>
+            <div class="game-card" onclick="openGame('crash')"><img src="https://i.postimg.cc/K85csJXs/Rocket-soaring-along-neon-graph-line.png" class="game-img" alt="Crash"><div style="padding:8px;"><div class="game-name">🚀 Crash</div><div class="game-desc">Rocket fly!</div><span class="game-earn-tag">Up to 5x</span></div></div>
             <div class="game-card" onclick="openGame('coin')"><img src="https://image2url.com/r2/default/images/1773972404884-e233660e-0845-4937-8f72-560d43048197.jpg" class="game-img" alt="Coin"><div style="padding:8px;"><div class="game-name">🪙 Coin</div><div class="game-desc">50/50!</div><span class="game-earn-tag">2x Win</span></div></div>
-            <div class="game-card" onclick="openGame('dice')"><img src="https://image2url.com/r2/default/images/1773972553734-03239078-a6c1-4c1f-a486-3cf3afe78f23.jpg" class="game-img" alt="Dice"><div style="padding:8px;"><div class="game-name">🎲 Dice</div><div class="game-desc">~17% chance</div><span class="game-earn-tag">5x Win</span></div></div>
-            <div class="game-card" onclick="openGame('color')"><img src="https://image2url.com/r2/default/images/1773972774324-44a03873-7e05-4729-bbec-c5945f0bca06.png" class="game-img" alt="Color"><div style="padding:8px;"><div class="game-name">🎨 Color</div><div class="game-desc">6 colors!</div><span class="game-earn-tag">Max 9x</span></div></div>
-            <div class="game-card" onclick="openGame('guess')"><img src="https://image2url.com/r2/default/images/1773972255665-85ed9fa1-283e-44ce-8bfb-3aa2eed64ea3.png" class="game-img" alt="Guess"><div style="padding:8px;"><div class="game-name">🔢 Guess</div><div class="game-desc">1-10 guess!</div><span class="game-earn-tag">8x Reward</span></div></div>
+            <div class="game-card" onclick="openGame('dice')"><img src="https://image2url.com/r2/default/images/1773972553734-03239078-a6c1-4c1f-a486-3cf3afe78f23.jpg" class="game-img" alt="Dice"><div style="padding:8px;"><div class="game-name">🎲 Dice</div><div class="game-desc">Pick 1–6!</div><span class="game-earn-tag">5 pts win</span></div></div>
+            <div class="game-card" onclick="openGame('color')"><img src="https://image2url.com/r2/default/images/1773972774324-44a03873-7e05-4729-bbec-c5945f0bca06.png" class="game-img" alt="Color"><div style="padding:8px;"><div class="game-name">🎨 Color</div><div class="game-desc">6 colors!</div><span class="game-earn-tag">Up to 5x</span></div></div>
+            <div class="game-card" onclick="openGame('guess')"><img src="https://image2url.com/r2/default/images/1773972255665-85ed9fa1-283e-44ce-8bfb-3aa2eed64ea3.png" class="game-img" alt="Guess"><div style="padding:8px;"><div class="game-name">🔢 Guess</div><div class="game-desc">1-10 guess!</div><span class="game-earn-tag">3x Reward</span></div></div>
         </div>
         <!-- GAME STATS -->
         <div style="display:flex;gap:8px;margin-top:12px;">
@@ -1366,6 +1388,8 @@
     </div>
     <input id="promoLink" class="inp" placeholder="Link URL" type="url">
     <input id="promoIcon" class="inp" placeholder="Icon emoji (e.g. 📱)" type="text">
+    <input id="promoImageUrl" class="inp" placeholder="Offer Image URL (optional)" type="url">
+    <textarea id="promoDescription" class="inp" placeholder="Description — kya karna hai user ko? (optional)" style="height:70px;resize:none;"></textarea>
     <input id="promoMeta" class="inp" placeholder="Meta text (e.g. ⏱️ 2 min)" type="text">
     <input id="promoCode" class="inp" placeholder="Claim Code (optional)" type="text">
     <input id="promoTimer" class="inp" placeholder="Timer seconds (e.g. 30) — optional" type="number" min="0">
@@ -1393,7 +1417,7 @@
     <!-- WITHDRAWAL CONDITION BANNER -->
     <div class="wd-condition-banner" id="wdConditionBanner">
         <div class="wd-condition-title" id="wdConditionTitle">⚠️ Withdrawal Condition</div>
-        <div class="wd-condition-sub" id="wdConditionSub">Is mahine 20 active referrals chahiye withdraw karne ke liye</div>
+        <div class="wd-condition-sub" id="wdConditionSub">Pehla withdrawal: 5 active refs • Baad mein: 20 active refs</div>
         <div class="wd-progress-bar"><div class="wd-progress-fill" id="wdProgressFill" style="width:0%"></div></div>
         <div class="wd-progress-text" id="wdProgressText">0/20 refs this month</div>
     </div>
@@ -2103,8 +2127,53 @@ function toggleLang(){setLang(lang==='hi'?'en':'hi');}
 // ONBOARDING CONTENT
 // ============================================================
 const ONBOARD_CONTENT={
-    hi:`<div class="onboard-section"><div class="onboard-section-title">💡 FilmyFund Kya Hai?</div><div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">FilmyFund ek <b>Telegram Mini App</b> hai jahan aap refer karke, daily bonus lekar aur games khelkar <b>asli paise kama sakte ho</b>.</div></div></div><div class="onboard-section"><div class="onboard-section-title">💰 Paise Kaise Kamayein?</div><div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Apna referral link share karo</b> — jab koi aapke link se join kare, movie group pe jakar movie search kare aur shortlink complete kare, to aapko <b>3 Passes + 60 pts</b> milega.</div></div><div class="onboard-item"><div class="onboard-item-icon">🔁</div><div class="onboard-item-text"><b>Daily ₹0.30 per active user</b> — jo user roz movie search kare aur shortlink complete kare, us har user se tumhe roz 30 pts milega!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — roz login karke bonus claim karo. Streak badhao to bonus amount bhi badhega!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — har din missions complete karo, alag-alag paise aur passes jeetenge.</div></div><div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — offers claim karo, paise aur passes pao.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Games Khelo</b> — Passes use karke Spin, Guess, Coin Flip ya Dice Roll khelke aur paise jeeto.</div></div></div><div class="onboard-section"><div class="onboard-section-title">📅 Daily Kya Karna Hai?</div><div class="onboard-item"><div class="onboard-item-icon">✅</div><div class="onboard-item-text"><b>Daily bonus claim karo</b> — streak mat totne do, warna ₹0.05 se shuru karna hoga.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily missions complete karo</b> — har mission alag claim karo.</div></div><div class="onboard-item"><div class="onboard-item-icon">📱</div><div class="onboard-item-text"><b>Apne referred users ko daily yaad dilao</b> — movie search karo aur shortlink puri karo → tumhe 30 pts milega.</div></div></div><div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div><div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Passes earn karo: refer karke (+3), daily bonus (+1), offers claim karke (+1).</div></div></div><div class="onboard-section"><div class="onboard-section-title">💸 Paise Withdraw Karna</div><div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Minimum <b>₹20</b> hone par UPI ya Bank Transfer se withdraw kar sakte ho. Zaruri: <b>Is mahine 20 active referrals</b> hone chahiye. Admin 24-48 ghante mein process karega.</div></div></div>`,
-    en:`<div class="onboard-section"><div class="onboard-section-title">💡 What is FilmyFund?</div><div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">FilmyFund is a <b>Telegram Mini App</b> where you can earn <b>real money</b> by referring friends, claiming daily bonuses, and playing games.</div></div></div><div class="onboard-section"><div class="onboard-section-title">💰 How to Earn Money?</div><div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Share your referral link</b> — when someone joins via your link, searches a movie & completes shortlink, you get <b>3 Passes + 60 pts</b>.</div></div><div class="onboard-item"><div class="onboard-item-icon">🔁</div><div class="onboard-item-text"><b>Daily ₹0.30 per active user</b> — for each referred user who completes shortlink daily, you earn ₹0.30!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — claim bonus every day. Maintain streak to increase bonus!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — complete missions, claim each one separately.</div></div><div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — claim offers to earn money and passes.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Play Games</b> — use Passes to play Spin, Guess, Coin Flip or Dice Roll!</div></div></div><div class="onboard-section"><div class="onboard-section-title">📅 Daily Tasks</div><div class="onboard-item"><div class="onboard-item-icon">✅</div><div class="onboard-item-text"><b>Claim daily bonus</b> — don't break streak or restart from ₹0.05.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Complete daily missions</b> — claim each mission separately.</div></div><div class="onboard-item"><div class="onboard-item-icon">📱</div><div class="onboard-item-text"><b>Remind referred users daily</b> — search movie → you get ₹0.30.</div></div></div><div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div><div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Earn passes: refer (+3), daily bonus (+1), offers (+1).</div></div></div><div class="onboard-section"><div class="onboard-section-title">💸 Withdrawals</div><div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Minimum <b>₹20</b>. Required: <b>20 active referrals this month</b>. Admin processes in 24-48 hrs.</div></div></div>`
+    hi:`<div class="onboard-section"><div class="onboard-section-title">💡 FilmyFund Kya Hai?</div>
+<div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">FilmyFund ek <b>Telegram Mini App</b> hai jahan aap refer karke, daily bonus lekar aur games khelkar <b>asli paise kama sakte ho</b>. Ye 100% real hai — paise seedha UPI mein milte hain!</div></div></div>
+
+<div class="onboard-section"><div class="onboard-section-title">💰 Paise Kaise Kamayein? (Step-by-Step)</div>
+<div class="onboard-item"><div class="onboard-item-icon">1️⃣</div><div class="onboard-item-text"><b>Referral Link Share Karo</b><br>Profile tab mein apna unique referral link milega. Use WhatsApp, Instagram, YouTube, ya kahi bhi share karo. Jitne zyada log join honge utna zyada kamaoge!</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">2️⃣</div><div class="onboard-item-text"><b>Dost ko Kya Karna Hai?</b><br>• Aapke link se bot start kare<br>• Channel join kare ✅<br>• <b>Movie Group</b> pe jaake koi movie search kare<br>• Bot shortlink bhejega — use kholo aur <b>10 sec wait</b> karo<br>• Done! Ab wo <b>active referral</b> ho gaya!</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">3️⃣</div><div class="onboard-item-text"><b>Aapko Kya Milega?</b><br>• Har active referral = <b>3 Passes + ₹0.60 bonus</b><br>• Roz jab dost movie search kare = <b>₹0.30 daily per user</b><br>• 10 active refs = roz ₹3 automatic kamai! 🔥</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">4️⃣</div><div class="onboard-item-text"><b>Khud Movie Search Karo</b><br>48 ghante mein ek baar khud bhi movie search karke <b>30 pts</b> kama sakte ho.</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">5️⃣</div><div class="onboard-item-text"><b>Daily Bonus</b><br>Roz app kholo aur bonus claim karo. <b>Streak mat todo</b> — streak badhne se bonus bhi badhega (₹0.05 se ₹0.35 tak)!</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">6️⃣</div><div class="onboard-item-text"><b>Missions Complete Karo</b><br>Har din 8-10 missions hoti hain — refer karo, game khelo, bonus lo — sab complete karke <b>600+ pts</b> roz free mein!</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">7️⃣</div><div class="onboard-item-text"><b>Games Khelo</b><br>🎡 Spin Wheel, 🐍 Snake, 🧱 Block Blast, 💎 Gem Match, ♟️ Chess, 🎲 Dice, 🪙 Coin Flip — sab games mein points milte hain! Game jeetne ke baad points automatically add hote hain.</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">8️⃣</div><div class="onboard-item-text"><b>Offers Claim Karo</b><br>Sponsored offers complete karo — har offer se paise + 1 Pass free!</div></div>
+</div>
+
+<div class="onboard-section"><div class="onboard-section-title">🔍 Referral Kaise Verify Hota Hai?</div>
+<div class="onboard-item"><div class="onboard-item-icon">📋</div><div class="onboard-item-text"><b>Bot automatically check karta hai:</b><br>• Channel pe log message check hota hai<br>• User ki ID verify hoti hai<br>• "NewUser" + "Shortlink Verify/Complete" message check hota hai<br>• Ye post bot ne bheji hai ya nahi — ye bhi check<br>• <b>Jab sab verify ho jaye — tabhi referral active hota hai!</b><br>• Roz aise hi check hota hai active status ke liye</div></div></div>
+
+<div class="onboard-section"><div class="onboard-section-title">📅 Roz Kya Karna Hai?</div>
+<div class="onboard-item"><div class="onboard-item-icon">✅</div><div class="onboard-item-text">1. <b>Daily Bonus</b> claim karo (streak mat todo!)<br>2. <b>Missions</b> complete karo<br>3. <b>Apne referred users ko</b> remind karo movie search karne ke liye<br>4. <b>1-2 game</b> khelo<br>5. <b>Offers</b> check karo nayi aayi hain?</div></div></div>
+
+<div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div>
+<div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game khel sakte ho</b>.<br>Passes kaise milte hain:<br>• Refer karo → <b>+3 Passes</b><br>• Daily Bonus → <b>+1 Pass</b><br>• Offer claim → <b>+1 Pass</b><br>• Badge unlock → <b>Passes bonus</b></div></div></div>
+
+<div class="onboard-section"><div class="onboard-section-title">💸 Withdrawal Rules (Zaroori Padho!)</div>
+<div class="onboard-item"><div class="onboard-item-icon">⚠️</div><div class="onboard-item-text"><b>Pehla Withdrawal:</b><br>• Minimum ₹20 balance chahiye<br>• Kam se kam <b>5 active referrals</b> hone chahiye<br>• UPI ya Bank Transfer se milega<br><br><b>Baad ke Withdrawals:</b><br>• Har baar <b>20 active referrals</b> chahiye<br>• Admin 24-48 ghante mein process karega<br><br>⚡ <b>Fake activity = permanent ban!</b></div></div></div>`,
+
+    en:`<div class="onboard-section"><div class="onboard-section-title">💡 What is FilmyFund?</div>
+<div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">FilmyFund is a <b>Telegram Mini App</b> where you earn <b>real money</b> by referring friends, daily bonuses & games. Payments via UPI — 100% real!</div></div></div>
+
+<div class="onboard-section"><div class="onboard-section-title">💰 How to Earn? (Step-by-Step)</div>
+<div class="onboard-item"><div class="onboard-item-icon">1️⃣</div><div class="onboard-item-text"><b>Share Referral Link</b><br>Get your unique link from Profile tab. Share on WhatsApp, Insta, YouTube — more people = more earnings!</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">2️⃣</div><div class="onboard-item-text"><b>What Your Friend Does:</b><br>• Start bot via your link<br>• Join Channel ✅<br>• Go to <b>Movie Group</b> & search any movie<br>• Open bot's shortlink & <b>wait 10 sec</b><br>• Done! Now they're an <b>active referral</b>!</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">3️⃣</div><div class="onboard-item-text"><b>Your Rewards:</b><br>• Per active referral = <b>3 Passes + ₹0.60</b><br>• Daily when friend searches = <b>₹0.30/day per user</b><br>• 10 active refs = ₹3/day automatic! 🔥</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">4️⃣</div><div class="onboard-item-text"><b>Self Movie Search</b> — every 48hrs, search yourself for <b>30 pts</b>.</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">5️⃣</div><div class="onboard-item-text"><b>Daily Bonus</b> — claim daily, keep streak (₹0.05 to ₹0.35)!</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">6️⃣</div><div class="onboard-item-text"><b>Complete Missions</b> — 8-10 daily missions = <b>600+ pts free!</b></div></div>
+<div class="onboard-item"><div class="onboard-item-icon">7️⃣</div><div class="onboard-item-text"><b>Play Games</b> — Snake, Block Blast, Gem Match, Chess, Spin, Dice — earn points in every game! Points added automatically after game ends.</div></div>
+<div class="onboard-item"><div class="onboard-item-icon">8️⃣</div><div class="onboard-item-text"><b>Claim Offers</b> — sponsored offers = money + 1 free Pass!</div></div></div>
+
+<div class="onboard-section"><div class="onboard-section-title">🔍 How Referral Gets Verified?</div>
+<div class="onboard-item"><div class="onboard-item-icon">📋</div><div class="onboard-item-text"><b>Bot auto-checks:</b><br>• Channel log message<br>• User ID verification<br>• "NewUser" + "Shortlink Verify" message<br>• Post sent by bot or not<br>• <b>Only when all verified → referral becomes active!</b><br>• Daily check for active status too</div></div></div>
+
+<div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div>
+<div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>.<br>Earn: Refer (+3), Daily Bonus (+1), Offers (+1), Badges (bonus)</div></div></div>
+
+<div class="onboard-section"><div class="onboard-section-title">💸 Withdrawal Rules (Must Read!)</div>
+<div class="onboard-item"><div class="onboard-item-icon">⚠️</div><div class="onboard-item-text"><b>First Withdrawal:</b><br>• Min ₹20 balance<br>• Need <b>5 active referrals</b><br>• UPI or Bank Transfer<br><br><b>Next Withdrawals:</b><br>• Need <b>20 active referrals</b><br>• Admin processes in 24-48 hrs<br><br>⚡ <b>Fake activity = permanent ban!</b></div></div></div>`
 };
 
 let obLang='hi';
@@ -2168,14 +2237,14 @@ let diceChoice=null,diceRolling=false;
 // SPIN SEGS — MUST match backend SPIN_SEGMENTS exactly (same order, same index)
 // Backend: [{0.10},{0.50},{0.10},{1.0},{0.50},{0.10},{2.0},{0.10}]  weights:[15,6,15,3,6,15,1,15]
 const SEGS=[
-    {l:'10pts',v:.10,c:'#a78bfa'},
-    {l:'50pts',v:.50,c:'#f59e0b'},
-    {l:'10pts',v:.10,c:'#22d3a0'},
-    {l:'100pts',v:1.0,c:'#3b82f6'},
-    {l:'50pts',v:.50,c:'#38bdf8'},
-    {l:'10pts',v:.10,c:'#f97316'},
-    {l:'200pts',v:2.0,c:'#ff5b6b'},
-    {l:'10pts',v:.10,c:'#ec4899'}
+    {l:'1 pt',v:.01,c:'#a78bfa'},
+    {l:'3 pts',v:.03,c:'#f59e0b'},
+    {l:'1 pt',v:.01,c:'#22d3a0'},
+    {l:'5 pts',v:.05,c:'#3b82f6'},
+    {l:'3 pts',v:.03,c:'#38bdf8'},
+    {l:'2 pts',v:.02,c:'#f97316'},
+    {l:'10 pts',v:.10,c:'#ff5b6b'},
+    {l:'1 pt',v:.01,c:'#ec4899'}
 ];
 
 const MISSIONS_DEF=[
@@ -2212,6 +2281,7 @@ async function loadUser(){
             photo_url:tg?.initDataUnsafe?.user?.photo_url||null,
             // month_active_refs now comes directly from user API
             month_active_refs:d.month_active_refs||0,
+            has_past_withdrawals:d.has_past_withdrawals||false,
             // today_earned comes from backend (resets each day)
             today_earned:d.today_earned||0
         };
@@ -2900,30 +2970,36 @@ function showBadgeInfo(idx){
 function getRefLink(){return`https://t.me/${BOT_USERNAME}?start=ref_${userData.user_id||'xxx'}`;}
 
 // ============================================================
-// WITHDRAWAL CONDITION — 20 active refs this month
+// WITHDRAWAL CONDITION — 5 refs first time, 20 refs after
 // ============================================================
 function updateWithdrawCondition(){
-    const monthRefs=userData.month_active_refs||0;
-    const needed=20;
-    const met=monthRefs>=needed;
+    const activeRefs=userData.active_refs||0;
     const banner=document.getElementById('wdConditionBanner');
     const title=document.getElementById('wdConditionTitle');
     const sub=document.getElementById('wdConditionSub');
     const fill=document.getElementById('wdProgressFill');
     const txt=document.getElementById('wdProgressText');
     if(!banner)return;
+
+    // Check withdrawal history to determine if first time
+    const isFirstWithdraw = !(userData.has_past_withdrawals);
+    const needed = isFirstWithdraw ? 5 : 20;
+    const met = activeRefs >= needed;
+
     if(met){
         banner.className='wd-condition-banner met';
         title.textContent='✅ Withdrawal Eligible!';
-        sub.textContent='Is mahine 20+ active referrals hain — withdraw kar sakte ho!';
+        sub.textContent=isFirstWithdraw ? 'Pehla withdrawal ke liye 5+ active refs hain ✅' : '20+ active refs hain — withdraw kar sakte ho!';
     }else{
         banner.className='wd-condition-banner';
         title.textContent='⚠️ Withdrawal Condition';
-        sub.textContent='Is mahine 20 active referrals chahiye withdraw karne ke liye';
+        sub.textContent=isFirstWithdraw
+            ? `Pehle withdrawal ke liye ${needed} active referrals chahiye. Dosto ko refer karo aur active karwao!`
+            : `Dobara withdraw ke liye ${needed} active referrals chahiye. Aur dosto ko refer karo!`;
     }
-    const pct=Math.min((monthRefs/needed)*100,100);
+    const pct=Math.min((activeRefs/needed)*100,100);
     fill.style.width=pct+'%';
-    txt.textContent=`${monthRefs}/${needed} refs this month`;
+    txt.textContent=`${activeRefs}/${needed} active refs`;
 }
 
 // ============================================================
@@ -3179,10 +3255,24 @@ async function doClaimBadgeByIdx(idx){
         showToast('❌ '+(r?.message||'Error'));
     }
 }
+let refActivityData=[],refPage=0;const REFS_PER_PAGE=10;
 function renderRefActivity(acts){
+    refActivityData=acts||[];refPage=0;
+    renderRefPage();
+}
+function renderRefPage(){
     const el=document.getElementById('refActivityList');
-    if(!acts||!acts.length){el.innerHTML=`<div style="color:var(--text3);font-size:11px;text-align:center;padding:12px;">${lang==='en'?'No referred users yet':'Koi referred user nahi abhi'}</div>`;return;}
-    el.innerHTML=acts.map(u=>{
+    if(!refActivityData||!refActivityData.length){el.innerHTML=`<div style="color:var(--text3);font-size:11px;text-align:center;padding:12px;">${lang==='en'?'No referred users yet':'Koi referred user nahi abhi'}</div>`;return;}
+    // Sort: pending first
+    const sorted=[...refActivityData].sort((a,b)=>(a.is_active?1:0)-(b.is_active?1:0));
+    const start=refPage*REFS_PER_PAGE;
+    const end=Math.min(start+REFS_PER_PAGE,sorted.length);
+    const pageItems=sorted.slice(start,end);
+    const totalPages=Math.ceil(sorted.length/REFS_PER_PAGE);
+
+    let html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div style="font-size:10px;color:var(--text3);">Showing '+(start+1)+'-'+end+' of '+sorted.length+' users</div><div style="font-size:10px;color:var(--gold);font-weight:800;">Page '+(refPage+1)+'/'+totalPages+'</div></div>';
+
+    html+=pageItems.map(u=>{
         const nm=u.first_name||'User';
         const initial=nm[0].toUpperCase();
         const [c1,c2]=nameColor(nm);
@@ -3202,7 +3292,18 @@ function renderRefActivity(acts){
             +'<span class="ref-act-badge '+(u.is_active?'badge-active':'badge-pending')+'">'+(u.is_active?'Active':'Pending')+'</span>'
         +'</div>';
     }).join('');
+
+    // Pagination buttons
+    if(totalPages>1){
+        html+=`<div style="display:flex;gap:8px;margin-top:10px;justify-content:center;">
+            <button onclick="refPagePrev()" style="flex:1;background:${refPage>0?'linear-gradient(135deg,var(--purple),var(--purple2))':'var(--bg3)'};color:${refPage>0?'#fff':'var(--text3)'};border:1px solid ${refPage>0?'transparent':'var(--border)'};border-radius:12px;padding:10px;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;" ${refPage<=0?'disabled':''}>← Back</button>
+            <button onclick="refPageNext()" style="flex:1;background:${end<sorted.length?'linear-gradient(135deg,var(--gold),var(--gold-dim))':'var(--bg3)'};color:${end<sorted.length?'#000':'var(--text3)'};border:1px solid ${end<sorted.length?'transparent':'var(--border)'};border-radius:12px;padding:10px;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;" ${end>=sorted.length?'disabled':''}>Next →</button>
+        </div>`;
+    }
+    el.innerHTML=html;
 }
+function refPageNext(){const max=Math.ceil(refActivityData.length/REFS_PER_PAGE);if(refPage<max-1){refPage++;renderRefPage();playSound('tap');}}
+function refPagePrev(){if(refPage>0){refPage--;renderRefPage();playSound('tap');}}
 function showCongratsPopup(){
     document.getElementById('congratsMsg').textContent=`${userData.active_refs} active referral! +3 Passes mile!`;
     document.getElementById('congratsOverlay').classList.add('show');playSound('earn');
@@ -3340,14 +3441,13 @@ async function claimSingleMission(missionId,reward){
     if(_claimingMissions.has(missionId))return;
     // Already claimed in session?
     if(!missionStates[missionId])missionStates[missionId]={progress:0,completed:true,claimed:false};
-    if(missionStates[missionId].claimed)return;
+    if(missionStates[missionId].claimed){showToast('✅ Already claimed!');return;}
 
     _claimingMissions.add(missionId);
 
-    // Optimistic UI — mark claimed immediately, button disappears
-    missionStates[missionId].claimed=true;
-    saveMissionClaimed(missionId);
-    updateMissionsUI();
+    // Show loading on button
+    const btns=document.querySelectorAll('.mission-claim-btn');
+    btns.forEach(b=>{if(b.textContent.includes(missionId)||b.onclick?.toString().includes(missionId)){b.disabled=true;b.textContent='⏳ Claiming...';}});
 
     try{
         const r=await apiPost('/api/claim-single-mission',{
@@ -3357,25 +3457,29 @@ async function claimSingleMission(missionId,reward){
         });
         if(r&&r.success){
             const mReward=parseFloat(reward);
+            // Mark claimed
+            missionStates[missionId].claimed=true;
+            saveMissionClaimed(missionId);
             userData.balance=(userData.balance||0)+mReward;
             userData.total_earned=(userData.total_earned||0)+mReward;
             userData.today_earned=(userData.today_earned||0)+mReward;
             updateUI();
+            updateMissionsUI();
             playSound('mission');
             showToast('🎯 Mission! +'+toPoints(mReward)+' pts mila!');
+            showFloatingPts(toPoints(mReward));
         }else if(r?.message==='Already claimed'){
-            // Backend also says claimed — keep our local claimed=true, dont revert
-            // silently accept
-        }else{
-            // Real error — revert
-            missionStates[missionId].claimed=false;
+            missionStates[missionId].claimed=true;
+            saveMissionClaimed(missionId);
             updateMissionsUI();
-            showToast('❌ '+(r?.message||'Failed'));
+            showToast('✅ Ye mission pehle claim ho chuka!');
+        }else{
+            showToast('❌ '+(r?.message||'Failed — try again'));
+            updateMissionsUI();
         }
     }catch(e){
-        missionStates[missionId].claimed=false;
+        showToast('❌ Network error — check internet');
         updateMissionsUI();
-        showToast('❌ Network error');
     }finally{
         _claimingMissions.delete(missionId);
     }
@@ -3384,19 +3488,54 @@ async function claimSingleMission(missionId,reward){
 // ============================================================
 // ADS with code + silent timer
 // ============================================================
+let adClaimedIds=[];
 function renderAds(claimedIds=[]){
+    adClaimedIds=claimedIds;
     const c=document.getElementById('adsContainer');
     if(!adminAds.length){c.innerHTML=`<div style="text-align:center;padding:16px;color:var(--text3);">No offers yet</div>`;return;}
     c.innerHTML=adminAds.map(ad=>{
         const isClaimed=claimedIds.includes(ad.id);
-        return`<div class="ad-card ${adminEditMode?'admin-mode':''} ${isClaimed&&!adminEditMode?'ad-claimed':''}" onclick="handleAdClick(${ad.id})">
+        return`<div class="ad-card ${adminEditMode?'admin-mode':''} ${isClaimed&&!adminEditMode?'ad-claimed':''}" onclick="${adminEditMode?'':`openOfferDetail(${ad.id})`}">
             ${adminEditMode?`<div class="ad-del-btn" onclick="event.stopPropagation();delAd(${ad.id})">✕</div><div class="ad-edit-btn" onclick="event.stopPropagation();editAd(${ad.id})">✎</div>`:''}
-            <div class="ad-icon-box">${ad.icon||'📢'}</div>
-            <div class="ad-info"><div class="ad-title">${ad.title}${ad.claim_code?'  🔑':''}${adminEditMode&&ad.claim_code?` <span style="font-size:9px;color:var(--blue);background:rgba(54,182,245,.1);padding:2px 6px;border-radius:8px;">Code: ${ad.claim_code}</span>`:''}</div><div class="ad-meta">${ad.meta||''}</div>
-            ${ad.description?'<div style="font-size:10px;color:var(--text3);margin-top:3px;">'+ad.description.slice(0,80)+(ad.description.length>80?'...':'')+'</div>':''}
-            ${isClaimed&&!adminEditMode?`<div class="ad-claimed-badge">✅ Claimed</div>`:`<div class="ad-reward">+${toPoints(ad.reward)} pts</div>`}
+            <div class="ad-icon-box" style="width:48px;height:48px;border-radius:14px;font-size:24px;${ad.image_url?`background:url(${ad.image_url}) center/cover;font-size:0;`:''}">${ad.image_url?'':ad.icon||'📢'}</div>
+            <div class="ad-info" style="flex:1;"><div class="ad-title" style="font-size:14px;font-weight:800;">${ad.title}</div><div style="font-size:10px;color:var(--text3);margin-top:2px;">Tap to view details →</div></div>
+            ${isClaimed&&!adminEditMode?`<div class="ad-claimed-badge" style="background:rgba(25,216,158,.12);color:var(--green);padding:6px 10px;border-radius:14px;font-weight:800;font-size:10px;">✅ Done</div>`:`<div class="ad-reward" style="font-size:13px;padding:7px 14px;">+${toPoints(ad.reward)} pts</div>`}
         </div>`;
     }).join('');
+}
+// Offer Detail popup
+function openOfferDetail(adId){
+    const ad=adminAds.find(a=>a.id===adId);if(!ad)return;
+    const isClaimed=adClaimedIds.includes(ad.id);
+    playSound('tap');
+    // Remove existing overlay
+    let existing=document.getElementById('offerDetailOverlay');if(existing)existing.remove();
+    const overlay=document.createElement('div');
+    overlay.id='offerDetailOverlay';overlay.className='offer-detail-overlay show';
+    overlay.innerHTML=`
+        <div class="offer-detail-card">
+            <div class="offer-detail-header">
+                ${ad.image_url?`<img src="${ad.image_url}" alt="${ad.title}">`:`<div class="no-img">${ad.icon||'📢'}</div>`}
+                <div onclick="closeOfferDetail()" style="position:absolute;top:14px;left:14px;width:38px;height:38px;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#fff;border:1px solid rgba(255,255,255,.1);">←</div>
+                <div style="position:absolute;top:14px;right:14px;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border-radius:28px;padding:6px 14px;font-weight:800;font-size:12px;color:var(--gold);border:1px solid rgba(240,192,64,.3);">💰 +${toPoints(ad.reward)} pts</div>
+            </div>
+            <div class="offer-detail-body">
+                <div class="offer-detail-title">${ad.title}</div>
+                <div class="offer-detail-reward">💰 +${toPoints(ad.reward)} pts${ad.pass_reward?' • 🎟️ +'+ad.pass_reward+' Pass':' • 🎟️ +1 Pass'}</div>
+                ${ad.description?`<div class="offer-detail-desc">📋 <b>Kya karna hai:</b><br>${ad.description}</div>`:''}
+                <div class="offer-detail-meta">${ad.meta?`<span>${ad.meta}</span>`:''}</div>
+                ${isClaimed?`<div style="background:rgba(25,216,158,.1);border:1.5px solid var(--green);border-radius:16px;padding:16px;text-align:center;"><div style="font-size:28px;margin-bottom:6px;">✅</div><div style="font-weight:900;color:var(--green);font-size:15px;">Already Claimed!</div></div>`
+                :`<button onclick="handleAdClickFromDetail(${ad.id})" class="btn-gold btn-shine" style="width:100%;font-size:16px;padding:16px;border-radius:18px;">🔗 Complete Offer & Claim</button>`}
+                <button onclick="closeOfferDetail()" style="width:100%;margin-top:10px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:13px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">← Back to Offers</button>
+            </div>
+        </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click',e=>{if(e.target===overlay)closeOfferDetail();});
+}
+function closeOfferDetail(){const o=document.getElementById('offerDetailOverlay');if(o){o.classList.remove('show');setTimeout(()=>o.remove(),200);}}
+async function handleAdClickFromDetail(adId){
+    closeOfferDetail();
+    await handleAdClick(adId);
 }
 
 // Handle ad click — open link, silent timer, then code or direct claim
@@ -3450,10 +3589,12 @@ async function doClaimAd(ad){
 function openAdminCreateOffer(){if(!userData.is_admin)return;openModal('createOffer');}
 async function submitAdminOffer(){
     const title=document.getElementById('promoTitle').value,rw=document.getElementById('promoReward').value,l=document.getElementById('promoLink').value,ic=document.getElementById('promoIcon').value||'📢',m2=document.getElementById('promoMeta').value||'',code=document.getElementById('promoCode').value.trim().toUpperCase()||null,timer=parseInt(document.getElementById('promoTimer').value)||0;
+    const imgUrl=(document.getElementById('promoImageUrl')||{}).value||'';
+    const desc=(document.getElementById('promoDescription')||{}).value||'';
     if(!title||!rw||!l){showToast('❌ Title, Reward aur Link zaruri hain');return;}
     const newId=Date.now()%100000;
-    const r=await apiPost('/api/update-ad',{ad_id:newId,admin_id:userData.user_id,title,reward:parseFloat(rw),link:l,meta:m2,icon:ic,claim_code:code,timer_seconds:timer});
-    if(r&&r.success){showToast('✅ Offer created!');loadAds();closeModal('createOffer');['promoTitle','promoDesc','promoReward','promoLink','promoIcon','promoMeta','promoCode','promoTimer'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});}
+    const r=await apiPost('/api/update-ad',{ad_id:newId,admin_id:userData.user_id,title,reward:parseFloat(rw),link:l,meta:m2,icon:ic,claim_code:code,timer_seconds:timer,image_url:imgUrl,description:desc});
+    if(r&&r.success){showToast('✅ Offer created!');loadAds();closeModal('createOffer');['promoTitle','promoDesc','promoReward','promoLink','promoIcon','promoMeta','promoCode','promoTimer','promoImageUrl','promoDescription'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});}
     else showToast('❌ '+(r?.message||'Failed'));
 }
 function editAd(id){
@@ -3533,10 +3674,13 @@ function switchLB(mode){
     lbMode=mode;
     document.getElementById('lbWeeklyTab').classList.toggle('active',mode==='weekly');
     document.getElementById('lbMonthlyTab').classList.toggle('active',mode==='monthly');
+    document.getElementById('lbContent').innerHTML='<div style="text-align:center;padding:20px;"><div style="font-size:24px;animation:spinAnim 1s linear infinite;">⏳</div><div style="color:var(--text3);margin-top:6px;">Loading '+mode+' data...</div></div>';
     loadLeaderboard();
 }
 async function loadLeaderboard(){
-    const d=await apiGet('/api/leaderboard?mode='+lbMode);
+    // Always fetch fresh — add cache buster
+    const ts=Date.now();
+    const d=await apiGet('/api/leaderboard?mode='+lbMode+'&_t='+ts);
     renderLeaderboard(d||[]);
 }
 function renderLeaderboard(data){
@@ -4907,7 +5051,7 @@ let snakeBet=1,snakeActive=false,snakeTimer=60,snakeInterval=null,snakeFrameId=n
 let snake=[],snakeDirV={x:1,y:0},snakeNextDir={x:1,y:0};
 let snakeFood={x:5,y:5},snakeScore=0,snakeCS=20,snakeCvs=null,snakeCTX=null,snakeLastMove=0;
 const SN=16;
-const SN_TARGETS=[{dots:5,secs:60,bonus:50,txt:'5 dots=+50'},{dots:10,secs:45,bonus:150,txt:'10 dots=+150'},{dots:15,secs:30,bonus:400,txt:'15 dots=+400'}];
+const SN_TARGETS=[{dots:5,secs:60,bonus:10,txt:'5🍎=+10pts'},{dots:10,secs:50,bonus:25,txt:'10🍎=+25pts'},{dots:15,secs:40,bonus:50,txt:'15🍎=+50pts'}];
 
 function openSnakeGame(){
     document.getElementById('snakeBal').textContent=fmtPts(toPoints(userData.balance||0));
@@ -4959,7 +5103,7 @@ async function startSnake(){
         if(head.x===snakeFood.x&&head.y===snakeFood.y){snakeScore++;placeFood();playSound('tap');}else snake.pop();
         drawSnake();
         document.getElementById('snakeScore').textContent='🍎 '+snakeScore;
-        document.getElementById('snakeEarning').textContent=(snakeScore*toPoints(snakeBet)*15)+' pts';
+        document.getElementById('snakeEarning').textContent=(snakeScore*3)+' pts';
     }
     snakeFrameId=requestAnimationFrame(loop);
     snakeInterval=setInterval(()=>{if(!snakeActive){clearInterval(snakeInterval);return;}snakeTimer--;document.getElementById('snakeTimer').textContent=snakeTimer+'s';if(snakeTimer<=0){snakeActive=false;clearInterval(snakeInterval);cancelAnimationFrame(snakeFrameId);finishSnake();}},1000);
@@ -5007,10 +5151,10 @@ function drawSnake(){
 async function finishSnake(){
     if(snakeInterval)clearInterval(snakeInterval);if(snakeFrameId)cancelAnimationFrame(snakeFrameId);
     snakeActive=false;document.onkeydown=null;
-    const betPts=toPoints(snakeBet);
-    let pts=snakeScore*betPts*15;
+    let pts=snakeScore*3;
     const elapsed=60-snakeTimer;
     SN_TARGETS.forEach(t=>{if(snakeScore>=t.dots&&elapsed<=t.secs){pts+=t.bonus;showToast('🎯 Target! +'+t.bonus+' pts!');}});
+    if(pts>150)pts=150; // Max cap
     const rup=fromPoints(pts);
     if(rup>0){
         await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'snake',bet:snakeBet,survived_seconds:snakeScore});
@@ -5439,19 +5583,20 @@ function handleBlockTap(evt){
 
 async function finishBlockBlast(){
     blockActive=false;
-    const pts=blockScore;const rup=fromPoints(pts);
+    let pts=Math.min(blockScore, 200); // Cap at 200 pts max
+    const rup=fromPoints(pts);
     if(rup>0){
         await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'blockblast',bet:blockBet,survived_seconds:blockScore});
         userData.balance=(userData.balance||0)+rup;
         userData.today_earned=(userData.today_earned||0)+rup;
-        updateUI();showFloatingPts(pts);triggerConfetti();
+        updateUI();showFloatingPts(pts);if(pts>80)triggerConfetti();
     }
     document.getElementById('blockGameArea').style.display='none';
     document.getElementById('blockResult').style.display='block';
-    const re=document.getElementById('blockResultEmoji');if(re)re.textContent=pts>500?'🏆':pts>200?'🧱':'😅';
-    const rt=document.getElementById('blockResultTitle');if(rt)rt.textContent=pts>500?'Block Master!':pts>200?'Badiya!':'Agli baar aur!';
+    const re=document.getElementById('blockResultEmoji');if(re)re.textContent=pts>150?'🏆':pts>60?'🧱':'😅';
+    const rt=document.getElementById('blockResultTitle');if(rt)rt.textContent=pts>150?'Block Master!':pts>60?'Accha khela!':'Aur try karo!';
     const rr=document.getElementById('blockResultReward');if(rr)rr.textContent='+'+pts+' pts';
-    playSound(pts>100?'jackpot':'earn');
+    playSound(pts>60?'jackpot':'earn');
     if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
     updateMissionsUI();
 }
@@ -5617,20 +5762,21 @@ function handleGemTap(r,c){
 
 async function finishGemMatch(){
     gemActive=false;
-    const pts=gemScore;const rup=fromPoints(pts);
+    let pts=Math.min(gemScore, 200); // Cap at 200 pts max
+    const rup=fromPoints(pts);
     if(rup>0){
         await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'gemmatch',bet:gemBet,survived_seconds:gemScore});
         userData.balance=(userData.balance||0)+rup;
         userData.today_earned=(userData.today_earned||0)+rup;
         updateUI();showFloatingPts(pts);
-        if(pts>300)triggerConfetti();
+        if(pts>80)triggerConfetti();
     }
     document.getElementById('gemGameArea').style.display='none';
     document.getElementById('gemResult').style.display='block';
-    const re=document.getElementById('gemResultEmoji');if(re)re.textContent=pts>400?'💎':pts>150?'⭐':'🍀';
-    const rt=document.getElementById('gemResultTitle');if(rt)rt.textContent=pts>400?'Gem Master! 💎':pts>150?'Badiya Match!':'Agli baar aur!';
+    const re=document.getElementById('gemResultEmoji');if(re)re.textContent=pts>150?'💎':pts>60?'⭐':'🍀';
+    const rt=document.getElementById('gemResultTitle');if(rt)rt.textContent=pts>150?'Gem Master! 💎':pts>60?'Accha khela!':'Aur try karo!';
     const rr=document.getElementById('gemResultReward');if(rr)rr.textContent='+'+pts+' pts';
-    playSound(pts>100?'jackpot':'earn');
+    playSound(pts>60?'jackpot':'earn');
     if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
     updateMissionsUI();
 }
@@ -5898,7 +6044,20 @@ function addNotification(type, title, body, imageUrl=''){
 function updateNotifBell(){
     const unread = notifications.filter(n => !n.read).length;
     const dot = document.getElementById('notifDot');
-    if(dot) dot.style.display = unread > 0 ? 'block' : 'none';
+    const bell = document.getElementById('bellIcon');
+    const countEl = document.getElementById('notifCount');
+    if(dot){
+        dot.style.display = unread > 0 ? 'block' : 'none';
+        if(unread>0)dot.classList.add('has-notif');else dot.classList.remove('has-notif');
+    }
+    if(bell){
+        if(unread>0){bell.classList.add('bell-animated');}
+        else{bell.classList.remove('bell-animated');}
+    }
+    if(countEl){
+        if(unread>0){countEl.style.display='flex';countEl.textContent=unread>9?'9+':unread;}
+        else{countEl.style.display='none';}
+    }
 }
 
 function openNotifPanel(){
@@ -6155,21 +6314,35 @@ const QUIZ_QUESTIONS = [
     {q: "UPI full form kya hai?", opts: ["Unified Payments Interface", "Universal Payment India", "United Pay Interface", "Unified Pay India"], correct: 0},
 ];
 
+let quizTimerInterval=null;
 function openQuizGame(){
+    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
     // Pick random question
     const qi = Math.floor(Math.random() * QUIZ_QUESTIONS.length);
     const q = QUIZ_QUESTIONS[qi];
+    let quizTimeLeft=10; // 10 second timer - no time to google!
 
     const overlay = document.createElement('div');
     overlay.id = 'quizOverlay';
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:900;display:flex;align-items:center;justify-content:center;padding:16px;animation:scaleIn .3s ease;';
 
     overlay.innerHTML = `
-        <div style="background:linear-gradient(135deg,#0e1220,#1a0a2e);border:1.5px solid rgba(240,192,64,.3);border-radius:24px;padding:24px;width:100%;max-width:400px;text-align:center;">
-            <div style="font-size:38px;margin-bottom:10px;">🧠</div>
+        <div style="background:linear-gradient(135deg,#0e1220,#1a0a2e);border:1.5px solid rgba(240,192,64,.3);border-radius:24px;padding:24px;width:100%;max-width:400px;text-align:center;position:relative;overflow:hidden;">
+            <div style="font-size:38px;margin-bottom:8px;">🧠</div>
             <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--gold);margin-bottom:4px;">Daily Quiz!</div>
-            <div style="font-size:10px;color:var(--text3);margin-bottom:16px;">1 Pass lagega • Sahi jawab = 100 pts!</div>
-            <div style="background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:16px;border:1px solid var(--border);">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:8px;">1 Pass lagega • Sahi jawab = 100 pts!</div>
+            <!-- TIMER BAR -->
+            <div style="position:relative;margin-bottom:14px;">
+                <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px;">
+                    <div style="font-size:16px;">⏱️</div>
+                    <div id="quizTimerText" style="font-family:'Oxanium',sans-serif;font-size:28px;font-weight:900;color:var(--red);min-width:40px;">10</div>
+                    <div style="font-size:10px;color:var(--text3);">seconds</div>
+                </div>
+                <div style="height:6px;background:var(--bg3);border-radius:6px;overflow:hidden;">
+                    <div id="quizTimerBar" style="height:100%;background:linear-gradient(90deg,var(--red),var(--gold));border-radius:6px;width:100%;transition:width 1s linear;"></div>
+                </div>
+            </div>
+            <div style="background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:14px;border:1px solid var(--border);">
                 <div style="font-size:14px;font-weight:700;color:var(--text);line-height:1.6;">${q.q}</div>
             </div>
             <div style="display:flex;flex-direction:column;gap:8px;" id="quizOptions">
@@ -6180,16 +6353,44 @@ function openQuizGame(){
                     </button>
                 `).join('')}
             </div>
-            <button onclick="document.getElementById('quizOverlay').remove();"
-                style="margin-top:14px;background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:12px;padding:10px;width:100%;color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit;">
-                ❌ Cancel (No Pass used)
+            <button onclick="clearInterval(quizTimerInterval);document.getElementById('quizOverlay').remove();"
+                style="margin-top:12px;background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:12px;padding:10px;width:100%;color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit;">
+                ❌ Cancel
             </button>
         </div>
     `;
     document.body.appendChild(overlay);
+
+    // Start countdown timer
+    const timerText=document.getElementById('quizTimerText');
+    const timerBar=document.getElementById('quizTimerBar');
+    if(quizTimerInterval)clearInterval(quizTimerInterval);
+    quizTimerInterval=setInterval(()=>{
+        quizTimeLeft--;
+        if(timerText)timerText.textContent=quizTimeLeft;
+        if(timerBar)timerBar.style.width=(quizTimeLeft/10*100)+'%';
+        if(quizTimeLeft<=3&&timerText){timerText.style.color='var(--red)';timerText.style.animation='todayPulse .5s infinite';}
+        if(quizTimeLeft<=0){
+            clearInterval(quizTimerInterval);
+            // Time up — auto wrong answer
+            document.querySelectorAll('#quizOptions .quiz-opt-btn').forEach(b=>{b.disabled=true;b.style.opacity='.4';});
+            document.querySelectorAll('#quizOptions .quiz-opt-btn')[q.correct].style.background='linear-gradient(135deg,#22c55e,#15803d)';
+            document.querySelectorAll('#quizOptions .quiz-opt-btn')[q.correct].style.borderColor='#22c55e';
+            document.querySelectorAll('#quizOptions .quiz-opt-btn')[q.correct].style.color='#fff';
+            document.querySelectorAll('#quizOptions .quiz-opt-btn')[q.correct].style.opacity='1';
+            if(timerText){timerText.textContent='⏰';timerText.style.animation='none';}
+            playSound('lose');
+            showToast('⏰ Time Up! Jaldi karo agle baar!');
+            // Deduct 1 pass for timeout
+            apiPost('/api/game/quiz',{user_id:userData.user_id,answer:-1,correct:q.correct}).then(()=>loadUser());
+            setTimeout(()=>{const ol=document.getElementById('quizOverlay');if(ol)ol.remove();},2500);
+        }
+    },1000);
 }
 
 async function submitQuiz(answerIdx, correctIdx, btn){
+    // Stop timer
+    if(quizTimerInterval){clearInterval(quizTimerInterval);quizTimerInterval=null;}
     // Disable all buttons
     document.querySelectorAll('#quizOptions .quiz-opt-btn').forEach(b => {
         b.disabled = true;
@@ -6266,13 +6467,15 @@ async function init(){
     checkHappyHours();
     drawWheel(0);updateUI();updateMissionsUI();
     setLang(lang);
+    // Load announcement immediately on app open
+    loadAnnouncement();
     // NEW: Check shortlink reminder + streak challenge
     checkShortlinkReminder();
     checkStreakChallenge();
     showToast('✅ Ready!');
     setInterval(loadLiveActivity,30000);
     loadNotifications();
-    setTimeout(checkBroadcastNotifications, 2000);
+    setTimeout(checkBroadcastNotifications, 1000);
     setInterval(checkBroadcastNotifications, 60000);
     setInterval(async()=>{await loadUser();await loadGameState();checkShortlinkReminder();checkStreakChallenge();},60000);
 }
