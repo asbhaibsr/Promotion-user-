@@ -65,6 +65,23 @@ class AdminHandlers:
         data = query.data
         user_id = update.effective_user.id
 
+        # Allow ALL users to handle broadcast OK/Delete buttons
+        if data in ("bc_ok", "bc_delete"):
+            if data == "bc_ok":
+                try:
+                    await query.edit_message_reply_markup(reply_markup=None)
+                except:
+                    pass
+            else:
+                try:
+                    await query.message.delete()
+                except:
+                    try:
+                        await query.edit_message_text("🗑️ Deleted")
+                    except:
+                        pass
+            return
+
         if user_id not in self.config.ADMIN_IDS:
             await query.edit_message_text("❌ Unauthorized")
             return
@@ -118,6 +135,21 @@ class AdminHandlers:
             await self.reject_withdrawal(query, context, data.replace("reject_", ""))
         elif data.startswith("view_withdrawal_"):
             await self.view_withdrawal_details(query, context, data.replace("view_withdrawal_", ""))
+        elif data == "bc_ok":
+            # User clicked OK on broadcast — just remove buttons
+            try:
+                await query.edit_message_reply_markup(reply_markup=None)
+            except:
+                pass
+        elif data == "bc_delete":
+            # User clicked Delete on broadcast — delete message
+            try:
+                await query.message.delete()
+            except:
+                try:
+                    await query.edit_message_text("🗑️ Message deleted")
+                except:
+                    pass
         elif data.startswith("verify_passes_"):
             await self.verify_pass_request(query, context, data.replace("verify_passes_", ""), 'verify')
         elif data.startswith("reject_passes_"):
@@ -591,11 +623,16 @@ class AdminHandlers:
             if not uid:
                 continue
             try:
-                # Use copy_message — works for ALL types (text, photo, video, audio, voice, doc, sticker, gif)
+                # Use copy_message with OK/Delete buttons
+                bc_kb = InlineKeyboardMarkup([[
+                    InlineKeyboardButton("✅ OK", callback_data="bc_ok"),
+                    InlineKeyboardButton("🗑️ Delete", callback_data="bc_delete")
+                ]])
                 await context.bot.copy_message(
                     chat_id=uid,
                     from_chat_id=message.chat_id,
-                    message_id=message.message_id
+                    message_id=message.message_id,
+                    reply_markup=bc_kb
                 )
                 sent += 1
                 # Rate limit: Telegram allows ~30 msgs/sec
