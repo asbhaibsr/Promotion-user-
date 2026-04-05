@@ -896,9 +896,11 @@ class Database:
                     'username': referred_user.get('username', ''),
                     'is_active': ref.get('is_active', False),
                     'activation_date': ref.get('activation_date', ''),
-                    'join_date': ref.get('join_date', ''),
+                    'join_date': ref.get('join_date', ref.get('activation_date', '')),
                     'earnings': ref.get('earnings', 0),
+                    'today_search': bool(today_search),
                     'today_searched': bool(today_search),
+                    'bot_blocked': referred_user.get('bot_blocked', False),
                     'last_search_date': ref.get('last_search_date', '')
                 })
             return result
