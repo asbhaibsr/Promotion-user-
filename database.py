@@ -1213,9 +1213,9 @@ class Database:
             logger.error(f"Error getting ads: {e}")
             return []
 
-    def update_ad(self, ad_id, title, reward, link, meta, icon=None, claim_code=None, timer_seconds=0):
+    def update_ad(self, ad_id, title, reward, link, meta, icon=None, claim_code=None, timer_seconds=0, description=None, image_url=None, pass_reward=0):
         """
-        UPDATED: saves timer_seconds.
+        UPDATED: saves timer_seconds, description, image_url, pass_reward.
         Resets all claims so users can claim again after edit.
         """
         try:
@@ -1226,7 +1226,10 @@ class Database:
                 'meta': meta,
                 'edited_at': datetime.now().isoformat(),
                 'claim_code': claim_code.upper() if claim_code else None,
-                'timer_seconds': int(timer_seconds) if timer_seconds else 0  # NEW
+                'timer_seconds': int(timer_seconds) if timer_seconds else 0,
+                'description': description or '',
+                'image_url': image_url or '',
+                'pass_reward': int(pass_reward) if pass_reward else 0
             }
             if icon:
                 update_data['icon'] = icon
@@ -1550,19 +1553,17 @@ class Database:
     # SPIN: segments must match frontend SEGS array exactly (same index)
     # Frontend SEGS: [0.10, 0.50, 0.10, 1.0, 0.50, 0.10, 2.0, 0.10]
     SPIN_SEGMENTS = [
-        {'label': '₹0.10', 'value': 0.10},   # index 0
-        {'label': '₹0.50', 'value': 0.50},   # index 1
-        {'label': '₹0.10', 'value': 0.10},   # index 2
-        {'label': '₹1',    'value': 1.0},    # index 3
-        {'label': '₹0.50', 'value': 0.50},   # index 4
-        {'label': '₹0.10', 'value': 0.10},   # index 5
-        {'label': '₹2',    'value': 2.0},    # index 6
-        {'label': '₹0.10', 'value': 0.10},   # index 7
+        {'label': '10pts', 'value': 0.10},   # index 0
+        {'label': '30pts', 'value': 0.30},   # index 1
+        {'label': '10pts', 'value': 0.10},   # index 2
+        {'label': '50pts', 'value': 0.50},   # index 3
+        {'label': '30pts', 'value': 0.30},   # index 4
+        {'label': '20pts', 'value': 0.20},   # index 5
+        {'label': '100pts','value': 1.0},    # index 6
+        {'label': '10pts', 'value': 0.10},   # index 7
     ]
-    # FIXED Weights — realistic feel, not spammy 0.10
-    # 0.10 = 40% (4 segs × 5), 0.50 = 30% (2 × 15), 1.0 = 20% (1 × 20), 2.0 = 10% (1 × 10)
-    # Total = 20+15+20+15+10+20+10+20 = 130
-    SPIN_WEIGHTS = [5, 15, 5, 20, 15, 5, 10, 5]
+    # Weights: 10pts=35%, 20pts=15%, 30pts=25%, 50pts=15%, 100pts=10%
+    SPIN_WEIGHTS = [10, 12, 10, 8, 12, 8, 5, 10]
     # Actual probabilities:
     # ₹0.10 (indices 0,2,5,7) = (5+5+5+5)/80 = 20/80 = 25%
     # ₹0.50 (indices 1,4)     = (15+15)/80   = 30/80 = 37.5%
@@ -1705,8 +1706,8 @@ class Database:
             }
 
             if is_correct:
-                reward = bet * 8
-                earn_result = self.add_game_earning(user_id, reward, 'guess', "Guess correct! x8")
+                reward = bet * 10  # 10x reward for correct guess
+                earn_result = self.add_game_earning(user_id, reward, 'guess', f"Guess correct! x10 → ₹{reward}")
                 result['reward'] = earn_result.get('earned', 0)
                 result['today_earned'] = earn_result.get('today_total', 0)
                 self.deduct_pass(user_id)
@@ -1736,7 +1737,7 @@ class Database:
             return {'success': False, 'message': str(e)}
 
     def process_game_coin(self, user_id, choice, bet):
-        """Coin flip — costs 1 pass."""
+        """Coin flip — costs 1 pass. Win = bet back + bet (2x total)."""
         try:
             user_id = int(user_id)
             user = self.get_user(user_id)
@@ -1755,10 +1756,12 @@ class Database:
             result = {'success': True, 'won': won, 'result': actual_result, 'choice': choice, 'bet': bet, 'reward': 0}
 
             if won:
+                # Give back bet + same amount as profit (2x total)
                 reward = bet * 2
                 earn_result = self.add_game_earning(user_id, reward, 'coin', f"Coin flip win ₹{reward}")
                 result['reward'] = earn_result.get('earned', 0)
                 result['today_earned'] = earn_result.get('today_total', 0)
+            # If lost, bet is already deducted — no further deduction
 
             return result
         except Exception as e:
@@ -1808,8 +1811,8 @@ class Database:
             }
 
             if won:
-                reward = 0.50
-                earn_result = self.add_game_earning(user_id, reward, 'dice', f"Dice roll win! {choice} aaya")
+                reward = 1.0  # Increased from 0.50 to 1.0 (100 pts)
+                earn_result = self.add_game_earning(user_id, reward, 'dice', f"Dice roll win! {choice} aaya → ₹{reward}")
                 result['reward'] = earn_result.get('earned', reward)
                 result['today_earned'] = earn_result.get('today_total', 0)
 
@@ -1902,11 +1905,13 @@ class Database:
             result = {'success': True, 'won': won, 'result_color': result_color, 'choice': choice, 'reward': 0}
             if won:
                 mult = self.COLOR_CONFIG[result_color]['mult']
+                # Reward = bet * multiplier (includes bet-back)
                 reward = round(bet * mult, 2)
-                earn_result = self.add_game_earning(user_id, reward, 'color', f"Color {result_color} {mult}x")
+                earn_result = self.add_game_earning(user_id, reward, 'color', f"Color {result_color} {mult}x → ₹{reward}")
                 result['reward'] = earn_result.get('earned', reward)
                 result['multiplier'] = mult
                 result['today_earned'] = earn_result.get('today_total', 0)
+            # If lost, bet already deducted
             return result
         except Exception as e:
             logger.error(f"Color game error: {e}")
@@ -1943,8 +1948,8 @@ class Database:
             reward = float(reward)
             if multiplier < 1.0:
                 return {'success': False, 'message': 'Invalid multiplier'}
-            if reward > bet * 10.5:
-                reward = round(bet * 10, 2)
+            if reward > bet * 15:
+                reward = round(bet * 15, 2)
             earn_result = self.add_game_earning(user_id, reward, 'crash', f"Crash cashout {multiplier}x")
             return {'success': True, 'reward': earn_result.get('earned', reward), 'multiplier': multiplier}
         except Exception as e:
@@ -1954,15 +1959,17 @@ class Database:
     # ========== RUNNER GAME ==========
 
     RUNNER_MODES = {
-        '10s':  {'seconds': 10,  'reward_per_sec': 0.005, 'label': '10 Seconds'},
-        '30s':  {'seconds': 30,  'reward_per_sec': 0.004, 'label': '30 Seconds'},
-        '1m':   {'seconds': 60,  'reward_per_sec': 0.003, 'label': '1 Minute'},
-        '5m':   {'seconds': 300, 'reward_per_sec': 0.002, 'label': '5 Minutes'},
-        '10m':  {'seconds': 600, 'reward_per_sec': 0.0015,'label': '10 Minutes'},
+        '10s':  {'seconds': 10,  'reward_per_sec': 0.008, 'label': '10 Seconds'},
+        '30s':  {'seconds': 30,  'reward_per_sec': 0.006, 'label': '30 Seconds'},
+        '1m':   {'seconds': 60,  'reward_per_sec': 0.005, 'label': '1 Minute'},
+        '5m':   {'seconds': 300, 'reward_per_sec': 0.004, 'label': '5 Minutes'},
+        '10m':  {'seconds': 600, 'reward_per_sec': 0.003, 'label': '10 Minutes'},
         # New games use same route
-        'maze':  {'seconds': 60,  'reward_per_sec': 0.004, 'label': 'Maze Escape'},
-        'snake': {'seconds': 60,  'reward_per_sec': 0.003, 'label': 'Snake Game'},
-        'chess': {'seconds': 60,  'reward_per_sec': 0.003, 'label': 'Chess Timer'},
+        'maze':       {'seconds': 60,  'reward_per_sec': 0.006, 'label': 'Maze Escape'},
+        'snake':      {'seconds': 60,  'reward_per_sec': 0.005, 'label': 'Snake Game'},
+        'chess':      {'seconds': 60,  'reward_per_sec': 0.005, 'label': 'Chess Timer'},
+        'blockblast': {'seconds': 120, 'reward_per_sec': 0.004, 'label': 'Block Blast'},
+        'gemmatch':   {'seconds': 120, 'reward_per_sec': 0.004, 'label': 'Gem Match'},
     }
 
     def runner_start(self, user_id, mode, bet):
