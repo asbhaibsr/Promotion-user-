@@ -171,6 +171,12 @@ def get_user_api(user_id):
                 db.user_cache.pop(f"user_{user_id}", None)
             # Include month_active_refs in main user call
             user_data['month_active_refs'] = db.get_month_active_refs(user_id)
+            # Check if user has past withdrawals (for 5 vs 20 ref rule)
+            past_wd = db.withdrawals.count_documents({
+                'user_id': user_id,
+                'status': {'$in': ['completed', 'pending']}
+            })
+            user_data['has_past_withdrawals'] = past_wd > 0
             # Ensure today_earned field exists
             if 'today_earned' not in user_data:
                 user_data['today_earned'] = 0.0
@@ -1056,6 +1062,17 @@ def set_announcement_api():
             return jsonify({'success': False, 'message': 'Unauthorized'}), 403
         text = data.get('text', '').strip()
         _announcement = {'text': text, 'ts': datetime.now().timestamp()}
+        # Persist to file so it survives restarts
+        try:
+            import json as _json
+            with open('announcement.json', 'w') as f:
+                _json.dump({'text': text, 'image_url': '', 'ts': _announcement['ts']}, f)
+        except Exception:
+            try:
+                with open('announcement.txt', 'w') as f:
+                    f.write(text)
+            except Exception:
+                pass
         logger.info(f"Announcement set by admin {admin_id}: {text[:50]}")
         return jsonify({'success': True})
     except Exception as e:
@@ -1064,17 +1081,22 @@ def set_announcement_api():
 @app.route('/api/get-announcement')
 def get_announcement():
     try:
+        # Check in-memory first
+        if _announcement.get('text', '').strip():
+            return jsonify({'text': _announcement['text'], 'image_url': ''})
         import json as _json
         try:
             with open('announcement.json', 'r') as f:
                 d = _json.load(f)
-            return jsonify({'text': d.get('text',''), 'image_url': d.get('image_url','')})
+            if d.get('text','').strip():
+                return jsonify({'text': d.get('text',''), 'image_url': d.get('image_url','')})
         except Exception:
             pass
         try:
             with open('announcement.txt', 'r') as f:
                 text = f.read().strip()
-            return jsonify({'text': text, 'image_url': ''})
+            if text:
+                return jsonify({'text': text, 'image_url': ''})
         except Exception:
             pass
         return jsonify({'text': '', 'image_url': ''})
@@ -1245,16 +1267,16 @@ def game_quiz_api():
         is_correct = (int(answer_idx) == int(correct_idx))
         reward = 0
         if is_correct:
-            reward = 1.0  # ₹1 = 100pts
+            reward = 0.10  # ₹0.10 = 10pts
             db.add_balance(int(user_id), reward, "Quiz correct answer!")
-            db.add_live_activity('game', int(user_id), reward, "🧠 Quiz correct! +100 pts")
+            db.add_live_activity('game', int(user_id), reward, "🧠 Quiz correct! +10 pts")
 
         db.user_cache.pop(f"user_{user_id}", None)
         return jsonify({
             'success': True,
             'correct': is_correct,
             'reward': reward,
-            'message': f'+{int(reward*100)} pts! 🎉' if is_correct else 'Wrong answer! 😞'
+            'message': f'+{int(reward*100)} pts! 🎉' if is_correct else 'Galat jawab! 😞'
         })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
