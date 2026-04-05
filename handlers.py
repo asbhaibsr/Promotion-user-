@@ -7,14 +7,15 @@
 # © 2025 @asbhaibsr — All Rights Reserved
 # ═══════════════════════════════════════════════════════════
 
-# ===== handlers.py (FULLY UPDATED) =====
-# Changes:
-# 1. start() — duplicate user check + notify referrer with user details
-# 2. handle_group_message() — group pe movie search detect karo → daily earning credit karo
-# 3. handle_log_channel_message() — already working, kept as is
-# 4. Live activity pe daily search bhi dikhta hai
+# ===== handlers.py (FIXED — Log Channel Verification) =====
+# FIXES:
+# 1. ✅ #VerifyComplete messages ab detect hote hain (pehle sirf #Verifyshortlink check hota tha)
+# 2. 📤 #FileSent messages se bhi verify hota hai (pehle ignore hota tha)
+# 3. Unicode ɪᴅ / Nᴀᴍᴇ parsing fix — ab Unicode small caps bhi parse hote hain
+# 4. #NewUser messages se bhi verify — top text + ID check
 
 import logging
+import re
 import json
 from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
@@ -292,8 +293,6 @@ class Handlers:
         Jab koi referred user message bhejta hai (movie search):
         - record_daily_search() call karo
         - Sirf 1 baar per day credit hoga
-        - Pending referrals wale users ke liye bhi track karo
-          (unka credit tab milega jab referral activate ho)
         """
         try:
             message = update.message or update.channel_post
@@ -336,16 +335,6 @@ class Handlers:
                 earning = result.get('earning', 0.30)
                 logger.info(f"✅ Daily search credited: user={user_id} referrer={referrer_id} +₹{earning}")
 
-                # Notify referrer (optional — silent by default to avoid spam)
-                # Uncomment if you want notification:
-                # try:
-                #     await context.bot.send_message(
-                #         chat_id=referrer_id,
-                #         text=f"💰 {user.first_name} ne aaj movie search ki! +₹{earning}"
-                #     )
-                # except:
-                #     pass
-
             elif result.get('reason') == 'already_credited_today':
                 logger.info(f"Already credited today for user {user_id}")
             elif result.get('reason') == 'no_active_referral':
@@ -354,23 +343,38 @@ class Handlers:
         except Exception as e:
             logger.error(f"Group message handler error: {e}")
 
-    # ========== LOG CHANNEL HANDLER ==========
+    # ========== LOG CHANNEL HANDLER (FIXED) ==========
 
     async def handle_log_channel_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """
-        Log channel se messages detect karo.
+        Log channel se messages detect karo — ALL formats supported:
 
-        FORMAT 1 — #NewUser (new user joined via referral):
+        FORMAT 1 — ✅ #VerifyComplete (shortlink puri hui):
+            ✅ #VerifyComplete
+            ɪᴅ - 7142838312
+            Nᴀᴍᴇ - ʀɪᴛɪᴋᴀ
+            sʜᴏʀᴛʟɪɴᴋ - softurl.in
+            ᴛɪᴍᴇ - 05 Apr 16:03 IST
+
+        FORMAT 2 — #NewUser (naya user join hua):
             #NewUser
-            ID - 8098997823
-            Nᴀᴍᴇ - Sandip
+            ID - 7346280916
+            Nᴀᴍᴇ - Abhinav
 
-        FORMAT 2 — #Verifyshortlink (user completed shortlink):
+        FORMAT 3 — 📤 #FileSent (file bheji gayi = movie search done):
+            📤 #FileSent — File pahunch gayi! ✈️
+            👤 As Bʜᴀɪ Bsʀ (7315805581)
+            🗂 Kill 2023 Hindi ORG 480p ...
+            📦 358.7 MB
+            💎 Premium: ✅ VIP
+            🕐 05 Apr 15:55 IST
+
+        FORMAT 4 — #Verifyshortlink (legacy):
             #Verifyshortlink
             ID - 8098997823
             Nᴀᴍᴇ - Sandip
 
-        FORMAT 3 — ✅ Shortlink Verified (alternate format):
+        FORMAT 5 — ✅ Shortlink Verified (legacy alternate):
             ✅ Shortlink Verified
             👤 Sandip (8098997823)
             🔗 softurl.in
@@ -389,23 +393,33 @@ class Handlers:
             if not text:
                 return
 
-            logger.info(f"📨 Log channel msg: {text[:80]}")
+            logger.info(f"📨 Log channel msg: {text[:120]}")
 
-            # Detect message type
-            has_newuser      = '#NewUser' in text or 'NewUser' in text
-            has_verifyshort  = '#Verifyshortlink' in text or 'Verifyshortlink' in text or '#Verify' in text
-            has_shortlink_v  = 'Shortlink Verified' in text or '✅ Shortlink' in text
+            # ═══ Detect message type — ALL formats ═══
+            has_verify_complete = '#VerifyComplete' in text or 'VerifyComplete' in text
+            has_filesent        = '#FileSent' in text or 'FileSent' in text
+            has_newuser         = '#NewUser' in text
+            has_verifyshort     = '#Verifyshortlink' in text or 'Verifyshortlink' in text
+            has_shortlink_v     = 'Shortlink Verified' in text
 
-            if has_newuser or has_verifyshort or has_shortlink_v:
+            if has_verify_complete or has_filesent or has_newuser or has_verifyshort or has_shortlink_v:
                 user_id, name = self._parse_id_and_name(text)
                 if not user_id:
-                    logger.warning(f"Could not parse user_id from: {text[:100]}")
+                    logger.warning(f"❌ Could not parse user_id from log msg: {text[:150]}")
                     return
 
-                logger.info(f"✅ Parsed: user_id={user_id} name={name} type={'NewUser' if has_newuser else 'Verify'}")
+                msg_type = (
+                    'VerifyComplete' if has_verify_complete else
+                    'FileSent' if has_filesent else
+                    'NewUser' if has_newuser else
+                    'Verifyshortlink' if has_verifyshort else
+                    'ShortlinkVerified'
+                )
+                logger.info(f"✅ Parsed: user_id={user_id} name={name} type={msg_type}")
 
-                # Both types: try activate referral first, then record daily search
-                await self._process_log_event(user_id, name, has_newuser, context)
+                # All types → activate referral + record daily search
+                is_new = has_newuser
+                await self._process_log_event(user_id, name, is_new, context)
             else:
                 logger.debug(f"Unrecognized log message: {text[:60]}")
 
@@ -415,43 +429,58 @@ class Handlers:
     def _parse_id_and_name(self, text):
         """
         Parse user_id and name from log channel message.
-        Handles formats:
-          ID - 8098997823 / Nᴀᴍᴇ - Sandip
-          👤 Sandip (8098997823)
+        Handles ALL formats including Unicode small caps:
+          - ID - 1234567890 (normal ASCII)
+          - ɪᴅ - 1234567890 (Unicode small caps)
+          - 👤 Name (1234567890) (emoji format)
+          - Nᴀᴍᴇ - Sandip (Unicode name)
         Returns (user_id, name) or (None, None)
         """
-        import re
         user_id = None
         name = "User"
         lines = [l.strip() for l in text.split('\n')]
 
         for line in lines:
-            # Format: ID - 1234567890 or ID: 1234567890
+            # ═══ ID PARSING — Normal + Unicode ═══
+            # Normal: "ID - 1234567890" or "ID: 1234567890"
             if re.match(r'^ID\s*[-:]\s*\d', line, re.IGNORECASE):
-                m = re.search(r'(\d{6,12})', line)
+                m = re.search(r'(\d{6,15})', line)
                 if m:
                     try: user_id = int(m.group(1))
                     except: pass
 
-            # Name line: Nᴀᴍᴇ - Sandip or Name - Sandip
-            if re.match(r'^N[^\s]*\s*[-:]\s*', line, re.IGNORECASE) and 'ID' not in line.upper():
-                parts = re.split(r'[-:]', line, 1)
+            # Unicode small caps: "ɪᴅ - 1234567890"
+            elif re.match(r'^[ɪIiᴵ][ᴅDdᴰ]\s*[-:–—]\s*\d', line):
+                m = re.search(r'(\d{6,15})', line)
+                if m:
+                    try: user_id = int(m.group(1))
+                    except: pass
+
+            # ═══ NAME PARSING — Normal + Unicode ═══
+            # Normal: "Name - Sandip" or Unicode: "Nᴀᴍᴇ - ʀɪᴛɪᴋᴀ"
+            if re.match(r'^[NnɴΝ][^\d]*[-:–—]\s*\S', line) and not re.search(r'\d{6}', line):
+                # Split on first dash/colon
+                parts = re.split(r'[-:–—]', line, 1)
                 if len(parts) == 2:
-                    name = parts[1].strip() or "User"
+                    parsed_name = parts[1].strip()
+                    if parsed_name:
+                        name = parsed_name
 
-            # Format: 👤 Name (1234567890)
+            # ═══ 👤 FORMAT — "👤 Name (1234567890)" ═══
             if '👤' in line:
-                m = re.search(r'\((\d{6,12})\)', line)
+                m = re.search(r'\((\d{6,15})\)', line)
                 if m:
                     try: user_id = int(m.group(1))
                     except: pass
-                name_part = line.replace('👤','').strip()
+                # Extract name (everything between 👤 and the parenthesis/end)
+                name_part = line.replace('👤', '').strip()
                 name_part = re.sub(r'\(\d+\)', '', name_part).strip()
-                if name_part: name = name_part
+                if name_part:
+                    name = name_part
 
-        # Fallback: any 7-12 digit number
+        # ═══ FALLBACK — Find any 7-12 digit number in full text ═══
         if not user_id:
-            nums = re.findall(r'\b(\d{7,12})\b', text)
+            nums = re.findall(r'(?<!\d)(\d{7,15})(?!\d)', text)
             if nums:
                 try: user_id = int(nums[0])
                 except: pass
@@ -459,7 +488,7 @@ class Handlers:
         return user_id, name
 
     async def _process_log_event(self, user_id, name, is_new_user, context):
-        """Handle both NewUser and Verifyshortlink events"""
+        """Handle all log events — NewUser, VerifyComplete, FileSent, etc."""
         # 1. Get or check user in DB
         user = self.db.get_user(user_id)
         if not user:
@@ -541,201 +570,18 @@ class Handlers:
 
     def _parse_shortlink_url(self, text):
         """Parse shortlink URL from message"""
-        import re
-        for line in text.split('\n'):
-            if '🔗' in line or 'softurl' in line.lower():
-                m = re.search(r'[\w\-.]+.(?:in|com|net|link|io)\S*', line)
-                if m: return m.group(0)
-                parts = line.replace('🔗','').strip()
-                if parts: return parts
-        return 'shortlink'
-
-    async def _handle_shortlink_verified(self, text, context):
-        """Handle ✅ Shortlink Verified format (alternate)"""
-        user_id, name = self._parse_id_and_name(text)
-        if not user_id:
-            logger.warning(f"Shortlink Verified: could not parse user_id from: {text[:100]}")
-            return
-        await self._process_log_event(user_id, name, False, context)
-
-    async def _handle_new_user_log(self, text, context):
-        """Handle #NewUser format"""
-        user_id, name = self._parse_id_and_name(text)
-        if not user_id:
-            logger.warning(f"#NewUser: could not parse from: {text[:100]}")
-            return
-        await self._process_log_event(user_id, name, True, context)
-
-    def _parse_shortlink_url(self, text):
-        """Parse shortlink URL from message"""
-        import re
         lines = text.split('\n')
         for line in lines:
-            if '🔗' in line or 'softurl' in line.lower() or '.in' in line:
-                # Extract URL-like string
-                m = re.search(r'[\w\-.]+.(?:in|com|net|link|io)\S*', line)
+            if '🔗' in line or 'softurl' in line.lower() or 'shortlink' in line.lower() or 'sʜᴏʀᴛʟɪɴᴋ' in line.lower():
+                m = re.search(r'[\w\-.]+\.(?:in|com|net|link|io)\S*', line)
                 if m:
                     return m.group(0)
-                parts = line.replace('🔗','').strip()
-                if parts:
-                    return parts
-        return 'shortlink'
-
-    async def _handle_shortlink_verified(self, text, context):
-        """
-        Handle ✅ Shortlink Verified message from log channel.
-        This fires when a user completes a shortlink (movie search verification).
-        Use this for BOTH:
-          1. Initial activation (first shortlink = referral activate)
-          2. Daily search tracking (subsequent shortlinks = ₹0.30 per day)
-        """
-        import re
-        user_id = self._parse_user_id_from_shortlink(text)
-        if not user_id:
-            logger.warning(f"Shortlink Verified: could not parse user_id from: {text[:120]}")
-            return
-
-        shortlink_url = self._parse_shortlink_url(text)
-        logger.info(f"🔗 Shortlink Verified: user_id={user_id} url={shortlink_url}")
-
-        user = self.db.get_user(user_id)
-        if not user:
-            logger.warning(f"Shortlink Verified: user {user_id} not found in DB")
-            return
-
-        # ── Step 1: Try to activate referral (first time) ────────
-        ref_result = self.db.activate_referral_by_log_channel(user_id)
-
-        if ref_result and ref_result.get('activated'):
-            # FIRST TIME — referral now active!
-            referrer_id = ref_result.get('referrer_id')
-            referred_name = ref_result.get('referred_name', user.get('first_name', 'User'))
-            referrer_name = ref_result.get('referrer_name', 'Unknown')
-
-            logger.info(f"✅ Referral ACTIVATED via shortlink: {user_id} → {referrer_id}")
-
-            # Notify referrer
-            if referrer_id:
-                try:
-                    await context.bot.send_message(
-                        chat_id=referrer_id,
-                        text=(
-                            f"🎉 **Referral Active Ho Gaya!**\n\n"
-                            f"👤 **User:** {referred_name}\n"
-                            f"🔗 **Shortlink:** {shortlink_url}\n"
-                            f"✅ Verification complete!\n\n"
-                            f"🎟️ **+3 Passes** aur **₹{self.config.REFERRAL_BONUS}** aapke account mein add ho gaya!\n\n"
-                            f"💡 Ab jab bhi ye user movie search karega,\n"
-                            f"aapko **₹{self.config.DAILY_REFERRAL_EARNING} daily** milega!"
-                        ),
-                        parse_mode=ParseMode.MARKDOWN
-                    )
-                except Exception as e:
-                    logger.error(f"Could not notify referrer {referrer_id}: {e}")
-
-            # Notify new user
-            try:
-                await context.bot.send_message(
-                    chat_id=user_id,
-                    text=(
-                        f"✅ **Aap Verify Ho Gaye!**\n\n"
-                        f"Shortlink complete ho gayi!\n"
-                        f"Aapke referrer **{referrer_name}** ko bonus mil gaya.\n\n"
-                        f"📱 Mini App kholo aur daily earning shuru karo!"
-                    ),
-                    parse_mode=ParseMode.MARKDOWN
-                )
-            except Exception as e:
-                logger.error(f"Could not notify user {user_id}: {e}")
-
-        else:
-            # ── Step 2: Already active — record daily search ──────
-            reason = ref_result.get('reason', '') if ref_result else ''
-            logger.info(f"Shortlink for already-active user {user_id}: {reason}")
-
-            # Record as daily search (for ₹0.30 earning to referrer)
-            search_result = self.db.record_daily_search(user_id)
-
-            if search_result.get('success'):
-                referrer_id = search_result.get('referrer_id')
-                earning = search_result.get('earning', self.config.DAILY_REFERRAL_EARNING)
-                logger.info(f"✅ Daily search via shortlink: user={user_id} referrer={referrer_id} +₹{earning}")
-
-                # Notify referrer about daily earning (optional but helpful)
-                if referrer_id:
-                    try:
-                        uname = user.get('first_name', 'User')
-                        await context.bot.send_message(
-                            chat_id=referrer_id,
-                            text=(
-                                f"💰 **Daily Earning!**\n\n"
-                                f"👤 {uname} ne aaj movie search ki!\n"
-                                f"🔗 {shortlink_url}\n"
-                                f"✅ +₹{earning} aapke account mein add ho gaya!"
-                            ),
-                            parse_mode=ParseMode.MARKDOWN
-                        )
-                    except Exception as e:
-                        logger.error(f"Could not notify referrer {referrer_id}: {e}")
-
-            elif search_result.get('reason') == 'already_credited_today':
-                logger.info(f"Already credited today for user {user_id} via shortlink")
-            elif search_result.get('reason') == 'no_active_referral':
-                # User has no referral — but still record for future
-                logger.info(f"No active referral for shortlink user {user_id}")
-
-    async def _handle_new_user_log(self, text, context):
-        """Handle old #NewUser format from log channel (backup)"""
-        user_id = None
-        for line in text.split('\n'):
-            line = line.strip()
-            if line.upper().startswith('ID'):
-                parts = line.split('-', 1)
+                parts = re.split(r'[-:–—]', line, 1)
                 if len(parts) == 2:
-                    try:
-                        user_id = int(parts[1].strip())
-                    except:
-                        pass
-                break
-
-        if not user_id:
-            logger.warning(f"#NewUser: could not parse user_id from: {text[:100]}")
-            return
-
-        logger.info(f"🔔 Log channel #NewUser: user_id={user_id}")
-        user = self.db.get_user(user_id)
-        if not user:
-            return
-
-        result = self.db.activate_referral_by_log_channel(user_id)
-        if result and result.get('activated'):
-            referrer_id = result.get('referrer_id')
-            referred_name = result.get('referred_name', user.get('first_name', 'User'))
-            referrer_name = result.get('referrer_name', 'Unknown')
-
-            if referrer_id:
-                try:
-                    await context.bot.send_message(
-                        chat_id=referrer_id,
-                        text=(
-                            f"🎉 **Referral Active Ho Gaya!**\n\n"
-                            f"👤 **User:** {referred_name}\n"
-                            f"✅ Verification complete!\n\n"
-                            f"🎟️ **+3 Passes** aur **₹{self.config.REFERRAL_BONUS}** add ho gaya!"
-                        ),
-                        parse_mode=ParseMode.MARKDOWN
-                    )
-                except:
-                    pass
-
-            try:
-                await context.bot.send_message(
-                    chat_id=user_id,
-                    text=f"✅ Verify ho gaye! Referrer **{referrer_name}** ko bonus mila.\n\nMini App kholo!",
-                    parse_mode=ParseMode.MARKDOWN
-                )
-            except:
-                pass
+                    url = parts[1].strip()
+                    if url:
+                        return url
+        return 'shortlink'
 
     # ========== OTHER COMMANDS ==========
 
@@ -916,7 +762,6 @@ class Handlers:
         """
         Roz evening (7-10 PM) mein users ko reminder bheja jata hai
         jo bonus/missions claim nahi kiye hain.
-        Job scheduler se call hoti hai.
         """
         try:
             pending_users = self.db.get_pending_reminders()
