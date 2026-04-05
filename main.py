@@ -334,8 +334,9 @@ def update_ad_api():
         admin_user = db.get_user(int(admin_id))
         if not admin_user or not admin_user.get('is_admin', False):
             return jsonify({'success': False, 'message': 'Unauthorized'}), 403
-        # UPDATED: pass timer_seconds
+        # UPDATED: pass timer_seconds, description, image_url, pass_reward
         timer_seconds = int(data.get('timer_seconds', 0) or 0)
+        pass_reward = int(data.get('pass_reward', 0) or 0)
         success = db.update_ad(
             ad_id,
             data.get('title'),
@@ -344,7 +345,10 @@ def update_ad_api():
             data.get('meta'),
             data.get('icon'),
             claim_code=data.get('claim_code'),
-            timer_seconds=timer_seconds
+            timer_seconds=timer_seconds,
+            description=data.get('description', ''),
+            image_url=data.get('image_url', ''),
+            pass_reward=pass_reward
         )
         if success:
             return jsonify({'success': True, 'message': 'Ad updated! All claims reset.'})
