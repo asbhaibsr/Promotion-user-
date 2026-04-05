@@ -186,6 +186,11 @@ def get_user_api(user_id):
                 if user_data.get(f'milestone_claimed_{m}'):
                     claimed_milestones.append(m)
             user_data['claimed_milestones'] = claimed_milestones
+            # Add weekly bonus claimed status for frontend
+            today_date = datetime.now().date()
+            day_of_week = today_date.weekday()
+            week_start = today_date - timedelta(days=day_of_week)
+            user_data['weekly_bonus_claimed'] = bool(user_data.get(f'weekly_bonus_{week_start.isoformat()}', False))
             return jsonify(user_data)
         return jsonify({'error': 'User not found'}), 404
     except Exception as e:
