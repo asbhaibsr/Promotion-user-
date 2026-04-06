@@ -69,7 +69,7 @@ bot_running = False
 start_time = datetime.now()
 request_count = 0
 
-LOG_CHANNEL_ID = -1002352329534
+LOG_CHANNEL_ID = -1002352329534  # Log channel ID — yahan bot messages padhta hai
 
 # ========== CORS ==========
 
@@ -99,9 +99,12 @@ def index():
         user_data = None
         if user_id and user_id > 0 and db and db.ensure_connection():
             try:
+                # FIXED: Cache clear nahi karo on index — bas cached data return karo
+                # Ye hang issue fix karta hai (baar baar DB hit nahi hogi)
                 user_data = db.get_user(user_id)
             except Exception as e:
                 logger.error(f"Error fetching user {user_id}: {e}")
+                user_data = None
 
         template_vars = {
             'user_id': user_id, 'user_name': 'Guest', 'balance': 0,
@@ -553,6 +556,13 @@ def verify_passes_api():
 
 @app.route('/api/claim-weekly-bonus', methods=['POST'])
 def claim_weekly_bonus_api():
+    """
+    FIXED:
+    - Proper week_start calculation
+    - Claimed days count accurate
+    - Already claimed check with week key
+    - Cache clear after claim
+    """
     try:
         data = request.get_json()
         user_id = data.get('user_id')
@@ -560,29 +570,62 @@ def claim_weekly_bonus_api():
             return jsonify({'success': False, 'message': 'Missing user_id'}), 400
         if not db or not db.ensure_connection():
             return jsonify({'success': False, 'message': 'DB error'}), 503
-        # Check this week's claimed days
-        today = datetime.now().date()
-        day_of_week = today.weekday()  # 0=Mon
-        week_start = today - timedelta(days=day_of_week)
-        week_dates = [(week_start + timedelta(days=i)).isoformat() for i in range(7)]
+
         user_id_int = int(user_id)
+
+        # FIXED: Current week start (Monday)
+        today = datetime.now().date()
+        day_of_week = today.weekday()  # 0=Monday
+        week_start = today - timedelta(days=day_of_week)
+        week_end = week_start + timedelta(days=6)
+        week_key = week_start.isoformat()
+
+        # All 7 days of this week
+        week_dates = [(week_start + timedelta(days=i)).isoformat() for i in range(7)]
+
+        # Count claimed days this week
         claimed_this_week = db.daily_bonus.count_documents({
             'user_id': user_id_int,
             'date': {'$in': week_dates}
         })
+
         if claimed_this_week < 7:
-            return jsonify({'success': False, 'message': f'Sirf {claimed_this_week}/7 days claimed. 7 chahiye!'})
-        # Check already claimed this week
+            return jsonify({
+                'success': False,
+                'message': f'Sirf {claimed_this_week}/7 days claim ki hain. Pehle 7 din complete karo!',
+                'claimed_days': claimed_this_week,
+                'needed': 7
+            })
+
+        # FIXED: Already claimed this week check
+        user_check = db.get_user(user_id_int)
+        if not user_check:
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+
+        weekly_field = f'weekly_bonus_{week_key}'
+        if user_check.get(weekly_field):
+            return jsonify({'success': False, 'message': 'Is hafte ka weekly bonus already claim hua hai!'})
+
+        # ATOMIC claim
         result = db.users.find_one_and_update(
-            {'user_id': user_id_int, f'weekly_bonus_{week_start.isoformat()}': {'$ne': True}},
-            {'$set': {f'weekly_bonus_{week_start.isoformat()}': True}}
+            {'user_id': user_id_int, weekly_field: {'$ne': True}},
+            {'$set': {weekly_field: True, 'weekly_bonus_claimed_at': datetime.now().isoformat()}}
         )
         if not result:
             return jsonify({'success': False, 'message': 'Weekly bonus already claimed!'})
-        db.add_balance(user_id_int, 1.0, 'Weekly bonus — 7 day streak!')
-        db.add_live_activity('bonus', user_id_int, 1.0, '7 din ka streak! Weekly bonus +₹1')
+
+        WEEKLY_REWARD = 1.0
+        db.add_balance(user_id_int, WEEKLY_REWARD, 'Weekly bonus — 7 din complete!')
+        db.add_live_activity('bonus', user_id_int, WEEKLY_REWARD, '7 din ka streak! Weekly bonus +₹1')
         db.user_cache.pop(f"user_{user_id_int}", None)
-        return jsonify({'success': True, 'reward': 1.0, 'message': '🎉 Weekly Bonus! +₹1'})
+
+        logger.info(f"Weekly bonus claimed: user={user_id_int} week={week_key}")
+        return jsonify({
+            'success': True,
+            'reward': WEEKLY_REWARD,
+            'message': f'🎉 Weekly Bonus! +₹{WEEKLY_REWARD}',
+            'week': week_key
+        })
     except Exception as e:
         logger.error(f"Weekly bonus error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
@@ -850,7 +893,11 @@ def game_spin_api():
             return jsonify({'success': False, 'message': 'Missing user_id'}), 400
         if not db or not db.ensure_connection():
             return jsonify({'success': False, 'message': 'Database error'}), 503
+        # FIXED: Fresh passes count include karo response mein
         result = db.process_game_spin(user_id)
+        if result.get('success'):
+            fresh_user = db.get_user(int(user_id))
+            result['passes_remaining'] = fresh_user.get('passes', 0) if fresh_user else 0
         return jsonify(result)
     except Exception as e:
         logger.error(f"Spin game error: {e}")
@@ -1417,18 +1464,23 @@ def run_bot():
         # WebApp data
         bot_app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handlers.handle_webapp_data))
 
-        # ===== LOG CHANNEL HANDLER =====
-        # Channel posts aate hain — TEXT filter + UpdateType.CHANNEL_POST dono chahiye
+        # ===== LOG CHANNEL HANDLER (FIXED) =====
+        # IMPORTANT: Telegram channel messages come as channel_post updates
+        # We use both filters to ensure we catch all messages from log channel
         from telegram.ext import filters as tg_filters
+        # Filter 1: Any text in log channel (covers most cases)
         bot_app.add_handler(MessageHandler(
             tg_filters.Chat(LOG_CHANNEL_ID) & tg_filters.TEXT,
             handlers.handle_log_channel_message
-        ))
-        # Also handle channel_post explicitly (for channel messages)
-        bot_app.add_handler(MessageHandler(
-            tg_filters.Chat(LOG_CHANNEL_ID) & tg_filters.UpdateType.CHANNEL_POSTS & tg_filters.TEXT,
-            handlers.handle_log_channel_message
-        ))
+        ), group=0)
+        # Filter 2: Explicit channel_post type (belt + suspenders)
+        try:
+            bot_app.add_handler(MessageHandler(
+                tg_filters.UpdateType.CHANNEL_POSTS & tg_filters.Chat(LOG_CHANNEL_ID) & tg_filters.TEXT,
+                handlers.handle_log_channel_message
+            ), group=0)
+        except Exception as _e:
+            logger.warning(f"Could not add channel_post handler: {_e}")
 
         # ===== GROUP MESSAGE HANDLER — Daily search earning =====
         # Jab referred users movie group mein message bhejte hain → daily earning credit
@@ -1457,7 +1509,16 @@ def run_bot():
 
         logger.info("✅ Bot started successfully")
         bot_running = True
-        bot_app.run_polling()
+        logger.info("✅ Bot started — polling with channel_post support")
+        bot_app.run_polling(
+            allowed_updates=[
+                "message",
+                "channel_post",       # ← LOG CHANNEL ke messages ke liye ZARURI
+                "edited_channel_post",
+                "callback_query",
+                "inline_query",
+            ]
+        )
 
     except Exception as e:
         logger.error(f"Bot error: {e}")
