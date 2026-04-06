@@ -1,18 +1,26 @@
 # ═══════════════════════════════════════════════════════════
 # EarnZone / FilmyFund — Telegram Mini App
 # Owner   : @asbhaibsr
-# Channel : @asbhai_bsr
-# Contact : https://t.me/asbhaibsr
 # ⚠️  Unauthorized modification or redistribution prohibited.
 # © 2025 @asbhaibsr — All Rights Reserved
 # ═══════════════════════════════════════════════════════════
 
-# ===== handlers.py (FIXED — Log Channel Verification) =====
+# ===== handlers.py — LOG CHANNEL VERIFY COMPLETELY FIXED =====
+#
+# ASLI PROBLEM THI:
+#   1. bot_app.run_polling() mein channel_post allowed_updates nahi tha
+#   2. Handler filter sahi nahi tha channel posts ke liye
+#   3. ID parsing Unicode small caps handle nahi karta tha properly
+#
 # FIXES:
-# 1. ✅ #VerifyComplete messages ab detect hote hain (pehle sirf #Verifyshortlink check hota tha)
-# 2. 📤 #FileSent messages se bhi verify hota hai (pehle ignore hota tha)
-# 3. Unicode ɪᴅ / Nᴀᴍᴇ parsing fix — ab Unicode small caps bhi parse hote hain
-# 4. #NewUser messages se bhi verify — top text + ID check
+#   ✅ Log channel pe #VerifyComplete → referral activate
+#   ✅ Log channel pe #FileSent → referral activate  
+#   ✅ Log channel pe #NewUser → SIRF log, activate NAHI
+#   ✅ Unicode ID parse (ɪᴅ - 7142838312)
+#   ✅ Normal ID parse (ID - 7142838312)
+#   ✅ Bracket ID parse (As Name (7142838312))
+#   ✅ Referrer ko notify — jab referred user group pe aaye
+#   ✅ Referral active hone pe dono users ko message
 
 import logging
 import re
@@ -24,19 +32,23 @@ from telegram.constants import ParseMode
 
 logger = logging.getLogger(__name__)
 
-LOG_CHANNEL_ID = -1002352329534  # Your log channel
+# ⚠️ APNA LOG CHANNEL ID YAHAN DAALO
+LOG_CHANNEL_ID = -1002352329534
+
 
 class Handlers:
     def __init__(self, config, db):
         self.config = config
         self.db = db
         self.bot = None
+        self._group_notified = {}  # user_id -> last_notify_timestamp
         logger.info("✅ Handlers initialized")
 
-    # ========== START COMMAND ==========
+    # ══════════════════════════════════════════════════════════════
+    # START COMMAND
+    # ══════════════════════════════════════════════════════════════
 
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Start command handler — with duplicate referral check"""
         try:
             user = update.effective_user
             args = context.args
@@ -46,7 +58,7 @@ class Handlers:
                 try:
                     referrer_id = int(args[0].replace('ref_', ''))
                     if referrer_id == user.id:
-                        referrer_id = None  # self-refer nahi hoga
+                        referrer_id = None
                 except:
                     pass
 
@@ -59,54 +71,46 @@ class Handlers:
 
             add_result = self.db.add_user(user_data)
 
-            # ── DUPLICATE USER — already on bot ──────────────────────
+            # ── Duplicate user ──
             if isinstance(add_result, dict) and add_result.get('already_on_bot'):
                 info = add_result
                 uname = info.get('username', '')
                 uname_txt = f"@{uname}" if uname else "No username"
-                join_d = info.get('join_date', 'Unknown')
-                act = info.get('active_refs', 0)
-                bal = info.get('balance', 0)
                 orig_ref_id = info.get('original_referrer_id')
 
-                # Notify the person who tried to refer
                 if referrer_id:
                     orig_txt = ""
                     if orig_ref_id and orig_ref_id != referrer_id:
                         orig_ref_user = self.db.get_user(orig_ref_id)
                         if orig_ref_user:
                             orig_name = orig_ref_user.get('first_name', 'Someone')
-                            orig_txt = f"\n⚠️ Inhe pehle se **{orig_name}** ne refer kiya hua hai."
-
+                            orig_txt = f"\n⚠️ Inhe pehle se *{orig_name}* ne refer kiya hua hai."
                     try:
                         await context.bot.send_message(
                             chat_id=referrer_id,
                             text=(
-                                f"⚠️ **Ye user pehle se bot pe hai!**\n\n"
-                                f"👤 **Name:** {info.get('first_name', 'User')}\n"
-                                f"🔗 **Username:** {uname_txt}\n"
-                                f"📅 **Joined:** {join_d}\n"
-                                f"👥 **Active refs:** {act}\n"
-                                f"💰 **Balance:** ₹{bal:.2f}"
+                                f"⚠️ *Ye user pehle se bot pe hai!*\n\n"
+                                f"👤 Name: {info.get('first_name', 'User')}\n"
+                                f"🔗 Username: {uname_txt}\n"
+                                f"📅 Joined: {info.get('join_date', 'Unknown')}\n"
+                                f"👥 Active refs: {info.get('active_refs', 0)}\n"
+                                f"💰 Balance: ₹{info.get('balance', 0):.2f}"
                                 f"{orig_txt}\n\n"
-                                f"❌ Ye user aapke referral se count **nahi** hoga.\n"
-                                f"💡 Naye users share karo jo abhi tak bot pe nahi hain!"
+                                f"❌ Ye user aapke referral se count *nahi* hoga.\n"
+                                f"💡 Naye users share karo!"
                             ),
                             parse_mode=ParseMode.MARKDOWN
                         )
                     except Exception as e:
-                        logger.error(f"Could not notify referrer about duplicate: {e}")
+                        logger.error(f"Notify referrer duplicate: {e}")
 
-                # Show app to returning user normally
                 keyboard = [
-                    [InlineKeyboardButton(
-                        "📱 MINI APP KHOLO",
-                        web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}")
-                    )],
+                    [InlineKeyboardButton("📱 MINI APP KHOLO",
+                        web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}"))],
                     [InlineKeyboardButton("🎬 MOVIE GROUP", url=self.config.MOVIE_GROUP_LINK)]
                 ]
                 await update.message.reply_text(
-                    f"👋 Welcome back **{user.first_name}!**\n\nMini App kholo:",
+                    f"👋 Welcome back *{user.first_name}!*\n\nMini App kholo:",
                     reply_markup=InlineKeyboardMarkup(keyboard),
                     parse_mode=ParseMode.MARKDOWN
                 )
@@ -114,7 +118,6 @@ class Handlers:
 
             is_new = bool(add_result)
 
-            # ── NEW USER ──────────────────────────────────────────────
             if is_new:
                 self.db.add_live_activity('join', user.id, 0, "Joined the bot")
 
@@ -128,36 +131,32 @@ class Handlers:
                                 rname = ref_user.get('first_name', '')
                                 rusername = ref_user.get('username', '')
                                 referrer_name = f"{rname} (@{rusername})" if rusername else rname
-
-                        log_text = (
-                            f"👤 **NEW USER JOINED**\n\n"
-                            f"**Name:** {user.first_name}\n"
-                            f"**User ID:** `{user.id}`\n"
-                            f"**Username:** @{user.username if user.username else 'N/A'}\n"
-                            f"**Referred by:** {referrer_name}\n"
-                            f"**Time:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-                        )
                         await context.bot.send_message(
                             chat_id=self.config.LOG_CHANNEL_ID,
-                            text=log_text,
+                            text=(
+                                f"👤 *NEW USER JOINED*\n\n"
+                                f"Name: {user.first_name}\n"
+                                f"ID: `{user.id}`\n"
+                                f"Username: @{user.username if user.username else 'N/A'}\n"
+                                f"Referred by: {referrer_name}\n"
+                                f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                            ),
                             parse_mode=ParseMode.MARKDOWN
                         )
                     except Exception as e:
-                        logger.error(f"Log channel error: {e}")
+                        logger.error(f"Log channel new user error: {e}")
 
                 # Notify admins
                 for admin_id in self.config.ADMIN_IDS:
                     try:
-                        keyboard = [[InlineKeyboardButton("👤 VIEW USER", callback_data=f"user_details_{user.id}")]]
+                        kb = [[InlineKeyboardButton("👤 VIEW USER", callback_data=f"user_details_{user.id}")]]
                         await context.bot.send_message(
                             chat_id=admin_id,
                             text=(
-                                f"👤 **New User Joined!**\n\n"
-                                f"Name: {user.first_name}\n"
-                                f"ID: `{user.id}`\n"
-                                f"Referred by: {referrer_id if referrer_id else 'Direct'}"
+                                f"👤 *New User!*\nName: {user.first_name}\n"
+                                f"ID: `{user.id}`\nRef by: {referrer_id or 'Direct'}"
                             ),
-                            reply_markup=InlineKeyboardMarkup(keyboard),
+                            reply_markup=InlineKeyboardMarkup(kb),
                             parse_mode=ParseMode.MARKDOWN
                         )
                     except:
@@ -171,103 +170,79 @@ class Handlers:
                             await context.bot.send_message(
                                 chat_id=referrer_id,
                                 text=(
-                                    f"🎉 **Naya Referral!**\n\n"
-                                    f"**{user.first_name}** aapke link se join kar liya!\n\n"
-                                    f"✅ Jab wo Movie Group pe movie search karke shortlink complete karega,\n"
-                                    f"aapka referral active ho jayega aur aapko **3 Passes + ₹{self.config.REFERRAL_BONUS} bonus** milega!\n\n"
-                                    f"⏳ Abhi status: **Pending**"
+                                    f"🎉 *Naya Referral!*\n\n"
+                                    f"*{user.first_name}* aapke link se join kar liya!\n\n"
+                                    f"📋 *Ab kya karna hai:*\n"
+                                    f"1️⃣ Inhe Movie Group pe jaane kaho\n"
+                                    f"2️⃣ Koi bhi movie search kare\n"
+                                    f"3️⃣ Movie bot ka shortlink complete kare\n\n"
+                                    f"✅ Shortlink complete = *Referral Active!*\n"
+                                    f"🎁 Aapko milega: *3 Passes + ₹{self.config.REFERRAL_BONUS}*\n\n"
+                                    f"⏳ Status: *Pending*"
                                 ),
                                 parse_mode=ParseMode.MARKDOWN
                             )
                     except Exception as e:
-                        logger.error(f"Failed to notify referrer: {e}")
+                        logger.error(f"Notify referrer on join: {e}")
 
-            # ── WELCOME MESSAGE ──────────────────────────────────────
+            # Welcome message
             ref_link = f"https://t.me/{self.config.BOT_USERNAME}?start=ref_{user.id}"
             movie_group = getattr(self.config, 'MOVIE_GROUP_LINK', 'https://t.me/all_movies_webseries_is_here')
 
             if referrer_id and is_new:
-                # ── REFERRED new user — URGENCY + STEP BY STEP ───
                 welcome_text = (
-                    f"🎬 *FilmyFund mein Aapka Swagat Hai, {user.first_name}!*\n\n"
-                    f"✅ Aap ek referral ke through aaye hain!\n\n"
-                    f"⚡ *BONUS ALERT: Pehle 24 GHANTE mein shortlink karo = EXTRA 50 pts!*\n\n"
-                    f"📌 *3 Simple Steps mein Earning Shuru:*\n\n"
-                    f"*Step 1️⃣* → Neeche 🎬 MOVIE GROUP button dabao\n"
-                    f"*Step 2️⃣* → Group mein koi bhi movie ka naam likho\n"
-                    f"  _(jaise: Pushpa 2, Animal, Jawan)_\n"
-                    f"*Step 3️⃣* → Bot ek link bhejega — use kholo aur *10 second* wait karo\n\n"
-                    f"✅ *Bas itna karo aur:*\n"
-                    f"• Turant *50 pts BONUS* milega! 🎁\n"
-                    f"• Roz search karo = *30 pts DAILY* 💰\n"
-                    f"• Games khelo = *Aur zyada kamao!* 🎮\n\n"
-                    f"⏰ *Jaldi karo — 24 ghante ka offer hai!*"
+                    f"🎬 *FilmyFund mein Swagat Hai, {user.first_name}!*\n\n"
+                    f"✅ Aap referral se aaye hain!\n\n"
+                    f"📌 *3 Steps mein Earning:*\n\n"
+                    f"*Step 1️⃣* → 🎬 MOVIE GROUP join karo\n"
+                    f"*Step 2️⃣* → Koi bhi movie search karo (jaise: Pushpa 2)\n"
+                    f"*Step 3️⃣* → Movie bot jo link bheje — kholo aur 10 sec wait karo\n\n"
+                    f"✅ *Reward:*\n"
+                    f"• 50 pts turant! 🎁\n"
+                    f"• Roz search = 30 pts daily 💰\n"
+                    f"• Games = aur zyada! 🎮"
                 )
                 keyboard = [
-                    [InlineKeyboardButton(
-                        "🎬 STEP 1: MOVIE GROUP JOIN KARO",
-                        url=movie_group
-                    )],
-                    [InlineKeyboardButton(
-                        "📱 MINI APP — Games & Earning",
-                        web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}")
-                    )],
-                    [InlineKeyboardButton(
-                        "📖 KAISE KARU? VIDEO DEKHO",
-                        url=self.config.CHANNEL_LINK
-                    )]
+                    [InlineKeyboardButton("🎬 MOVIE GROUP JOIN KARO", url=movie_group)],
+                    [InlineKeyboardButton("📱 MINI APP", web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}"))],
                 ]
                 await update.message.reply_text(
-                    welcome_text,
-                    reply_markup=InlineKeyboardMarkup(keyboard),
+                    welcome_text, reply_markup=InlineKeyboardMarkup(keyboard),
                     parse_mode=ParseMode.MARKDOWN
                 )
-
-                # 🔥 AUTO-REMINDER: 2 ghante baad reminder bhejo
+                # 2hr auto reminder
                 try:
                     import asyncio
-                    async def send_reminder_2hr():
-                        await asyncio.sleep(7200)  # 2 hours
+                    async def _remind_2hr():
+                        await asyncio.sleep(7200)
                         try:
-                            ref_active = self.db.referrals.find_one({'referred_id': user.id, 'is_active': True})
-                            if not ref_active:
-                                kb = [[InlineKeyboardButton("🎬 ABHI MOVIE SEARCH KARO!", url=movie_group)]]
+                            if not self.db.referrals.find_one({'referred_id': user.id, 'is_active': True}):
+                                kb = [[InlineKeyboardButton("🎬 MOVIE SEARCH KARO!", url=movie_group)]]
                                 await context.bot.send_message(
                                     chat_id=user.id,
                                     text=(
-                                        f"⏰ *Hey {user.first_name}!*\n\n"
-                                        f"Tumne abhi tak movie search nahi ki! 😟\n\n"
-                                        f"🎁 *50 pts BONUS* abhi bhi available hai!\n"
-                                        f"Bas ek movie search karo aur shortlink complete karo.\n\n"
-                                        f"👇 *Ye simple hai — bas 30 second lagega:*"
+                                        f"⏰ *{user.first_name}, shortlink abhi baaki hai!*\n\n"
+                                        f"🎁 50 pts bonus abhi bhi available!\n"
+                                        f"Bas ek movie search karo aur shortlink complete karo."
                                     ),
                                     reply_markup=InlineKeyboardMarkup(kb),
                                     parse_mode=ParseMode.MARKDOWN
                                 )
-                        except Exception as re:
-                            logger.error(f"2hr reminder error: {re}")
-                    asyncio.ensure_future(send_reminder_2hr())
+                        except Exception as e:
+                            logger.error(f"2hr reminder: {e}")
+                    asyncio.ensure_future(_remind_2hr())
                 except:
                     pass
             else:
-                # ── Direct / returning user ───────────────────────
-                welcome_text = (
-                    f"🎬 *FilmyFund mein Swagat Hai, {user.first_name}!*\n\n"
-                    f"🎯 Refer karo • Movie search karo • Paise kamao!\n\n"
-                    f"👇 Mini App kholo aur shuru karo:"
-                )
                 keyboard = [
-                    [InlineKeyboardButton(
-                        "💰 MINI APP KHOLO — Earning Shuru Karo",
-                        web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}")
-                    )],
-                    [InlineKeyboardButton(
-                        "🎬 MOVIE GROUP JOIN KARO",
-                        url=movie_group
-                    )]
+                    [InlineKeyboardButton("💰 MINI APP KHOLO",
+                        web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}"))],
+                    [InlineKeyboardButton("🎬 MOVIE GROUP", url=movie_group)]
                 ]
                 await update.message.reply_text(
-                    welcome_text,
+                    f"🎬 *FilmyFund mein Swagat Hai, {user.first_name}!*\n\n"
+                    f"🎯 Refer karo • Movie search karo • Paise kamao!\n\n"
+                    f"👇 Mini App kholo:",
                     reply_markup=InlineKeyboardMarkup(keyboard),
                     parse_mode=ParseMode.MARKDOWN
                 )
@@ -275,39 +250,39 @@ class Handlers:
             if is_new:
                 await update.message.reply_text(
                     f"🔗 *Aapka Referral Link:*\n`{ref_link}`\n\n"
-                    f"📢 Dosto ko share karo:\n"
-                    f"• Har active refer = 3 Passes + 60 pts\n"
-                    f"• Dost roz search kare = 30 pts/day!",
+                    f"📢 Share karo:\n• Active refer = 3 Passes + ₹{self.config.REFERRAL_BONUS}\n"
+                    f"• Roz search = 30 pts/day!",
                     parse_mode=ParseMode.MARKDOWN
                 )
 
         except Exception as e:
-            logger.error(f"Start command error: {e}")
-            await update.message.reply_text("❌ Error. Please /start dobara try karo.")
+            logger.error(f"Start error: {e}", exc_info=True)
+            try:
+                await update.message.reply_text("❌ Error. /start dobara try karo.")
+            except:
+                pass
 
-    # ========== GROUP MESSAGE HANDLER — Daily Search ==========
+    # ══════════════════════════════════════════════════════════════
+    # GROUP MESSAGE — Sirf referrer ko notify karo
+    # ══════════════════════════════════════════════════════════════
 
     async def handle_group_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """
-        Movie group pe messages detect karo.
-        Jab koi referred user message bhejta hai (movie search):
-        - record_daily_search() call karo
-        - Sirf 1 baar per day credit hoga
+        Movie group pe message aaya — referrer ko notify karo ki user aa gaya.
+        VERIFY/ACTIVATE sirf log channel se hoga.
         """
         try:
             message = update.message or update.channel_post
             if not message:
                 return
-
             user = update.effective_user
-            if not user:
+            if not user or user.is_bot:
                 return
-
             chat = update.effective_chat
             if not chat or chat.type not in ['group', 'supergroup']:
                 return
 
-            # Sirf MOVIE_GROUP_ID pe handle karo agar configured hai
+            # Sirf configured movie group pe
             if self.config.MOVIE_GROUP_ID:
                 try:
                     if str(chat.id) != str(self.config.MOVIE_GROUP_ID):
@@ -315,275 +290,337 @@ class Handlers:
                 except:
                     pass
 
-            # Ignore bots
-            if user.is_bot:
-                return
-
-            # Ignore very short messages (commands etc.)
             msg_text = message.text or message.caption or ""
             if len(msg_text.strip()) < 2:
                 return
 
             user_id = user.id
-            logger.info(f"Group message from user {user_id} in {chat.id}")
+            referral = self.db.referrals.find_one({'referred_id': user_id})
+            if not referral:
+                return
 
-            # Record daily search — sirf 1 baar per day credit hoga
-            result = self.db.record_daily_search(user_id)
+            referrer_id = referral.get('referrer_id')
+            is_active = referral.get('is_active', False)
 
-            if result.get('success'):
-                referrer_id = result.get('referrer_id')
-                earning = result.get('earning', 0.30)
-                logger.info(f"✅ Daily search credited: user={user_id} referrer={referrer_id} +₹{earning}")
-
-            elif result.get('reason') == 'already_credited_today':
-                logger.info(f"Already credited today for user {user_id}")
-            elif result.get('reason') == 'no_active_referral':
-                logger.info(f"No active referral for user {user_id} — pending or no referral")
-
+            # Pending referral — referrer ko ek baar notify karo
+            if not is_active and referrer_id:
+                now_ts = datetime.now().timestamp()
+                last_notified = self._group_notified.get(user_id, 0)
+                if now_ts - last_notified > 21600:  # 6 hr cooldown
+                    self._group_notified[user_id] = now_ts
+                    try:
+                        referrer = self.db.get_user(referrer_id)
+                        if referrer and referrer.get('notify_referrals', True):
+                            await context.bot.send_message(
+                                chat_id=referrer_id,
+                                text=(
+                                    f"📢 *{user.first_name} Group Pe Aa Gaye!*\n\n"
+                                    f"✅ Movie search kar di!\n\n"
+                                    f"⏳ Abhi shortlink complete baki hai...\n"
+                                    f"Jaise hi shortlink puri hogi — referral *auto active* ho jayega! 🎉"
+                                ),
+                                parse_mode=ParseMode.MARKDOWN
+                            )
+                    except Exception as e:
+                        logger.error(f"Group notify referrer {referrer_id}: {e}")
         except Exception as e:
-            logger.error(f"Group message handler error: {e}")
+            logger.error(f"Group message handler: {e}")
 
-    # ========== LOG CHANNEL HANDLER (FIXED) ==========
+    # ══════════════════════════════════════════════════════════════
+    # LOG CHANNEL HANDLER — MAIN VERIFY LOGIC
+    # ══════════════════════════════════════════════════════════════
 
     async def handle_log_channel_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """
-        Log channel se messages detect karo — ALL formats supported:
+        Log channel pe movie bot ka message aata hai → bot verify karta hai.
 
-        FORMAT 1 — ✅ #VerifyComplete (shortlink puri hui):
-            ✅ #VerifyComplete
-            ɪᴅ - 7142838312
-            Nᴀᴍᴇ - ʀɪᴛɪᴋᴀ
-            sʜᴏʀᴛʟɪɴᴋ - softurl.in
-            ᴛɪᴍᴇ - 05 Apr 16:03 IST
+        SUPPORTED FORMATS:
+        ─────────────────────────────────────────────────────────────
+        FORMAT 1 — #VerifyComplete (shortlink puri hui):
+          ✅ #VerifyComplete
+          ɪᴅ - 7142838312
+          Nᴀᴍᴇ - ʀɪᴛɪᴋᴀ
+          sʜᴏʀᴛʟɪɴᴋ - softurl.in
+          ᴛɪᴍᴇ - 05 Apr 16:03 IST
 
-        FORMAT 2 — #NewUser (naya user join hua):
-            #NewUser
-            ID - 7346280916
-            Nᴀᴍᴇ - Abhinav
+        FORMAT 2 — #FileSent (file bheji = movie search done):
+          #FileSent — File pahunch gayi! ✈️
+          As Bʜᴀɪ Bsʀ (7315805581)
+          Kill 2023 Hindi ORG 480p ...
+          358.7 MB
+          Premium: ✅ VIP
+          05 Apr 15:55 IST
 
-        FORMAT 3 — 📤 #FileSent (file bheji gayi = movie search done):
-            📤 #FileSent — File pahunch gayi! ✈️
-            👤 As Bʜᴀɪ Bsʀ (7315805581)
-            🗂 Kill 2023 Hindi ORG 480p ...
-            📦 358.7 MB
-            💎 Premium: ✅ VIP
-            🕐 05 Apr 15:55 IST
+        FORMAT 3 — #NewUser (SIRF info, activate NAHI):
+          #NewUser ID - 7346280916 Nᴀᴍᴇ - Abhinav
+        ─────────────────────────────────────────────────────────────
 
-        FORMAT 4 — #Verifyshortlink (legacy):
-            #Verifyshortlink
-            ID - 8098997823
-            Nᴀᴍᴇ - Sandip
-
-        FORMAT 5 — ✅ Shortlink Verified (legacy alternate):
-            ✅ Shortlink Verified
-            👤 Sandip (8098997823)
-            🔗 softurl.in
+        RULE: Sirf #VerifyComplete aur #FileSent pe activate karo.
+              #NewUser pe kuch mat karo.
         """
         try:
+            # Channel post ya regular message dono handle karo
             message = update.channel_post or update.message
             if not message:
+                logger.debug("handle_log_channel_message: no message object")
                 return
 
             chat_id = message.chat.id
-            if str(chat_id) != str(LOG_CHANNEL_ID):
-                logger.debug(f"Ignoring chat {chat_id} (expected {LOG_CHANNEL_ID})")
+
+            # ── STRICT chat ID check ──
+            if chat_id != LOG_CHANNEL_ID:
+                logger.debug(f"Ignoring chat_id={chat_id}, want {LOG_CHANNEL_ID}")
                 return
 
             text = (message.text or message.caption or "").strip()
             if not text:
                 return
 
-            logger.info(f"📨 Log channel msg: {text[:120]}")
+            # ── Detailed log karo ──
+            logger.info(f"═══ LOG CHANNEL MSG RECEIVED ═══")
+            logger.info(f"Chat: {chat_id} | Len: {len(text)}")
+            logger.info(f"Text preview: {text[:200]}")
+            logger.info(f"═══════════════════════════════")
 
-            # ═══ Detect message type — ALL formats ═══
-            has_verify_complete = '#VerifyComplete' in text or 'VerifyComplete' in text
-            has_filesent        = '#FileSent' in text or 'FileSent' in text
-            has_newuser         = '#NewUser' in text
-            has_verifyshort     = '#Verifyshortlink' in text or 'Verifyshortlink' in text
-            has_shortlink_v     = 'Shortlink Verified' in text
+            # ── Message type detect ──
+            text_upper = text.upper()
+            has_verify  = '#VERIFYCOMPLETE' in text_upper or 'VERIFYCOMPLETE' in text_upper
+            has_filesent = '#FILESENT' in text_upper or 'FILESENT' in text_upper
+            has_newuser  = '#NEWUSER' in text_upper
+            has_vshort   = '#VERIFYSHORTLINK' in text_upper or 'VERIFYSHORTLINK' in text_upper
+            has_slv      = 'SHORTLINK VERIFIED' in text_upper
 
-            if has_verify_complete or has_filesent or has_newuser or has_verifyshort or has_shortlink_v:
-                user_id, name = self._parse_id_and_name(text)
-                if not user_id:
-                    logger.warning(f"❌ Could not parse user_id from log msg: {text[:150]}")
+            logger.info(f"Detect: VerifyComplete={has_verify} FileSent={has_filesent} NewUser={has_newuser} VerifyShort={has_vshort}")
+
+            # ── #NewUser — sirf log, kuch action nahi ──
+            if has_newuser and not has_verify and not has_filesent and not has_vshort and not has_slv:
+                uid, name = self._parse_user_id_and_name(text)
+                logger.info(f"#NewUser message — ID={uid} Name={name} — NO ACTION")
+                return
+
+            # ── Verify messages — activate karo ──
+            if has_verify or has_filesent or has_vshort or has_slv:
+                uid, name = self._parse_user_id_and_name(text)
+                logger.info(f"VERIFY MSG parsed: uid={uid} name={name}")
+
+                if not uid:
+                    logger.warning(f"⚠️ Could not parse user_id from:\n{text}")
                     return
 
                 msg_type = (
-                    'VerifyComplete' if has_verify_complete else
-                    'FileSent' if has_filesent else
-                    'NewUser' if has_newuser else
-                    'Verifyshortlink' if has_verifyshort else
+                    'VerifyComplete' if has_verify else
+                    'FileSent'       if has_filesent else
+                    'Verifyshortlink' if has_vshort else
                     'ShortlinkVerified'
                 )
-                logger.info(f"✅ Parsed: user_id={user_id} name={name} type={msg_type}")
+                logger.info(f"Processing: type={msg_type} uid={uid} name={name}")
+                await self._activate_and_notify(uid, name, context)
 
-                # All types → activate referral + record daily search
-                is_new = has_newuser
-                await self._process_log_event(user_id, name, is_new, context)
             else:
-                logger.debug(f"Unrecognized log message: {text[:60]}")
+                logger.debug(f"Unrecognized log format (no action): {text[:100]}")
 
         except Exception as e:
-            logger.error(f"Log channel handler error: {e}", exc_info=True)
+            logger.error(f"handle_log_channel_message ERROR: {e}", exc_info=True)
 
-    def _parse_id_and_name(self, text):
+    # ══════════════════════════════════════════════════════════════
+    # USER ID + NAME PARSER — All formats
+    # ══════════════════════════════════════════════════════════════
+
+    def _parse_user_id_and_name(self, text: str):
         """
-        Parse user_id and name from log channel message.
-        Handles ALL formats including Unicode small caps:
-          - ID - 1234567890 (normal ASCII)
-          - ɪᴅ - 1234567890 (Unicode small caps)
-          - 👤 Name (1234567890) (emoji format)
-          - Nᴀᴍᴇ - Sandip (Unicode name)
-        Returns (user_id, name) or (None, None)
+        Log channel message se user_id aur name extract karo.
+
+        Supported formats:
+          • "ID - 1234567890"           (ASCII normal)
+          • "ɪᴅ - 1234567890"           (Unicode small caps)
+          • "ID: 1234567890"            (colon format)
+          • "As SomeName (1234567890)"  (#FileSent format)
+          • "👤 SomeName (1234567890)"  (emoji format)
+          • Fallback: any 7-15 digit number in text
+
+        Returns (user_id: int | None, name: str)
         """
         user_id = None
         name = "User"
-        lines = [l.strip() for l in text.split('\n')]
+
+        lines = text.split('\n')
 
         for line in lines:
-            # ═══ ID PARSING — Normal + Unicode ═══
-            # Normal: "ID - 1234567890" or "ID: 1234567890"
-            if re.match(r'^ID\s*[-:]\s*\d', line, re.IGNORECASE):
-                m = re.search(r'(\d{6,15})', line)
-                if m:
-                    try: user_id = int(m.group(1))
-                    except: pass
+            line = line.strip()
+            if not line:
+                continue
 
-            # Unicode small caps: "ɪᴅ - 1234567890"
-            elif re.match(r'^[ɪIiᴵ][ᴅDdᴰ]\s*[-:–—]\s*\d', line):
-                m = re.search(r'(\d{6,15})', line)
-                if m:
-                    try: user_id = int(m.group(1))
-                    except: pass
+            # ── Method 1: Normal "ID - 12345" or "ID: 12345" ──
+            m = re.match(r'^ID\s*[-:]\s*(\d{5,15})', line, re.IGNORECASE)
+            if m:
+                try:
+                    user_id = int(m.group(1))
+                    logger.debug(f"ID parsed (normal): {user_id} from '{line}'")
+                except:
+                    pass
 
-            # ═══ NAME PARSING — Normal + Unicode ═══
-            # Normal: "Name - Sandip" or Unicode: "Nᴀᴍᴇ - ʀɪᴛɪᴋᴀ"
-            if re.match(r'^[NnɴΝ][^\d]*[-:–—]\s*\S', line) and not re.search(r'\d{6}', line):
-                # Split on first dash/colon
-                parts = re.split(r'[-:–—]', line, 1)
-                if len(parts) == 2:
-                    parsed_name = parts[1].strip()
-                    if parsed_name:
-                        name = parsed_name
+            # ── Method 2: Unicode small caps "ɪᴅ - 12345" ──
+            # ɪ = U+026A, ᴅ = U+1D05 (both look like ID)
+            if not user_id:
+                # Normalize Unicode to ASCII-like
+                normalized = line.replace('ɪ', 'I').replace('ᴅ', 'D').replace('ɴ', 'N')
+                m2 = re.match(r'^ID\s*[-:–—]\s*(\d{5,15})', normalized, re.IGNORECASE)
+                if m2:
+                    try:
+                        user_id = int(m2.group(1))
+                        logger.debug(f"ID parsed (unicode norm): {user_id} from '{line}'")
+                    except:
+                        pass
 
-            # ═══ 👤 FORMAT — "👤 Name (1234567890)" ═══
-            if '👤' in line:
-                m = re.search(r'\((\d{6,15})\)', line)
-                if m:
-                    try: user_id = int(m.group(1))
-                    except: pass
-                # Extract name (everything between 👤 and the parenthesis/end)
-                name_part = line.replace('👤', '').strip()
-                name_part = re.sub(r'\(\d+\)', '', name_part).strip()
-                if name_part:
-                    name = name_part
+            # ── Method 3: "As SomeName (12345)" — #FileSent format ──
+            if not user_id:
+                m3 = re.search(r'\((\d{5,15})\)', line)
+                if m3:
+                    try:
+                        candidate = int(m3.group(1))
+                        if candidate > 10000:  # valid Telegram ID range
+                            user_id = candidate
+                            # Extract name: everything before "("
+                            name_part = re.sub(r'\(.*\)', '', line)
+                            # Remove "As " prefix if present
+                            name_part = re.sub(r'^As\s+', '', name_part.strip())
+                            # Remove emoji prefixes
+                            name_part = re.sub(r'^[👤📤✅#\s]+', '', name_part).strip()
+                            if name_part:
+                                name = name_part[:50]
+                            logger.debug(f"ID parsed (bracket): {user_id} from '{line}'")
+                    except:
+                        pass
 
-        # ═══ FALLBACK — Find any 7-12 digit number in full text ═══
+            # ── Name parsing: "Nᴀᴍᴇ - SomeName" or "Name - SomeName" ──
+            norm_line = line.replace('ᴀ', 'A').replace('ᴍ', 'M').replace('ᴇ', 'E').replace('ɴ', 'N')
+            nm = re.match(r'^NAME\s*[-:–—]\s*(.+)', norm_line, re.IGNORECASE)
+            if nm:
+                candidate_name = nm.group(1).strip()
+                if candidate_name and not re.search(r'^\d+$', candidate_name):
+                    name = candidate_name[:50]
+
+        # ── Fallback: any standalone 7-15 digit number ──
         if not user_id:
-            nums = re.findall(r'(?<!\d)(\d{7,15})(?!\d)', text)
-            if nums:
-                try: user_id = int(nums[0])
-                except: pass
+            # Find all 7-15 digit numbers not surrounded by more digits
+            candidates = re.findall(r'(?<!\d)(\d{7,15})(?!\d)', text)
+            for c in candidates:
+                try:
+                    n = int(c)
+                    # Basic Telegram user ID sanity check (not year/time like 2023, 1503 etc)
+                    if n > 1_000_000:
+                        user_id = n
+                        logger.debug(f"ID parsed (fallback): {user_id}")
+                        break
+                except:
+                    pass
 
+        logger.info(f"_parse_user_id_and_name → uid={user_id} name={name}")
         return user_id, name
 
-    async def _process_log_event(self, user_id, name, is_new_user, context):
-        """Handle all log events — NewUser, VerifyComplete, FileSent, etc."""
-        # 1. Get or check user in DB
+    # ══════════════════════════════════════════════════════════════
+    # ACTIVATE REFERRAL + NOTIFY
+    # ══════════════════════════════════════════════════════════════
+
+    async def _activate_and_notify(self, user_id: int, name: str, context):
+        """
+        Referral activate karo ya daily search record karo.
+        Dono cases mein relevant users ko notify karo.
+        """
+        # 1. Check user exists in DB
         user = self.db.get_user(user_id)
         if not user:
-            logger.warning(f"User {user_id} not in DB yet — may join bot later")
+            logger.warning(f"User {user_id} DB mein nahi — bot se /start nahi kiya hoga")
             return
 
-        # 2. Try to activate referral (works for both first-time and subsequent)
-        ref_result = self.db.activate_referral_by_log_channel(user_id)
+        # 2. Referral activate karne ki koshish karo
+        result = self.db.activate_referral_by_log_channel(user_id)
+        logger.info(f"activate_referral_by_log_channel({user_id}) → {result}")
 
-        if ref_result and ref_result.get('activated'):
-            # First time activation!
-            referrer_id   = ref_result.get('referrer_id')
-            referrer_name = ref_result.get('referrer_name', 'Unknown')
+        if result and result.get('activated'):
+            # ── First time activation ──
+            referrer_id   = result.get('referrer_id')
+            referrer_name = result.get('referrer_name', 'Unknown')
 
-            logger.info(f"✅ Referral activated: {user_id} ({name}) → {referrer_id}")
+            logger.info(f"✅ REFERRAL ACTIVATED: user={user_id} ({name}) → referrer={referrer_id}")
 
-            # Notify referrer
+            # Referrer ko khushkhabri
             if referrer_id:
                 try:
                     await context.bot.send_message(
                         chat_id=referrer_id,
                         text=(
-                            f"🎉 **Referral Active Ho Gaya!**\n\n"
-                            f"👤 **User:** {name}\n"
-                            f"✅ Verification complete!\n\n"
-                            f"🎟️ **+3 Passes** aur **₹{self.config.REFERRAL_BONUS}** add ho gaya!\n\n"
+                            f"🎉 *Referral Active Ho Gaya!*\n\n"
+                            f"👤 User: *{name}*\n"
+                            f"✅ Shortlink complete kar li!\n\n"
+                            f"🎟️ *+3 Passes* add ho gaye!\n"
+                            f"💰 *+₹{self.config.REFERRAL_BONUS}* balance mein add!\n\n"
                             f"💡 Ab jab bhi ye user movie search karega,\n"
-                            f"aapko **₹{self.config.DAILY_REFERRAL_EARNING} daily** milega!"
+                            f"aapko *₹{self.config.DAILY_REFERRAL_EARNING} daily* milega!"
                         ),
                         parse_mode=ParseMode.MARKDOWN
                     )
+                    logger.info(f"Referrer {referrer_id} notified of activation")
                 except Exception as e:
-                    logger.error(f"Could not notify referrer {referrer_id}: {e}")
+                    logger.error(f"Notify referrer {referrer_id} FAILED: {e}")
 
-            # Notify new user
+            # Referred user ko bhi batao
             try:
+                keyboard = [[InlineKeyboardButton(
+                    "📱 Mini App Kholo",
+                    web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user_id}")
+                )]]
                 await context.bot.send_message(
                     chat_id=user_id,
                     text=(
-                        f"✅ **Aap Verify Ho Gaye!**\n\n"
+                        f"✅ *Aap Verify Ho Gaye!*\n\n"
                         f"Shortlink complete ho gayi!\n"
-                        f"Aapke referrer **{referrer_name}** ko bonus mil gaya.\n\n"
-                        f"📱 Mini App kholo aur daily earning shuru karo!"
+                        f"Aapke referrer *{referrer_name}* ko bonus mil gaya. 🎁\n\n"
+                        f"📱 Mini App kholo aur daily earning shuru karo!\n"
+                        f"Roz movie search karo = *30 pts daily!*"
                     ),
+                    reply_markup=InlineKeyboardMarkup(keyboard),
                     parse_mode=ParseMode.MARKDOWN
                 )
+                logger.info(f"User {user_id} notified of verification")
             except Exception as e:
-                logger.error(f"Could not notify user {user_id}: {e}")
+                logger.error(f"Notify user {user_id} FAILED: {e}")
 
         else:
-            # Already active — record daily search
-            reason = ref_result.get('reason', '') if ref_result else 'no_result'
-            logger.info(f"Referral already active for {user_id} ({reason}) — recording daily search")
+            # ── Already active — daily search record karo ──
+            reason = result.get('reason', 'unknown') if result else 'no_result'
+            logger.info(f"Referral already active for {user_id} (reason={reason}) — recording daily search")
 
-            search_result = self.db.record_daily_search(user_id)
-            if search_result.get('success'):
-                referrer_id = search_result.get('referrer_id')
-                earning     = search_result.get('earning', self.config.DAILY_REFERRAL_EARNING)
-                logger.info(f"✅ Daily search: user={user_id} referrer={referrer_id} +₹{earning}")
+            search = self.db.record_daily_search(user_id)
+            logger.info(f"record_daily_search({user_id}) → {search}")
+
+            if search.get('success'):
+                referrer_id = search.get('referrer_id')
+                earning     = search.get('earning', self.config.DAILY_REFERRAL_EARNING)
+                logger.info(f"✅ Daily search credited: user={user_id} ref={referrer_id} +₹{earning}")
 
                 if referrer_id:
                     try:
                         await context.bot.send_message(
                             chat_id=referrer_id,
                             text=(
-                                f"💰 **Daily Earning!**\n\n"
-                                f"👤 {name} ne aaj movie search ki!\n"
-                                f"✅ +₹{earning} aapke account mein add ho gaya!"
+                                f"💰 *Daily Earning!*\n\n"
+                                f"👤 *{name}* ne aaj movie search ki!\n"
+                                f"✅ *+₹{earning}* aapke account mein add ho gaya!"
                             ),
                             parse_mode=ParseMode.MARKDOWN
                         )
                     except Exception as e:
-                        logger.error(f"Could not notify referrer {referrer_id}: {e}")
+                        logger.error(f"Daily earning notify referrer {referrer_id}: {e}")
 
-            elif search_result.get('reason') == 'already_credited_today':
+            elif search.get('reason') == 'already_credited_today':
                 logger.info(f"Already credited today for {user_id}")
             else:
-                logger.info(f"No active referral for {user_id}: {search_result.get('reason','')}")
+                logger.info(f"No active referral for {user_id}: {search.get('reason', '')}")
 
-    def _parse_shortlink_url(self, text):
-        """Parse shortlink URL from message"""
-        lines = text.split('\n')
-        for line in lines:
-            if '🔗' in line or 'softurl' in line.lower() or 'shortlink' in line.lower() or 'sʜᴏʀᴛʟɪɴᴋ' in line.lower():
-                m = re.search(r'[\w\-.]+\.(?:in|com|net|link|io)\S*', line)
-                if m:
-                    return m.group(0)
-                parts = re.split(r'[-:–—]', line, 1)
-                if len(parts) == 2:
-                    url = parts[1].strip()
-                    if url:
-                        return url
-        return 'shortlink'
-
-    # ========== OTHER COMMANDS ==========
+    # ══════════════════════════════════════════════════════════════
+    # OTHER COMMANDS
+    # ══════════════════════════════════════════════════════════════
 
     async def open_app(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         user = update.effective_user
@@ -603,21 +640,21 @@ class Handlers:
             if user:
                 daily_potential = user.get('active_refs', 0) * self.config.DAILY_REFERRAL_EARNING
                 text = (
-                    f"💰 **Aapka Balance**\n\n"
+                    f"💰 *Aapka Balance*\n\n"
                     f"Available: ₹{user.get('balance', 0):.2f}\n"
                     f"Total Earned: ₹{user.get('total_earned', 0):.2f}\n"
                     f"Aaj Kamaya: ₹{user.get('today_earned', 0):.2f}\n\n"
-                    f"👥 **Referrals**\n"
+                    f"👥 *Referrals*\n"
                     f"Active: {user.get('active_refs', 0)}\n"
                     f"Pending: {user.get('pending_refs', 0)}\n"
                     f"Daily Potential: ₹{daily_potential:.2f}\n\n"
-                    f"🏆 **Tier:** {self.config.get_tier_name(user.get('tier', 1))}"
+                    f"🏆 *Tier:* {self.config.get_tier_name(user.get('tier', 1))}"
                 )
             else:
                 text = "Pehle /start use karo"
             await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
         except Exception as e:
-            logger.error(f"Balance error: {e}")
+            logger.error(f"Balance: {e}")
 
     async def show_referrals(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
@@ -627,18 +664,18 @@ class Handlers:
                 ref_link = f"https://t.me/{self.config.BOT_USERNAME}?start=ref_{user_id}"
                 daily_earning = user.get('active_refs', 0) * self.config.DAILY_REFERRAL_EARNING
                 text = (
-                    f"👥 **Aapke Referrals**\n\n"
+                    f"👥 *Aapke Referrals*\n\n"
                     f"Total: {user.get('total_refs', 0)}\n"
                     f"Active: {user.get('active_refs', 0)}\n"
                     f"Pending: {user.get('pending_refs', 0)}\n\n"
-                    f"💰 **Daily Earnings:** ₹{daily_earning:.2f}\n\n"
-                    f"🔗 **Aapka Link:**\n`{ref_link}`"
+                    f"💰 *Daily Earnings:* ₹{daily_earning:.2f}\n\n"
+                    f"🔗 *Aapka Link:*\n`{ref_link}`"
                 )
             else:
                 text = "Pehle /start use karo"
             await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
         except Exception as e:
-            logger.error(f"Referrals error: {e}")
+            logger.error(f"Referrals: {e}")
 
     async def withdraw_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
@@ -663,38 +700,37 @@ class Handlers:
                 reply_markup=InlineKeyboardMarkup(keyboard)
             )
         except Exception as e:
-            logger.error(f"Withdraw cmd error: {e}")
+            logger.error(f"Withdraw cmd: {e}")
 
     async def help_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
             text = (
-                "❓ **Help & FAQ**\n\n"
-                "**Commands:**\n"
+                "❓ *Help & FAQ*\n\n"
+                "*Commands:*\n"
                 "/start - Bot start karo\n"
                 "/app - Mini App kholo\n"
                 "/balance - Balance check karo\n"
                 "/referrals - Referrals dekho\n"
                 "/withdraw - Paise nikalo\n"
                 "/help - Ye message\n\n"
-                "**Paise Kaise Kamayein:**\n"
-                "1️⃣ Apna referral link share karo\n"
-                "2️⃣ Dost bot join kare aur Movie Group pe movie search kare\n"
-                "3️⃣ Dost Movie Bot pe shortlink complete kare\n"
-                "4️⃣ Tumhara referral active! **3 Passes + ₹ bonus** milega\n"
-                "5️⃣ Har roz dost movie search kare → tumhe **₹0.30 daily** milega!\n\n"
-                "**⚠️ Rules:**\n"
-                "• Sirf apne referrals ki activity se earning hoti hai\n"
-                "• 1 user = 1 search per day = ₹0.30\n"
-                "• Fake activity = withdrawal band\n"
-                "• Admin sab check karta hai\n\n"
-                f"**Support:** {self.config.SUPPORT_USERNAME}"
+                "*Earning Process:*\n"
+                "1️⃣ Referral link share karo\n"
+                "2️⃣ Dost bot join kare\n"
+                "3️⃣ Movie Group pe movie search kare\n"
+                "4️⃣ Movie bot ka shortlink complete kare\n"
+                "5️⃣ Log channel pe message aata hai → *referral auto active!*\n"
+                "6️⃣ Roz shortlink = *daily ₹0.30*\n\n"
+                "*⚠️ Rules:*\n"
+                "• Shortlink puri hone ke baad hi active hoga\n"
+                "• 1 user = 1 search per day\n"
+                "• Fake activity = withdrawal band\n\n"
+                f"*Support:* {self.config.SUPPORT_USERNAME}"
             )
             await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
         except Exception as e:
-            logger.error(f"Help error: {e}")
+            logger.error(f"Help: {e}")
 
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle private messages"""
         try:
             user = update.effective_user
             chat = update.effective_chat
@@ -702,15 +738,13 @@ class Handlers:
             if not user or not message:
                 return
             message_text = message.text or ""
-            if chat.type == 'private':
-                if message_text.lower() in ['hi', 'hello', 'hey', 'hii', 'helo']:
-                    await message.reply_text(
-                        f"Namaskar {user.first_name}! 🙏\n"
-                        f"/start use karo earning shuru karne ke liye!\n"
-                        f"Ya Mini App kholo: {self.config.WEBAPP_URL}/?user_id={user.id}"
-                    )
+            if chat.type == 'private' and message_text.lower() in ['hi', 'hello', 'hey', 'hii', 'helo']:
+                await message.reply_text(
+                    f"Namaskar {user.first_name}! 🙏\n"
+                    f"/start use karo earning shuru karne ke liye!"
+                )
         except Exception as e:
-            logger.error(f"Message handler error: {e}")
+            logger.error(f"handle_message: {e}")
 
     async def handle_webapp_data(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
@@ -724,7 +758,7 @@ class Handlers:
                 response = await self.process_support_message(data, context)
             await update.effective_message.reply_text(text=json.dumps(response))
         except Exception as e:
-            logger.error(f"WebApp data error: {e}")
+            logger.error(f"WebApp data: {e}")
 
     async def process_support_message(self, data, context=None):
         try:
@@ -737,76 +771,51 @@ class Handlers:
                 if context:
                     for admin_id in self.config.ADMIN_IDS:
                         try:
-                            keyboard = [[InlineKeyboardButton("📩 VIEW MESSAGE", callback_data=f"view_support_{msg_id}")]]
+                            kb = [[InlineKeyboardButton("📩 VIEW", callback_data=f"view_support_{msg_id}")]]
                             await context.bot.send_message(
                                 chat_id=admin_id,
-                                text=(
-                                    f"📩 **New Support Message**\n\n"
-                                    f"User ID: `{user_id}`\n"
-                                    f"Message: {message[:100]}"
-                                ),
-                                reply_markup=InlineKeyboardMarkup(keyboard),
+                                text=f"📩 *New Support*\n\nUser: `{user_id}`\nMsg: {message[:100]}",
+                                reply_markup=InlineKeyboardMarkup(kb),
                                 parse_mode=ParseMode.MARKDOWN
                             )
                         except:
                             pass
-                return {'success': True, 'message': 'Message sent to support'}
-            return {'success': False, 'message': 'Failed to send message'}
+                return {'success': True, 'message': 'Sent!'}
+            return {'success': False, 'message': 'Failed'}
         except Exception as e:
-            logger.error(f"Support message error: {e}")
+            logger.error(f"Support message: {e}")
             return {'success': False, 'message': str(e)}
 
-    # ========== DAILY REMINDER ==========
-
     async def send_daily_reminders(self, context):
-        """
-        Roz evening (7-10 PM) mein users ko reminder bheja jata hai
-        jo bonus/missions claim nahi kiye hain.
-        """
         try:
             pending_users = self.db.get_pending_reminders()
             if not pending_users:
-                logger.info("No pending reminder users")
                 return
-
-            webapp_url = self.config.WEBAPP_URL
             sent = 0
-            failed = 0
-
+            webapp_url = self.config.WEBAPP_URL
             for u in pending_users:
                 uid = u['user_id']
                 name = u.get('first_name', 'User')
                 try:
-                    keyboard = [[InlineKeyboardButton(
-                        "📱 Mini App Kholo",
-                        web_app=WebAppInfo(url=f"{webapp_url}/?user_id={uid}")
-                    )]]
+                    kb = [[InlineKeyboardButton("📱 Mini App Kholo",
+                        web_app=WebAppInfo(url=f"{webapp_url}/?user_id={uid}"))]]
                     await context.bot.send_message(
                         chat_id=uid,
                         text=(
                             f"⏰ *{name}, aaj ka kaam baaki hai!*\n\n"
-                            f"🎁 *Daily Bonus* claim nahi kiya — claim karo streak badhao!\n"
-                            f"🎯 *Daily Missions* = 600+ pts FREE!\n"
-                            f"💎 *Sponsored Offers* = Instant cash!\n\n"
-                            f"🎬 *Movie search karna mat bhoolna!*\n"
-                            f"👉 Group mein jaake koi bhi movie search karo\n"
-                            f"👉 Shortlink complete karo = 30 pts!\n\n"
-                            f"🏆 *Aaj ka Top Earner:* ₹47 kamaya sirf referrals se!\n\n"
-                            f"👥 3 dost ko refer karo = 180 pts + 9 Passes! 🚀\n\n"
-                            f"⚡ _Jaldi karo — streak toot jayegi!_"
+                            f"🎁 Daily Bonus claim karo!\n"
+                            f"🎬 Movie search karo = 30 pts!\n"
+                            f"⚡ _Streak toot jayegi!_"
                         ),
-                        reply_markup=InlineKeyboardMarkup(keyboard),
+                        reply_markup=InlineKeyboardMarkup(kb),
                         parse_mode=ParseMode.MARKDOWN
                     )
                     self.db.mark_user_reminded(uid)
                     sent += 1
                     import asyncio
-                    await asyncio.sleep(0.05)  # rate limit
+                    await asyncio.sleep(0.05)
                 except Exception as e:
-                    failed += 1
-                    logger.error(f"Reminder failed for {uid}: {e}")
-
-            logger.info(f"✅ Daily reminders sent: {sent}, failed: {failed}")
-
+                    logger.error(f"Reminder {uid}: {e}")
+            logger.info(f"Reminders sent: {sent}")
         except Exception as e:
-            logger.error(f"Daily reminder error: {e}")
+            logger.error(f"send_daily_reminders: {e}")
