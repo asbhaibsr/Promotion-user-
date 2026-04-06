@@ -4,7 +4,7 @@ services:
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn main:app --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 120
+    startCommand: python main.py
     envVars:
       - key: BOT_TOKEN
         sync: false
@@ -15,4 +15,16 @@ services:
       - key: MONGODB_URI
         sync: false
       - key: WEBAPP_URL
-        value: https://your-app.onrender.com
+        sync: false
+      - key: WEBHOOK_URL
+        sync: false
+      - key: LOG_CHANNEL_ID
+        sync: false
+      - key: MOVIE_GROUP_ID
+        sync: false
+      - key: MOVIE_GROUP_LINK
+        sync: false
+      - key: CHANNEL_LINK
+        sync: false
+      - key: PORT
+        value: 10000
