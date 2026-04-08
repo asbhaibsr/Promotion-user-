@@ -1278,7 +1278,11 @@
                 <div style="font-family:Oxanium,sans-serif;font-size:14px;font-weight:900;color:var(--gold);">🏆 Top Earners Today</div>
                 <div style="font-size:10px;color:var(--text3);">Live</div>
             </div>
-            <div id="topEarnersList" style="max-height:260px;overflow-y:auto;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <div style="font-size:11px;color:var(--gold);font-weight:900;">🏆 AAJ KE TOP 10 EARNERS</div>
+                <div style="font-size:10px;color:var(--text3);">Daily Reset</div>
+            </div>
+            <div id="topEarnersList" style="max-height:280px;overflow-y:auto;">
                 <div style="text-align:center;color:var(--text3);font-size:11px;padding:12px;">Loading...</div>
             </div>
         </div>
@@ -1975,9 +1979,12 @@
         </div>
 
         <div style="background:rgba(255,78,106,.07);border:1px solid rgba(255,78,106,.2);border-radius:12px;padding:10px;font-size:10px;color:var(--text2);margin-bottom:12px;">
-            ⚠️ <b>Obstacles:</b> Black boxes, Fireballs, Falling rocks, Birds<br>
-            🎯 <b>Survive</b> jitna ho sake → har second pe paise milenge<br>
-            💀 <b>Mar gaye</b> → survived time ka hi reward milega
+            🕹️ <b>Controls:</b> ⬆️ Jump | ⬇️ Crouch | ⬅️➡️ Move<br>
+            👾 <b>Monsters:</b> Stomp karo ya avoid karo<br>
+            🔖 <b>Checkpoints:</b> Reach karo = bonus pts!<br>
+            🚩 <b>Flag:</b> Reach karo = +50 pts BONUS!<br>
+            🟥 <b>Red Walls:</b> Moving — touch mat karo!<br>
+            ❤️ <b>3 Lives</b> hain — use wisely!
         </div>
 
         <div style="display:flex;align-items:center;gap:8px;background:var(--bg3);border-radius:12px;padding:10px;margin-bottom:12px;">
@@ -2001,9 +2008,16 @@
             <div style="font-size:11px;color:var(--text2);" id="runnerLives">❤️❤️❤️</div>
         </div>
         <canvas id="runnerCanvas" style="width:100%;display:block;touch-action:none;"></canvas>
-        <div style="display:flex;gap:8px;padding:10px 12px;background:rgba(0,0,0,.3);">
-            <button id="runnerJumpBtn" style="flex:1;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:16px;padding:18px;font-size:22px;font-weight:900;cursor:pointer;active:transform:scale(.95);" ontouchstart="runnerJump()" onclick="runnerJump()">⬆️ JUMP</button>
-            <button id="runnerDuckBtn" style="flex:1;background:linear-gradient(135deg,#1a1a2e,#2d2d5e);color:#fff;border:1px solid var(--border);border-radius:16px;padding:18px;font-size:22px;font-weight:900;cursor:pointer;" ontouchstart="runnerDuck()" onclick="runnerDuck()">⬇️ DUCK</button>
+        <!-- Advanced Controls: D-pad style -->
+        <div style="padding:8px 12px 10px;background:rgba(0,0,0,.5);">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;max-width:280px;margin:0 auto;">
+                <div></div>
+                <button ontouchstart="event.preventDefault();rMoveUp()" ontouchend="event.preventDefault();rStopVert()" onclick="rMoveUp()" style="background:rgba(124,92,252,.8);color:#fff;border:none;border-radius:12px;padding:14px 8px;font-size:18px;cursor:pointer;-webkit-user-select:none;user-select:none;">⬆️</button>
+                <div></div>
+                <button ontouchstart="event.preventDefault();rMoveLeft()" ontouchend="event.preventDefault();rStopHoriz()" onclick="rMoveLeft()" style="background:rgba(56,200,255,.7);color:#fff;border:none;border-radius:12px;padding:14px 8px;font-size:18px;cursor:pointer;-webkit-user-select:none;user-select:none;">⬅️</button>
+                <button ontouchstart="event.preventDefault();rMoveDown()" ontouchend="event.preventDefault();rStopVert()" onclick="rMoveDown()" style="background:rgba(255,61,90,.8);color:#fff;border:none;border-radius:12px;padding:14px 8px;font-size:18px;cursor:pointer;-webkit-user-select:none;user-select:none;">⬇️</button>
+                <button ontouchstart="event.preventDefault();rMoveRight()" ontouchend="event.preventDefault();rStopHoriz()" onclick="rMoveRight()" style="background:rgba(0,229,160,.7);color:#fff;border:none;border-radius:12px;padding:14px 8px;font-size:18px;cursor:pointer;-webkit-user-select:none;user-select:none;">➡️</button>
+            </div>
         </div>
     </div>
 
@@ -2468,6 +2482,8 @@ const tg=window.Telegram?.WebApp;
 if(tg){tg.expand();tg.ready();}
 const BOT_USERNAME='LinkProviderRobot';
 
+// FIXED: In-memory mission claimed tracking
+const _inMemoryMissionClaimed = {};
 let userData={user_id:null,first_name:'Guest',username:'',balance:0,total_earned:0,tier:1,total_refs:0,active_refs:0,pending_refs:0,daily_streak:0,today_earned:0,is_admin:false,games_won:0,passes:0,photo_url:null,month_active_refs:0};
 let gameState={today_game_earned:0,wins:0,win_streak:0,totalPlays:0};
 let claimedDates=[],userStreak=0,adminAds=[],adminEditMode=false,selectedMethod=null;
@@ -2510,8 +2526,60 @@ const MISSIONS_DEF=[
 // ============================================================
 // API
 // ============================================================
-async function apiGet(url){try{const r=await fetch(url);if(!r.ok)throw new Error();return await r.json();}catch(e){return null;}}
-async function apiPost(url,body){try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw new Error();return await r.json();}catch(e){return{success:false,message:'Network error'};}}
+// API BASE URL — Render server ka URL
+// Telegram WebApp mein relative URLs kaam karte hain agar same origin ho
+// Agar 404 aaye toh WEBAPP_URL set karo
+const API_BASE = (()=>{
+    // 1. Template se inject hua URL (sabse reliable)
+    const tplUrl = '{{ webapp_url or "" }}';
+    if(tplUrl && tplUrl.startsWith('http')) return tplUrl.replace(/\/+$/,'');
+    // 2. Telegram WebApp data se
+    try{
+        const p = new URLSearchParams(window.location.search);
+        const wu = p.get('webapp_url');
+        if(wu && wu.startsWith('http')) return wu.replace(/\/+$/,'');
+    }catch(e){}
+    // 3. Same origin (works when served from Flask)
+    if(window.location.protocol !== 'file:') return '';
+    // 4. Fallback — empty (relative URL)
+    return '';
+})();
+
+function _apiUrl(path){ return API_BASE + path; }
+function _timeout(ms){ return new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms)); }
+
+async function apiGet(url){
+    const fullUrl = _apiUrl(url);
+    try{
+        const r=await Promise.race([fetch(fullUrl), _timeout(10000)]);
+        if(!r.ok)throw new Error('HTTP '+r.status);
+        return await r.json();
+    }catch(e){
+        if(e.message==='timeout')console.warn('apiGet timeout:',url);
+        else console.error('apiGet error:',url,e.message);
+        return null;
+    }
+}
+async function apiPost(url,body){
+    const fullUrl = _apiUrl(url);
+    try{
+        const isGame=url.includes('/game/');
+        const ms=isGame?15000:10000;
+        const r=await Promise.race([
+            fetch(fullUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),
+            _timeout(ms)
+        ]);
+        if(!r.ok)throw new Error('HTTP '+r.status);
+        return await r.json();
+    }catch(e){
+        if(e.message==='timeout'){
+            console.warn('apiPost timeout:',url);
+            return{success:false,message:'⏳ Server slow hai — dobara try karo',timeout:true};
+        }
+        console.error('apiPost error:',url,e.message);
+        return{success:false,message:'Network error'};
+    }
+}
 
 // ============================================================
 // LOAD DATA
@@ -2544,6 +2612,8 @@ async function loadUser(){
         if((userData.active_refs||0)>oldRefs&&oldRefs>0)showCongratsPopup();
         updateUI();
         updateWithdrawCondition();
+        // FIXED: Update milestone card after user data loads
+        updateMilestoneCard();
         // Show movie group message for newly referred users
         checkReferralWelcome();
     }
@@ -2563,22 +2633,15 @@ async function loadMissions(){
     const d=await apiGet(`/api/user/${userData.user_id}/missions`);
     const today=new Date().toISOString().split('T')[0];
 
-    // Load claimed states from sessionStorage (date-keyed — auto resets each day)
+    // FIXED: In-memory mission claimed tracking (sessionStorage unreliable in WebApp)
+    // Server se hi claimed state lenge — in-memory sirf current session ke liye
     let sessionClaimed={};
     try{
         const sc=sessionStorage.getItem(`ez_m_${userData.user_id}_${today}`);
         if(sc)sessionClaimed=JSON.parse(sc);
-        // Clean ALL old day keys
-        for(let k of Object.keys(sessionStorage)){
-            if(k.startsWith(`ez_m_${userData.user_id}_`)&&!k.endsWith(today)){
-                sessionStorage.removeItem(k);
-            }
-            // Also clean old format keys
-            if(k.startsWith(`ez_claimed_${userData.user_id}_`)&&!k.endsWith(today)){
-                sessionStorage.removeItem(k);
-            }
-        }
     }catch(e){}
+    // Also merge in-memory claimed states
+    Object.assign(sessionClaimed, _inMemoryMissionClaimed);
 
     MISSIONS_DEF.forEach(m=>{
         const sv=d?d[m.id]:null;
@@ -2644,12 +2707,13 @@ async function loadMissions(){
 // Save claimed state to sessionStorage (date-keyed — auto resets next day)
 function saveMissionClaimed(missionId){
     if(!userData.user_id)return;
+    // FIXED: Save to in-memory first (always works)
+    _inMemoryMissionClaimed[missionId] = true;
     const today=new Date().toISOString().split('T')[0];
     try{
         const key=`ez_m_${userData.user_id}_${today}`;
         let sc={};
-        const existing=sessionStorage.getItem(key);
-        if(existing)sc=JSON.parse(existing);
+        try{const existing=sessionStorage.getItem(key);if(existing)sc=JSON.parse(existing);}catch(e){}
         sc[missionId]=true;
         sessionStorage.setItem(key,JSON.stringify(sc));
     }catch(e){}
@@ -2670,8 +2734,22 @@ async function loadWithdrawalHistory(){
 async function loadLeaderboard(){const d=await apiGet('/api/leaderboard?mode='+lbMode);renderLeaderboard(d||[]);}
 async function loadRefActivity(){
     if(!userData.user_id)return;
-    const d=await apiGet(`/api/user/${userData.user_id}/ref-activity`);
-    renderRefActivity(d||[]);
+    const el=document.getElementById('refActivityList')||document.getElementById('refActList');
+    // FIXED: loading indicator
+    if(el)el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);">⏳ Loading...</div>';
+    try{
+        const d=await apiGet(`/api/user/${userData.user_id}/ref-activity`);
+        if(d===null){
+            // API failed — retry once
+            await new Promise(r=>setTimeout(r,1000));
+            const d2=await apiGet(`/api/user/${userData.user_id}/ref-activity`);
+            renderRefActivity(d2||[]);
+        } else {
+            renderRefActivity(d||[]);
+        }
+    }catch(e){
+        renderRefActivity([]);
+    }
 }
 
 // ============================================================
@@ -2881,8 +2959,12 @@ async function claimWeeklyBonus(){
 function updateMilestoneCard(){
     const el=document.getElementById('milestoneList');
     if(!el)return;
-    // Wait until user data is loaded
-    if(!userData.user_id){el.innerHTML='<div style="text-align:center;color:var(--text3);font-size:12px;padding:10px;">⏳ Loading...</div>';return;}
+    // FIXED: Agar user_id nahi hai, loading show karo aur 500ms baad retry karo
+    if(!userData||!userData.user_id){
+        el.innerHTML='<div style="text-align:center;color:var(--text3);font-size:12px;padding:10px;">⏳ Loading...</div>';
+        setTimeout(()=>updateMilestoneCard(),500);
+        return;
+    }
     const refs=userData.active_refs||0;
     const claimedMilestones=userData.claimed_milestones||[];
 
@@ -3307,8 +3389,12 @@ function buildTrainChain(){
     document.getElementById('streakBrokenMsg').style.display=streakBroken?'block':'none';
 }
 async function claimBonus(){
-    const today=new Date().toISOString().split('T')[0];
-    if(claimedDates.includes(today)){showToast('✅ '+t('already_claimed'));return;}
+    // FIXED: IST timezone ke liye local date use karo
+    const now=new Date();
+    const istOffset=5.5*60; // IST = UTC+5:30
+    const istNow=new Date(now.getTime()+istOffset*60000);
+    const today=istNow.toISOString().split('T')[0];
+    if(claimedDates.includes(today)){showToast('✅ Aaj ka bonus already claim ho gaya!');return;}
     const btn=document.getElementById('claimBonusBtn2');
     if(btn){btn.disabled=true;btn.textContent='⏳...';}
     const r=await apiPost('/api/claim-day-bonus',{user_id:userData.user_id,date:today});
@@ -3702,10 +3788,15 @@ async function claimSingleMission(missionId,reward){
     btns.forEach(b=>{if(b.dataset.missionId===missionId){b.disabled=true;b.textContent='⏳ Claiming...';}});
 
     try{
+        // FIXED: IST date send karo
+        const _mNow=new Date();
+        const _mIst=new Date(_mNow.getTime()+5.5*60*60000);
+        const _mToday=_mIst.toISOString().split('T')[0];
         const r=await apiPost('/api/claim-single-mission',{
             user_id:userData.user_id,
             mission_id:missionId,
-            reward:parseFloat(reward)
+            reward:parseFloat(reward),
+            date:_mToday
         });
         if(r&&r.success){
             const mReward=parseFloat(reward);
@@ -4109,8 +4200,36 @@ async function doSpin(){
     const btn=document.getElementById('spinBtn');btn.disabled=true;btn.textContent='⏳...';
     document.getElementById('spinResultBox').style.display='none';
     playSound('spin');
+
+    // TRY MODE — no pass, no reward
+    if(_tryMode){
+        isSpinning=true;
+        const fakeSegs=[0,1,2,3,4,5,6,7];
+        const segIdx=fakeSegs[Math.floor(Math.random()*fakeSegs.length)];
+        const n=SEGS.length,seg=(2*Math.PI)/n;
+        const targetAngle=(3*Math.PI/2)-(segIdx*seg+seg/2);
+        const extra=(5+Math.floor(Math.random()*3))*2*Math.PI;
+        const final=extra+targetAngle-spinAngle;
+        const dur=3400,startA=spinAngle,startT=performance.now();
+        function animTry(now){
+            const el=now-startT,prog=Math.min(el/dur,1),ease=1-Math.pow(1-prog,4);
+            spinAngle=startA+final*ease;drawWheel(spinAngle);
+            if(prog<1){requestAnimationFrame(animTry);return;}
+            isSpinning=false;btn.disabled=false;btn.textContent='🎰 SPIN (1 Pass)';
+            document.getElementById('spinResultBox').style.display='block';
+            document.getElementById('spinResultBox').innerHTML=`<div style="text-align:center;padding:12px;background:rgba(255,200,0,.1);border-radius:12px;border:1px dashed var(--gold)"><div style="font-size:22px;font-weight:900;color:var(--gold)">${SEGS[segIdx]} pts</div><div style="font-size:11px;color:var(--text2);margin-top:4px;">🎮 Try Mode — Earn karna hai toh Pass chahiye!</div><button onclick="closeModal('spin')" style="margin-top:8px;background:var(--grad-gold);color:#000;border:none;border-radius:8px;padding:6px 16px;font-weight:800;cursor:pointer">Get Passes →</button></div>`;
+        }
+        requestAnimationFrame(animTry);
+        return;
+    }
+
     const r=await apiPost('/api/game/spin',{user_id:userData.user_id});
-    if(!r||!r.success){isSpinning=false;btn.disabled=false;btn.textContent='🎰 SPIN (1 Pass)';showToast('❌ '+(r?.message||'Error'));return;}
+    if(!r||!r.success){
+        isSpinning=false;btn.disabled=false;btn.textContent='🎰 SPIN (1 Pass)';
+        showToast('❌ '+(r?.message||'Server error'));
+        if(r?.timeout){setTimeout(()=>{loadUser().then(()=>updateUI());},2000);}
+        return;
+    }
 
     // FIXED: backend returns segment_index → wheel stops exactly at that segment
     const segIdx=r.segment_index!==undefined?r.segment_index:0;
@@ -4129,7 +4248,7 @@ async function doSpin(){
         spinAngle=startA+final*ease;drawWheel(spinAngle);
         if(prog<1){requestAnimationFrame(anim);return;}
         isSpinning=false;
-        userData.passes=Math.max(0,(userData.passes||1)-1);
+        if(typeof r!=='undefined'&&r&&r.passes_remaining!==undefined)userData.passes=r.passes_remaining;else userData.passes=Math.max(0,(userData.passes||1)-1);
         const spinActual=(r.reward||0)*getHappyHoursMultiplier();
         // ✅ FIX: Update balance + today_earned immediately
         userData.balance=(userData.balance||0)+spinActual;
@@ -4175,7 +4294,7 @@ async function makeGuess(num){
         document.querySelectorAll('.num-btn').forEach(b=>{if(!b.classList.contains('wrong'))b.disabled=false;});
         return;
     }
-    userData.passes=Math.max(0,(userData.passes||1)-1);
+    if(typeof r!=='undefined'&&r&&r.passes_remaining!==undefined)userData.passes=r.passes_remaining;else userData.passes=Math.max(0,(userData.passes||1)-1);
     const btn2=document.getElementById('nb'+num);
     if(r.correct){
         if(btn2)btn2.classList.add('correct');
@@ -4224,7 +4343,27 @@ function selCoinBet(a,el){if(a>userData.balance){showToast('❌ Points kam hain!
 async function doFlip(){
     if(!coinChoice){showToast('❌ Pehle Heads ya Tails choose karo!');return;}
     if(coinFlipping)return;
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
+
+    // TRY MODE
+    if(_tryMode || (userData.passes||0)<=0){
+        _tryMode=true;
+        coinFlipping=true;
+        document.getElementById('flipBtn').disabled=true;
+        const coin=document.getElementById('theCoin');
+        const actualResult=Math.random()<.5?'heads':'tails';
+        const deg=actualResult==='heads'?5*360:5*360+180;
+        coin.style.transition='transform 1.2s cubic-bezier(.4,0,.2,1)';coin.style.transform=`rotateY(${deg}deg)`;
+        setTimeout(()=>{
+            coinFlipping=false;document.getElementById('flipBtn').disabled=false;
+            const won=(coinChoice===actualResult);
+            if(won){document.getElementById('coinWinAmt').textContent='+0 pts (Try)';document.getElementById('coinResWin').style.display='block';}
+            else{document.getElementById('coinLoseAmt').textContent='(Try Mode)';document.getElementById('coinResLose').style.display='block';}
+            showToast('🎮 Try Mode — Pass se khelo aur paise kamao!');
+            setTimeout(()=>{document.getElementById('flipBtn').disabled=false;document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';coinChoice=null;document.getElementById('coinChoiceH').classList.remove('sel');document.getElementById('coinChoiceT').classList.remove('sel');coin.style.transition='none';coin.style.transform='rotateY(0deg)';},2500);
+        },1300);
+        return;
+    }
+
     if(userData.balance<coinBet){showToast('❌ Balance kam hai!');return;}
     coinFlipping=true;document.getElementById('flipBtn').disabled=true;
     document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';
@@ -4237,7 +4376,7 @@ async function doFlip(){
     setTimeout(async()=>{
         coinFlipping=false;
         if(r&&r.success){
-            userData.passes=Math.max(0,(userData.passes||1)-1);
+            if(typeof r!=='undefined'&&r&&r.passes_remaining!==undefined)userData.passes=r.passes_remaining;else userData.passes=Math.max(0,(userData.passes||1)-1);
             if(r.won){document.getElementById('coinWinAmt').textContent='+'+toPoints(r.reward||0)+' pts';document.getElementById('coinResWin').style.display='block';playSound('earn');showToast('🎉 +'+toPoints(r.reward||0)+' pts!');gameState.wins=(gameState.wins||0)+1;if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}}
             else{document.getElementById('coinLoseAmt').textContent='-'+toPoints(coinBet)+' pts';document.getElementById('coinResLose').style.display='block';playSound('lose');showToast('😢 Haar gaye! -'+toPoints(coinBet)+' pts');}
             await loadUser();updateUI();updateMissionsUI();
@@ -4273,9 +4412,29 @@ function chooseDice(n,el){
 async function doDiceRoll(){
     if(!diceChoice){showToast('❌ Pehle number choose karo!');return;}
     if(diceRolling)return;
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi! Refer karo ya daily bonus lo');return;}
     diceRolling=true;
     const btn=document.getElementById('diceRollBtn');btn.disabled=true;btn.textContent='⏳ Rolling...';
+
+    // TRY MODE
+    if(_tryMode || (userData.passes||0)<=0){
+        _tryMode=true;
+        const diceEl=document.getElementById('diceDisplay');
+        diceEl.classList.add('rolling');
+        const DICE_F=['⚀','⚁','⚂','⚃','⚄','⚅'];
+        const rollAnim=setInterval(()=>{diceEl.textContent=DICE_F[Math.floor(Math.random()*6)];},120);
+        setTimeout(()=>{
+            clearInterval(rollAnim);diceEl.classList.remove('rolling');
+            const actual=Math.floor(Math.random()*6)+1;
+            diceEl.textContent=DICE_F[actual-1];
+            diceRolling=false;btn.disabled=false;btn.textContent='🎲 ROLL (1 Pass)';
+            const won=(actual===diceChoice);
+            document.getElementById('diceResultTxt').textContent=won?`🎉 Sahi! ${actual} aaya! (Try Mode)`:`❌ ${actual} aaya, aapne ${diceChoice} chuna (Try Mode)`;
+            document.getElementById('diceResultTxt').style.color=won?'var(--green)':'var(--red)';
+            if(won)showToast('🎮 Try Mode — Real pass se khelo aur paise kamao!');
+            setTimeout(()=>resetDiceUI(),3000);
+        },1800);
+        return;
+    }
     document.getElementById('diceResWin').style.display='none';
     document.getElementById('diceResLose').style.display='none';
     document.getElementById('diceResultTxt').textContent='Rolling...';
@@ -4297,9 +4456,11 @@ async function doDiceRoll(){
         btn.disabled=false;btn.textContent='🎲 ROLL (1 Pass)';
 
         if(!r||!r.success){
-            document.getElementById('diceResultTxt').textContent=r?.message||'Error';
+            document.getElementById('diceResultTxt').textContent=r?.message||'Server error — dobara try karo';
             document.getElementById('diceResultTxt').style.color='var(--red)';
             document.querySelectorAll('.dice-num-btn').forEach(b=>b.disabled=false);
+            // Fresh pass count load karo
+            loadUser().then(()=>updateUI());
             return;
         }
 
@@ -4315,7 +4476,9 @@ async function doDiceRoll(){
             else b.className='dice-num-btn';
         });
 
-        userData.passes=Math.max(0,(userData.passes||1)-1);
+        // FIXED: server-confirmed pass count
+        if(r.passes_remaining!==undefined)userData.passes=r.passes_remaining;
+        else if(typeof r!=='undefined'&&r&&r.passes_remaining!==undefined)userData.passes=r.passes_remaining;else userData.passes=Math.max(0,(userData.passes||1)-1);
 
         if(r.won){
             // ✅ FIX: Update balance immediately
@@ -4389,7 +4552,28 @@ function selColorBet(a,el){
 async function doColorPredict(){
     if(!colorChoice){showToast('❌ Pehle color choose karo!');return;}
     if(colorPlaying)return;
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
+
+    // TRY MODE
+    if(_tryMode || (userData.passes||0)<=0){
+        _tryMode=true;
+        colorPlaying=true;
+        const btn=document.getElementById('colorPlayBtn');btn.disabled=true;btn.textContent='⏳ Spinning...';
+        const colors=Object.keys(COLOR_CONFIG);
+        const display=document.getElementById('colorResultDisplay');
+        let animIdx=0;
+        const animInterval=setInterval(()=>{const c=COLOR_CONFIG[colors[animIdx%colors.length]];display.textContent=c.emoji;animIdx++;},120);
+        setTimeout(()=>{
+            clearInterval(animInterval);colorPlaying=false;btn.disabled=false;btn.textContent='🎨 PREDICT (1 Pass)';
+            const result=colors[Math.floor(Math.random()*colors.length)];
+            const rc=COLOR_CONFIG[result];display.textContent=rc.emoji;
+            const won=(colorChoice===result);
+            document.getElementById('colorResultTxt').textContent=won?`🎉 ${result.toUpperCase()} aaya! (Try Mode)`:`❌ ${result.toUpperCase()} aaya (Try Mode)`;
+            document.getElementById('colorResultTxt').style.color=won?'var(--green)':'var(--red)';
+            showToast('🎮 Try Mode — Pass se khelo aur paise kamao!');
+        },2000);
+        return;
+    }
+
     if(userData.balance<colorBet){showToast('❌ Balance kam hai!');return;}
     colorPlaying=true;
     const btn=document.getElementById('colorPlayBtn');btn.disabled=true;btn.textContent='⏳ Spinning...';
@@ -4417,8 +4601,9 @@ async function doColorPredict(){
         btn.disabled=false;btn.textContent='🎨 PREDICT (1 Pass)';
 
         if(!r||!r.success){
-            document.getElementById('colorResultTxt').textContent=r?.message||'Error';
+            document.getElementById('colorResultTxt').textContent=r?.message||'Server error — dobara try karo';
             document.getElementById('colorResultTxt').style.color='var(--red)';
+            loadUser().then(()=>updateUI()); // Fresh pass count
             return;
         }
 
@@ -4439,7 +4624,7 @@ async function doColorPredict(){
             else if(cname===result)b.classList.remove('sel');
         });
 
-        userData.passes=Math.max(0,(userData.passes||1)-1);
+        if(typeof r!=='undefined'&&r&&r.passes_remaining!==undefined)userData.passes=r.passes_remaining;else userData.passes=Math.max(0,(userData.passes||1)-1);
 
         if(r.won){
             // ✅ FIX: Update balance immediately
@@ -4526,15 +4711,56 @@ function renderCrashHistory(){
 
 async function startCrash(){
     if(crashState!=='idle')return;
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
-    if(userData.balance<crashBet){showToast('❌ Balance kam hai!');return;}
 
-    // Backend deducts both pass and bet
+    // TRY MODE
+    if(_tryMode || (userData.passes||0)<=0){
+        _tryMode=true;
+        showToast('🎮 Try Mode — No Pass, No Reward!');
+        // Crash game locally simulate karo
+        const crashPoint=parseFloat(CRASH_SEQUENCE[crashSeqIdx%CRASH_SEQUENCE.length]);
+        crashSeqIdx++;crashAutoCashoutVal=null;
+        crashState='running';crashCurrentMult=1.0;crashUserBet=true;crashCashedOut=false;
+        document.getElementById('crashStartBtn').style.display='none';
+        document.getElementById('crashCashoutBtn').classList.add('show');
+        document.getElementById('crashStatus').textContent='🚀 Try Mode — Flying...';
+        playSound('rocket');
+        const rocket=document.getElementById('crashRocket');
+        const multEl=document.getElementById('crashMultiplier');
+        let frame=0;
+        crashInterval=setInterval(()=>{
+            frame++;const t=frame*0.05;
+            const seed=crashPoint;
+            let mult;
+            if(seed<=1.5){mult=1+t*0.8;}else if(seed<=3){mult=1+Math.pow(t*0.6,1.4);}else{mult=1+Math.pow(t*0.45,1.5);}
+            crashCurrentMult=parseFloat(Math.max(1,mult).toFixed(2));
+            if(crashCurrentMult>crashPoint)crashCurrentMult=crashPoint;
+            if(multEl){multEl.textContent=crashCurrentMult.toFixed(2)+'x';multEl.className='crash-multiplier '+(crashCurrentMult<2?'safe':'warning');}
+            if(rocket){const pct=Math.min(frame/80,1);rocket.style.bottom=(20+pct*120)+'px';rocket.style.left=(50+pct*30)+'%';}
+            if(crashCurrentMult>=crashPoint){
+                clearInterval(crashInterval);crashInterval=null;crashState='crashed';
+                if(multEl){multEl.textContent='CRASHED!';multEl.className='crash-multiplier crashed';}
+                if(rocket){rocket.textContent='💥';rocket.style.transform='scale(1.5)';}
+                document.getElementById('crashCashoutBtn').classList.remove('show');
+                document.getElementById('crashStartBtn').style.display='block';
+                document.getElementById('crashStatus').textContent='Crashed at '+crashPoint+'x (Try Mode)';
+                showToast('🎮 Try Mode — Pass se khelo aur paise kamao!');
+                setTimeout(()=>{crashState='idle';if(rocket){rocket.textContent='🚀';rocket.style.transform='';rocket.style.bottom='20px';rocket.style.left='50%';}},2000);
+            }
+        },100);
+        return;
+    }
+
+    if(userData.balance<crashBet){showToast('❌ Balance kam hai!');return;}
     const r=await apiPost('/api/game/crash-start',{user_id:userData.user_id,bet:crashBet});
-    if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
+    if(!r||!r.success){
+        showToast('❌ '+(r?.message||'Server error — dobara try karo'));
+        loadUser().then(()=>updateUI());
+        return;
+    }
 
     // Update local state after backend confirms
-    userData.passes=Math.max(0,(userData.passes||1)-1);
+    if(r.passes_remaining!==undefined)userData.passes=r.passes_remaining;
+    else if(typeof r!=='undefined'&&r&&r.passes_remaining!==undefined)userData.passes=r.passes_remaining;else userData.passes=Math.max(0,(userData.passes||1)-1);
     userData.balance=Math.max(0,userData.balance-crashBet);
     updateUI();
 
@@ -4618,6 +4844,17 @@ async function startCrash(){
 
 async function doCrashCashout(){
     if(crashState!=='running'||crashCashedOut)return;
+    // TRY MODE — no reward
+    if(_tryMode){
+        clearInterval(crashInterval);crashInterval=null;crashState='idle';crashCashedOut=true;
+        document.getElementById('crashCashoutBtn').classList.remove('show');
+        document.getElementById('crashStartBtn').style.display='block';
+        document.getElementById('crashStatus').textContent=`Cashed out at ${crashCurrentMult}x (Try Mode — 0 pts)`;
+        showToast(`🎮 Try Mode: ${crashCurrentMult}x — Pass se khelo aur paise kamao!`);
+        const rocket=document.getElementById('crashRocket');
+        if(rocket){rocket.textContent='🚀';rocket.style.transform='';rocket.style.bottom='20px';rocket.style.left='50%';}
+        return;
+    }
     crashCashedOut=true;
     clearInterval(crashInterval);crashInterval=null;
 
@@ -4647,9 +4884,29 @@ async function doCrashCashout(){
     setTimeout(resetCrashUI,2400);
 }
 
+// TRY MODE — pass nahi katega, reward nahi milega
+let _tryMode = false;
+
 function openGame(g){
     playSound('tap');
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi! Refer karo ya daily bonus lo');return;}
+    _tryMode = false; // default: real mode
+    // Passes hain — normal game kholo
+    if((userData.passes||0)>0){
+        if(g==='spin'){drawWheel(spinAngle);openModal('spin');}
+        else if(g==='guess'){startGuess();openModal('guess');}
+        else if(g==='coin'){resetCoinUI();openModal('coin');}
+        else if(g==='dice'){resetDiceUI();openModal('dice');}
+        else if(g==='color'){resetColorUI();openModal('color');}
+        else if(g==='crash'){resetCrashUI();renderCrashHistory();openModal('crash');}
+        else if(g==='runner'){openRunnerGame();}
+        else if(g==='maze'){openMazeGame();}
+        else if(g==='snake'){openSnakeGame();}
+        else if(g==='chess'){openChessGame();}
+        return;
+    }
+    // Passes NAHI hain — Try mode mein kholo
+    _tryMode = true;
+    showToast('🎮 Try Mode — No Pass needed, No Reward!');
     if(g==='spin'){drawWheel(spinAngle);openModal('spin');}
     else if(g==='guess'){startGuess();openModal('guess');}
     else if(g==='coin'){resetCoinUI();openModal('coin');}
@@ -4667,467 +4924,649 @@ function openGame(g){
 // ============================================================
 let runnerMode='10s', runnerBet=1, runnerGameActive=false;
 let runnerAnimFrame=null, runnerStartTime=0, runnerSurvivedSecs=0;
-let runnerLives=3, runnerDucking=false, runnerJumping=false;
-let runnerEarningTotal=0, runnerMaxSecs=10;
-let runnerRewardPerSec=0.005;
+let runnerEarningTotal=0, runnerMaxSecs=10, runnerRewardPerSec=0.005;
 
-// Game objects
-let rPlayer={x:70,y:0,vy:0,w:36,h:48,ducking:false,invincible:0};
-let rObstacles=[], rPlatforms=[], rParticles=[];
-let rGroundY=0, rScrollX=0, rScrollSpeed=3;
+// ============================================================
+// 🏃 ADVANCED PLATFORMER — Flag Race with Checkpoints!
+// Controls: Up=Jump, Down=Crouch, Left/Right=Move
+// Monsters, Moving Walls, Checkpoints, Flag Goal
+// ============================================================
+
+// Game state
 let rCanvas=null, rCtx=null;
-let rFrameCount=0, rLastObstacleFrame=0, rBgX=0;
+let rCW=360, rCH=220;
+let rGroundY=0;
+let rFrameCount=0;
+let rScrollX=0; // world scroll position
+let rScrollSpeed=2.5;
+let rLevel=1, rCheckpoint=0;
+let rInput={left:false,right:false,up:false,down:false};
 
-// Platform definitions (relative to ground)
-const PLATFORM_TEMPLATES=[
-    {rx:400,ry:-80,w:100,h:16},
-    {rx:700,ry:-130,w:90,h:16},
-    {rx:1000,ry:-60,w:120,h:16},
-    {rx:1300,ry:-100,w:80,h:16},
-    {rx:1600,ry:-70,w:110,h:16},
+// Player
+let rP={
+    x:80, y:0, vy:0, vx:0,
+    w:28, h:40,
+    onGround:false, onPlatform:false,
+    crouching:false, invincible:0,
+    lives:3, dead:false
+};
+
+// World objects (in world coords)
+let rPlatforms=[];
+let rMonsters=[];
+let rWalls=[];      // moving walls
+let rCheckpoints=[];
+let rFlag=null;
+let rParticles=[];
+let rSpikes=[];
+
+// Level definitions — each level has platforms, monsters, walls, flag distance
+const LEVEL_DEFS=[
+    { // Level 1 — Easy intro
+        flagDist:1800, speed:2.5,
+        platforms:[
+            {wx:300,wy:-70,w:120,h:18,moving:false},
+            {wx:550,wy:-110,w:90,h:18,moving:false},
+            {wx:750,wy:-60,w:100,h:18,moving:false},
+            {wx:1000,wy:-130,w:80,h:18,moving:true,range:60,dir:1},
+            {wx:1300,wy:-80,w:110,h:18,moving:false},
+            {wx:1600,wy:-120,w:90,h:18,moving:false},
+        ],
+        monsters:[
+            {wx:400,ground:true,type:'walker',speed:1.2},
+            {wx:800,ground:true,type:'walker',speed:1.5},
+            {wx:1100,ground:false,wy:-90,type:'flyer',speed:1.8},
+            {wx:1500,ground:true,type:'walker',speed:2.0},
+        ],
+        walls:[
+            {wx:650,wy:-160,w:20,h:180,moving:true,axis:'y',range:80,speed:2},
+        ],
+        checkpointPositions:[600,1200],
+        spikes:[{wx:250,ground:true},{wx:500,ground:true},{wx:1400,ground:true}],
+    },
+    { // Level 2 — Harder
+        flagDist:2200, speed:3.0,
+        platforms:[
+            {wx:200,wy:-90,w:100,h:18,moving:true,range:80,dir:1},
+            {wx:500,wy:-130,w:80,h:18,moving:false},
+            {wx:700,wy:-60,w:90,h:18,moving:true,range:50,dir:-1},
+            {wx:950,wy:-140,w:70,h:18,moving:false},
+            {wx:1200,wy:-80,w:100,h:18,moving:true,range:100,dir:1},
+            {wx:1600,wy:-110,w:90,h:18,moving:false},
+            {wx:1900,wy:-70,w:80,h:18,moving:false},
+        ],
+        monsters:[
+            {wx:350,ground:true,type:'walker',speed:2.0},
+            {wx:650,ground:false,wy:-100,type:'flyer',speed:2.2},
+            {wx:900,ground:true,type:'jumper',speed:1.5},
+            {wx:1300,ground:false,wy:-120,type:'flyer',speed:2.5},
+            {wx:1800,ground:true,type:'walker',speed:2.8},
+        ],
+        walls:[
+            {wx:450,wy:-180,w:22,h:200,moving:true,axis:'y',range:100,speed:3},
+            {wx:1100,wy:0,w:22,h:160,moving:true,axis:'y',range:80,speed:4},
+        ],
+        checkpointPositions:[700,1400],
+        spikes:[{wx:300},{wx:800},{wx:1200},{wx:1700}],
+    },
 ];
 
-function openRunnerGame(){
-    document.getElementById('runnerPassCount').textContent=userData.passes||0;
-    document.getElementById('runnerBalDisplay').textContent=fmtPts(toPoints(userData.balance||0));
-    document.getElementById('runnerSetup').style.display='block';
-    document.getElementById('runnerStartWrap').style.display='block';
-    document.getElementById('runnerGameScreen').style.display='none';
-    document.getElementById('runnerResult').style.display='none';
-    openModal('runner');
-    // Auto-select default mode & bet
-    const defaultModeBtn=document.querySelector('#runnerModal .runner-mode-btn');
-    if(defaultModeBtn&&!document.querySelector('#runnerModal .runner-mode-btn.sel')){
-        defaultModeBtn.classList.add('sel');
-        runnerMode='10s';
-        updateRunnerPreview();
-    }
-    const defaultBetBtn=document.querySelector('#runnerModal .bet-chip');
-    if(defaultBetBtn&&!document.querySelector('#runnerModal .bet-chip.sel')){
-        defaultBetBtn.classList.add('sel');
-        runnerBet=1;
-    }
-}
+function rGetLevel(){ return LEVEL_DEFS[Math.min(rLevel-1, LEVEL_DEFS.length-1)]; }
 
-function selectRunnerMode(mode,el){
-    runnerMode=mode;
-    document.querySelectorAll('.runner-mode-btn').forEach(b=>b.classList.remove('sel'));
-    el.classList.add('sel');
-    updateRunnerPreview();
-    playSound('tap');
-}
+function rInitLevel(){
+    const def = rGetLevel();
+    rScrollX = 0;
+    rPlatforms=[];
+    rMonsters=[];
+    rWalls=[];
+    rCheckpoints=[];
+    rParticles=[];
+    rSpikes=[];
+    rCheckpoint=0;
 
-function selectRunnerBet(amt,el){
-    if(amt>userData.balance){showToast('❌ Balance kam hai!');return;}
-    runnerBet=amt;
-    document.querySelectorAll('#runnerModal .bet-chip').forEach(b=>b.classList.remove('sel'));
-    el.classList.add('sel');
-    updateRunnerPreview();
-    playSound('tap');
-}
+    rGroundY = rCH - 48;
 
-function updateRunnerPreview(){
-    const modes={'10s':{s:10,r:0.005},'30s':{s:30,r:0.004},'1m':{s:60,r:0.003},'5m':{s:300,r:0.002},'10m':{s:600,r:0.0015}};
-    const m=modes[runnerMode];if(!m)return;
-    const maxEarn=(m.s*m.r).toFixed(3);
-    const preview=document.getElementById('runnerRewardPreview');
-    const txt=document.getElementById('runnerRewardTxt');
-    preview.style.display='block';
-    txt.innerHTML='Bet: <b style="color:var(--gold);">'+toPoints(runnerBet)+' pts</b> • Time: <b>'+runnerMode+'</b><br>Max earn: <b style="color:var(--green);">'+toPoints(maxEarn)+' pts</b> + bet back<br>Per sec: <b style="color:var(--purple2);">'+toPoints(m.r)+' pts</b>';
-}
+    // Player
+    rP={x:80,y:rGroundY-rP.h,vy:0,vx:0,w:28,h:40,onGround:false,onPlatform:false,crouching:false,invincible:0,lives:3,dead:false};
 
-async function startRunnerGame(){
-    if(!runnerMode){showToast('❌ Mode chuno!');return;}
-    if(runnerBet<=0){showToast('❌ Bet chuno!');return;}
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
-    if(userData.balance<runnerBet){showToast('❌ Balance kam hai!');return;}
-
-    const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:runnerMode,bet:runnerBet});
-    if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
-
-    userData.passes=Math.max(0,(userData.passes||1)-1);
-    userData.balance=Math.max(0,userData.balance-runnerBet);
-    updateUI();
-
-    runnerMaxSecs=r.seconds;
-    runnerRewardPerSec=r.reward_per_sec;
-
-    document.getElementById('runnerSetup').style.display='none';
-    document.getElementById('runnerStartWrap').style.display='none';
-    document.getElementById('runnerGameScreen').style.display='block';
-    document.getElementById('runnerResult').style.display='none';
-
-    // Defer canvas init by one frame so modal is fully rendered and sized
-    requestAnimationFrame(()=>{
-        initRunnerCanvas();
-        playSound('rocket');
+    // Platforms
+    def.platforms.forEach(p=>{
+        rPlatforms.push({wx:p.wx,wy:p.wy,w:p.w,h:p.h,
+            moving:p.moving||false,range:p.range||0,dir:p.dir||1,
+            baseWX:p.wx, phase:Math.random()*Math.PI*2});
     });
+
+    // Monsters
+    def.monsters.forEach(m=>{
+        const wy = m.ground ? 0 : m.wy;
+        rMonsters.push({wx:m.wx, wy:wy, w:32,h:32,
+            type:m.type, speed:m.speed, dir:1,
+            ground:m.ground, phase:Math.random()*Math.PI*2,
+            dead:false, deadTimer:0});
+    });
+
+    // Moving walls
+    def.walls.forEach(w=>{
+        rWalls.push({wx:w.wx, wy:w.wy, w:w.w, h:w.h,
+            moving:w.moving, axis:w.axis, range:w.range, speed:w.speed||2,
+            phase:0, baseWY:w.wy});
+    });
+
+    // Checkpoints
+    def.checkpointPositions.forEach((cx,i)=>{
+        rCheckpoints.push({wx:cx, w:20, h:48, activated:false, idx:i});
+    });
+
+    // Flag
+    rFlag={wx:def.flagDist, w:30, h:60, reached:false};
+
+    // Spikes
+    (def.spikes||[]).forEach(s=>{
+        rSpikes.push({wx:s.wx, ground:s.ground!==false});
+    });
+
+    rScrollSpeed = def.speed;
+    rFrameCount=0;
+}
+
+function rWorldToScreen(wx){return wx - rScrollX;}
+
+function rMoveLeft(){rInput.left=true;}
+function rMoveRight(){rInput.right=true;}
+function rMoveUp(){
+    rInput.up=true;
+    // Jump
+    if(!runnerGameActive)return;
+    if(rP.onGround||rP.onPlatform){
+        rP.vy=-12; rP.onGround=false; rP.onPlatform=false;
+        playSound('tap');
+    }
+}
+function rMoveDown(){rInput.down=true;}
+function rStopVert(){rInput.up=false;rInput.down=false;}
+function rStopHoriz(){rInput.left=false;rInput.right=false;}
+
+function rAddParticle(x,y,color,count=6){
+    for(let i=0;i<count;i++){
+        rParticles.push({x,y,vx:(Math.random()-0.5)*6,vy:-Math.random()*5-1,life:1,color,r:3+Math.random()*4});
+    }
 }
 
 function initRunnerCanvas(){
     rCanvas=document.getElementById('runnerCanvas');
-    const CW=Math.max(rCanvas.parentElement.offsetWidth||360, window.innerWidth-32, 300);
+    const CW=Math.min(rCanvas.parentElement.offsetWidth||360,window.innerWidth||360);
+    rCW=CW; rCH=220;
     rCanvas.width=CW; rCanvas.height=220;
     rCtx=rCanvas.getContext('2d');
-    rGroundY=rCanvas.height-50;
 
-    // Reset state
-    rPlayer={x:70,y:rGroundY-48,vy:0,w:36,h:48,ducking:false,invincible:0};
-    rObstacles=[]; rPlatforms=[]; rParticles=[];
-    rScrollX=0; rScrollSpeed=3; rFrameCount=0;
-    rLastObstacleFrame=0; rBgX=0;
-    runnerLives=3; runnerJumping=false; runnerDucking=false;
-    runnerEarningTotal=0; runnerSurvivedSecs=0;
+    rLevel=1;
+    rP.lives=3;
+    rInitLevel();
     runnerGameActive=true;
+    runnerSurvivedSecs=0;
+    runnerEarningTotal=0;
     runnerStartTime=Date.now();
 
-    // Init platforms
-    PLATFORM_TEMPLATES.forEach(pt=>{
-        rPlatforms.push({x:pt.rx,y:rGroundY+pt.ry,w:pt.w,h:pt.h,passed:false});
-    });
-
-    // Keyboard controls
+    // Keyboard
     document.onkeydown=e=>{
-        if(e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW')runnerJump();
-        if(e.code==='ArrowDown'||e.code==='KeyS')runnerDuck();
+        if(e.code==='ArrowLeft'||e.code==='KeyA')rMoveLeft();
+        if(e.code==='ArrowRight'||e.code==='KeyD')rMoveRight();
+        if(e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW')rMoveUp();
+        if(e.code==='ArrowDown'||e.code==='KeyS')rMoveDown();
     };
     document.onkeyup=e=>{
-        if(e.code==='ArrowDown'||e.code==='KeyS')runnerDuckEnd();
+        if(e.code==='ArrowLeft'||e.code==='KeyA')rInput.left=false;
+        if(e.code==='ArrowRight'||e.code==='KeyD')rInput.right=false;
+        if(e.code==='ArrowUp'||e.code==='Space'||e.code==='KeyW')rInput.up=false;
+        if(e.code==='ArrowDown'||e.code==='KeyS')rInput.down=false;
     };
-
     runnerLoop();
 }
 
-function runnerJump(){
-    if(!runnerGameActive)return;
-    if(rPlayer.y>=rGroundY-rPlayer.h-2||(rPlayer.onPlatform)){
-        rPlayer.vy=-13;
-        runnerJumping=true;
-        rPlayer.onPlatform=false;
-        playSound('tap');
-    }
-}
-
-function runnerDuck(){
-    if(!runnerGameActive)return;
-    runnerDucking=true;
-    rPlayer.ducking=true;
-    rPlayer.h=24; rPlayer.y=rGroundY-24;
-}
-function runnerDuckEnd(){
-    runnerDucking=false;
-    rPlayer.ducking=false;
-    rPlayer.h=48; rPlayer.y=Math.min(rPlayer.y,rGroundY-48);
-}
-
-function spawnObstacle(){
-    const CW=rCanvas.width;
-    const types=['box','fireball','rock','bird','spike'];
-    const weights=[30,25,20,15,10];
-    let r2=Math.random()*100,cumW=0,type='box';
-    for(let i=0;i<types.length;i++){cumW+=weights[i];if(r2<cumW){type=types[i];break;}}
-
-    const configs={
-        box:    {w:32,h:40,y:rGroundY-40,color:'#1a1a1a',emoji:'📦',vy:0},
-        fireball:{w:28,h:28,y:rGroundY-120-Math.random()*40,color:'#ff4e00',emoji:'🔥',vy:2+Math.random()*2},
-        rock:   {w:30,h:30,y:-30,color:'#666',emoji:'🪨',vy:4+Math.random()*2},
-        bird:   {w:34,h:28,y:rGroundY-110-Math.random()*50,color:'#8B4513',emoji:'🦅',vy:Math.sin(rFrameCount/30)*2},
-        spike:  {w:24,h:36,y:rGroundY-36,color:'#c0392b',emoji:'⚡',vy:0},
-    };
-    const cfg=configs[type];
-    rObstacles.push({x:CW+20,y:cfg.y,w:cfg.w,h:cfg.h,type,color:cfg.color,emoji:cfg.emoji,baseVy:cfg.vy,vy:cfg.vy,wave:Math.random()*Math.PI*2});
-}
-
-function addParticle(x,y,color){
-    for(let i=0;i<6;i++){
-        rParticles.push({x,y,vx:(Math.random()-0.5)*5,vy:-Math.random()*5-2,life:1,color});
-    }
-}
+function runnerJump(){rMoveUp();}
+function runnerDuck(){rMoveDown();}
+function runnerDuckEnd(){rInput.down=false;}
 
 function runnerLoop(){
     if(!runnerGameActive)return;
+    rFrameCount++;
+
     const elapsed=(Date.now()-runnerStartTime)/1000;
     runnerSurvivedSecs=Math.floor(elapsed);
-    const remaining=runnerMaxSecs-elapsed;
-
-    // Update timer display
-    const mins=Math.floor(remaining/60),secs=Math.max(0,Math.floor(remaining%60));
+    const remaining=Math.max(0,runnerMaxSecs-elapsed);
+    const mins=Math.floor(remaining/60),secs=Math.floor(remaining%60);
     document.getElementById('runnerTimer').textContent=`${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
-    runnerEarningTotal=parseFloat((runnerSurvivedSecs*runnerRewardPerSec).toFixed(4));
-    document.getElementById('runnerEarning').textContent='+'+toPoints(runnerEarningTotal)+' pts';
-    document.getElementById('runnerLives').textContent='❤️'.repeat(runnerLives)+'🖤'.repeat(Math.max(0,3-runnerLives));
 
-    // Time up — win!
-    if(elapsed>=runnerMaxSecs){
+    // Earning based on world progress
+    runnerEarningTotal=parseFloat((Math.min(rScrollX/100,runnerMaxSecs)*runnerRewardPerSec).toFixed(4));
+    document.getElementById('runnerEarning').textContent='+'+toPoints(runnerEarningTotal)+' pts';
+    document.getElementById('runnerLives').textContent='❤️'.repeat(rP.lives)+'🖤'.repeat(Math.max(0,3-rP.lives));
+
+    if(remaining<=0&&!rFlag.reached){
         runnerGameActive=false;
-        finishRunnerGame(true);
+        finishRunnerGame(false);
         return;
     }
 
-    // Harder: speed increases faster
-    rScrollSpeed=3.5+elapsed/20;
-    rFrameCount++;
+    // ── Player physics ──
+    const GRAVITY=0.65, MAX_VX=4;
+    rP.vy=Math.min(rP.vy+GRAVITY,16);
 
-    // Spawn obstacles — frequency increases with time
-    // Harder: spawn faster, speed increases quicker
-    const spawnInterval=Math.max(30,75-elapsed*1.2);
-    if(rFrameCount-rLastObstacleFrame>spawnInterval){
-        spawnObstacle();
-        // Double spawn at high difficulty
-        if(elapsed>20&&Math.random()>0.6)spawnObstacle();
-        rLastObstacleFrame=rFrameCount;
+    // Horizontal input
+    if(rInput.left) rP.vx=Math.max(rP.vx-0.6,-MAX_VX);
+    else if(rInput.right) rP.vx=Math.min(rP.vx+0.6,MAX_VX);
+    else rP.vx*=0.8;
+
+    // Crouch
+    if(rInput.down&&rP.onGround){rP.crouching=true;rP.h=20;}
+    else{rP.crouching=false;rP.h=40;}
+
+    rP.x+=rP.vx;
+    rP.y+=rP.vy;
+    rP.onGround=false;
+    rP.onPlatform=false;
+
+    // Keep player on screen horizontally (scrolling follows player)
+    const targetScrollX=rP.x-100;
+    rScrollX+=(targetScrollX-rScrollX)*0.12;
+    rScrollX=Math.max(0,rScrollX);
+
+    // Clamp player x
+    if(rP.x<rScrollX+20){rP.x=rScrollX+20;rP.vx=0;}
+    if(rP.x>rScrollX+rCW-rP.w-10){rP.x=rScrollX+rCW-rP.w-10;rP.vx=0;}
+
+    // Ground
+    if(rP.y>=rGroundY-rP.h){
+        rP.y=rGroundY-rP.h; rP.vy=0; rP.onGround=true;
     }
 
-    // Physics
-    rPlayer.vy+=0.7;
-    rPlayer.y+=rPlayer.vy;
-    rPlayer.onPlatform=false;
-
-    // Ground collision
-    if(rPlayer.y>=rGroundY-rPlayer.h){
-        rPlayer.y=rGroundY-rPlayer.h;
-        rPlayer.vy=0;
-        runnerJumping=false;
-    }
-
-    // Platform collision
+    // ── Update moving platforms ──
     rPlatforms.forEach(p=>{
-        if(rPlayer.x+rPlayer.w>p.x&&rPlayer.x<p.x+p.w&&
-           rPlayer.y+rPlayer.h>=p.y&&rPlayer.y+rPlayer.h<=p.y+p.h+10&&rPlayer.vy>=0){
-            rPlayer.y=p.y-rPlayer.h;
-            rPlayer.vy=0;
-            rPlayer.onPlatform=true;
-            runnerJumping=false;
+        if(p.moving){
+            p.phase+=0.02;
+            p.wx=p.baseWX+Math.sin(p.phase)*p.range;
         }
-    });
-
-    // Invincibility frames
-    if(rPlayer.invincible>0)rPlayer.invincible--;
-
-    // Update obstacles
-    rObstacles.forEach((o,i)=>{
-        o.x-=rScrollSpeed;
-        // Wave movement for birds/fireballs
-        if(o.type==='bird'||o.type==='fireball'){
-            o.y+=Math.sin(rFrameCount/20+o.wave)*1.5;
-        }
-        if(o.type==='rock'){o.vy+=0.2;o.y+=o.vy;}
-
-        // Collision with player
-        if(rPlayer.invincible<=0&&
-           rPlayer.x+4<o.x+o.w-4&&rPlayer.x+rPlayer.w-4>o.x+4&&
-           rPlayer.y+4<o.y+o.h-4&&rPlayer.y+rPlayer.h-4>o.y+4){
-            runnerLives--;
-            rPlayer.invincible=90;
-            addParticle(rPlayer.x+rPlayer.w/2,rPlayer.y+rPlayer.h/2,'#ff4e6a');
-            playSound('lose');
-            if(runnerLives<=0){
-                runnerGameActive=false;
-                finishRunnerGame(false);
-                return;
+        // Platform collision (world coords → screen)
+        const sx=p.wx-rScrollX, sy=rGroundY+p.wy;
+        if(rP.x+rP.w-4>sx&&rP.x+4<sx+p.w){
+            if(rP.y+rP.h>=sy&&rP.y+rP.h<=sy+p.h+12&&rP.vy>=0){
+                rP.y=sy-rP.h; rP.vy=0; rP.onPlatform=true;
             }
         }
     });
-    rObstacles=rObstacles.filter(o=>o.x>-60&&o.y<rCanvas.height+60);
 
-    // Update platforms
-    rPlatforms.forEach(p=>p.x-=rScrollSpeed*0.5);
-    rPlatforms=rPlatforms.filter(p=>p.x>-200);
-    // Spawn new platforms
-    if(rPlatforms.length<4){
-        const lastX=Math.max(...rPlatforms.map(p=>p.x),rCanvas.width);
-        rPlatforms.push({x:lastX+300+Math.random()*200,y:rGroundY-60-Math.random()*100,w:80+Math.random()*60,h:16,passed:false});
+    // ── Update moving walls ──
+    rWalls.forEach(w=>{
+        if(w.moving&&w.axis==='y'){
+            w.phase=(w.phase||0)+w.speed*0.03;
+            w.wy=w.baseWY+Math.sin(w.phase)*w.range;
+        }
+        // Wall collision
+        const sx=w.wx-rScrollX, sy=rGroundY+w.wy;
+        if(rP.x+rP.w>sx&&rP.x<sx+w.w&&rP.y+rP.h>sy&&rP.y<sy+w.h){
+            if(rP.invincible<=0){
+                rP.invincible=80; rP.lives--;
+                rAddParticle(rP.x+rP.w/2,rP.y,'#ff4e6a',8);
+                playSound('lose');
+                // Push player back
+                rP.vx=-4; rP.vy=-6;
+                if(rP.lives<=0){runnerGameActive=false;finishRunnerGame(false);return;}
+            }
+        }
+    });
+
+    // ── Update monsters ──
+    rMonsters.forEach(m=>{
+        if(m.dead){m.deadTimer--;return;}
+        m.phase+=0.05;
+        const sy=m.ground?rGroundY-m.h:rGroundY+m.wy;
+        if(m.type==='walker'){
+            m.wx+=m.speed*m.dir;
+            if(m.wx<rScrollX-50||m.wx>rScrollX+rCW+200)m.dir*=-1;
+        } else if(m.type==='flyer'){
+            m.wx+=m.speed*0.8;
+            m.wy=(m.wy||0)+Math.sin(m.phase)*1.5;
+            if(m.wx>rScrollX+rCW+100)m.wx=rScrollX-40;
+        } else if(m.type==='jumper'){
+            m.wx+=m.speed*m.dir*0.6;
+            const jy=(m.jvy=(m.jvy||0)+0.4);
+            m.jy=(m.jy||0)+jy;
+            if((m.jy||0)>=0){m.jy=0;m.jvy=-8;}
+        }
+        // Collision with player
+        const msx=m.wx-rScrollX, msy=m.ground?rGroundY-m.h:rGroundY+(m.wy||0);
+        if(rP.invincible<=0&&rP.x+rP.w-4>msx&&rP.x+4<msx+m.w&&rP.y+rP.h-4>msy&&rP.y+4<msy+m.h){
+            // Stomp from above?
+            if(rP.vy>0&&rP.y+rP.h<msy+m.h*0.5){
+                m.dead=true;m.deadTimer=60;
+                rP.vy=-8;
+                rAddParticle(msx+m.w/2,msy,'#00e5a0',10);
+                playSound('earn');
+            } else {
+                rP.invincible=80; rP.lives--;
+                rAddParticle(rP.x+rP.w/2,rP.y,'#ff4e6a',8);
+                playSound('lose');
+                rP.vy=-6;
+                if(rP.lives<=0){runnerGameActive=false;finishRunnerGame(false);return;}
+            }
+        }
+    });
+
+    // ── Spikes ──
+    rSpikes.forEach(s=>{
+        const sx=s.wx-rScrollX, sy=rGroundY-16;
+        if(rP.invincible<=0&&rP.x+rP.w-4>sx&&rP.x+4<sx+24&&rP.y+rP.h>sy){
+            rP.invincible=80;rP.lives--;
+            rAddParticle(sx+12,sy,'#ff4e6a',6);
+            playSound('lose');
+            rP.vy=-7;
+            if(rP.lives<=0){runnerGameActive=false;finishRunnerGame(false);return;}
+        }
+    });
+
+    // ── Invincibility countdown ──
+    if(rP.invincible>0)rP.invincible--;
+
+    // ── Checkpoints ──
+    rCheckpoints.forEach(cp=>{
+        if(!cp.activated){
+            const sx=cp.wx-rScrollX;
+            if(rP.x+rP.w>sx&&rP.x<sx+cp.w&&rP.y+rP.h>rGroundY-cp.h){
+                cp.activated=true;
+                rCheckpoint=cp.idx+1;
+                rAddParticle(sx+10,rGroundY-cp.h,'#f5c842',12);
+                showToast('🚩 Checkpoint! +10 pts bonus!');
+                playSound('jackpot');
+            }
+        }
+    });
+
+    // ── Flag ──
+    if(!rFlag.reached){
+        const fsx=rFlag.wx-rScrollX;
+        if(rP.x+rP.w>fsx&&rP.x<fsx+rFlag.w&&rP.y+rP.h>rGroundY-rFlag.h){
+            rFlag.reached=true;
+            rAddParticle(fsx+15,rGroundY-rFlag.h,'#f5c842',20);
+            runnerGameActive=false;
+            // Bonus for reaching flag
+            runnerEarningTotal+=0.5;
+            finishRunnerGame(true);
+            return;
+        }
     }
 
-    // Update particles
-    rParticles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life-=0.05;});
+    // ── Particles ──
+    rParticles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.15;p.life-=0.04;});
     rParticles=rParticles.filter(p=>p.life>0);
 
-    // Draw everything
+    // ── Draw ──
     drawRunnerFrame(elapsed);
-
     runnerAnimFrame=requestAnimationFrame(runnerLoop);
 }
 
 function drawRunnerFrame(elapsed){
-    const CW=rCanvas.width,CH=rCanvas.height;
-    rCtx.clearRect(0,0,CW,CH);
+    const ctx=rCtx, CW=rCW, CH=rCH;
+    ctx.clearRect(0,0,CW,CH);
 
-    // ── Jump or Die B&W theme ──────────────────────────────
-    // Background - grey gradient
-    rCtx.fillStyle='#c8c8c8';
-    rCtx.fillRect(0,0,CW,CH);
+    // ── Dark B&W background ──
+    ctx.fillStyle='#1a1a1a';
+    ctx.fillRect(0,0,CW,CH);
 
-    // Spotlight effect from upper left (like screenshot)
-    const spotGrad=rCtx.createRadialGradient(80,0,10,80,0,CH*0.9);
-    spotGrad.addColorStop(0,'rgba(255,255,255,0.45)');
-    spotGrad.addColorStop(1,'rgba(0,0,0,0)');
-    rCtx.fillStyle=spotGrad;
-    rCtx.fillRect(0,0,CW,CH);
+    // Subtle gradient sky
+    const sky=ctx.createLinearGradient(0,0,0,CH-50);
+    sky.addColorStop(0,'#2a2a3a');
+    sky.addColorStop(1,'#111');
+    ctx.fillStyle=sky; ctx.fillRect(0,0,CW,CH-50);
 
-    // Scrolling BG detail — subtle horizontal lines
-    rBgX+=rScrollSpeed*0.3;
-    rCtx.strokeStyle='rgba(180,180,180,0.4)';
-    rCtx.lineWidth=1;
-    for(let y=20;y<CH-50;y+=18){
-        rCtx.beginPath();rCtx.moveTo(0,y);rCtx.lineTo(CW,y);rCtx.stroke();
+    // Background city silhouette (scrolling slower)
+    ctx.fillStyle='#222';
+    const bgOffset=(rScrollX*0.3)%200;
+    for(let bx=-bgOffset;bx<CW+200;bx+=200){
+        ctx.fillRect(bx,CH-80,18,30);
+        ctx.fillRect(bx+30,CH-95,22,45);
+        ctx.fillRect(bx+65,CH-75,16,25);
+        ctx.fillRect(bx+100,CH-100,20,50);
+        ctx.fillRect(bx+140,CH-80,18,30);
+        ctx.fillRect(bx+170,CH-88,24,38);
     }
-    rScrollX+=rScrollSpeed;
 
-    // Ground — solid black block like screenshot
-    rCtx.fillStyle='#111';
-    rCtx.fillRect(0,rGroundY,CW,CH-rGroundY);
-    // Ground top edge highlight
-    rCtx.fillStyle='#333';
-    rCtx.fillRect(0,rGroundY,CW,3);
+    // Ground
+    ctx.fillStyle='#111';
+    ctx.fillRect(0,rGroundY,CW,CH-rGroundY);
+    ctx.fillStyle='#333';
+    ctx.fillRect(0,rGroundY,CW,3);
+    // Ground texture
+    ctx.fillStyle='rgba(255,255,255,0.04)';
+    for(let gx=-(rScrollX%40);gx<CW;gx+=40)ctx.fillRect(gx,rGroundY,20,3);
 
-    // Platforms — black solid blocks
+    // ── Spikes ──
+    ctx.fillStyle='#c0392b';
+    rSpikes.forEach(s=>{
+        const sx=s.wx-rScrollX;
+        if(sx>-30&&sx<CW+10){
+            // Triangle spike
+            ctx.beginPath();ctx.moveTo(sx,rGroundY);ctx.lineTo(sx+12,rGroundY-16);ctx.lineTo(sx+24,rGroundY);ctx.fill();
+        }
+    });
+
+    // ── Platforms ──
     rPlatforms.forEach(p=>{
-        rCtx.fillStyle='#222';
-        rCtx.fillRect(p.x,p.y,p.w,p.h);
-        rCtx.fillStyle='#444';
-        rCtx.fillRect(p.x,p.y,p.w,2);
-        // Pixel texture
-        rCtx.fillStyle='rgba(255,255,255,0.05)';
-        for(let bx=p.x;bx<p.x+p.w;bx+=8){
-            rCtx.fillRect(bx,p.y,4,p.h);
-        }
-    });
-
-    // Obstacles — black pixel style like screenshot
-    rObstacles.forEach(o=>{
-        rCtx.save();
-        if(o.type==='box'){
-            // Black box with pixel effect (like screenshot)
-            rCtx.fillStyle='#111';
-            rCtx.fillRect(o.x,o.y,o.w,o.h);
-            // Eye on box
-            rCtx.fillStyle='#fff';
-            rCtx.fillRect(o.x+o.w*0.55,o.y+o.h*0.2,o.w*0.25,o.h*0.25);
-            rCtx.fillStyle='#000';
-            rCtx.fillRect(o.x+o.w*0.62,o.y+o.h*0.27,o.w*0.1,o.h*0.1);
-            // Pixel crumble bottom
-            rCtx.fillStyle='#333';
-            for(let px=0;px<o.w;px+=4){
-                if(Math.sin(px+rFrameCount*0.1)>0.3){
-                    rCtx.fillRect(o.x+px,o.y+o.h,3,3+Math.abs(Math.sin(px))*4);
-                }
+        const sx=p.wx-rScrollX, sy=rGroundY+p.wy;
+        if(sx>-p.w&&sx<CW+10){
+            ctx.fillStyle='#2c2c2c';
+            ctx.fillRect(sx,sy,p.w,p.h);
+            ctx.fillStyle='rgba(255,255,255,0.15)';
+            ctx.fillRect(sx,sy,p.w,2); // top highlight
+            ctx.fillStyle='rgba(255,255,255,0.04)';
+            for(let px=sx;px<sx+p.w;px+=10)ctx.fillRect(px,sy,5,p.h);
+            // Moving indicator
+            if(p.moving){
+                ctx.fillStyle='rgba(124,92,252,0.5)';
+                ctx.fillRect(sx,sy+p.h-3,p.w,3);
             }
-        }else if(o.type==='spike'){
-            // Triangle spikes — black
-            rCtx.fillStyle='#111';
-            for(let si=0;si<3;si++){
-                rCtx.beginPath();
-                rCtx.moveTo(o.x+si*10,o.y+o.h);
-                rCtx.lineTo(o.x+si*10+5,o.y);
-                rCtx.lineTo(o.x+si*10+10,o.y+o.h);
-                rCtx.fill();
+        }
+    });
+
+    // ── Moving Walls ──
+    rWalls.forEach(w=>{
+        const sx=w.wx-rScrollX, sy=rGroundY+w.wy;
+        if(sx>-w.w&&sx<CW+10){
+            // Dark red moving wall — menacing!
+            const grad=ctx.createLinearGradient(sx,0,sx+w.w,0);
+            grad.addColorStop(0,'#3d0000');grad.addColorStop(0.5,'#8b0000');grad.addColorStop(1,'#3d0000');
+            ctx.fillStyle=grad;
+            ctx.fillRect(sx,sy,w.w,w.h);
+            // Warning stripes
+            ctx.strokeStyle='rgba(255,0,0,0.4)';ctx.lineWidth=2;
+            for(let wy2=sy;wy2<sy+w.h;wy2+=16){
+                ctx.beginPath();ctx.moveTo(sx,wy2);ctx.lineTo(sx+w.w,wy2+8);ctx.stroke();
             }
-        }else if(o.type==='bird'){
-            rCtx.fillStyle='#222';
-            // Simple bird shape
-            rCtx.beginPath();
-            rCtx.ellipse(o.x+o.w/2,o.y+o.h/2,o.w/2,o.h/3,0,0,Math.PI*2);
-            rCtx.fill();
-            // Wings
-            const wingY=o.y+o.h/2+Math.sin(rFrameCount/8)*5;
-            rCtx.fillRect(o.x-8,wingY,10,4);
-            rCtx.fillRect(o.x+o.w-2,wingY,10,4);
-        }else{
-            // Fireball/rock — dark circle
-            rCtx.fillStyle=o.type==='fireball'?'#333':'#555';
-            rCtx.beginPath();
-            rCtx.arc(o.x+o.w/2,o.y+o.h/2,o.w/2,0,Math.PI*2);
-            rCtx.fill();
+            // Glow effect
+            ctx.shadowColor='rgba(255,0,0,0.4)';ctx.shadowBlur=8;
+            ctx.strokeStyle='rgba(255,60,60,0.7)';ctx.lineWidth=1;
+            ctx.strokeRect(sx,sy,w.w,w.h);
+            ctx.shadowBlur=0;
         }
-        rCtx.restore();
     });
 
-    // Particles — black pixels like screenshot crumble
-    rParticles.forEach(p=>{
-        rCtx.globalAlpha=p.life;
-        rCtx.fillStyle='#222';
-        rCtx.fillRect(p.x-2,p.y-2,4,4);
-    });
-    rCtx.globalAlpha=1;
-
-    // Player — black square with eye (like screenshot)
-    const pX=rPlayer.x,pY=rPlayer.y,pH=rPlayer.h,pW=rPlayer.w;
-    const isInvincible=rPlayer.invincible>0&&Math.floor(rPlayer.invincible/5)%2===0;
-    if(!isInvincible){
-        // Body — black square
-        rCtx.fillStyle='#111';
-        rCtx.fillRect(pX,pY,pW,pH);
-        // White outline
-        rCtx.strokeStyle='#fff';
-        rCtx.lineWidth=1.5;
-        rCtx.strokeRect(pX,pY,pW,pH);
-        // Eye
-        rCtx.fillStyle='#fff';
-        rCtx.fillRect(pX+pW*0.55,pY+pH*0.2,pW*0.28,pH*0.28);
-        rCtx.fillStyle='#000';
-        rCtx.fillRect(pX+pW*0.62,pY+pH*0.27,pW*0.12,pH*0.12);
-        // Duck indicator
-        if(rPlayer.ducking){
-            rCtx.fillStyle='rgba(255,255,255,0.5)';
-            rCtx.fillRect(pX,pY+pH-4,pW,4);
+    // ── Checkpoints ──
+    rCheckpoints.forEach(cp=>{
+        const sx=cp.wx-rScrollX;
+        if(sx>-40&&sx<CW+10){
+            // Flag pole
+            ctx.fillStyle=cp.activated?'#f5c842':'#888';
+            ctx.fillRect(sx+8,rGroundY-cp.h,4,cp.h);
+            // Flag
+            ctx.fillStyle=cp.activated?'#f5c842':'#555';
+            ctx.fillRect(sx+12,rGroundY-cp.h,20,14);
+            // Glow if activated
+            if(cp.activated){
+                ctx.shadowColor='rgba(245,200,66,0.6)';ctx.shadowBlur=12;
+                ctx.fillStyle='rgba(245,200,66,0.2)';
+                ctx.fillRect(sx-10,rGroundY-cp.h-10,40,cp.h+10);
+                ctx.shadowBlur=0;
+            }
         }
-    }else{
-        // Invincible flash — white silhouette
-        rCtx.fillStyle='rgba(255,255,255,0.6)';
-        rCtx.fillRect(pX,pY,pW,pH);
+    });
+
+    // ── Goal Flag ──
+    if(rFlag){
+        const fsx=rFlag.wx-rScrollX;
+        if(fsx>-40&&fsx<CW+10){
+            // Pole
+            ctx.fillStyle='#00e5a0';
+            ctx.fillRect(fsx+10,rGroundY-rFlag.h,4,rFlag.h);
+            // Flag waving
+            const wave=Math.sin(rFrameCount*0.1)*5;
+            ctx.fillStyle='#00e5a0';
+            ctx.beginPath();
+            ctx.moveTo(fsx+14,rGroundY-rFlag.h);
+            ctx.lineTo(fsx+34+wave,rGroundY-rFlag.h+10);
+            ctx.lineTo(fsx+14,rGroundY-rFlag.h+20);
+            ctx.fill();
+            // Glow
+            ctx.shadowColor='rgba(0,229,160,0.7)';ctx.shadowBlur=16;
+            ctx.strokeStyle='rgba(0,229,160,0.8)';ctx.lineWidth=1;
+            ctx.strokeRect(fsx,rGroundY-rFlag.h-5,30,rFlag.h+5);
+            ctx.shadowBlur=0;
+            // Distance marker
+            const dist=Math.max(0,Math.round(rFlag.wx-rScrollX-rP.x));
+            if(dist<500&&dist>30){
+                ctx.fillStyle='rgba(0,229,160,0.9)';
+                ctx.font='bold 10px monospace';
+                ctx.textAlign='center';
+                ctx.fillText(dist+'px',fsx+15,rGroundY-rFlag.h-8);
+            }
+        }
     }
 
-    // Distance display top right
-    const dist=Math.floor(rScrollX/10);
-    rCtx.fillStyle='rgba(0,0,0,0.7)';
-    rCtx.fillRect(CW-90,2,88,28);
-    rCtx.fillStyle='#fff';
-    rCtx.font='bold 10px monospace';
-    rCtx.textAlign='left';
-    rCtx.fillText('DISTANCE',CW-86,13);
-    rCtx.font='bold 14px monospace';
-    rCtx.fillText(dist+'m',CW-86,25);
+    // ── Monsters ──
+    rMonsters.forEach(m=>{
+        if(m.dead){
+            if(m.deadTimer>30){
+                ctx.globalAlpha=m.deadTimer/60;
+                ctx.font='22px serif';
+                ctx.textAlign='center';
+                const msx=m.wx-rScrollX;
+                ctx.fillText('💀',msx+m.w/2,rGroundY-m.h-(60-m.deadTimer)*0.5);
+                ctx.globalAlpha=1;
+            }
+            return;
+        }
+        const msx=m.wx-rScrollX;
+        const msy=m.ground?rGroundY-m.h:rGroundY+(m.wy||0)+(m.jy||0);
+        if(msx>-50&&msx<CW+20){
+            ctx.font='26px serif';ctx.textAlign='center';
+            const bob=Math.sin(rFrameCount*0.15+m.phase)*3;
+            if(m.type==='walker')ctx.fillText('👾',msx+m.w/2,msy+m.h+bob);
+            else if(m.type==='flyer')ctx.fillText('🦅',msx+m.w/2,msy+m.h+bob);
+            else if(m.type==='jumper')ctx.fillText('🐸',msx+m.w/2,msy+m.h);
+        }
+    });
 
-    // HUD time bar at bottom of canvas
-    const timeLeft=1-((Date.now()-runnerStartTime)/1000)/runnerMaxSecs;
-    rCtx.fillStyle='rgba(0,0,0,0.6)';
-    rCtx.fillRect(0,CH-10,CW,10);
-    const barColor=timeLeft>0.5?'#19d89e':timeLeft>0.25?'#f0c040':'#ff4e6a';
-    rCtx.fillStyle=barColor;
-    rCtx.fillRect(0,CH-10,CW*Math.max(0,timeLeft),10);
+    // ── Player ──
+    const px=rP.x-rScrollX, py=rP.y;
+    const alpha=rP.invincible>0?(rFrameCount%6<3?0.4:1):1;
+    ctx.globalAlpha=alpha;
+
+    if(!rP.crouching){
+        // Body
+        ctx.fillStyle='#f5c842';
+        ctx.fillRect(px+4,py+16,rP.w-8,rP.h-20);
+        // Head
+        ctx.fillStyle='#ffd700';
+        ctx.beginPath();ctx.arc(px+rP.w/2,py+12,12,0,Math.PI*2);ctx.fill();
+        // Eyes
+        ctx.fillStyle='#111';
+        const eyeOff=rInput.right?2:rInput.left?-2:0;
+        ctx.fillRect(px+rP.w/2+eyeOff+2,py+9,4,4);
+        ctx.fillRect(px+rP.w/2+eyeOff-6,py+9,4,4);
+        // Cape
+        ctx.fillStyle='rgba(124,92,252,0.8)';
+        ctx.fillRect(px+2,py+16,4,rP.h-20);
+        // Legs (running animation)
+        const legAnim=Math.sin(rFrameCount*0.25)*8;
+        ctx.fillStyle='#333';
+        ctx.fillRect(px+4,py+rP.h-14,10,14+legAnim);
+        ctx.fillRect(px+rP.w-14,py+rP.h-14,10,14-legAnim);
+    } else {
+        // Crouching
+        ctx.fillStyle='#f5c842';
+        ctx.fillRect(px+2,py+rP.h-20,rP.w-4,20);
+        ctx.fillStyle='#ffd700';
+        ctx.beginPath();ctx.arc(px+rP.w/2,py+rP.h-12,10,0,Math.PI*2);ctx.fill();
+    }
+    ctx.globalAlpha=1;
+
+    // ── Particles ──
+    rParticles.forEach(p=>{
+        ctx.globalAlpha=p.life;
+        ctx.fillStyle=p.color;
+        ctx.beginPath();ctx.arc(p.x,p.y,p.r||3,0,Math.PI*2);ctx.fill();
+    });
+    ctx.globalAlpha=1;
+
+    // ── HUD Progress bar ──
+    const def=rGetLevel();
+    const progress=Math.min(rScrollX/def.flagDist,1);
+    ctx.fillStyle='rgba(0,0,0,0.5)';
+    ctx.fillRect(0,0,CW,6);
+    const pgGrad=ctx.createLinearGradient(0,0,CW,0);
+    pgGrad.addColorStop(0,'#7c5cfc');pgGrad.addColorStop(1,'#00e5a0');
+    ctx.fillStyle=pgGrad;
+    ctx.fillRect(0,0,CW*progress,6);
+    // Player dot on progress bar
+    ctx.fillStyle='#f5c842';
+    ctx.beginPath();ctx.arc(CW*progress,3,4,0,Math.PI*2);ctx.fill();
+
+    // Level indicator
+    ctx.fillStyle='rgba(0,0,0,0.6)';
+    ctx.fillRect(CW-55,8,52,18);
+    ctx.fillStyle='#f5c842';
+    ctx.font='bold 10px monospace';
+    ctx.textAlign='right';
+    ctx.fillText('LV'+rLevel+' CP:'+rCheckpoint, CW-6, 21);
+    ctx.textAlign='left';
 }
 
 async function finishRunnerGame(won){
     if(runnerAnimFrame){cancelAnimationFrame(runnerAnimFrame);runnerAnimFrame=null;}
     document.onkeydown=null;document.onkeyup=null;
 
-    const r=await apiPost('/api/game/runner-finish',{
-        user_id:userData.user_id,
-        mode:runnerMode,
-        bet:runnerBet,
-        survived_seconds:runnerSurvivedSecs
-    });
+    // Checkpoint bonus
+    const cpBonus=rCheckpoint*0.10;
+    const flagBonus=won?0.50:0;
 
-    document.getElementById('runnerGameScreen').style.display='none';
-    document.getElementById('runnerResult').style.display='block';
-
-    const reward=r?.reward||0;
-    document.getElementById('runnerResultEmoji').textContent=won?'🏆':'💀';
-    document.getElementById('runnerResultTitle').textContent=won?'CHAMPION! 🎉':'Game Over!';
-    document.getElementById('runnerResultSub').textContent=`Survived: ${runnerSurvivedSecs}s of ${runnerMaxSecs}s`;
-    document.getElementById('runnerResultReward').textContent='+'+toPoints(reward)+' pts';
-    document.getElementById('runnerResultBreakdown').textContent=
-        'Bet back: '+toPoints(r?.bet_back||0)+' pts + Earned: '+toPoints(r?.earned||0)+' pts';
-
-    if(reward>0){
-        userData.balance=(userData.balance||0)+parseFloat(reward);
-        userData.today_earned=(userData.today_earned||0)+parseFloat(reward);
-        gameState.today_game_earned=(gameState.today_game_earned||0)+parseFloat(reward);
-        updateUI();
-        playSound(won?'jackpot':'earn');
-    }else{
-        playSound('lose');
+    if(!_tryMode){
+        const r=await apiPost('/api/game/runner-finish',{
+            user_id:userData.user_id,
+            mode:runnerMode,
+            bet:runnerBet,
+            survived_seconds:runnerSurvivedSecs+(won?runnerMaxSecs:0)
+        });
+        document.getElementById('runnerGameScreen').style.display='none';
+        document.getElementById('runnerResult').style.display='block';
+        const reward=(r?.reward||0)+cpBonus+flagBonus;
+        document.getElementById('runnerResultEmoji').textContent=won?'🏆':'💀';
+        document.getElementById('runnerResultTitle').textContent=won?'FLAG REACHED! 🎉':rP.lives<=0?'GAME OVER! 💀':'Time Up!';
+        document.getElementById('runnerResultSub').textContent=`Level ${rLevel} | Checkpoints: ${rCheckpoint}/${rGetLevel().checkpointPositions.length}`;
+        document.getElementById('runnerResultReward').textContent='+'+toPoints(reward)+' pts';
+        document.getElementById('runnerResultBreakdown').textContent=
+            (won?'🚩 Flag bonus: +50pts | ':'')+(rCheckpoint>0?`🔖 Checkpoint: +${rCheckpoint*10}pts | `:'')+'Survived: '+runnerSurvivedSecs+'s';
+        if(reward>0){
+            userData.balance=(userData.balance||0)+parseFloat(reward);
+            userData.today_earned=(userData.today_earned||0)+parseFloat(reward);
+            updateUI();playSound(won?'jackpot':'earn');
+        }else playSound('lose');
+    } else {
+        document.getElementById('runnerGameScreen').style.display='none';
+        document.getElementById('runnerResult').style.display='block';
+        document.getElementById('runnerResultEmoji').textContent=won?'🏆':'💀';
+        document.getElementById('runnerResultTitle').textContent=won?'Try Mode — Flag Reached!':'Try Mode — Game Over!';
+        document.getElementById('runnerResultSub').textContent='Try Mode — Pass se khelo aur paise kamao!';
+        document.getElementById('runnerResultReward').textContent='Try Mode (0 pts)';
+        document.getElementById('runnerResultBreakdown').textContent='';
+        playSound(won?'jackpot':'lose');
     }
 }
 
@@ -5196,7 +5635,7 @@ async function startMaze(){
     if((userData.balance||0)<mazeBet){showToast('❌ Points kam hain!');return;}
     const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'maze',bet:mazeBet});
     if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
-    userData.passes=Math.max(0,(userData.passes||1)-1);
+    if(typeof r!=='undefined'&&r&&r.passes_remaining!==undefined)userData.passes=r.passes_remaining;else userData.passes=Math.max(0,(userData.passes||1)-1);
     userData.balance=Math.max(0,(userData.balance||0)-mazeBet);
     updateUI();
     const cfg=MAZE_DIFFS[mazeDiff];
@@ -5371,7 +5810,7 @@ async function startSnake(){
     if((userData.balance||0)<snakeBet){showToast('❌ Points kam hain!');return;}
     const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'snake',bet:snakeBet});
     if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
-    userData.passes=Math.max(0,(userData.passes||1)-1);
+    if(typeof r!=='undefined'&&r&&r.passes_remaining!==undefined)userData.passes=r.passes_remaining;else userData.passes=Math.max(0,(userData.passes||1)-1);
     userData.balance=Math.max(0,(userData.balance||0)-snakeBet);
     updateUI();
     snake=[{x:8,y:8},{x:7,y:8},{x:6,y:8},{x:5,y:8}];
@@ -5448,6 +5887,36 @@ function drawSnake(){
     ctx.shadowColor='rgba(255,80,80,0.9)';ctx.shadowBlur=14;
     ctx.font=Math.floor(cs*pulse)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';
     ctx.fillText('🍎',fx,fy+cs*0.06);ctx.shadowBlur=0;
+}
+
+function finishSnakeTry(){
+    if(snakeInterval)clearInterval(snakeInterval);if(snakeFrameId)cancelAnimationFrame(snakeFrameId);
+    snakeActive=false;document.onkeydown=null;
+    document.getElementById('snakeGame').style.display='none';document.getElementById('snakeResult').style.display='block';
+    document.getElementById('snakeResultEmoji').textContent=snakeScore>=15?'🏆':snakeScore>=5?'🐍':'😅';
+    document.getElementById('snakeResultTitle').textContent='Try Mode — Pass lo aur paise kamao!';
+    document.getElementById('snakeFinalScore').textContent=snakeScore;
+    document.getElementById('snakeResultReward').textContent='Try Mode (0 pts)';
+    playSound(snakeScore>0?'earn':'lose');
+}
+function finishSnakeTry(){
+    if(snakeInterval)clearInterval(snakeInterval);if(snakeFrameId)cancelAnimationFrame(snakeFrameId);
+    snakeActive=false;document.onkeydown=null;
+    document.getElementById('snakeGame').style.display='none';document.getElementById('snakeResult').style.display='block';
+    document.getElementById('snakeResultEmoji').textContent=snakeScore>=10?'🏆':'🎮';
+    document.getElementById('snakeResultTitle').textContent='Try Mode — Pass lo aur paise kamao!';
+    document.getElementById('snakeFinalScore').textContent=snakeScore;
+    document.getElementById('snakeResultReward').textContent='Try Mode (0 pts)';
+}
+function finishSnakeTry(){
+    if(snakeInterval)clearInterval(snakeInterval);if(snakeFrameId)cancelAnimationFrame(snakeFrameId);
+    snakeActive=false;document.onkeydown=null;
+    document.getElementById('snakeGame').style.display='none';document.getElementById('snakeResult').style.display='block';
+    document.getElementById('snakeResultEmoji').textContent=snakeScore>=10?'🏆':'🎮';
+    document.getElementById('snakeResultTitle').textContent='Try Mode — Pass lo aur paise kamao!';
+    document.getElementById('snakeFinalScore').textContent=snakeScore;
+    document.getElementById('snakeResultReward').textContent='Try Mode (0 pts)';
+    playSound(snakeScore>0?'earn':'lose');
 }
 
 async function finishSnake(){
@@ -5596,11 +6065,23 @@ function selChessBet(a,el){if(a>(userData.balance||0)){showToast('❌ Points kam
 function selChessTime(t,el){chessTimeSetting=t;chessMult={60:2,30:4,15:8}[t]||2;document.querySelectorAll('#chessModal .runner-mode-btn').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
 
 async function startChess(){
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
+    // TRY MODE
+    if(_tryMode || (userData.passes||0)<=0){
+        _tryMode=true;
+        chessBoard=CHESS_INIT.map(row=>[...row]);chessSelected=null;chessTurn='white';chessActive=true;chessMoveCount=0;chessTimeLeft=chessTimeSetting;
+        document.getElementById('chessSetup').style.display='none';document.getElementById('chessGame').style.display='block';document.getElementById('chessResult').style.display='none';
+        chessCanvas=document.getElementById('chessCanvas');
+        const W=Math.min(chessCanvas.parentElement.offsetWidth-8||300,340);chessCanvas.width=W;chessCanvas.height=W;
+        drawChessGame();
+        showToast('🎮 Try Mode — No Pass, No Reward!');
+        chessInterval=setInterval(()=>{if(!chessActive)return;if(chessTurn==='white'){chessTimeLeft--;const tEl=document.getElementById('chessPlayerTimer');if(tEl)tEl.textContent=chessTimeLeft+'s';if(chessTimeLeft<=0){chessActive=false;clearInterval(chessInterval);finishChess('timeout');}}const mEl=document.getElementById('chessMoveCount');if(mEl)mEl.textContent='Moves: '+chessMoveCount;},1000);
+        return;
+    }
     if((userData.balance||0)<chessBet){showToast('❌ Points kam hain!');return;}
     const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'chess',bet:chessBet});
-    if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
-    userData.passes=Math.max(0,(userData.passes||1)-1);userData.balance=Math.max(0,(userData.balance||0)-chessBet);updateUI();
+    if(!r||!r.success){showToast('❌ '+(r?.message||'Server error — refresh karo'));return;}
+    userData.passes=r.passes_remaining!==undefined?r.passes_remaining:Math.max(0,(userData.passes||1)-1);
+    userData.balance=Math.max(0,(userData.balance||0)-chessBet);updateUI();
     chessBoard=CHESS_INIT.map(row=>[...row]);chessSelected=null;chessTurn='white';chessActive=true;chessMoveCount=0;chessTimeLeft=chessTimeSetting;
     document.getElementById('chessSetup').style.display='none';document.getElementById('chessGame').style.display='block';document.getElementById('chessResult').style.display='none';
     chessCanvas=document.getElementById('chessCanvas');
@@ -5775,11 +6256,20 @@ function checkGameOver(){
 }
 
 async function startBlockBlast(){
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
+    // TRY MODE
+    if(_tryMode || (userData.passes||0)<=0){
+        _tryMode=true;
+        initBlockGrid();generatePieces();blockScore=0;blockLevel=1;blockActive=true;blockSelected=null;
+        document.getElementById('blockSetup').style.display='none';document.getElementById('blockGameArea').style.display='block';document.getElementById('blockResult').style.display='none';
+        drawBlockGame();renderBlockPieces();
+        showToast('🎮 Try Mode — No Pass, No Reward!');
+        return;
+    }
     if((userData.balance||0)<blockBet){showToast('❌ Points kam hain!');return;}
+    showToast('⏳ Starting...');
     const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'blockblast',bet:blockBet});
-    if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
-    userData.passes=Math.max(0,(userData.passes||1)-1);
+    if(!r||!r.success){showToast('❌ '+(r?.message||'Server error — refresh karo'));return;}
+    userData.passes=r.passes_remaining!==undefined?r.passes_remaining:Math.max(0,(userData.passes||1)-1);
     userData.balance=Math.max(0,(userData.balance||0)-blockBet);
     updateUI();
     initBlockGrid();generatePieces();
@@ -5990,11 +6480,20 @@ function processMatches(){
 }
 
 async function startGemMatch(){
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
+    // TRY MODE
+    if(_tryMode || (userData.passes||0)<=0){
+        _tryMode=true;
+        initGemGrid();gemScore=0;gemMoves=20;gemActive=true;gemSelected=null;
+        document.getElementById('gemSetup').style.display='none';document.getElementById('gemGameArea').style.display='block';document.getElementById('gemResult').style.display='none';
+        drawGemGrid();
+        showToast('🎮 Try Mode — No Pass, No Reward!');
+        return;
+    }
     if((userData.balance||0)<gemBet){showToast('❌ Points kam hain!');return;}
+    showToast('⏳ Starting...');
     const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'gemmatch',bet:gemBet});
-    if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
-    userData.passes=Math.max(0,(userData.passes||1)-1);
+    if(!r||!r.success){showToast('❌ '+(r?.message||'Server error — refresh karo'));return;}
+    userData.passes=r.passes_remaining!==undefined?r.passes_remaining:Math.max(0,(userData.passes||1)-1);
     userData.balance=Math.max(0,(userData.balance||0)-gemBet);
     updateUI();
     initGemGrid();
@@ -6089,6 +6588,7 @@ function exitChess(){if(chessInterval)clearInterval(chessInterval);chessActive=f
 
 
 function exitRunnerGame(){
+    rInput={left:false,right:false,up:false,down:false};
     runnerGameActive=false;
     if(runnerAnimFrame){cancelAnimationFrame(runnerAnimFrame);runnerAnimFrame=null;}
     document.onkeydown=null;document.onkeyup=null;
@@ -6292,35 +6792,8 @@ async function sendRefNudge(refUserId, refName){
     }catch(e){showToast('❌ Network error');}
 }
 
-function renderRefActivity(refs){
-    const el=document.getElementById('refActivityList')||document.getElementById('refActivity');
-    if(!el)return;
-    if(!refs||!refs.length){el.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px;font-size:12px;">Koi refer nahi abhi • Share karo!</div>';return;}
-    el.innerHTML=refs.slice(0,15).map(r=>{
-        const isActive=r.is_active;
-        const isBlocked=r.bot_blocked;
-        const name=r.first_name||'User';
-        const username=r.username||'';
-        const pts=r.today_search?'<span style="color:var(--green);font-size:9px;">+30pts aaj ✓</span>':'';
-        const joinDate=r.join_date?new Date(r.join_date).toLocaleDateString('en-IN',{day:'numeric',month:'short'}):'';
-        return `<div class="ref-act-item" style="margin-bottom:8px;">
-            <div class="ref-act-dp" style="background:${isActive?'rgba(25,216,158,.15)':'rgba(251,191,36,.1)'};width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">
-                ${isBlocked?'🚫':isActive?'✅':'⏳'}
-            </div>
-            <div class="ref-act-info" style="flex:1;min-width:0;">
-                <div class="ref-act-name" style="font-weight:800;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}${username?' @'+username:''}</div>
-                <div class="ref-act-detail" style="font-size:10px;color:var(--text3);margin-top:2px;">${isBlocked?'🚫 Bot blocked':isActive?'✅ Active'+' • '+joinDate:'⏳ Pending — movie search nahi ki'}</div>
-                ${pts?'<div>'+pts+'</div>':''}
-            </div>
-            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-                <span class="ref-act-badge ${isActive?'badge-active':'badge-pending'}" style="font-size:9px;padding:2px 7px;">${isActive?'ACTIVE':'PENDING'}</span>
-                ${!isBlocked?`<button onclick="openRefUserChat(${r.user_id},'${name.replace(/'/g,"\'")}','${username}')" style="background:linear-gradient(135deg,rgba(56,189,248,.15),rgba(124,92,252,.1));border:1px solid rgba(56,189,248,.35);color:var(--blue);border-radius:8px;padding:4px 9px;font-size:9px;font-weight:900;cursor:pointer;white-space:nowrap;">💬 Message</button>`:''}
-                ${!isBlocked&&!isActive?`<button onclick="sendRefNudge(${r.user_id},'${name.replace(/'/g,"\'")}');" style="background:rgba(25,216,158,.1);border:1px solid rgba(25,216,158,.3);color:var(--green);border-radius:8px;padding:4px 9px;font-size:9px;font-weight:900;cursor:pointer;">📩 Nudge</button>`:''}
-            </div>
-        </div>`;
-    }).join('');
-    if(refs.length>15){el.innerHTML+='<div style="text-align:center;font-size:11px;color:var(--text3);padding:8px;">+ '+(refs.length-15)+' aur users...</div>';}
-}
+// renderRefActivity: duplicate removed
+
 
 // Open Telegram chat with referred user
 function openRefUserChat(userId, name, username){
@@ -6416,20 +6889,23 @@ function clearNotifs(){
 }
 
 // Check for broadcast notifications from server
+// FIXED: localStorage dependency removed — in-memory tracking use karo
+let _lastBroadcastText = '';
 async function checkBroadcastNotifications(){
     try {
         const d = await apiGet('/api/get-announcement');
         if(d && d.text && d.text.trim()){
-            // Check if we already have this notification
-            const key = 'ff_last_bc_' + btoa(d.text.slice(0,20)).replace(/=/g,'');
-            if(!localStorage.getItem(key)){
-                localStorage.setItem(key, '1');
-                addNotification('broadcast', '📢 FilmyFund Update', d.text, d.image_url||'');
-                // Also show announcement banner
-                showAnnouncement(d.text);
+            const msgText = d.text.trim();
+            // FIXED: In-memory check — baar baar same message nahi aayega
+            if(msgText !== _lastBroadcastText){
+                _lastBroadcastText = msgText;
+                // Bell pe notification add karo
+                addNotification('broadcast', '📢 Admin Message', msgText, d.image_url||'');
+                // Banner bhi show karo
+                showAnnouncement(msgText);
             }
         }
-    } catch(e){}
+    } catch(e){ console.error('Broadcast check error:', e); }
 }
 
 
@@ -6778,58 +7254,90 @@ async function sendBulkNudge(){
 }
 
 async function loadTopEarners(){
+    const el=document.getElementById('topEarnersList');
+    if(!el)return;
+    el.innerHTML='<div style="text-align:center;color:var(--text3);font-size:11px;padding:12px;">⏳ Loading...</div>';
     try{
-        const d=await apiGet('/api/live-activity');
-        const el=document.getElementById('topEarnersList');
-        if(!el||!d)return;
-        // Get unique users with game earnings
-        const earners={};
-        (d||[]).forEach(a=>{
-            if(a.type==='game'&&a.amount>0){
-                const uid=a.user_id;
-                if(!earners[uid])earners[uid]={name:a.user_name||'User',total:0};
-                earners[uid].total+=a.amount;
-            }
-        });
-        const sorted=Object.values(earners).sort((a,b)=>b.total-a.total).slice(0,10);
-        if(!sorted.length){el.innerHTML='<div style="text-align:center;color:var(--text3);font-size:11px;padding:8px;">Abhi koi nahi — pehle aap khelo!</div>';return;}
-        el.innerHTML=sorted.map((u,i)=>{
-            const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
-            return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;${i<sorted.length-1?'border-bottom:1px solid var(--border);':''}">
-                <div style="width:24px;font-size:${i<3?'16px':'11px'};font-weight:900;text-align:center;${i>=3?'color:var(--text3);':''}">${medal}</div>
-                <div style="flex:1;font-size:12px;font-weight:700;">${u.name}</div>
-                <div style="font-size:12px;font-weight:900;color:var(--gold);">+${toPoints(u.total)} pts</div>
+        const d=await apiGet('/api/top-earners-today');
+        if(!d||!d.length){
+            el.innerHTML='<div style="text-align:center;color:var(--text3);font-size:11px;padding:12px;">🎮 Aaj abhi koi nahi — pehle aap khelo!</div>';
+            return;
+        }
+        const MEDALS=['🥇','🥈','🥉'];
+        el.innerHTML=d.slice(0,10).map((u,i)=>{
+            const medal=i<3?MEDALS[i]:`<span style="color:var(--text3);font-size:11px;">#${i+1}</span>`;
+            const isMe=(u.user_id===userData.user_id);
+            return `<div style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-radius:10px;${isMe?'background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);':''}${i<d.length-1&&!isMe?'border-bottom:1px solid var(--border);':''}">
+                <div style="width:28px;text-align:center;font-size:${i<3?'18':'13'}px;font-weight:900;">${medal}</div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:12px;font-weight:800;color:${isMe?'var(--gold)':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.name}${isMe?' ⭐':''}</div>
+                    <div style="font-size:10px;color:var(--text3);">Aaj ka kamai</div>
+                </div>
+                <div style="font-family:'Oxanium',sans-serif;font-size:14px;font-weight:900;color:${i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'var(--gold)'};">+${u.pts} pts</div>
             </div>`;
         }).join('');
-    }catch(e){}
+    }catch(e){
+        el.innerHTML='<div style="text-align:center;color:var(--text3);font-size:11px;padding:12px;">Could not load</div>';
+    }
 }
 
 async function init(){
     try{const sv=localStorage.getItem('ez_lang');if(sv)lang=sv;}catch(e){}
     document.getElementById('langFab').style.display='block';
     checkOnboard();
-    if(tg?.initDataUnsafe?.user){userData.first_name=tg.initDataUnsafe.user.first_name||'User';userData.user_id=tg.initDataUnsafe.user.id;userData.photo_url=tg.initDataUnsafe.user.photo_url||null;}
-    else{const uid=new URLSearchParams(location.search).get('user_id');if(uid)userData.user_id=parseInt(uid);}
+    if(tg?.initDataUnsafe?.user){
+        userData.first_name=tg.initDataUnsafe.user.first_name||'User';
+        userData.user_id=tg.initDataUnsafe.user.id;
+        userData.photo_url=tg.initDataUnsafe.user.photo_url||null;
+    } else {
+        const uid=new URLSearchParams(location.search).get('user_id');
+        if(uid)userData.user_id=parseInt(uid);
+    }
+
+    // FIXED: Critical data first (user + bonus days), rest lazy
     showToast('⏳ Loading...');
-    await Promise.all([loadUser(),loadGameState(),loadBonusDays(),loadMissions(),loadAds(),loadLiveActivity()]);
+    try{
+        await Promise.all([loadUser(), loadBonusDays(), loadMissions()]);
+    } catch(e){ console.error('Init load error:',e); }
+
+    // Render immediately after critical data
     checkHappyHours();
-    drawWheel(0);updateUI();updateMissionsUI();
+    try{ drawWheel(0); }catch(e){}
+    updateUI();
+    updateMissionsUI();
+    updateMilestoneCard();
     setLang(lang);
-    // Load announcement immediately on app open
-    loadAnnouncement();
-    // NEW: Check shortlink reminder + streak challenge
-    checkShortlinkReminder();
-    checkStreakChallenge();
     showToast('✅ Ready!');
-    // Load top earners on games page
-    loadTopEarners();
-    setInterval(loadLiveActivity,30000);
-    loadNotifications();
-    setTimeout(checkBroadcastNotifications, 1000);
+
+    // Non-critical — load after short delay so UI doesn't block
+    setTimeout(()=>{
+        loadGameState();
+        loadAds();
+        loadLiveActivity();
+        loadAnnouncement();
+        loadTopEarners();
+        loadNotifications();
+        checkShortlinkReminder();
+        checkStreakChallenge();
+        checkBroadcastNotifications();
+    }, 800);
+
+    // Auto-refresh intervals
+    setInterval(loadLiveActivity, 30000);
     setInterval(checkBroadcastNotifications, 60000);
-    setInterval(async()=>{await loadUser();await loadGameState();checkShortlinkReminder();checkStreakChallenge();},60000);
-    // Auto-refresh leaderboard every 5 min if on ranks tab
-    setInterval(()=>{const ranksTab=document.getElementById('nav1');if(ranksTab&&ranksTab.classList.contains('active'))loadLeaderboard();},300000);
+    setInterval(async()=>{
+        try{
+            await loadUser();
+            await loadGameState();
+            updateMilestoneCard();
+            checkShortlinkReminder();
+            checkStreakChallenge();
+        }catch(e){}
+    }, 60000);
+    setInterval(()=>{
+        const ranksTab=document.getElementById('nav1');
+        if(ranksTab&&ranksTab.classList.contains('active'))loadLeaderboard();
+    }, 300000);
 }
 document.addEventListener('DOMContentLoaded',init);
 </script>
