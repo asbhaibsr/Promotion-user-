@@ -80,7 +80,16 @@ class Database:
             self.channel_joins.create_index([('user_id', ASCENDING), ('channel_id', ASCENDING)], unique=True)
             self.daily_bonus.create_index([('user_id', ASCENDING), ('date', ASCENDING)], unique=True)
             self.daily_bonus.create_index('date')
-            self.missions.create_index([('user_id', ASCENDING), ('date', ASCENDING), ('mission_id', ASCENDING)], unique=True)
+            # FIXED: missions index — (user_id, date, mission_id) unique
+            # Pehle old wrong index drop karo agar hai
+            try:
+                self.missions.drop_index('user_id_1_date_1')
+            except:
+                pass  # Index nahi tha ya already dropped
+            self.missions.create_index(
+                [('user_id', ASCENDING), ('date', ASCENDING), ('mission_id', ASCENDING)],
+                unique=True, name='user_date_mission_unique'
+            )
             self.daily_claims.create_index([('user_id', ASCENDING), ('ad_id', ASCENDING)], unique=True)
             self.ads.create_index('id', unique=True)
             self.live_activity.create_index('timestamp', expireAfterSeconds=604800)
@@ -1175,6 +1184,11 @@ class Database:
             return {}
 
     def _update_single_mission_progress(self, user_id, mission_id, count=1):
+        """
+        FIXED: E11000 duplicate key error fix.
+        missions collection ka index sirf (user_id, date) tha — mission_id nahi tha!
+        Isliye insert fail hota tha. Ab update_one with upsert use karo.
+        """
         try:
             user_id = int(user_id)
             today = datetime.now().date().isoformat()
@@ -1182,23 +1196,46 @@ class Database:
             if not mdef:
                 return
 
-            doc = self.missions.find_one({'user_id': user_id, 'date': today, 'mission_id': mission_id})
-            if not doc:
-                doc = {'user_id': user_id, 'date': today, 'mission_id': mission_id, 'progress': 0, 'completed': False, 'claimed': False}
+            # FIXED: Pehle check karo claimed hai ya nahi
+            existing = self.missions.find_one(
+                {'user_id': user_id, 'date': today, 'mission_id': mission_id},
+                {'claimed': 1, 'progress': 1}
+            )
+            if existing and existing.get('claimed'):
+                return  # Already claimed, don't update
 
-            if doc.get('claimed'):
-                return
-
-            new_progress = min(doc.get('progress', 0) + count, mdef['total'])
+            current_progress = existing.get('progress', 0) if existing else 0
+            new_progress = min(current_progress + count, mdef['total'])
             completed = new_progress >= mdef['total']
 
+            # FIXED: update_one with upsert — no duplicate key error
             self.missions.update_one(
                 {'user_id': user_id, 'date': today, 'mission_id': mission_id},
-                {'$set': {'progress': new_progress, 'completed': completed}},
+                {
+                    '$set': {
+                        'progress': new_progress,
+                        'completed': completed,
+                        'user_id': user_id,
+                        'date': today,
+                        'mission_id': mission_id
+                    },
+                    '$setOnInsert': {'claimed': False}
+                },
                 upsert=True
             )
         except Exception as e:
-            logger.error(f"Error updating mission {mission_id}: {e}")
+            err = str(e)
+            if 'E11000' in err or 'duplicate' in err.lower():
+                # Duplicate key — already exists, just update progress
+                try:
+                    self.missions.update_one(
+                        {'user_id': user_id, 'date': today, 'mission_id': mission_id, 'claimed': {'$ne': True}},
+                        {'$inc': {'progress': count}, '$set': {'completed': True if (count >= mdef['total']) else False}}
+                    )
+                except:
+                    pass
+            else:
+                logger.error(f"Error updating mission {mission_id}: {e}")
 
     def claim_single_mission(self, user_id, mission_id, reward):
         try:
