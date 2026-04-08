@@ -118,7 +118,9 @@ def index():
             'movie_group_link': config.MOVIE_GROUP_LINK if config else '',
             'bot_username': config.BOT_USERNAME if config else '',
             'daily_referral_earning': config.DAILY_REFERRAL_EARNING if config else 0.10,
-            'support_username': config.SUPPORT_USERNAME if config else '@support'
+            'support_username': config.SUPPORT_USERNAME if config else '@support',
+            # FIXED: webapp_url inject karo — frontend 404 fix
+            'webapp_url': config.WEBAPP_URL if config and config.WEBAPP_URL else ''
         }
 
         if user_data:
@@ -287,6 +289,32 @@ def leaderboard_api():
         return jsonify(leaderboard)
     except Exception as e:
         logger.error(f"Leaderboard error: {e}")
+        return jsonify([])
+
+@app.route('/api/top-earners-today')
+def top_earners_today_api():
+    """Top 10 users by today_earned — for games page leaderboard"""
+    try:
+        if not db or not db.ensure_connection():
+            return jsonify([])
+        today = datetime.now().date().isoformat()
+        # Get top 10 users by today_earned
+        top = list(db.users.find(
+            {'today_date': today, 'today_earned': {'$gt': 0}},
+            {'user_id': 1, 'first_name': 1, 'today_earned': 1, '_id': 0}
+        ).sort('today_earned', -1).limit(10))
+        result = []
+        for i, u in enumerate(top):
+            result.append({
+                'rank': i + 1,
+                'name': u.get('first_name', 'User')[:15],
+                'user_id': u.get('user_id', 0),
+                'today_earned': round(u.get('today_earned', 0), 2),
+                'pts': int(u.get('today_earned', 0) * 100)
+            })
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Top earners today error: {e}")
         return jsonify([])
 
 @app.route('/api/live-activity')
@@ -1531,16 +1559,16 @@ def run_bot():
 
 def run_flask():
     port = int(os.environ.get('PORT', 10000))
-    logger.info(f"Flask starting on port {port}")
+    logger.info(f"Flask starting on port {port} with 16 threads")
     try:
-        # Gunicorn nahi, seedha Flask — bot bhi usi thread mein chal sake
         from waitress import serve as waitress_serve
-        waitress_serve(app, host='0.0.0.0', port=port)
+        waitress_serve(app, host='0.0.0.0', port=port,
+                      threads=16, channel_timeout=120,
+                      connection_limit=500, cleanup_interval=30)
     except ImportError:
-        # waitress nahi hai toh Flask built-in use karo
         app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False, threaded=True)
     except Exception as e:
-        logger.error(f"Flask error: {e}")
+        logger.error(f"Flask server error: {e}")
 
 def signal_handler(sig, frame):
     global db, bot_loop, bot_running
