@@ -1403,10 +1403,12 @@ async def post_init(application):
         ]
         await application.bot.set_my_commands(commands)
 
-        if config and config.WEBHOOK_URL:
-            webhook_url = f"{config.WEBHOOK_URL}/webhook"
-            await application.bot.set_webhook(url=webhook_url)
-            logger.info(f"Webhook set to {webhook_url}")
+        # Webhook delete karo — polling use ho raha hai, dono ek saath nahi chalte
+        try:
+            await application.bot.delete_webhook(drop_pending_updates=True)
+            logger.info("Webhook deleted — polling mode active")
+        except Exception as _we:
+            logger.warning(f"Webhook delete error (ignore): {_we}")
 
         if config and config.LOG_CHANNEL_ID:
             try:
