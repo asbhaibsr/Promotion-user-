@@ -384,21 +384,23 @@ class Handlers:
 
             # ── Message type detect ──
             text_upper = text.upper()
-            has_verify  = '#VERIFYCOMPLETE' in text_upper or 'VERIFYCOMPLETE' in text_upper
+            has_verify   = '#VERIFYCOMPLETE' in text_upper or 'VERIFYCOMPLETE' in text_upper
             has_filesent = '#FILESENT' in text_upper or 'FILESENT' in text_upper
             has_newuser  = '#NEWUSER' in text_upper
             has_vshort   = '#VERIFYSHORTLINK' in text_upper or 'VERIFYSHORTLINK' in text_upper
             has_slv      = 'SHORTLINK VERIFIED' in text_upper
+            # #ShortlinkShown = sirf shortlink MILI hai, puri NAHI hui — IGNORE karo
+            has_shortlink_shown = '#SHORTLINKSHOWN' in text_upper
 
-            logger.info(f"Detect: VerifyComplete={has_verify} FileSent={has_filesent} NewUser={has_newuser} VerifyShort={has_vshort}")
+            logger.info(f"Detect: VerifyComplete={has_verify} FileSent={has_filesent} NewUser={has_newuser} VerifyShort={has_vshort} ShortlinkShown(ignored)={has_shortlink_shown}")
 
-            # ── #NewUser — sirf log, kuch action nahi ──
-            if has_newuser and not has_verify and not has_filesent and not has_vshort and not has_slv:
+            # ── Ignore list — koi action nahi ──
+            if has_newuser or has_shortlink_shown:
                 uid, name = self._parse_user_id_and_name(text)
-                logger.info(f"#NewUser message — ID={uid} Name={name} — NO ACTION")
+                logger.info(f"IGNORED: #NewUser or #ShortlinkShown — ID={uid} — NO ACTION")
                 return
 
-            # ── Verify messages — activate karo ──
+            # ── Verify messages — SIRF in pe activate karo ──
             if has_verify or has_filesent or has_vshort or has_slv:
                 uid, name = self._parse_user_id_and_name(text)
                 logger.info(f"VERIFY MSG parsed: uid={uid} name={name}")
@@ -408,16 +410,16 @@ class Handlers:
                     return
 
                 msg_type = (
-                    'VerifyComplete' if has_verify else
-                    'FileSent'       if has_filesent else
+                    'VerifyComplete'  if has_verify else
+                    'FileSent'        if has_filesent else
                     'Verifyshortlink' if has_vshort else
                     'ShortlinkVerified'
                 )
-                logger.info(f"Processing: type={msg_type} uid={uid} name={name}")
+                logger.info(f"✅ Processing: type={msg_type} uid={uid} name={name}")
                 await self._activate_and_notify(uid, name, context)
 
             else:
-                logger.debug(f"Unrecognized log format (no action): {text[:100]}")
+                logger.info(f"ℹ️ No action needed: {text[:60]}")
 
         except Exception as e:
             logger.error(f"handle_log_channel_message ERROR: {e}", exc_info=True)
@@ -449,6 +451,20 @@ class Handlers:
             line = line.strip()
             if not line:
                 continue
+
+            # ── Method 0: "👤 12345 | Name" format (#ShortlinkShown) ──
+            if '👤' in line and '|' in line:
+                # Format: "👤 677930179 | Smile :)"
+                m0 = re.search(r'👤\s*(\d{5,15})\s*\|\s*(.+)', line)
+                if m0:
+                    try:
+                        user_id = int(m0.group(1))
+                        name_part = m0.group(2).strip()
+                        if name_part:
+                            name = name_part[:50]
+                        logger.debug(f"ID parsed (👤|pipe format): {user_id} name={name}")
+                    except:
+                        pass
 
             # ── Method 1: Normal "ID - 12345" or "ID: 12345" ──
             m = re.match(r'^ID\s*[-:]\s*(\d{5,15})', line, re.IGNORECASE)
