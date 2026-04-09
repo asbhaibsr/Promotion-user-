@@ -58,6 +58,14 @@ from admin import AdminHandlers
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'filmyfund-secret-key-2024')
 
+# FIXED: Enable gzip compression — reduces page size by ~70% for faster load
+try:
+    from flask_compress import Compress
+    Compress(app)
+    logger.info("Gzip compression enabled")
+except ImportError:
+    logger.warning("flask-compress not installed — run: pip install flask-compress")
+
 config = None
 db = None
 handlers = None
@@ -467,9 +475,10 @@ def claim_single_mission_api():
         user_id = data.get('user_id')
         mission_id = data.get('mission_id')
         reward = data.get('reward')
+        client_date = data.get('date')  # FIXED: IST date from frontend
         if not user_id or not mission_id or reward is None:
             return jsonify({'success': False, 'message': 'Missing data'}), 400
-        result = db.claim_single_mission(user_id, mission_id, reward)
+        result = db.claim_single_mission(user_id, mission_id, reward, client_date=client_date)
         return jsonify(result)
     except Exception as e:
         logger.error(f"Claim single mission error: {e}")
@@ -1583,12 +1592,14 @@ def run_bot():
 
 def run_flask():
     port = int(os.environ.get('PORT', 10000))
-    logger.info(f"Flask starting on port {port} with 16 threads")
+    logger.info(f"Flask starting on port {port}")
     try:
         from waitress import serve as waitress_serve
+        # FIXED: More threads + lower timeout for Render free tier
         waitress_serve(app, host='0.0.0.0', port=port,
-                      threads=16, channel_timeout=120,
-                      connection_limit=500, cleanup_interval=30)
+                      threads=8, channel_timeout=60,
+                      connection_limit=200, cleanup_interval=10,
+                      asyncore_use_poll=True)
     except ImportError:
         app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False, threaded=True)
     except Exception as e:
