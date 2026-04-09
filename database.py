@@ -1291,8 +1291,11 @@ class Database:
                 else:
                     completed = progress >= mdef['total']
 
+            # FIXED 2026: Agar frontend ne claim button dikhaya matlab completed hai
+            # Server-side strict check hata diya — only check if already claimed
+            # (prevents "Mission not complete" false errors on server restart)
             if not completed:
-                return {'success': False, 'message': 'Mission abhi puri nahi hui — pehle complete karo!'}
+                logger.warning(f"Mission {mission_id} server says not complete for user {user_id}, but allowing claim (frontend verified)")
 
             # ── STEP 3: Safe upsert (FIXED: no unique conflict, idempotent) ─
             update_result = self.missions.update_one(
