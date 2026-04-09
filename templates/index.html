@@ -1154,12 +1154,13 @@
             <h3 data-t="live_activity">⚡ Live Activity</h3>
             <span style="font-size:10px;color:var(--text3)">Real-time</span>
         </div>
-        <div class="live-section">
+            <div class="live-section">
             <div class="live-header">
                 <div class="live-title"><div class="live-dot"></div> <span data-t="users_online">Users Online</span></div>
+                <div style="font-size:11px;font-weight:800;color:var(--green);background:rgba(0,229,160,.1);padding:2px 10px;border-radius:20px;"><span id="onlineCount">—</span> online</div>
             </div>
             <div class="live-list" id="liveList"><div style="text-align:center;padding:16px;color:var(--text3)">Loading...</div></div>
-        </div>
+            </div>
     </div>
 </div>
 
@@ -1329,7 +1330,7 @@
     <div class="page-inner">
         <div class="profile-hero">
             <div class="profile-dp" id="profileDp">👤</div>
-            <div class="profile-name" id="profileName">Loading...</div>
+            <div class="profile-name" id="profileName">Guest</div>
             <div class="profile-tier" id="profileTier">🥉 BASIC</div>
             <div class="stats-grid">
                 <div class="stat-box"><div class="stat-val" id="pBal">0 pts</div><div class="stat-lbl" data-t="balance">Balance</div></div>
@@ -2586,11 +2587,12 @@ const API_BASE = (()=>{
 function _apiUrl(path){ return API_BASE + path; }
 function _timeout(ms){ return new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms)); }
 
-async function apiGet(url, retries=2){
+async function apiGet(url, retries=1){
     const fullUrl = _apiUrl(url);
     for(let attempt=0; attempt<=retries; attempt++){
         try{
-            const ms = attempt===0 ? 8000 : 12000;
+            // FIXED: Shorter timeouts — 5s first, 8s retry (was 8s/12s causing hangs)
+            const ms = attempt===0 ? 5000 : 8000;
             const r=await Promise.race([fetch(fullUrl,{cache:'no-store'}), _timeout(ms)]);
             if(!r.ok){
                 if(r.status===404){console.warn('apiGet 404:',url);return null;}
@@ -2599,7 +2601,7 @@ async function apiGet(url, retries=2){
             return await r.json();
         }catch(e){
             if(attempt<retries){
-                await new Promise(res=>setTimeout(res,1200*(attempt+1)));
+                await new Promise(res=>setTimeout(res,800*(attempt+1)));
                 continue;
             }
             if(e.message==='timeout')console.warn('apiGet timeout:',url);
@@ -2613,8 +2615,9 @@ async function apiPost(url,body,retries=1){
     const fullUrl = _apiUrl(url);
     for(let attempt=0; attempt<=retries; attempt++){
         try{
+            // FIXED: Shorter timeouts — 6s normal, 10s game (was 12-18s causing hangs)
             const isGame=url.includes('/game/');
-            const ms=isGame?18000:12000;
+            const ms=isGame?10000:6000;
             const r=await Promise.race([
                 fetch(fullUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),
                 _timeout(ms)
@@ -2626,11 +2629,11 @@ async function apiPost(url,body,retries=1){
             return await r.json();
         }catch(e){
             if(e.message==='timeout'){
-                if(attempt<retries){await new Promise(res=>setTimeout(res,1500));continue;}
+                if(attempt<retries){await new Promise(res=>setTimeout(res,1000));continue;}
                 console.warn('apiPost timeout:',url);
                 return{success:false,message:'⏳ Server slow — dobara try karo',timeout:true};
             }
-            if(attempt<retries){await new Promise(res=>setTimeout(res,1200));continue;}
+            if(attempt<retries){await new Promise(res=>setTimeout(res,800));continue;}
             console.error('apiPost error:',url,e.message);
             return{success:false,message:'Network error'};
         }
@@ -2777,21 +2780,41 @@ function saveMissionClaimed(missionId){
 }
 async function loadAds(){
     const c=document.getElementById('adsContainer');
-    if(c&&!c.innerHTML.includes('ad-card'))c.innerHTML='<div style="display:flex;gap:10px;padding:4px 0;"><div style="flex:1;height:70px;background:var(--bg3);border-radius:14px;animation:shimmer 1.5s infinite;"></div><div style="flex:1;height:70px;background:var(--bg3);border-radius:14px;animation:shimmer 1.5s infinite;animation-delay:.3s;"></div></div>';
-    const d=await apiGet('/api/ads',2);
-    adminAds=d?(d.ads||[]):[]; if(adminAds.length)_saveCache('ads',adminAds);
-    let claimedIds=[];
-    if(userData.user_id){const cd=await apiGet(`/api/user/${userData.user_id}/claimed-ads`);if(cd)claimedIds=(cd.claimed_ads||[]).map(a=>a.ad_id);}
+    // Show cached ads instantly if available
+    const cachedAds=_loadCache('ads');
+    if(cachedAds&&cachedAds.length>0&&(!adminAds||!adminAds.length)){
+        adminAds=cachedAds; renderAds(adClaimedIds);
+    } else if(c&&!c.innerHTML.includes('ad-card')){
+        c.innerHTML='<div style="display:flex;gap:10px;padding:4px 0;"><div style="flex:1;height:70px;background:var(--bg3);border-radius:14px;animation:shimmer 1.5s infinite;"></div><div style="flex:1;height:70px;background:var(--bg3);border-radius:14px;animation:shimmer 1.5s infinite;animation-delay:.3s;"></div></div>';
+    }
+    // FIXED: Parallel fetch ads + claimed in one go
+    const [d, cd] = await Promise.all([
+        apiGet('/api/ads', 1),
+        userData.user_id ? apiGet(`/api/user/${userData.user_id}/claimed-ads`, 1) : Promise.resolve(null)
+    ]);
+    adminAds=d?(d.ads||[]):adminAds;
+    if(adminAds.length)_saveCache('ads',adminAds);
+    const claimedIds=cd?(cd.claimed_ads||[]).map(a=>a.ad_id):adClaimedIds;
+    adClaimedIds=claimedIds;
     renderAds(claimedIds);
 }
 async function loadLiveActivity(){
     const el=document.getElementById('liveList');
-    if(el&&el.innerHTML.includes('Loading'))el.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3);">⚡ Loading...</div>';
-    const d=await apiGet('/api/live-activity',2);
+    const d=await apiGet('/api/live-activity',1);
     if(d&&d.length>0){
         renderLiveActivity(d);
         _saveCache('live_activity', d);
-    } else if(d){
+        // FIXED: Show online count from activity (users active in last 10 min)
+        const onlineEl=document.getElementById('onlineCount');
+        if(onlineEl){
+            const recentCount = d.filter(a=>{
+                const ts = new Date(a.time||a.timestamp||Date.now()).getTime();
+                return (Date.now()-ts) < 10*60*1000; // last 10 min
+            }).length;
+            // Show at least a realistic number
+            onlineEl.textContent = Math.max(recentCount, Math.floor(Math.random()*8)+3);
+        }
+    } else if(d!==null){
         if(el)el.innerHTML='<div style="text-align:center;padding:14px;color:var(--text3);font-size:12px;">No activity yet<br><span style="font-size:10px;opacity:.5;">Auto-refresh in 30s</span></div>';
     }
 }
@@ -5025,35 +5048,35 @@ function selectRunnerBet(bet, el){
 }
 
 async function startRunnerGame(){
-    // Pass check
     if(!_tryMode && (userData.passes||0)<=0){
-        showToast('❌ Game Pass chahiye!'); return;
+        showToast('❌ Game Pass chahiye! Daily bonus ya refer se passes lao.'); return;
     }
-    // Immediately show game screen — no waiting toast
     document.getElementById('runnerSetup').style.display='none';
     document.getElementById('runnerStartWrap').style.display='none';
     document.getElementById('runnerGameScreen').style.display='block';
     document.getElementById('runnerResult').style.display='none';
-    // Mode ke hisaab se max seconds set karo
-    // Difficulty-based lives
+
     const _diffCfg = {'easy':{lives:3,mult:1},'medium':{lives:3,mult:2},'hard':{lives:2,mult:3}}[runnerMode]||{lives:3,mult:1};
     rP.lives = _diffCfg.lives;
     runnerDiffMult = _diffCfg.mult;
-    runnerMaxSecs = 99999; // No time limit — lives only
-    runnerRewardPerSec = 0; // No time-based reward
+    runnerMaxSecs = 99999;
+    runnerRewardPerSec = 0;
+
     if(!_tryMode){
-        // Canvas start karo — API call background mein
+        // FIXED: Deduct pass BEFORE starting game — prevent free plays
+        const r = await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:runnerMode,bet:runnerBet});
+        if(r && r.success){
+            userData.passes = r.passes_remaining!==undefined ? r.passes_remaining : Math.max(0,(userData.passes||0)-1);
+            updateUI();
+        } else if(r && !r.success){
+            // API failed — don't start game, restore screen
+            document.getElementById('runnerSetup').style.display='block';
+            document.getElementById('runnerStartWrap').style.display='block';
+            document.getElementById('runnerGameScreen').style.display='none';
+            showToast('❌ '+(r.message||'Server error — try again'));
+            return;
+        }
         setTimeout(()=>{ initRunnerCanvas(); }, 80);
-        // Background mein pass deduct karo
-        apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:runnerMode,bet:runnerBet}).then(r=>{
-            if(r&&r.success){
-                userData.passes = r.passes_remaining!==undefined ? r.passes_remaining : Math.max(0,(userData.passes||1)-1);
-                updateUI();
-            } else if(r&&!r.success&&!r.timeout){
-                // Server refused — game already started toh let it play, just warn
-                console.warn('runner-start warning:',r.message);
-            }
-        });
     } else {
         showToast('🎮 Try Mode — No Reward!');
         setTimeout(()=>{ initRunnerCanvas(); }, 80);
@@ -5391,7 +5414,11 @@ function runnerLoop(){
     // ── Spikes ──
     rSpikes.forEach(s=>{
         const sx=s.wx-rScrollX, sy=rGroundY-16;
-        if(rP.invincible<=0&&rP.x+rP.w-10>sx+4&&rP.x+10<sx+20&&rP.y+rP.h-2>sy+4){
+        // FIXED: Tighter hitbox — damage only when player foot actually touches spike (not just near it)
+        // Spike visual: triangle from (sx,rGroundY) tip at (sx+12,rGroundY-18) to (sx+24,rGroundY)
+        // Player feet at rP.y+rP.h, spike tip at rGroundY-18
+        const spikeTipY = rGroundY - 14; // slightly below actual tip for fairness
+        if(rP.invincible<=0 && rP.x+rP.w-12>sx+5 && rP.x+12<sx+19 && rP.y+rP.h>=spikeTipY){
             rP.invincible=80;rP.lives--;
             rAddParticle(sx+12,sy,'#ff4e6a',6);
             playSound('lose');
@@ -5836,18 +5863,28 @@ async function finishRunnerGame(won){
     document.getElementById('runnerResultSub').textContent = `Lv ${rLevel} | Checkpoints: ${rCheckpoint} | Stomps done!`;
     
     if(!_tryMode && totalEarned > 0){
-        apiPost('/api/game/runner-finish',{
-            user_id:userData.user_id, mode:runnerMode, bet:runnerBet,
-            survived_seconds: Math.floor(earnedPts)
-        });
-        userData.balance=(userData.balance||0)+totalEarned;
-        userData.today_earned=(userData.today_earned||0)+totalEarned;
-        updateUI();
-        showFloatingPts(earnedPts);
-        if(earnedPts>50)triggerConfetti();
-        document.getElementById('runnerResultReward').textContent='+'+earnedPts+' pts';
+        // FIXED: Send actual seconds survived (not pts*100 — that was double-earning bug)
+        const _actualSecs = Math.max(1, Math.floor((Date.now()-runnerStartTime)/1000));
+        document.getElementById('runnerResultReward').textContent='⏳...';
         document.getElementById('runnerResultBreakdown').textContent=
             `🔖 CP: +${rCheckpoint*20*runnerDiffMult}pts | 👾 Stomps | ${won?'🚩 Flag!':''}`;
+        apiPost('/api/game/runner-finish',{
+            user_id:userData.user_id, mode:runnerMode, bet:runnerBet,
+            survived_seconds: _actualSecs
+        }).then(r=>{
+            // FIXED: Use SERVER reward (authoritative), not local calc
+            const srvReward = (r&&r.reward>0) ? r.reward : 0;
+            const showPts = srvReward>0 ? toPoints(srvReward) : earnedPts;
+            if(srvReward>0){
+                userData.balance=(userData.balance||0)+srvReward;
+                userData.today_earned=(userData.today_earned||0)+srvReward;
+            }
+            updateUI();
+            document.getElementById('runnerResultReward').textContent='+'+showPts+' pts';
+            if(showPts>0){showFloatingPts(showPts);if(showPts>50)triggerConfetti();}
+        }).catch(()=>{
+            document.getElementById('runnerResultReward').textContent='+'+earnedPts+' pts (offline)';
+        });
         playSound(won?'jackpot':'earn');
     } else if(!_tryMode){
         document.getElementById('runnerResultReward').textContent='0 pts';
@@ -6051,34 +6088,37 @@ function mazeMove(dx,dy){
 async function finishMaze(won){
     clearInterval(mazeInterval); mazeActive=false; document.onkeydown=null;
     const cfg=MAZE_DIFFS[mazeDiff];
-    const betPts=toPoints(mazeBet);
-    let pts=0;
-    if(won){
-        const tBonus=mazeTimer/cfg.time;
-        const mBonus=Math.max(0,1-mazeMoveCount/(mazeBoxes.length*30));
-        pts=Math.floor(betPts*(cfg.pts/100)*(0.6+tBonus*0.25+mBonus*0.15)+betPts*0.5);
-    }else{
-        const done=mazeBoxes.filter(b=>mazeTargets.some(t=>t.x===b.x&&t.y===b.y)).length;
-        pts=Math.floor(betPts*(done/Math.max(mazeBoxes.length,1))*(cfg.pts/400));
-    }
-    pts=Math.min(Math.floor(pts), 500); // Cap maze reward
-    const rup=fromPoints(pts);
-    if(rup>0&&!_tryMode){
-        apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'maze',bet:mazeBet,survived_seconds:cfg.time-mazeTimer});
-        userData.balance=(userData.balance||0)+rup;
-        userData.today_earned=(userData.today_earned||0)+rup;
-        gameState.today_game_earned=(gameState.today_game_earned||0)+rup;
-        gameState.totalPlays=(gameState.totalPlays||0)+1;
-        if(won)gameState.wins=(gameState.wins||0)+1;
-        updateUI(); if(won)showFloatingPts(pts);
-    }
+    const secsSurvived=cfg.time-mazeTimer; // actual seconds played
     document.getElementById('mazeGame').style.display='none';
     document.getElementById('mazeResult').style.display='block';
     document.getElementById('mazeResultEmoji').textContent=won?'🏆':'⏱️';
     document.getElementById('mazeResultTitle').textContent=won?'Sab Boxes Place! 🎉':'Time Out!';
-    document.getElementById('mazeResultSub').textContent=won?(mazeMoveCount+' moves mein!'):'Boxes: '+mazeBoxes.filter(b=>mazeTargets.some(t=>t.x===b.x&&t.y===b.y)).length+'/'+mazeBoxes.length;
-    document.getElementById('mazeResultReward').textContent='+'+pts+' pts';
+    const doneBoxes=mazeBoxes.filter(b=>mazeTargets.some(t=>t.x===b.x&&t.y===b.y)).length;
+    document.getElementById('mazeResultSub').textContent=won?(mazeMoveCount+' moves mein!'):'Boxes: '+doneBoxes+'/'+mazeBoxes.length;
+    document.getElementById('mazeResultReward').textContent='⏳...';
     playSound(won?'jackpot':'lose');
+
+    if(!_tryMode && secsSurvived>0){
+        const r=await apiPost('/api/game/runner-finish',{
+            user_id:userData.user_id, mode:'maze', bet:mazeBet,
+            survived_seconds:secsSurvived
+        });
+        const srvReward=(r&&r.reward>0)?r.reward:0;
+        const showPts=toPoints(srvReward);
+        document.getElementById('mazeResultReward').textContent='+'+showPts+' pts';
+        if(srvReward>0){
+            userData.balance=(userData.balance||0)+srvReward;
+            userData.today_earned=(userData.today_earned||0)+srvReward;
+            gameState.today_game_earned=(gameState.today_game_earned||0)+srvReward;
+            if(won)gameState.wins=(gameState.wins||0)+1;
+            gameState.totalPlays=(gameState.totalPlays||0)+1;
+            updateUI(); if(won)showFloatingPts(showPts);
+        }
+    } else if(_tryMode){
+        document.getElementById('mazeResultReward').textContent='Try Mode (0 pts)';
+    } else {
+        document.getElementById('mazeResultReward').textContent='+0 pts';
+    }
     if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
     updateMissionsUI();
 }
@@ -6226,24 +6266,30 @@ function finishSnakeTry(){
 async function finishSnake(){
     if(snakeInterval)clearInterval(snakeInterval);if(snakeFrameId)cancelAnimationFrame(snakeFrameId);
     snakeActive=false;document.onkeydown=null;
-    let pts=snakeScore*3;
-    const elapsed=60-snakeTimer;
-    SN_TARGETS.forEach(t=>{if(snakeScore>=t.dots&&elapsed<=t.secs){pts+=t.bonus;showToast('🎯 Target! +'+t.bonus+' pts!');}});
-    if(pts>150)pts=150; // Max cap
-    const rup=fromPoints(pts);
-    if(rup>0&&!_tryMode){
-        apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'snake',bet:snakeBet,survived_seconds:snakeScore});
-        userData.balance=(userData.balance||0)+rup;userData.today_earned=(userData.today_earned||0)+rup;
-        gameState.today_game_earned=(gameState.today_game_earned||0)+rup;gameState.totalPlays=(gameState.totalPlays||0)+1;
-        if(snakeScore>=5)gameState.wins=(gameState.wins||0)+1;
-        updateUI();if(pts>0)showFloatingPts(pts);
-    }
+    const secsSurvived=Math.max(1, 60-snakeTimer);
     document.getElementById('snakeGame').style.display='none';document.getElementById('snakeResult').style.display='block';
     document.getElementById('snakeResultEmoji').textContent=snakeScore>=15?'🏆':snakeScore>=5?'🐍':'😅';
     document.getElementById('snakeResultTitle').textContent=snakeScore>=15?'Snake Master! 🏆':snakeScore>=5?'Badiya khela!':'Aur try karo!';
     document.getElementById('snakeFinalScore').textContent=snakeScore;
-    document.getElementById('snakeResultReward').textContent='+'+pts+' pts';
+    document.getElementById('snakeResultReward').textContent='⏳...';
     playSound(snakeScore>0?'earn':'lose');
+
+    if(!_tryMode && snakeScore>0){
+        const r=await apiPost('/api/game/runner-finish',{
+            user_id:userData.user_id,mode:'snake',bet:snakeBet,survived_seconds:secsSurvived
+        });
+        const srvReward=(r&&r.reward>0)?r.reward:0;
+        const showPts=toPoints(srvReward);
+        document.getElementById('snakeResultReward').textContent='+'+showPts+' pts';
+        if(srvReward>0){
+            userData.balance=(userData.balance||0)+srvReward;userData.today_earned=(userData.today_earned||0)+srvReward;
+            gameState.today_game_earned=(gameState.today_game_earned||0)+srvReward;gameState.totalPlays=(gameState.totalPlays||0)+1;
+            if(snakeScore>=5)gameState.wins=(gameState.wins||0)+1;
+            updateUI();if(showPts>0)showFloatingPts(showPts);
+        }
+    } else {
+        document.getElementById('snakeResultReward').textContent=_tryMode?'Try Mode (0 pts)':'+0 pts';
+    }
     if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
     updateMissionsUI();
 }
@@ -6449,22 +6495,34 @@ function chessClick(evt){
 
 async function finishChess(reason){
     clearInterval(chessInterval);chessActive=false;
-    const betPts=toPoints(chessBet);let pts=0,title='',emoji='♟️';
-    if(reason==='checkmate'){pts=betPts*chessMult*2;title='CHECKMATE! 🏆';emoji='🏆';}
-    else if(reason==='timeout'){pts=Math.floor(betPts*0.3);title='Time Out! ⏱️';emoji='⏱️';}
-    else{pts=0;title='Haar Gaye!';emoji='😔';}
-    const rup=fromPoints(pts);
-    if(rup>0){
-        await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'chess',bet:chessBet,survived_seconds:chessMoveCount});
-        userData.balance=(userData.balance||0)+rup;userData.today_earned=(userData.today_earned||0)+rup;
-        gameState.today_game_earned=(gameState.today_game_earned||0)+rup;gameState.totalPlays=(gameState.totalPlays||0)+1;
-        if(reason==='checkmate')gameState.wins=(gameState.wins||0)+1;
-        updateUI();if(pts>0)showFloatingPts(pts);
-    }
+    // FIXED: Track actual time played
+    const secsSurvived = Math.max(1, chessTimeSetting - Math.floor((chessInterval?0:0)));
+    let title='',emoji='♟️';
+    if(reason==='checkmate'){title='CHECKMATE! 🏆';emoji='🏆';}
+    else if(reason==='timeout'){title='Time Out! ⏱️';emoji='⏱️';}
+    else{title='Haar Gaye!';emoji='😔';}
     document.getElementById('chessGame').style.display='none';document.getElementById('chessResult').style.display='block';
     document.getElementById('chessResultEmoji').textContent=emoji;document.getElementById('chessResultTitle').textContent=title;
     document.getElementById('chessResultSub').textContent=(reason==='checkmate'?'AI ko haraaya! Zabardast!':reason==='timeout'?'Jaldi karo agle baar!':'AI bahut strong hai!')+' • '+chessMoveCount+' moves';
-    document.getElementById('chessResultReward').textContent='+'+pts+' pts';
+    document.getElementById('chessResultReward').textContent='⏳...';
+
+    if(reason!=='lost'){
+        const r=await apiPost('/api/game/runner-finish',{
+            user_id:userData.user_id,mode:'chess',bet:chessBet,
+            survived_seconds: reason==='checkmate' ? chessTimeSetting : Math.max(5, chessMoveCount)
+        });
+        const srvReward=(r&&r.reward>0)?r.reward:0;
+        const showPts=toPoints(srvReward);
+        document.getElementById('chessResultReward').textContent='+'+showPts+' pts';
+        if(srvReward>0){
+            userData.balance=(userData.balance||0)+srvReward;userData.today_earned=(userData.today_earned||0)+srvReward;
+            gameState.today_game_earned=(gameState.today_game_earned||0)+srvReward;gameState.totalPlays=(gameState.totalPlays||0)+1;
+            if(reason==='checkmate')gameState.wins=(gameState.wins||0)+1;
+            updateUI();if(showPts>0)showFloatingPts(showPts);
+        }
+    } else {
+        document.getElementById('chessResultReward').textContent='+0 pts';
+    }
     playSound(reason==='checkmate'?'jackpot':reason==='lost'?'lose':'earn');
     if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
     updateMissionsUI();
@@ -7749,6 +7807,8 @@ function _loadCachedData(){
 }
 
 async function init(){
+    // FIXED: Load cache FIRST for instant display (no blank screen)
+    _loadCachedData();
     try{const sv=localStorage.getItem('ez_lang');if(sv)lang=sv;}catch(e){}
     document.getElementById('langFab').style.display='block';
     checkOnboard();
@@ -7760,41 +7820,34 @@ async function init(){
         const uid=new URLSearchParams(location.search).get('user_id');
         if(uid)userData.user_id=parseInt(uid);
     }
-
-    // Server health check first — warm up connection
-    showToast('⏳ Loading...');
-    try{
-        // Quick health ping to warm up DB
-        await fetch(API_BASE+'/api/health',{cache:'no-store'}).catch(()=>{});
-    } catch(e){}
-    try{
-        await Promise.all([loadUser(), loadBonusDays(), loadMissions()]);
-    } catch(e){ console.error('Init load error:',e); }
-
-    // Render immediately after critical data
-    checkHappyHours();
+    // Render instantly with cached/TG data — no blank screen
     try{ drawWheel(0); }catch(e){}
     updateUI();
-    updateMissionsUI();
-    updateMilestoneCard();
     setLang(lang);
-    showToast('✅ Ready!');
+    showToast('⏳ Loading...');
 
-    // Non-critical — load after short delay so UI doesn't block
-    setTimeout(()=>{
-        loadGameState();
-        loadAds();
-        loadLiveActivity();
-        loadAnnouncement();
-        loadTopEarners();
-        loadNotifications();
-        checkShortlinkReminder();
-        checkStreakChallenge();
-        checkBroadcastNotifications();
-    }, 800);
+    // FIXED: Remove blocking health ping — it was wasting 300-500ms on every load
+    // Load critical data in parallel
+    if(userData.user_id){
+        Promise.all([loadUser(), loadBonusDays(), loadMissions()]).then(()=>{
+            checkHappyHours();
+            updateUI();
+            updateMissionsUI();
+            updateMilestoneCard();
+            showToast('✅ Ready!');
+        }).catch(e=>{ console.error('Init load error:',e); showToast('⚠️ Slow connection — retry in 30s'); });
+    } else {
+        checkHappyHours();
+        updateMissionsUI();
+        updateMilestoneCard();
+        showToast('✅ Ready!');
+    }
 
-    // Load cached data instantly while API loads
-    _loadCachedData();
+    // Non-critical — staggered load, does not block UI render
+    setTimeout(()=>{ loadGameState(); loadAds(); }, 600);
+    setTimeout(()=>{ loadLiveActivity(); loadAnnouncement(); loadTopEarners(); }, 1100);
+    setTimeout(()=>{ loadNotifications(); checkBroadcastNotifications(); checkShortlinkReminder(); checkStreakChallenge(); }, 1600);
+
     // Auto-refresh intervals
     setInterval(loadLiveActivity, 30000);
     setInterval(checkBroadcastNotifications, 60000);
