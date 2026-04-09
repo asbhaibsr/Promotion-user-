@@ -52,9 +52,11 @@ class Config:
         # SUPPORT
         self.SUPPORT_USERNAME  = os.getenv('SUPPORT_USERNAME', '@asbhaibsr')
 
-        # WEBAPP
-        self.WEBAPP_URL  = os.getenv('WEBAPP_URL')
-        self.WEBHOOK_URL = os.getenv('WEBHOOK_URL')
+        # WEBAPP — FIXED: WEBAPP_URL nahi hai toh WEBHOOK_URL use karo
+        self.WEBHOOK_URL = os.getenv('WEBHOOK_URL', '')
+        _raw_webapp = os.getenv('WEBAPP_URL') or self.WEBHOOK_URL or ''
+        # Remove /webhook suffix if present
+        self.WEBAPP_URL = _raw_webapp.rstrip('/').replace('/webhook','')
 
         # MONGODB
         self.MONGODB_URI = os.getenv('MONGODB_URI')
