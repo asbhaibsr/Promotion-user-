@@ -1237,21 +1237,29 @@ class Database:
             else:
                 logger.error(f"Error updating mission {mission_id}: {e}")
 
-    def claim_single_mission(self, user_id, mission_id, reward):
+    def claim_single_mission(self, user_id, mission_id, reward, client_date=None):
         try:
             user_id = int(user_id)
-            today = datetime.now().date().isoformat()
+            # FIXED: IST timezone support — server may be UTC, client sends IST date
+            from datetime import timezone, timedelta as _td
+            server_today = datetime.now().date().isoformat()
+            ist_now = datetime.now(timezone.utc) + _td(hours=5, minutes=30)
+            ist_today = ist_now.date().isoformat()
+            # Accept either server date or IST date (whichever matches client)
+            today = client_date if client_date in [server_today, ist_today] else ist_today
 
             mdef = next((m for m in self.MISSIONS_DEF if m['id'] == mission_id), None)
             if not mdef:
                 return {'success': False, 'message': 'Mission not found'}
 
-            # ── STEP 1: Check already claimed (fast exit) ──────────────
-            doc = self.missions.find_one({
-                'user_id': user_id, 'date': today, 'mission_id': mission_id
-            })
-            if doc and doc.get('claimed'):
-                return {'success': False, 'message': 'Already claimed'}
+            # ── STEP 1: Check already claimed (check all possible dates) ──
+            for check_date in list({today, server_today, ist_today}):
+                chk = self.missions.find_one({
+                    'user_id': user_id, 'date': check_date, 'mission_id': mission_id
+                })
+                if chk and chk.get('claimed'):
+                    return {'success': False, 'message': 'Already claimed'}
+            doc = self.missions.find_one({'user_id': user_id, 'date': today, 'mission_id': mission_id})
 
             # ── STEP 2: Verify mission is actually completed ────────────
             completed = doc.get('completed', False) if doc else False
@@ -1748,10 +1756,18 @@ class Database:
             amount = float(amount)
             today = datetime.now().date().isoformat()
 
+            # DAILY CAP CHECK — prevent unlimited earning
+            state = self.get_game_state(user_id, today)
+            today_earned = state.get('today_game_earned', 0.0)
+            remaining = max(0.0, self.MAX_DAILY_GAME_EARN - today_earned)
+            amount = min(amount, remaining)
+            if amount <= 0:
+                logger.info(f"Daily game cap hit for user {user_id}")
+                return {'success': True, 'earned': 0, 'today_total': today_earned, 'capped': True}
+
             self.add_balance(user_id, amount, description)
 
-            state = self.get_game_state(user_id, today)
-            new_earned = state.get('today_game_earned', 0.0) + amount
+            new_earned = today_earned + amount
             self.game_states.update_one(
                 {'user_id': user_id, 'date': today},
                 {'$set': {'today_game_earned': new_earned}, '$inc': {'wins': 1}},
@@ -2167,13 +2183,20 @@ class Database:
         '1m':   {'seconds': 60,  'reward_per_sec': 0.005, 'label': '1 Minute'},
         '5m':   {'seconds': 300, 'reward_per_sec': 0.004, 'label': '5 Minutes'},
         '10m':  {'seconds': 600, 'reward_per_sec': 0.003, 'label': '10 Minutes'},
-        # New games use same route
-        'maze':       {'seconds': 60,  'reward_per_sec': 0.006, 'label': 'Maze Escape'},
-        'snake':      {'seconds': 60,  'reward_per_sec': 0.005, 'label': 'Snake Game'},
-        'chess':      {'seconds': 60,  'reward_per_sec': 0.005, 'label': 'Chess Timer'},
-        'blockblast': {'seconds': 120, 'reward_per_sec': 0.004, 'label': 'Block Blast'},
-        'gemmatch':   {'seconds': 120, 'reward_per_sec': 0.004, 'label': 'Gem Match'},
+        # FIXED: Frontend runner difficulty modes — ye missing the bug tha!
+        'easy':   {'seconds': 120, 'reward_per_sec': 0.005, 'label': 'Runner Easy',   'max_reward': 0.50},
+        'medium': {'seconds': 120, 'reward_per_sec': 0.008, 'label': 'Runner Medium', 'max_reward': 0.80},
+        'hard':   {'seconds': 120, 'reward_per_sec': 0.012, 'label': 'Runner Hard',   'max_reward': 1.20},
+        # Skill games — all use runner-start/finish route
+        'maze':       {'seconds': 120, 'reward_per_sec': 0.006, 'label': 'Sokoban',      'max_reward': 0.60},
+        'snake':      {'seconds': 60,  'reward_per_sec': 0.005, 'label': 'Snake Game',   'max_reward': 0.50},
+        'chess':      {'seconds': 60,  'reward_per_sec': 0.005, 'label': 'Chess',        'max_reward': 0.50},
+        'blockblast': {'seconds': 120, 'reward_per_sec': 0.004, 'label': 'Block Blast',  'max_reward': 0.40},
+        'gemmatch':   {'seconds': 120, 'reward_per_sec': 0.004, 'label': 'Gem Match',    'max_reward': 0.40},
     }
+
+    # Daily game earning cap — prevent abuse
+    MAX_DAILY_GAME_EARN = 5.0  # ₹5 per day max from games
 
     def runner_start(self, user_id, mode, bet):
         """
@@ -2239,33 +2262,53 @@ class Database:
             return {'success': False, 'message': str(e)}
 
     def runner_finish(self, user_id, mode, bet, survived_seconds):
-        """Finish runner — credit reward based on survived time."""
+        """
+        FIXED: Finish runner/skill game — credit reward.
+        survived_seconds: actual seconds survived (NOT pts-converted)
+        Anti-cheat: daily cap + max per-mode cap enforced server-side.
+        """
         try:
             user_id = int(user_id)
             bet = float(bet)
-            survived_seconds = int(survived_seconds)
+            survived_seconds = max(0, int(survived_seconds))
             if mode not in self.RUNNER_MODES:
                 return {'success': False, 'message': 'Invalid mode'}
+
             mode_info = self.RUNNER_MODES[mode]
             total_seconds = mode_info['seconds']
             reward_per_sec = mode_info['reward_per_sec']
-            # Calculate reward: bet back + earnings per second survived
+
             if survived_seconds <= 0:
-                return {'success': True, 'reward': 0, 'survived': 0, 'message': 'Game over! Kuch nahi mila.'}
-            survived_pct = survived_seconds / total_seconds
-            # Bet refund based on % survived
-            bet_back = round(bet * survived_pct, 2)
-            # Per second earning
+                return {'success': True, 'reward': 0, 'survived': 0, 'message': 'Game over!'}
+
+            # ANTI-CHEAT: clamp survived_seconds to max possible
+            survived_seconds = min(survived_seconds, total_seconds * 2)
+
+            # Per-second earning
             earned = round(survived_seconds * reward_per_sec, 4)
+            # Bet refund proportional
+            survived_pct = min(survived_seconds / max(total_seconds, 1), 1.0)
+            bet_back = round(bet * survived_pct, 2)
             total_reward = round(bet_back + earned, 2)
-            # Cap at max possible
-            max_reward = round(bet + (total_seconds * reward_per_sec), 2)
-            total_reward = min(total_reward, max_reward)
+
+            # Mode-level cap (from RUNNER_MODES config)
+            mode_max = mode_info.get('max_reward', 2.0)
+            total_reward = min(total_reward, mode_max)
+
+            # DAILY GAME EARNING CAP
+            today = datetime.now().date().isoformat()
+            state = self.get_game_state(user_id, today)
+            today_earned = state.get('today_game_earned', 0.0)
+            remaining_cap = max(0.0, self.MAX_DAILY_GAME_EARN - today_earned)
+            total_reward = min(total_reward, remaining_cap)
+            total_reward = round(total_reward, 2)
+
             if total_reward > 0:
                 self.add_game_earning(user_id, total_reward, 'runner',
-                    f"Runner {mode} — {survived_seconds}s survived → +₹{total_reward}")
+                    f"Runner {mode} — {survived_seconds}s → +₹{total_reward}")
                 self.add_live_activity('runner', user_id, total_reward,
-                    f"Runner game {mode}: {survived_seconds}s survive kiya → +₹{total_reward}")
+                    f"🏃 Runner {mode}: {survived_seconds}s survive kiya → +₹{total_reward}")
+
             won = survived_seconds >= total_seconds
             return {
                 'success': True,
@@ -2273,7 +2316,8 @@ class Database:
                 'survived': survived_seconds,
                 'won': won,
                 'bet_back': bet_back,
-                'earned': earned
+                'earned': earned,
+                'capped': total_reward < (bet_back + earned)
             }
         except Exception as e:
             logger.error(f"Runner finish error: {e}")
