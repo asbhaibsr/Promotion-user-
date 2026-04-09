@@ -19,7 +19,7 @@ import signal
 from datetime import datetime, timedelta
 
 from bson.objectid import ObjectId
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, make_response
 from functools import wraps
 
 logging.basicConfig(
@@ -58,14 +58,6 @@ from admin import AdminHandlers
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'filmyfund-secret-key-2024')
 
-# FIXED: Enable gzip compression — reduces page size by ~70% for faster load
-try:
-    from flask_compress import Compress
-    Compress(app)
-    logger.info("Gzip compression enabled")
-except ImportError:
-    logger.warning("flask-compress not installed — run: pip install flask-compress")
-
 config = None
 db = None
 handlers = None
@@ -89,7 +81,11 @@ def add_cors_headers(response):
 
 @app.after_request
 def after_request(response):
-    return add_cors_headers(response)
+    response = add_cors_headers(response)
+    # Log slow/error responses for Render dashboard
+    if response.status_code >= 400:
+        logger.warning(f"[{response.status_code}] {request.method} {request.path}")
+    return response
 
 @app.route('/', methods=['OPTIONS'])
 @app.route('/<path:path>', methods=['OPTIONS'])
@@ -125,7 +121,7 @@ def index():
                 user_data = None
 
         template_vars = {
-            'user_id': user_id, 'user_name': 'Guest', 'balance': 0,
+            'user_id': user_id if user_id else 0, 'user_name': 'Guest', 'balance': 0,
             'total_earned': 0, 'tier': 1, 'tier_name': '🥉 BASIC', 'tier_rate': 0.30,
             'total_refs': 0, 'active_refs': 0, 'pending_refs': 0, 'daily_streak': 0,
             'channel_joined': False,
@@ -156,7 +152,10 @@ def index():
                 'channel_joined': user_data.get('channel_joined', False)
             })
 
-        return render_template('index.html', **template_vars)
+        response = make_response(render_template('index.html', **template_vars))
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        return response
     except Exception as e:
         logger.error(f"Index route error: {e}")
         import traceback; traceback.print_exc()
@@ -338,12 +337,12 @@ def top_earners_today_api():
 @app.route('/api/live-activity')
 def live_activity_api():
     try:
-        if not db or not db.ensure_connection():
+        if not db:
             return jsonify([])
         activities = db.get_live_activity(20)
-        return jsonify(activities)
+        return jsonify(activities or [])
     except Exception as e:
-        logger.error(f"Live activity error: {e}")
+        logger.warning(f"Live activity: {e}")
         return jsonify([])
 
 # ========== ADS APIs ==========
@@ -475,10 +474,9 @@ def claim_single_mission_api():
         user_id = data.get('user_id')
         mission_id = data.get('mission_id')
         reward = data.get('reward')
-        client_date = data.get('date')  # FIXED: IST date from frontend
         if not user_id or not mission_id or reward is None:
             return jsonify({'success': False, 'message': 'Missing data'}), 400
-        result = db.claim_single_mission(user_id, mission_id, reward, client_date=client_date)
+        result = db.claim_single_mission(user_id, mission_id, reward)
         return jsonify(result)
     except Exception as e:
         logger.error(f"Claim single mission error: {e}")
@@ -1592,14 +1590,12 @@ def run_bot():
 
 def run_flask():
     port = int(os.environ.get('PORT', 10000))
-    logger.info(f"Flask starting on port {port}")
+    logger.info(f"Flask starting on port {port} with 16 threads")
     try:
         from waitress import serve as waitress_serve
-        # FIXED: More threads + lower timeout for Render free tier
         waitress_serve(app, host='0.0.0.0', port=port,
-                      threads=8, channel_timeout=60,
-                      connection_limit=200, cleanup_interval=10,
-                      asyncore_use_poll=True)
+                      threads=16, channel_timeout=120,
+                      connection_limit=500, cleanup_interval=30)
     except ImportError:
         app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False, threaded=True)
     except Exception as e:
