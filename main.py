@@ -90,6 +90,16 @@ def handle_options(path=''):
 
 # ========== MAIN PAGE ==========
 
+@app.route('/api/health')
+def health_check():
+    """Health check — also warms up DB connection"""
+    try:
+        if db and db.ensure_connection():
+            return jsonify({'status':'ok','db':'connected'})
+        return jsonify({'status':'ok','db':'warming'})
+    except:
+        return jsonify({'status':'ok'})
+
 @app.route('/')
 def index():
     global config, db, request_count
@@ -1555,7 +1565,19 @@ def run_bot():
         import traceback; traceback.print_exc()
         bot_running = False
     finally:
-        if bot_loop:
+        # Cancel all pending tasks before closing loop
+        try:
+            if bot_loop and not bot_loop.is_closed():
+                pending = asyncio.all_tasks(bot_loop)
+                for task in pending:
+                    task.cancel()
+                if pending:
+                    bot_loop.run_until_complete(
+                        asyncio.gather(*pending, return_exceptions=True)
+                    )
+        except Exception as _fe:
+            pass
+        if bot_loop and not bot_loop.is_closed():
             bot_loop.close()
         bot_running = False
 
