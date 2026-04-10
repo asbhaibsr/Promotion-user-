@@ -19,7 +19,7 @@ import signal
 from datetime import datetime, timedelta
 
 from bson.objectid import ObjectId
-from flask import Flask, request, jsonify, render_template, make_response
+from flask import Flask, request, jsonify, render_template
 from functools import wraps
 
 logging.basicConfig(
@@ -57,6 +57,12 @@ from admin import AdminHandlers
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'filmyfund-secret-key-2024')
+try:
+    from flask_compress import Compress
+    Compress(app)
+    logger.info("✅ Gzip ON")
+except ImportError:
+    pass
 
 config = None
 db = None
@@ -69,7 +75,7 @@ bot_running = False
 start_time = datetime.now()
 request_count = 0
 
-LOG_CHANNEL_ID = -1002352329534  # Log channel ID — yahan bot messages padhta hai
+LOG_CHANNEL_ID = -1002352329534
 
 # ========== CORS ==========
 
@@ -81,11 +87,7 @@ def add_cors_headers(response):
 
 @app.after_request
 def after_request(response):
-    response = add_cors_headers(response)
-    # Log slow/error responses for Render dashboard
-    if response.status_code >= 400:
-        logger.warning(f"[{response.status_code}] {request.method} {request.path}")
-    return response
+    return add_cors_headers(response)
 
 @app.route('/', methods=['OPTIONS'])
 @app.route('/<path:path>', methods=['OPTIONS'])
@@ -93,16 +95,6 @@ def handle_options(path=''):
     return add_cors_headers(jsonify({'status': 'ok'}))
 
 # ========== MAIN PAGE ==========
-
-@app.route('/api/health')
-def health_check():
-    """Health check — also warms up DB connection"""
-    try:
-        if db and db.ensure_connection():
-            return jsonify({'status':'ok','db':'connected'})
-        return jsonify({'status':'ok','db':'warming'})
-    except:
-        return jsonify({'status':'ok'})
 
 @app.route('/')
 def index():
@@ -113,15 +105,12 @@ def index():
         user_data = None
         if user_id and user_id > 0 and db and db.ensure_connection():
             try:
-                # FIXED: Cache clear nahi karo on index — bas cached data return karo
-                # Ye hang issue fix karta hai (baar baar DB hit nahi hogi)
                 user_data = db.get_user(user_id)
             except Exception as e:
                 logger.error(f"Error fetching user {user_id}: {e}")
-                user_data = None
 
         template_vars = {
-            'user_id': user_id if user_id else 0, 'user_name': 'Guest', 'balance': 0,
+            'user_id': user_id, 'user_name': 'Guest', 'balance': 0,
             'total_earned': 0, 'tier': 1, 'tier_name': '🥉 BASIC', 'tier_rate': 0.30,
             'total_refs': 0, 'active_refs': 0, 'pending_refs': 0, 'daily_streak': 0,
             'channel_joined': False,
@@ -132,9 +121,7 @@ def index():
             'movie_group_link': config.MOVIE_GROUP_LINK if config else '',
             'bot_username': config.BOT_USERNAME if config else '',
             'daily_referral_earning': config.DAILY_REFERRAL_EARNING if config else 0.10,
-            'support_username': config.SUPPORT_USERNAME if config else '@support',
-            # FIXED: webapp_url inject karo — frontend 404 fix
-            'webapp_url': config.WEBAPP_URL if config and config.WEBAPP_URL else ''
+            'support_username': config.SUPPORT_USERNAME if config else '@support'
         }
 
         if user_data:
@@ -152,10 +139,7 @@ def index():
                 'channel_joined': user_data.get('channel_joined', False)
             })
 
-        response = make_response(render_template('index.html', **template_vars))
-        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response.headers['Pragma'] = 'no-cache'
-        return response
+        return render_template('index.html', **template_vars)
     except Exception as e:
         logger.error(f"Index route error: {e}")
         import traceback; traceback.print_exc()
@@ -193,12 +177,6 @@ def get_user_api(user_id):
                 db.user_cache.pop(f"user_{user_id}", None)
             # Include month_active_refs in main user call
             user_data['month_active_refs'] = db.get_month_active_refs(user_id)
-            # Check if user has past withdrawals (for 5 vs 20 ref rule)
-            past_wd = db.withdrawals.count_documents({
-                'user_id': user_id,
-                'status': {'$in': ['completed', 'pending']}
-            })
-            user_data['has_past_withdrawals'] = past_wd > 0
             # Ensure today_earned field exists
             if 'today_earned' not in user_data:
                 user_data['today_earned'] = 0.0
@@ -208,11 +186,6 @@ def get_user_api(user_id):
                 if user_data.get(f'milestone_claimed_{m}'):
                     claimed_milestones.append(m)
             user_data['claimed_milestones'] = claimed_milestones
-            # Add weekly bonus claimed status for frontend
-            today_date = datetime.now().date()
-            day_of_week = today_date.weekday()
-            week_start = today_date - timedelta(days=day_of_week)
-            user_data['weekly_bonus_claimed'] = bool(user_data.get(f'weekly_bonus_{week_start.isoformat()}', False))
             return jsonify(user_data)
         return jsonify({'error': 'User not found'}), 404
     except Exception as e:
@@ -308,41 +281,15 @@ def leaderboard_api():
         logger.error(f"Leaderboard error: {e}")
         return jsonify([])
 
-@app.route('/api/top-earners-today')
-def top_earners_today_api():
-    """Top 10 users by today_earned — for games page leaderboard"""
-    try:
-        if not db or not db.ensure_connection():
-            return jsonify([])
-        today = datetime.now().date().isoformat()
-        # Get top 10 users by today_earned
-        top = list(db.users.find(
-            {'today_date': today, 'today_earned': {'$gt': 0}},
-            {'user_id': 1, 'first_name': 1, 'today_earned': 1, '_id': 0}
-        ).sort('today_earned', -1).limit(10))
-        result = []
-        for i, u in enumerate(top):
-            result.append({
-                'rank': i + 1,
-                'name': u.get('first_name', 'User')[:15],
-                'user_id': u.get('user_id', 0),
-                'today_earned': round(u.get('today_earned', 0), 2),
-                'pts': int(u.get('today_earned', 0) * 100)
-            })
-        return jsonify(result)
-    except Exception as e:
-        logger.error(f"Top earners today error: {e}")
-        return jsonify([])
-
 @app.route('/api/live-activity')
 def live_activity_api():
     try:
-        if not db:
+        if not db or not db.ensure_connection():
             return jsonify([])
         activities = db.get_live_activity(20)
-        return jsonify(activities or [])
+        return jsonify(activities)
     except Exception as e:
-        logger.warning(f"Live activity: {e}")
+        logger.error(f"Live activity error: {e}")
         return jsonify([])
 
 # ========== ADS APIs ==========
@@ -387,9 +334,8 @@ def update_ad_api():
         admin_user = db.get_user(int(admin_id))
         if not admin_user or not admin_user.get('is_admin', False):
             return jsonify({'success': False, 'message': 'Unauthorized'}), 403
-        # UPDATED: pass timer_seconds, description, image_url, pass_reward
+        # UPDATED: pass timer_seconds
         timer_seconds = int(data.get('timer_seconds', 0) or 0)
-        pass_reward = int(data.get('pass_reward', 0) or 0)
         success = db.update_ad(
             ad_id,
             data.get('title'),
@@ -398,10 +344,7 @@ def update_ad_api():
             data.get('meta'),
             data.get('icon'),
             claim_code=data.get('claim_code'),
-            timer_seconds=timer_seconds,
-            description=data.get('description', ''),
-            image_url=data.get('image_url', ''),
-            pass_reward=pass_reward
+            timer_seconds=timer_seconds
         )
         if success:
             return jsonify({'success': True, 'message': 'Ad updated! All claims reset.'})
@@ -476,7 +419,8 @@ def claim_single_mission_api():
         reward = data.get('reward')
         if not user_id or not mission_id or reward is None:
             return jsonify({'success': False, 'message': 'Missing data'}), 400
-        result = db.claim_single_mission(user_id, mission_id, reward)
+        client_date = data.get('date')
+        result = db.claim_single_mission(user_id, mission_id, reward, client_date=client_date)
         return jsonify(result)
     except Exception as e:
         logger.error(f"Claim single mission error: {e}")
@@ -601,13 +545,6 @@ def verify_passes_api():
 
 @app.route('/api/claim-weekly-bonus', methods=['POST'])
 def claim_weekly_bonus_api():
-    """
-    FIXED:
-    - Proper week_start calculation
-    - Claimed days count accurate
-    - Already claimed check with week key
-    - Cache clear after claim
-    """
     try:
         data = request.get_json()
         user_id = data.get('user_id')
@@ -615,62 +552,29 @@ def claim_weekly_bonus_api():
             return jsonify({'success': False, 'message': 'Missing user_id'}), 400
         if not db or not db.ensure_connection():
             return jsonify({'success': False, 'message': 'DB error'}), 503
-
-        user_id_int = int(user_id)
-
-        # FIXED: Current week start (Monday)
+        # Check this week's claimed days
         today = datetime.now().date()
-        day_of_week = today.weekday()  # 0=Monday
+        day_of_week = today.weekday()  # 0=Mon
         week_start = today - timedelta(days=day_of_week)
-        week_end = week_start + timedelta(days=6)
-        week_key = week_start.isoformat()
-
-        # All 7 days of this week
         week_dates = [(week_start + timedelta(days=i)).isoformat() for i in range(7)]
-
-        # Count claimed days this week
+        user_id_int = int(user_id)
         claimed_this_week = db.daily_bonus.count_documents({
             'user_id': user_id_int,
             'date': {'$in': week_dates}
         })
-
         if claimed_this_week < 7:
-            return jsonify({
-                'success': False,
-                'message': f'Sirf {claimed_this_week}/7 days claim ki hain. Pehle 7 din complete karo!',
-                'claimed_days': claimed_this_week,
-                'needed': 7
-            })
-
-        # FIXED: Already claimed this week check
-        user_check = db.get_user(user_id_int)
-        if not user_check:
-            return jsonify({'success': False, 'message': 'User not found'}), 404
-
-        weekly_field = f'weekly_bonus_{week_key}'
-        if user_check.get(weekly_field):
-            return jsonify({'success': False, 'message': 'Is hafte ka weekly bonus already claim hua hai!'})
-
-        # ATOMIC claim
+            return jsonify({'success': False, 'message': f'Sirf {claimed_this_week}/7 days claimed. 7 chahiye!'})
+        # Check already claimed this week
         result = db.users.find_one_and_update(
-            {'user_id': user_id_int, weekly_field: {'$ne': True}},
-            {'$set': {weekly_field: True, 'weekly_bonus_claimed_at': datetime.now().isoformat()}}
+            {'user_id': user_id_int, f'weekly_bonus_{week_start.isoformat()}': {'$ne': True}},
+            {'$set': {f'weekly_bonus_{week_start.isoformat()}': True}}
         )
         if not result:
             return jsonify({'success': False, 'message': 'Weekly bonus already claimed!'})
-
-        WEEKLY_REWARD = 1.0
-        db.add_balance(user_id_int, WEEKLY_REWARD, 'Weekly bonus — 7 din complete!')
-        db.add_live_activity('bonus', user_id_int, WEEKLY_REWARD, '7 din ka streak! Weekly bonus +₹1')
+        db.add_balance(user_id_int, 1.0, 'Weekly bonus — 7 day streak!')
+        db.add_live_activity('bonus', user_id_int, 1.0, '7 din ka streak! Weekly bonus +₹1')
         db.user_cache.pop(f"user_{user_id_int}", None)
-
-        logger.info(f"Weekly bonus claimed: user={user_id_int} week={week_key}")
-        return jsonify({
-            'success': True,
-            'reward': WEEKLY_REWARD,
-            'message': f'🎉 Weekly Bonus! +₹{WEEKLY_REWARD}',
-            'week': week_key
-        })
+        return jsonify({'success': True, 'reward': 1.0, 'message': '🎉 Weekly Bonus! +₹1'})
     except Exception as e:
         logger.error(f"Weekly bonus error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
@@ -938,11 +842,7 @@ def game_spin_api():
             return jsonify({'success': False, 'message': 'Missing user_id'}), 400
         if not db or not db.ensure_connection():
             return jsonify({'success': False, 'message': 'Database error'}), 503
-        # FIXED: Fresh passes count include karo response mein
         result = db.process_game_spin(user_id)
-        if result.get('success'):
-            fresh_user = db.get_user(int(user_id))
-            result['passes_remaining'] = fresh_user.get('passes', 0) if fresh_user else 0
         return jsonify(result)
     except Exception as e:
         logger.error(f"Spin game error: {e}")
@@ -1163,17 +1063,6 @@ def set_announcement_api():
             return jsonify({'success': False, 'message': 'Unauthorized'}), 403
         text = data.get('text', '').strip()
         _announcement = {'text': text, 'ts': datetime.now().timestamp()}
-        # Persist to file so it survives restarts
-        try:
-            import json as _json
-            with open('announcement.json', 'w') as f:
-                _json.dump({'text': text, 'image_url': '', 'ts': _announcement['ts']}, f)
-        except Exception:
-            try:
-                with open('announcement.txt', 'w') as f:
-                    f.write(text)
-            except Exception:
-                pass
         logger.info(f"Announcement set by admin {admin_id}: {text[:50]}")
         return jsonify({'success': True})
     except Exception as e:
@@ -1182,22 +1071,17 @@ def set_announcement_api():
 @app.route('/api/get-announcement')
 def get_announcement():
     try:
-        # Check in-memory first
-        if _announcement.get('text', '').strip():
-            return jsonify({'text': _announcement['text'], 'image_url': ''})
         import json as _json
         try:
             with open('announcement.json', 'r') as f:
                 d = _json.load(f)
-            if d.get('text','').strip():
-                return jsonify({'text': d.get('text',''), 'image_url': d.get('image_url','')})
+            return jsonify({'text': d.get('text',''), 'image_url': d.get('image_url','')})
         except Exception:
             pass
         try:
             with open('announcement.txt', 'r') as f:
                 text = f.read().strip()
-            if text:
-                return jsonify({'text': text, 'image_url': ''})
+            return jsonify({'text': text, 'image_url': ''})
         except Exception:
             pass
         return jsonify({'text': '', 'image_url': ''})
@@ -1368,16 +1252,16 @@ def game_quiz_api():
         is_correct = (int(answer_idx) == int(correct_idx))
         reward = 0
         if is_correct:
-            reward = 0.10  # ₹0.10 = 10pts
+            reward = 1.0  # ₹1 = 100pts
             db.add_balance(int(user_id), reward, "Quiz correct answer!")
-            db.add_live_activity('game', int(user_id), reward, "🧠 Quiz correct! +10 pts")
+            db.add_live_activity('game', int(user_id), reward, "🧠 Quiz correct! +100 pts")
 
         db.user_cache.pop(f"user_{user_id}", None)
         return jsonify({
             'success': True,
             'correct': is_correct,
             'reward': reward,
-            'message': f'+{int(reward*100)} pts! 🎉' if is_correct else 'Galat jawab! 😞'
+            'message': f'+{int(reward*100)} pts! 🎉' if is_correct else 'Wrong answer! 😞'
         })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
@@ -1389,6 +1273,16 @@ def health():
         status['status'] = 'degraded'
         return jsonify(status), 503
     return jsonify(status)
+
+
+@app.route('/api/health')
+def health_check():
+    try:
+        if db and db.ensure_connection():
+            return jsonify({'status':'ok','db':'connected'})
+        return jsonify({'status':'ok','db':'warming'})
+    except:
+        return jsonify({'status':'ok'})
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -1420,12 +1314,16 @@ async def post_init(application):
         ]
         await application.bot.set_my_commands(commands)
 
-        # Webhook delete karo — polling use ho raha hai, dono ek saath nahi chalte
-        try:
-            await application.bot.delete_webhook(drop_pending_updates=True)
-            logger.info("Webhook deleted — polling mode active")
-        except Exception as _we:
-            logger.warning(f"Webhook delete error (ignore): {_we}")
+        if config and config.WEBHOOK_URL:
+            webhook_url = config.WEBHOOK_URL.rstrip('/').replace('/webhook','') + '/webhook'
+            await application.bot.set_webhook(
+                url=webhook_url,
+                allowed_updates=["message","channel_post","edited_channel_post","callback_query","inline_query"],
+                drop_pending_updates=True
+            )
+            logger.info(f"✅ Webhook SET: {webhook_url}")
+        else:
+            logger.warning("⚠️ WEBHOOK_URL not set in env vars!")
 
         if config and config.LOG_CHANNEL_ID:
             try:
@@ -1511,23 +1409,18 @@ def run_bot():
         # WebApp data
         bot_app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handlers.handle_webapp_data))
 
-        # ===== LOG CHANNEL HANDLER (FIXED) =====
-        # IMPORTANT: Telegram channel messages come as channel_post updates
-        # We use both filters to ensure we catch all messages from log channel
+        # ===== LOG CHANNEL HANDLER =====
+        # Channel posts aate hain — TEXT filter + UpdateType.CHANNEL_POST dono chahiye
         from telegram.ext import filters as tg_filters
-        # Filter 1: Any text in log channel (covers most cases)
         bot_app.add_handler(MessageHandler(
             tg_filters.Chat(LOG_CHANNEL_ID) & tg_filters.TEXT,
             handlers.handle_log_channel_message
-        ), group=0)
-        # Filter 2: Explicit channel_post type (belt + suspenders)
-        try:
-            bot_app.add_handler(MessageHandler(
-                tg_filters.UpdateType.CHANNEL_POSTS & tg_filters.Chat(LOG_CHANNEL_ID) & tg_filters.TEXT,
-                handlers.handle_log_channel_message
-            ), group=0)
-        except Exception as _e:
-            logger.warning(f"Could not add channel_post handler: {_e}")
+        ))
+        # Also handle channel_post explicitly (for channel messages)
+        bot_app.add_handler(MessageHandler(
+            tg_filters.Chat(LOG_CHANNEL_ID) & tg_filters.UpdateType.CHANNEL_POSTS & tg_filters.TEXT,
+            handlers.handle_log_channel_message
+        ))
 
         # ===== GROUP MESSAGE HANDLER — Daily search earning =====
         # Jab referred users movie group mein message bhejte hain → daily earning credit
@@ -1554,52 +1447,32 @@ def run_bot():
         bot_loop.run_until_complete(post_init(bot_app))
         bot_loop.create_task(scheduled_jobs())
 
-        logger.info("✅ Bot started successfully")
+        logger.info("✅ Bot started — WEBHOOK mode (Flask handles /webhook)")
         bot_running = True
-        logger.info("✅ Bot started — polling with channel_post support")
-        bot_app.run_polling(
-            allowed_updates=[
-                "message",
-                "channel_post",       # ← LOG CHANNEL ke messages ke liye ZARURI
-                "edited_channel_post",
-                "callback_query",
-                "inline_query",
-            ]
-        )
+        # Webhook mode: Flask receives updates at /webhook and forwards to bot_app
+        # No polling needed — just keep event loop alive for async operations
+        bot_loop.run_until_complete(asyncio.sleep(float('inf')))
 
     except Exception as e:
         logger.error(f"Bot error: {e}")
         import traceback; traceback.print_exc()
         bot_running = False
     finally:
-        # Cancel all pending tasks before closing loop
-        try:
-            if bot_loop and not bot_loop.is_closed():
-                pending = asyncio.all_tasks(bot_loop)
-                for task in pending:
-                    task.cancel()
-                if pending:
-                    bot_loop.run_until_complete(
-                        asyncio.gather(*pending, return_exceptions=True)
-                    )
-        except Exception as _fe:
-            pass
-        if bot_loop and not bot_loop.is_closed():
+        if bot_loop:
             bot_loop.close()
         bot_running = False
 
 def run_flask():
     port = int(os.environ.get('PORT', 10000))
-    logger.info(f"Flask starting on port {port} with 16 threads")
+    logger.info(f"Flask starting on port {port}")
     try:
-        from waitress import serve as waitress_serve
-        waitress_serve(app, host='0.0.0.0', port=port,
-                      threads=16, channel_timeout=120,
-                      connection_limit=500, cleanup_interval=30)
+        from waitress import serve
+        serve(app, host='0.0.0.0', port=port, threads=8, channel_timeout=60, connection_limit=200)
     except ImportError:
         app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False, threaded=True)
     except Exception as e:
-        logger.error(f"Flask server error: {e}")
+        logger.error(f"Flask error: {e}")
+        sys.exit(1)
 
 def signal_handler(sig, frame):
     global db, bot_loop, bot_running
@@ -1614,20 +1487,11 @@ def signal_handler(sig, frame):
     sys.exit(0)
 
 def check_environment():
-    # BOT_TOKEN aur MONGODB_URI zaruri hain, ADMIN_IDS optional
-    required = ['BOT_TOKEN', 'MONGODB_URI']
+    required = ['BOT_TOKEN', 'MONGODB_URI', 'ADMIN_IDS']
     missing = [v for v in required if not os.getenv(v)]
     if missing:
-        logger.error(f"❌ Missing REQUIRED env vars: {', '.join(missing)}")
-        logger.error("Render Dashboard → Environment → ye variables add karo:")
-        for v in missing:
-            logger.error(f"  • {v}")
+        logger.error(f"Missing env vars: {', '.join(missing)}")
         return False
-    # Warnings for optional but recommended
-    optional = ['ADMIN_IDS', 'WEBAPP_URL', 'LOG_CHANNEL_ID']
-    for v in optional:
-        if not os.getenv(v):
-            logger.warning(f"⚠️  Optional env var not set: {v}")
     return True
 
 def main():
@@ -1660,28 +1524,19 @@ def main():
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
 
-        flask_thread = threading.Thread(target=run_flask, daemon=True)
-        flask_thread.start()
-        time.sleep(3)
-        logger.info(f"Flask running on port {os.environ.get('PORT', 10000)}")
-
-        run_bot()
+        # Bot background thread (webhook mode — just keeps loop alive for async ops)
+        bot_thread = threading.Thread(target=run_bot, daemon=True, name='BotThread')
+        bot_thread.start()
+        time.sleep(1)
+        logger.info(f"Bot thread started")
+        logger.info(f"Starting Flask on port {os.environ.get('PORT', 10000)}")
+        run_flask()  # Flask blocks main thread
 
     except KeyboardInterrupt:
         logger.info("Stopped by user")
     except Exception as e:
         logger.critical(f"Fatal error: {e}")
-        import traceback
-        traceback.print_exc()
-        # Render pe crash mat karo — 30 second wait karke retry karo
-        logger.info("30 seconds mein retry karega...")
-        time.sleep(30)
-        # Ek baar aur try karo
-        try:
-            main()
-        except Exception as e2:
-            logger.critical(f"Retry bhi fail: {e2}")
-            sys.exit(1)
+        import traceback; traceback.print_exc()
     finally:
         if db:
             try: db.cleanup()
