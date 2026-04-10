@@ -80,16 +80,7 @@ class Database:
             self.channel_joins.create_index([('user_id', ASCENDING), ('channel_id', ASCENDING)], unique=True)
             self.daily_bonus.create_index([('user_id', ASCENDING), ('date', ASCENDING)], unique=True)
             self.daily_bonus.create_index('date')
-            # FIXED: missions index — (user_id, date, mission_id) unique
-            # Pehle old wrong index drop karo agar hai
-            try:
-                self.missions.drop_index('user_id_1_date_1')
-            except:
-                pass  # Index nahi tha ya already dropped
-            self.missions.create_index(
-                [('user_id', ASCENDING), ('date', ASCENDING), ('mission_id', ASCENDING)],
-                unique=True, name='user_date_mission_unique'
-            )
+            self.missions.create_index([('user_id', ASCENDING), ('date', ASCENDING), ('mission_id', ASCENDING)], unique=True)
             self.daily_claims.create_index([('user_id', ASCENDING), ('ad_id', ASCENDING)], unique=True)
             self.ads.create_index('id', unique=True)
             self.live_activity.create_index('timestamp', expireAfterSeconds=604800)
@@ -114,21 +105,12 @@ class Database:
             logger.error(f"Error initializing ads: {e}")
 
     def ensure_connection(self):
-        try:
-            self.client.admin.command('ping')
-            self.connected = True
-            return True
-        except Exception as e:
-            logger.warning(f"DB ping failed: {e}")
-            self.connected = False
+        if not self.connected:
             try:
-                from pymongo import MongoClient
-                self.client = MongoClient(self.config.MONGODB_URI, serverSelectionTimeoutMS=3000)
                 self.client.admin.command('ping')
                 self.connected = True
-                logger.info("DB reconnected!")
-            except Exception as e2:
-                logger.error(f"DB reconnect failed: {e2}")
+            except:
+                self.connected = False
         return self.connected
 
     # ========== LIVE ACTIVITY ==========
@@ -394,23 +376,19 @@ class Database:
 
     def get_month_active_refs(self, referrer_id):
         """
-        Count referrals activated this calendar month.
-        FIXED: handles both activation_date formats + missing fields.
+        Count referrals that were ACTIVATED this calendar month.
+        Used for withdrawal condition (user needs 20 this month).
         """
         try:
             referrer_id = int(referrer_id)
             now = datetime.now()
-            month_start_iso = datetime(now.year, now.month, 1).isoformat()
-            month_start_key = f"{now.year}-{now.month:02d}-01"
+            # First day of current month
+            month_start = datetime(now.year, now.month, 1).isoformat()
 
-            # Try both date formats
             count = self.referrals.count_documents({
                 'referrer_id': referrer_id,
                 'is_active': True,
-                '$or': [
-                    {'activation_date': {'$gte': month_start_iso}},
-                    {'activation_date_key': {'$gte': month_start_key}},
-                ]
+                'activation_date': {'$gte': month_start}
             })
             return count
         except Exception as e:
@@ -444,27 +422,15 @@ class Database:
                 {'referred_id': referred_id},
                 {'$set': {
                     'is_active': True,
-                    'activation_date': now,       # Full ISO datetime string
-                    'activation_date_key': now[:10],  # YYYY-MM-DD for easy filtering
+                    'activation_date': now,
                     'referrer_name': referrer_name
                 }}
             )
 
-            # FIXED: Atomic update — ek hi query mein sab handle
-            upd_ref = self.users.find_one_and_update(
+            self.users.update_one(
                 {'user_id': referrer_id},
-                [{'$set': {
-                    'pending_refs': {'$max': [0, {'$subtract': ['$pending_refs', 1]}]},
-                    'active_refs': {'$add': ['$active_refs', 1]}
-                }}],
-                return_document=True
+                {'$inc': {'pending_refs': -1, 'active_refs': 1}}
             )
-            if not upd_ref:
-                # Fallback: simple increment
-                self.users.update_one(
-                    {'user_id': referrer_id},
-                    {'$inc': {'active_refs': 1}}
-                )
 
             self.add_balance(referrer_id, self.config.REFERRAL_BONUS, f"Referral bonus for user {referred_id}")
             self.add_passes(referrer_id, 3, f"Referral passes for user {referred_id}")
@@ -914,78 +880,27 @@ class Database:
     # ========== REF ACTIVITY ==========
 
     def get_ref_activity(self, referrer_id, limit=20):
-        """
-        FIXED: 
-        - Timeout guard added
-        - Batch user fetch instead of one-by-one (speed up)
-        - today_search ke liye efficient set lookup
-        """
         try:
             referrer_id = int(referrer_id)
             today = datetime.now().date().isoformat()
-
-            # 1. Saare referrals ek baar fetch karo
-            refs = list(self.referrals.find(
-                {'referrer_id': referrer_id},
-                {'referred_id': 1, 'is_active': 1, 'activation_date': 1,
-                 'join_date': 1, 'earnings': 1, 'last_search_date': 1}
-            ).sort('is_active', -1).limit(limit))
-
-            if not refs:
-                return []
-
-            ref_ids = [ref['referred_id'] for ref in refs]
-
-            # 2. Batch fetch users (ek query mein sab)
-            users_list = list(self.users.find(
-                {'user_id': {'$in': ref_ids}},
-                {'user_id': 1, 'first_name': 1, 'username': 1, 'bot_blocked': 1}
-            ))
-            users_map = {u['user_id']: u for u in users_list}
-
-            # 3. Today ke searches batch fetch
-            searches = list(self.daily_searches.find(
-                {'user_id': {'$in': ref_ids}, 'date': today},
-                {'user_id': 1}
-            ))
-            searched_today_set = {s['user_id'] for s in searches}
-
+            refs = list(self.referrals.find({'referrer_id': referrer_id}).limit(limit))
             result = []
             for ref in refs:
-                ref_uid = ref['referred_id']
-                referred_user = users_map.get(ref_uid)
+                referred_user = self.get_user(ref['referred_id'])
                 if not referred_user:
-                    # User DB mein nahi — basic info return karo
-                    result.append({
-                        'user_id': ref_uid,
-                        'first_name': 'Unknown',
-                        'username': '',
-                        'is_active': ref.get('is_active', False),
-                        'activation_date': ref.get('activation_date', ''),
-                        'join_date': ref.get('join_date', ''),
-                        'earnings': ref.get('earnings', 0),
-                        'today_search': False,
-                        'today_searched': False,
-                        'bot_blocked': False,
-                        'last_search_date': ref.get('last_search_date', '')
-                    })
                     continue
-
-                today_searched = ref_uid in searched_today_set
+                today_search = self.daily_searches.find_one({'user_id': ref['referred_id'], 'date': today})
                 result.append({
-                    'user_id': ref_uid,
+                    'user_id': ref['referred_id'],
                     'first_name': referred_user.get('first_name', 'User'),
                     'username': referred_user.get('username', ''),
                     'is_active': ref.get('is_active', False),
                     'activation_date': ref.get('activation_date', ''),
-                    'join_date': ref.get('join_date', ref.get('activation_date', '')),
+                    'join_date': ref.get('join_date', ''),
                     'earnings': ref.get('earnings', 0),
-                    'today_search': today_searched,
-                    'today_searched': today_searched,
-                    'bot_blocked': referred_user.get('bot_blocked', False),
+                    'today_searched': bool(today_search),
                     'last_search_date': ref.get('last_search_date', '')
                 })
-
             return result
         except Exception as e:
             logger.error(f"Error getting ref activity: {e}")
@@ -1045,34 +960,16 @@ class Database:
             user = self.get_user(user_id)
             if not user:
                 return None
-
-            # FIXED: date_str normalize karo — sirf YYYY-MM-DD format use karo
             try:
-                if 'T' in str(date_str):
-                    claim_date = datetime.fromisoformat(date_str).date()
-                else:
-                    claim_date = datetime.strptime(str(date_str)[:10], '%Y-%m-%d').date()
-            except Exception as de:
-                logger.error(f"Date parse error: {de} for {date_str}")
+                claim_date = datetime.fromisoformat(date_str).date()
+            except:
                 return None
-
             today = datetime.now().date()
-            # FIXED: allow today OR today-1 (timezone issues ke liye)
             if claim_date != today:
-                logger.warning(f"Date mismatch: claimed={claim_date} today={today}")
                 return None
-
-            # FIXED: date ko normalize karke check karo (YYYY-MM-DD only)
-            date_key = today.isoformat()
-            existing = self.daily_bonus.find_one({'user_id': user_id, 'date': date_key})
+            existing = self.daily_bonus.find_one({'user_id': user_id, 'date': date_str})
             if existing:
                 return None
-            # Also check with original date_str
-            if date_key != str(date_str)[:10]:
-                existing2 = self.daily_bonus.find_one({'user_id': user_id, 'date': str(date_str)[:10]})
-                if existing2:
-                    return None
-            date_str = date_key  # normalize
 
             streak = user.get('daily_streak', 0)
             last_daily = user.get('last_daily')
@@ -1093,34 +990,22 @@ class Database:
             streak_bonus = min(streak * 0.05, 0.30)
             total_bonus = base_bonus + streak_bonus
 
-            # FIXED: try_insert with duplicate check — fast & race-condition safe
-            try:
-                self.daily_bonus.insert_one({
-                    'user_id': user_id,
-                    'date': date_str,
-                    'bonus': total_bonus,
-                    'streak': streak + 1,
-                    'timestamp': datetime.now().isoformat()
-                })
-            except Exception as ins_err:
-                err_str = str(ins_err)
-                if 'duplicate' in err_str.lower() or 'E11000' in err_str:
-                    logger.info(f"Daily bonus already inserted (race condition) for {user_id} {date_str}")
-                    return None
-                raise ins_err
-
-            new_streak = streak + 1
-            self.users.update_one(
-                {'user_id': user_id},
-                {'$set': {'daily_streak': new_streak, 'last_daily': date_str}}
-            )
-
             self.add_balance(user_id, total_bonus, f"Daily bonus for {date_str}")
             self.add_passes(user_id, 1, "Daily bonus pass")
+
+            self.daily_bonus.insert_one({
+                'user_id': user_id,
+                'date': date_str,
+                'bonus': total_bonus,
+                'streak': streak + 1,
+                'timestamp': datetime.now().isoformat()
+            })
+            new_streak = streak + 1
+            self.users.update_one({'user_id': user_id}, {'$set': {'daily_streak': new_streak, 'last_daily': date_str}})
+
             self._update_single_mission_progress(user_id, 'm_daily', 1)
-            self.add_live_activity('bonus', user_id, total_bonus, f"Daily bonus streak:{new_streak}🔥")
+            self.add_live_activity('bonus', user_id, total_bonus, f"claimed daily bonus streak:{new_streak}🔥")
             self.user_cache.pop(f"user_{user_id}", None)
-            logger.info(f"Daily bonus claimed: user={user_id} bonus={total_bonus} streak={new_streak}")
             return {'bonus': total_bonus, 'streak': new_streak, 'success': True, 'passes_added': 1}
         except Exception as e:
             logger.error(f"Error claiming day bonus: {e}")
@@ -1193,11 +1078,6 @@ class Database:
             return {}
 
     def _update_single_mission_progress(self, user_id, mission_id, count=1):
-        """
-        FIXED: E11000 duplicate key error fix.
-        missions collection ka index sirf (user_id, date) tha — mission_id nahi tha!
-        Isliye insert fail hota tha. Ab update_one with upsert use karo.
-        """
         try:
             user_id = int(user_id)
             today = datetime.now().date().isoformat()
@@ -1205,51 +1085,32 @@ class Database:
             if not mdef:
                 return
 
-            # FIXED: Pehle check karo claimed hai ya nahi
-            existing = self.missions.find_one(
-                {'user_id': user_id, 'date': today, 'mission_id': mission_id},
-                {'claimed': 1, 'progress': 1}
-            )
-            if existing and existing.get('claimed'):
-                return  # Already claimed, don't update
+            doc = self.missions.find_one({'user_id': user_id, 'date': today, 'mission_id': mission_id})
+            if not doc:
+                doc = {'user_id': user_id, 'date': today, 'mission_id': mission_id, 'progress': 0, 'completed': False, 'claimed': False}
 
-            current_progress = existing.get('progress', 0) if existing else 0
-            new_progress = min(current_progress + count, mdef['total'])
+            if doc.get('claimed'):
+                return
+
+            new_progress = min(doc.get('progress', 0) + count, mdef['total'])
             completed = new_progress >= mdef['total']
 
-            # FIXED: update_one with upsert — no duplicate key error
             self.missions.update_one(
                 {'user_id': user_id, 'date': today, 'mission_id': mission_id},
-                {
-                    '$set': {
-                        'progress': new_progress,
-                        'completed': completed,
-                        'user_id': user_id,
-                        'date': today,
-                        'mission_id': mission_id
-                    },
-                    '$setOnInsert': {'claimed': False}
-                },
+                {'$set': {'progress': new_progress, 'completed': completed}},
                 upsert=True
             )
         except Exception as e:
-            err = str(e)
-            if 'E11000' in err or 'duplicate' in err.lower():
-                # Duplicate key — already exists, just update progress
-                try:
-                    self.missions.update_one(
-                        {'user_id': user_id, 'date': today, 'mission_id': mission_id, 'claimed': {'$ne': True}},
-                        {'$inc': {'progress': count}, '$set': {'completed': True if (count >= mdef['total']) else False}}
-                    )
-                except:
-                    pass
-            else:
-                logger.error(f"Error updating mission {mission_id}: {e}")
+            logger.error(f"Error updating mission {mission_id}: {e}")
 
-    def claim_single_mission(self, user_id, mission_id, reward):
+    def claim_single_mission(self, user_id, mission_id, reward, client_date=None):
         try:
             user_id = int(user_id)
-            today = datetime.now().date().isoformat()
+            from datetime import timezone, timedelta as _td
+            _ist = datetime.now(timezone.utc) + _td(hours=5, minutes=30)
+            ist_today = _ist.date().isoformat()
+            server_today = datetime.now().date().isoformat()
+            today = client_date if client_date in [ist_today, server_today] else ist_today
 
             mdef = next((m for m in self.MISSIONS_DEF if m['id'] == mission_id), None)
             if not mdef:
@@ -1300,19 +1161,16 @@ class Database:
                 else:
                     completed = progress >= mdef['total']
 
-            # FIXED 2026: Agar frontend ne claim button dikhaya matlab completed hai
-            # Server-side strict check hata diya — only check if already claimed
-            # (prevents "Mission not complete" false errors on server restart)
             if not completed:
-                logger.warning(f"Mission {mission_id} server says not complete for user {user_id}, but allowing claim (frontend verified)")
+                return {'success': False, 'message': 'Mission abhi puri nahi hui — pehle complete karo!'}
 
-            # ── STEP 3: Safe upsert (FIXED: no unique conflict, idempotent) ─
+            # ── STEP 3: Safe upsert using update_one (no unique conflict) ─
             update_result = self.missions.update_one(
                 {
                     'user_id':    user_id,
                     'date':       today,
                     'mission_id': mission_id,
-                    'claimed':    {'$ne': True}
+                    'claimed':    {'$ne': True}  # only update if NOT already claimed
                 },
                 {
                     '$set': {
@@ -1324,15 +1182,12 @@ class Database:
                         'user_id':      user_id,
                         'date':         today,
                         'mission_id':   mission_id,
-                    },
-                    '$setOnInsert': {
-                        'created_at': datetime.now().isoformat()
                     }
                 },
                 upsert=True
             )
 
-            # matched_count==0 AND upserted_id==None → already claimed
+            # If matched_count==0 and upserted_id==None → already claimed by race condition
             if update_result.matched_count == 0 and update_result.upserted_id is None:
                 return {'success': False, 'message': 'Already claimed'}
 
@@ -1362,9 +1217,9 @@ class Database:
             logger.error(f"Error getting ads: {e}")
             return []
 
-    def update_ad(self, ad_id, title, reward, link, meta, icon=None, claim_code=None, timer_seconds=0, description=None, image_url=None, pass_reward=0):
+    def update_ad(self, ad_id, title, reward, link, meta, icon=None, claim_code=None, timer_seconds=0):
         """
-        UPDATED: saves timer_seconds, description, image_url, pass_reward.
+        UPDATED: saves timer_seconds.
         Resets all claims so users can claim again after edit.
         """
         try:
@@ -1375,10 +1230,7 @@ class Database:
                 'meta': meta,
                 'edited_at': datetime.now().isoformat(),
                 'claim_code': claim_code.upper() if claim_code else None,
-                'timer_seconds': int(timer_seconds) if timer_seconds else 0,
-                'description': description or '',
-                'image_url': image_url or '',
-                'pass_reward': int(pass_reward) if pass_reward else 0
+                'timer_seconds': int(timer_seconds) if timer_seconds else 0  # NEW
             }
             if icon:
                 update_data['icon'] = icon
@@ -1642,16 +1494,11 @@ class Database:
                 date_filter = month_start
                 label = 'monthly'
 
-            # FIXED: Multiple date field formats handle karo
+            # Count refs activated in this period per user
             pipeline = [
                 {'$match': {
                     'is_active': True,
-                    '$or': [
-                        {'activation_date': {'$gte': date_filter}},
-                        {'activation_date_key': {'$gte': date_filter[:10]}},
-                        # Purane records — join_date fallback
-                        {'activation_date': {'$exists': False}, 'join_date': {'$gte': date_filter}}
-                    ]
+                    'activation_date': {'$gte': date_filter}
                 }},
                 {'$group': {
                     '_id': '$referrer_id',
@@ -1661,11 +1508,7 @@ class Database:
                 {'$limit': limit}
             ]
 
-            try:
-                period_data = list(self.referrals.aggregate(pipeline))
-            except Exception as agg_err:
-                logger.error(f"Leaderboard aggregate error: {agg_err}")
-                period_data = []
+            period_data = list(self.referrals.aggregate(pipeline))
 
             result = []
             for i, item in enumerate(period_data):
@@ -1711,17 +1554,19 @@ class Database:
     # SPIN: segments must match frontend SEGS array exactly (same index)
     # Frontend SEGS: [0.10, 0.50, 0.10, 1.0, 0.50, 0.10, 2.0, 0.10]
     SPIN_SEGMENTS = [
-        {'label': '10pts', 'value': 0.10},   # index 0
-        {'label': '30pts', 'value': 0.30},   # index 1
-        {'label': '10pts', 'value': 0.10},   # index 2
-        {'label': '50pts', 'value': 0.50},   # index 3
-        {'label': '30pts', 'value': 0.30},   # index 4
-        {'label': '20pts', 'value': 0.20},   # index 5
-        {'label': '100pts','value': 1.0},    # index 6
-        {'label': '10pts', 'value': 0.10},   # index 7
+        {'label': '₹0.10', 'value': 0.10},   # index 0
+        {'label': '₹0.50', 'value': 0.50},   # index 1
+        {'label': '₹0.10', 'value': 0.10},   # index 2
+        {'label': '₹1',    'value': 1.0},    # index 3
+        {'label': '₹0.50', 'value': 0.50},   # index 4
+        {'label': '₹0.10', 'value': 0.10},   # index 5
+        {'label': '₹2',    'value': 2.0},    # index 6
+        {'label': '₹0.10', 'value': 0.10},   # index 7
     ]
-    # Weights: 10pts=35%, 20pts=15%, 30pts=25%, 50pts=15%, 100pts=10%
-    SPIN_WEIGHTS = [10, 12, 10, 8, 12, 8, 5, 10]
+    # FIXED Weights — realistic feel, not spammy 0.10
+    # 0.10 = 40% (4 segs × 5), 0.50 = 30% (2 × 15), 1.0 = 20% (1 × 20), 2.0 = 10% (1 × 10)
+    # Total = 20+15+20+15+10+20+10+20 = 130
+    SPIN_WEIGHTS = [5, 15, 5, 20, 15, 5, 10, 5]
     # Actual probabilities:
     # ₹0.10 (indices 0,2,5,7) = (5+5+5+5)/80 = 20/80 = 25%
     # ₹0.50 (indices 1,4)     = (15+15)/80   = 30/80 = 37.5%
@@ -1756,7 +1601,13 @@ class Database:
             user_id = int(user_id)
             amount = float(amount)
             today = datetime.now().date().isoformat()
-
+            # Daily cap — prevent abuse
+            state = self.get_game_state(user_id, today)
+            day_earned = state.get('today_game_earned', 0.0)
+            cap = getattr(self, 'MAX_DAILY_GAME_EARN', 3.0)
+            amount = round(min(amount, max(0.0, cap - day_earned)), 4)
+            if amount <= 0:
+                return {'success': True, 'earned': 0, 'capped': True}
             self.add_balance(user_id, amount, description)
 
             state = self.get_game_state(user_id, today)
@@ -1799,25 +1650,17 @@ class Database:
     def process_game_spin(self, user_id):
         """
         Spin — costs 1 pass.
-        FIXED: Atomic pass deduction to prevent race conditions.
+        Returns segment_index so frontend wheel stops at exact correct segment.
+        SEGS in frontend and SPIN_SEGMENTS here must be in same order.
         """
         try:
             user_id = int(user_id)
-            # Fresh fetch
-            self.user_cache.pop(f"user_{user_id}", None)
             user = self.get_user(user_id)
-            if not user:
-                return {'success': False, 'message': 'User not found'}
-            if user.get('passes', 0) <= 0:
-                return {'success': False, 'message': 'Passes nahi hain! Refer karo ya daily bonus lo', 'passes': 0}
+            if not user or user.get('passes', 0) <= 0:
+                return {'success': False, 'message': 'Passes nahi hain! Refer karo ya daily bonus lo'}
 
-            # ATOMIC deduction
-            result = self.users.find_one_and_update(
-                {'user_id': user_id, 'passes': {'$gte': 1}},
-                {'$inc': {'passes': -1}}
-            )
-            if not result:
-                return {'success': False, 'message': 'Pass deduct nahi hua — refresh karo'}
+            if not self.deduct_pass(user_id):
+                return {'success': False, 'message': 'Pass deduct nahi hua'}
 
             weights = self.SPIN_WEIGHTS
             total_w = sum(weights)
@@ -1872,8 +1715,8 @@ class Database:
             }
 
             if is_correct:
-                reward = bet * 10  # 10x reward for correct guess
-                earn_result = self.add_game_earning(user_id, reward, 'guess', f"Guess correct! x10 → ₹{reward}")
+                reward = bet * 8
+                earn_result = self.add_game_earning(user_id, reward, 'guess', "Guess correct! x8")
                 result['reward'] = earn_result.get('earned', 0)
                 result['today_earned'] = earn_result.get('today_total', 0)
                 self.deduct_pass(user_id)
@@ -1903,27 +1746,18 @@ class Database:
             return {'success': False, 'message': str(e)}
 
     def process_game_coin(self, user_id, choice, bet):
-        """Coin flip — costs 1 pass. Win = bet back + bet (2x total)."""
+        """Coin flip — costs 1 pass."""
         try:
             user_id = int(user_id)
-            self.user_cache.pop(f"user_{user_id}", None)
             user = self.get_user(user_id)
-            if not user:
-                return {'success': False, 'message': 'User not found'}
-            if user.get('passes', 0) <= 0:
-                return {'success': False, 'message': 'Passes nahi hain!', 'passes': 0}
-            if user.get('balance', 0) < bet:
-                return {'success': False, 'message': f'Balance kam hai! ₹{user.get("balance", 0):.2f}'}
+            if not user or user.get('passes', 0) <= 0:
+                return {'success': False, 'message': 'Passes nahi hain!'}
 
-            # ATOMIC deduction
-            upd = self.users.find_one_and_update(
-                {'user_id': user_id, 'passes': {'$gte': 1}, 'balance': {'$gte': bet}},
-                {'$inc': {'passes': -1, 'balance': -bet}}
-            )
-            if not upd:
-                return {'success': False, 'message': 'Deduction failed — refresh karo'}
-            self.add_transaction(user_id, 'game_bet', -bet, "Coin flip bet")
-            self.user_cache.pop(f"user_{user_id}", None)
+            deduct_result = self.deduct_game_balance(user_id, bet, 'coin')
+            if not deduct_result.get('success'):
+                return deduct_result
+
+            self.deduct_pass(user_id)
 
             actual_result = 'heads' if random.random() < 0.5 else 'tails'
             won = (choice == actual_result)
@@ -1931,12 +1765,10 @@ class Database:
             result = {'success': True, 'won': won, 'result': actual_result, 'choice': choice, 'bet': bet, 'reward': 0}
 
             if won:
-                # Give back bet + same amount as profit (2x total)
                 reward = bet * 2
                 earn_result = self.add_game_earning(user_id, reward, 'coin', f"Coin flip win ₹{reward}")
                 result['reward'] = earn_result.get('earned', 0)
                 result['today_earned'] = earn_result.get('today_total', 0)
-            # If lost, bet is already deducted — no further deduction
 
             return result
         except Exception as e:
@@ -1958,23 +1790,14 @@ class Database:
             user_id = int(user_id)
 
             if not 1 <= choice <= 6:
-                return {'success': False, 'message': 'Choice 1-6 ke beech hona chahiye'}
+                return {'success': False, 'message': 'Choice must be 1-6'}
 
-            # Fresh fetch
-            self.user_cache.pop(f"user_{user_id}", None)
             user = self.get_user(user_id)
-            if not user:
-                return {'success': False, 'message': 'User not found'}
-            if user.get('passes', 0) <= 0:
-                return {'success': False, 'message': 'Passes nahi hain! Daily bonus lo ya refer karo', 'passes': 0}
+            if not user or user.get('passes', 0) <= 0:
+                return {'success': False, 'message': 'Passes nahi hain! Refer karo ya daily bonus lo'}
 
-            # ATOMIC deduction
-            result = self.users.find_one_and_update(
-                {'user_id': user_id, 'passes': {'$gte': 1}},
-                {'$inc': {'passes': -1}}
-            )
-            if not result:
-                return {'success': False, 'message': 'Pass deduct nahi hua — refresh karo'}
+            if not self.deduct_pass(user_id):
+                return {'success': False, 'message': 'Pass deduct nahi hua'}
 
             # Roll dice
             actual_number = random.randint(1, 6)
@@ -1995,8 +1818,8 @@ class Database:
             }
 
             if won:
-                reward = 1.0  # Increased from 0.50 to 1.0 (100 pts)
-                earn_result = self.add_game_earning(user_id, reward, 'dice', f"Dice roll win! {choice} aaya → ₹{reward}")
+                reward = 0.50
+                earn_result = self.add_game_earning(user_id, reward, 'dice', f"Dice roll win! {choice} aaya")
                 result['reward'] = earn_result.get('earned', reward)
                 result['today_earned'] = earn_result.get('today_total', 0)
 
@@ -2014,20 +1837,12 @@ class Database:
         """
         try:
             user_id = int(user_id)
-            self.user_cache.pop(f"user_{user_id}", None)
             user = self.get_user(user_id)
-            if not user:
-                return {'success': False, 'message': 'User not found'}
-            if user.get('passes', 0) <= 0:
-                return {'success': False, 'message': 'Passes nahi hain! Refer karo ya daily bonus lo', 'passes': 0}
+            if not user or user.get('passes', 0) <= 0:
+                return {'success': False, 'message': 'Passes nahi hain!'}
 
-            # ATOMIC deduction
-            result = self.users.find_one_and_update(
-                {'user_id': user_id, 'passes': {'$gte': 1}},
-                {'$inc': {'passes': -1}}
-            )
-            if not result:
-                return {'success': False, 'message': 'Pass deduct nahi hua — refresh karo'}
+            if not self.deduct_pass(user_id):
+                return {'success': False, 'message': 'Pass deduct nahi hua'}
 
             roll = random.random()
             if roll < 0.60:
@@ -2066,7 +1881,7 @@ class Database:
     def process_game_color(self, user_id, choice, bet):
         """
         Color Prediction. Red/Green/Blue=2x, Yellow/Purple=4x, Orange=9x
-        FIXED: Atomic pass+balance deduction, fresh user fetch.
+        House edge ~40%.
         """
         try:
             user_id = int(user_id)
@@ -2074,25 +1889,15 @@ class Database:
             valid_colors = list(self.COLOR_CONFIG.keys())
             if choice not in valid_colors:
                 return {'success': False, 'message': 'Invalid color'}
-
-            self.user_cache.pop(f"user_{user_id}", None)
             user = self.get_user(user_id)
-            if not user:
-                return {'success': False, 'message': 'User not found'}
-            if user.get('passes', 0) <= 0:
-                return {'success': False, 'message': 'Passes nahi hain!', 'passes': 0}
-            if user.get('balance', 0) < bet:
-                return {'success': False, 'message': f'Balance kam hai! ₹{user.get("balance", 0):.2f} hai'}
-
-            # ATOMIC: pass + balance ek saath deduct
-            upd = self.users.find_one_and_update(
-                {'user_id': user_id, 'passes': {'$gte': 1}, 'balance': {'$gte': bet}},
-                {'$inc': {'passes': -1, 'balance': -bet}}
-            )
-            if not upd:
-                return {'success': False, 'message': 'Deduction failed — refresh karo'}
-            self.add_transaction(user_id, 'game_bet', -bet, "Color game bet")
-            self.user_cache.pop(f"user_{user_id}", None)
+            if not user or user.get('passes', 0) <= 0:
+                return {'success': False, 'message': 'Passes nahi hain!'}
+            deduct_result = self.deduct_game_balance(user_id, bet, 'color')
+            if not deduct_result.get('success'):
+                return deduct_result
+            if not self.deduct_pass(user_id):
+                self.add_balance(user_id, bet, "Color refund")
+                return {'success': False, 'message': 'Pass deduct nahi hua'}
             # Weighted color pick
             probs = [self.COLOR_CONFIG[c]['prob'] for c in valid_colors]
             total = sum(probs)
@@ -2107,43 +1912,31 @@ class Database:
             result = {'success': True, 'won': won, 'result_color': result_color, 'choice': choice, 'reward': 0}
             if won:
                 mult = self.COLOR_CONFIG[result_color]['mult']
-                # Reward = bet * multiplier (includes bet-back)
                 reward = round(bet * mult, 2)
-                earn_result = self.add_game_earning(user_id, reward, 'color', f"Color {result_color} {mult}x → ₹{reward}")
+                earn_result = self.add_game_earning(user_id, reward, 'color', f"Color {result_color} {mult}x")
                 result['reward'] = earn_result.get('earned', reward)
                 result['multiplier'] = mult
                 result['today_earned'] = earn_result.get('today_total', 0)
-            # If lost, bet already deducted
             return result
         except Exception as e:
             logger.error(f"Color game error: {e}")
             return {'success': False, 'message': str(e)}
 
     def process_crash_start(self, user_id, bet):
-        """
-        Crash game — deduct pass AND bet from balance.
-        FIXED: Atomic deduction.
-        """
+        """Crash game — deduct pass AND bet amount from balance."""
         try:
             user_id = int(user_id)
             bet = float(bet)
-            self.user_cache.pop(f"user_{user_id}", None)
             user = self.get_user(user_id)
-            if not user:
-                return {'success': False, 'message': 'User not found'}
-            if user.get('passes', 0) <= 0:
-                return {'success': False, 'message': 'Passes nahi hain!', 'passes': 0}
+            if not user or user.get('passes', 0) <= 0:
+                return {'success': False, 'message': 'Passes nahi hain!'}
             if user.get('balance', 0) < bet:
-                return {'success': False, 'message': f'Balance kam hai! ₹{user.get("balance", 0):.2f} hai'}
-
-            # ATOMIC: pass + balance ek saath
-            upd = self.users.find_one_and_update(
-                {'user_id': user_id, 'passes': {'$gte': 1}, 'balance': {'$gte': bet}},
-                {'$inc': {'passes': -1, 'balance': -bet}}
-            )
-            if not upd:
-                return {'success': False, 'message': 'Deduction failed — refresh karo'}
-
+                return {'success': False, 'message': f'Balance kam hai! ₹{user.get("balance",0):.2f} hai'}
+            # Deduct pass
+            if not self.deduct_pass(user_id):
+                return {'success': False, 'message': 'Pass deduct nahi hua'}
+            # Deduct bet from balance
+            self.users.update_one({'user_id': user_id}, {'$inc': {'balance': -bet}})
             self.add_transaction(user_id, 'game_bet', -bet, f"Crash game bet ₹{bet}")
             self.user_cache.pop(f"user_{user_id}", None)
             return {'success': True}
@@ -2160,8 +1953,8 @@ class Database:
             reward = float(reward)
             if multiplier < 1.0:
                 return {'success': False, 'message': 'Invalid multiplier'}
-            if reward > bet * 15:
-                reward = round(bet * 15, 2)
+            if reward > bet * 10.5:
+                reward = round(bet * 10, 2)
             earn_result = self.add_game_earning(user_id, reward, 'crash', f"Crash cashout {multiplier}x")
             return {'success': True, 'reward': earn_result.get('earned', reward), 'multiplier': multiplier}
         except Exception as e:
@@ -2171,66 +1964,39 @@ class Database:
     # ========== RUNNER GAME ==========
 
     RUNNER_MODES = {
-        '10s':  {'seconds': 10,  'reward_per_sec': 0.008, 'label': '10 Seconds'},
-        '30s':  {'seconds': 30,  'reward_per_sec': 0.006, 'label': '30 Seconds'},
-        '1m':   {'seconds': 60,  'reward_per_sec': 0.005, 'label': '1 Minute'},
-        '5m':   {'seconds': 300, 'reward_per_sec': 0.004, 'label': '5 Minutes'},
-        '10m':  {'seconds': 600, 'reward_per_sec': 0.003, 'label': '10 Minutes'},
-        # New games use same route
-        'maze':       {'seconds': 60,  'reward_per_sec': 0.006, 'label': 'Maze Escape'},
-        'snake':      {'seconds': 60,  'reward_per_sec': 0.005, 'label': 'Snake Game'},
-        'chess':      {'seconds': 60,  'reward_per_sec': 0.005, 'label': 'Chess Timer'},
-        'blockblast': {'seconds': 120, 'reward_per_sec': 0.004, 'label': 'Block Blast'},
-        'gemmatch':   {'seconds': 120, 'reward_per_sec': 0.004, 'label': 'Gem Match'},
+        '10s':  {'seconds': 10,  'reward_per_sec': 0.005, 'label': '10 Seconds'},
+        '30s':  {'seconds': 30,  'reward_per_sec': 0.004, 'label': '30 Seconds'},
+        '1m':   {'seconds': 60,  'reward_per_sec': 0.003, 'label': '1 Minute'},
+        '5m':   {'seconds': 300, 'reward_per_sec': 0.002, 'label': '5 Minutes'},
+        '10m':  {'seconds': 600, 'reward_per_sec': 0.0015,'label': '10 Minutes'},
+        # Skill games
+        'maze':       {'seconds': 120, 'reward_per_sec': 0.003, 'label': 'Sokoban',       'max_reward': 0.25},
+        'snake':      {'seconds': 60,  'reward_per_sec': 0.003, 'label': 'Snake Game',    'max_reward': 0.20},
+        'chess':      {'seconds': 60,  'reward_per_sec': 0.003, 'label': 'Chess',         'max_reward': 0.20},
+        'blockblast': {'seconds': 120, 'reward_per_sec': 0.002, 'label': 'Block Blast',   'max_reward': 0.15},
+        'gemmatch':   {'seconds': 120, 'reward_per_sec': 0.002, 'label': 'Gem Match',     'max_reward': 0.15},
     }
+    MAX_DAILY_GAME_EARN = 3.0
 
     def runner_start(self, user_id, mode, bet):
-        """
-        Start runner/skill game — deduct 1 pass.
-        FIXED: bet amount is just symbolic (0), game earns per second survived.
-        Pass hi cost hai, balance se kuch nahi katega unless bet > 0.
-        """
+        """Start runner game — deduct pass + bet."""
         try:
             user_id = int(user_id)
-            bet = float(bet) if bet else 0.0
+            bet = float(bet)
             if mode not in self.RUNNER_MODES:
-                return {'success': False, 'message': 'Invalid game mode'}
-
-            # FIXED: Fresh user fetch for accurate pass count
-            self.user_cache.pop(f"user_{user_id}", None)
+                return {'success': False, 'message': 'Invalid mode'}
             user = self.get_user(user_id)
             if not user:
                 return {'success': False, 'message': 'User not found'}
-
-            passes = user.get('passes', 0)
-            if passes <= 0:
-                return {
-                    'success': False,
-                    'message': f'Passes nahi hain! Daily bonus lo ya refer karo.',
-                    'passes': 0
-                }
-
-            # Only deduct balance if bet > 0
-            if bet > 0 and user.get('balance', 0) < bet:
-                return {
-                    'success': False,
-                    'message': f'Balance kam hai! Aapke paas ₹{user.get("balance", 0):.2f} hai',
-                    'balance': user.get('balance', 0)
-                }
-
-            # ATOMIC pass deduction — prevents race condition
-            result = self.users.find_one_and_update(
-                {'user_id': user_id, 'passes': {'$gte': 1}},
-                {'$inc': {'passes': -1}}
-            )
-            if not result:
-                return {'success': False, 'message': 'Pass deduct nahi hua — refresh karke try karo'}
-
-            # Deduct bet if any
-            if bet > 0:
-                self.users.update_one({'user_id': user_id}, {'$inc': {'balance': -bet}})
-                self.add_transaction(user_id, 'game_bet', -bet, f"Game bet ₹{bet} ({mode})")
-
+            if user.get('passes', 0) <= 0:
+                return {'success': False, 'message': 'Passes nahi hain!'}
+            if user.get('balance', 0) < bet:
+                return {'success': False, 'message': f'Balance kam hai! ₹{user.get("balance",0):.2f}'}
+            # Deduct pass + bet
+            if not self.deduct_pass(user_id):
+                return {'success': False, 'message': 'Pass deduct nahi hua'}
+            self.users.update_one({'user_id': user_id}, {'$inc': {'balance': -bet}})
+            self.add_transaction(user_id, 'game_bet', -bet, f"Runner game bet ₹{bet} ({mode})")
             self.user_cache.pop(f"user_{user_id}", None)
             mode_info = self.RUNNER_MODES[mode]
             max_reward = round(bet + (mode_info['seconds'] * mode_info['reward_per_sec']), 2)
@@ -2240,8 +2006,7 @@ class Database:
                 'seconds': mode_info['seconds'],
                 'reward_per_sec': mode_info['reward_per_sec'],
                 'bet': bet,
-                'max_reward': max_reward,
-                'passes_remaining': passes - 1
+                'max_reward': max_reward
             }
         except Exception as e:
             logger.error(f"Runner start error: {e}")
@@ -2267,14 +2032,15 @@ class Database:
             # Per second earning
             earned = round(survived_seconds * reward_per_sec, 4)
             total_reward = round(bet_back + earned, 2)
-            # Cap at max possible
+            # Cap at max possible (per-mode cap + anti-cheat)
             max_reward = round(bet + (total_seconds * reward_per_sec), 2)
-            total_reward = min(total_reward, max_reward)
+            mode_cap = mode_info.get('max_reward', max_reward)
+            total_reward = min(total_reward, max_reward, mode_cap)
             if total_reward > 0:
                 self.add_game_earning(user_id, total_reward, 'runner',
-                    f"Runner {mode} — {survived_seconds}s survived → +₹{total_reward}")
+                    f"Runner {mode} {survived_seconds}s → +₹{total_reward}")
                 self.add_live_activity('runner', user_id, total_reward,
-                    f"Runner game {mode}: {survived_seconds}s survive kiya → +₹{total_reward}")
+                    f"🏃 Runner {mode}: {survived_seconds}s → +₹{total_reward}")
             won = survived_seconds >= total_seconds
             return {
                 'success': True,
