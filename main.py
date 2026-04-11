@@ -1352,6 +1352,14 @@ async def post_init(application):
 
         if config and config.WEBHOOK_URL:
             webhook_url = config.WEBHOOK_URL.rstrip('/').replace('/webhook','') + '/webhook'
+            # First delete any existing webhook to avoid conflict
+            try:
+                await application.bot.delete_webhook(drop_pending_updates=True)
+                logger.info("Old webhook deleted")
+            except Exception as dwe:
+                logger.warning(f"Delete webhook: {dwe}")
+            import asyncio as _aio
+            await _aio.sleep(1)  # Brief pause after delete
             await application.bot.set_webhook(
                 url=webhook_url,
                 allowed_updates=["message","channel_post","edited_channel_post","callback_query","inline_query"],
