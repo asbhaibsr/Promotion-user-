@@ -64,31 +64,53 @@ class Database:
             raise e
 
     def _create_indexes(self):
+        """Create indexes — handles existing duplicates gracefully."""
+        def safe_index(collection, keys, **kwargs):
+            try:
+                collection.create_index(keys, **kwargs)
+            except Exception as e:
+                if '11000' in str(e) or 'duplicate' in str(e).lower():
+                    # Drop duplicates then retry
+                    logger.warning(f"Duplicate data found, cleaning before indexing: {str(e)[:80]}")
+                    try:
+                        pipeline = [{"$group": {"_id": keys if isinstance(keys, str) else {k: f"${k}" for k, _ in keys},
+                                               "ids": {"$push": "$_id"}, "count": {"$sum": 1}}},
+                                    {"$match": {"count": {"$gt": 1}}}]
+                        for doc in collection.aggregate(pipeline):
+                            # Keep first, delete rest
+                            for dup_id in doc['ids'][1:]:
+                                collection.delete_one({'_id': dup_id})
+                        collection.create_index(keys, **kwargs)
+                        logger.info(f"Index created after cleanup")
+                    except Exception as e2:
+                        logger.error(f"Index retry failed: {e2}")
+                else:
+                    logger.error(f"Index error: {e}")
         try:
-            self.users.create_index('user_id', unique=True)
-            self.users.create_index('referrer_id')
-            self.users.create_index('last_active')
-            self.users.create_index('balance')
-            self.referrals.create_index([('referrer_id', ASCENDING), ('referred_id', ASCENDING)], unique=True)
-            self.referrals.create_index('is_active')
-            self.referrals.create_index('activation_date')  # NEW: for month_active_refs query
-            self.daily_searches.create_index([('user_id', ASCENDING), ('date', ASCENDING)], unique=True)
-            self.search_logs.create_index([('user_id', ASCENDING), ('timestamp', DESCENDING)])
-            self.search_logs.create_index('timestamp', expireAfterSeconds=2592000)
-            self.withdrawals.create_index([('user_id', ASCENDING), ('request_date', DESCENDING)])
-            self.withdrawals.create_index('status')
-            self.channel_joins.create_index([('user_id', ASCENDING), ('channel_id', ASCENDING)], unique=True)
-            self.daily_bonus.create_index([('user_id', ASCENDING), ('date', ASCENDING)], unique=True)
-            self.daily_bonus.create_index('date')
-            self.missions.create_index([('user_id', ASCENDING), ('date', ASCENDING), ('mission_id', ASCENDING)], unique=True)
-            self.daily_claims.create_index([('user_id', ASCENDING), ('ad_id', ASCENDING)], unique=True)
-            self.ads.create_index('id', unique=True)
-            self.live_activity.create_index('timestamp', expireAfterSeconds=604800)
-            self.live_activity.create_index('user_id')
-            self.issues.create_index([('user_id', ASCENDING), ('timestamp', DESCENDING)])
-            self.issues.create_index('status')
-            self.game_states.create_index([('user_id', ASCENDING), ('date', ASCENDING)], unique=True)
-            logger.info("Database indexes created")
+            safe_index(self.users, 'user_id', unique=True)
+            safe_index(self.users, 'referrer_id')
+            safe_index(self.users, 'last_active')
+            safe_index(self.users, 'balance')
+            safe_index(self.referrals, [('referrer_id', ASCENDING), ('referred_id', ASCENDING)], unique=True)
+            safe_index(self.referrals, 'is_active')
+            safe_index(self.referrals, 'activation_date')
+            safe_index(self.daily_searches, [('user_id', ASCENDING), ('date', ASCENDING)], unique=True)
+            safe_index(self.search_logs, [('user_id', ASCENDING), ('timestamp', DESCENDING)])
+            safe_index(self.search_logs, 'timestamp', expireAfterSeconds=2592000)
+            safe_index(self.withdrawals, [('user_id', ASCENDING), ('request_date', DESCENDING)])
+            safe_index(self.withdrawals, 'status')
+            safe_index(self.channel_joins, [('user_id', ASCENDING), ('channel_id', ASCENDING)], unique=True)
+            safe_index(self.daily_bonus, [('user_id', ASCENDING), ('date', ASCENDING)], unique=True)
+            safe_index(self.daily_bonus, 'date')
+            safe_index(self.missions, [('user_id', ASCENDING), ('date', ASCENDING), ('mission_id', ASCENDING)], unique=True)
+            safe_index(self.daily_claims, [('user_id', ASCENDING), ('ad_id', ASCENDING)], unique=True)
+            safe_index(self.ads, 'id', unique=True)
+            safe_index(self.live_activity, 'timestamp', expireAfterSeconds=604800)
+            safe_index(self.live_activity, 'user_id')
+            safe_index(self.issues, [('user_id', ASCENDING), ('timestamp', DESCENDING)])
+            safe_index(self.issues, 'status')
+            safe_index(self.game_states, [('user_id', ASCENDING), ('date', ASCENDING)], unique=True)
+            logger.info("✅ Database indexes ready")
         except Exception as e:
             logger.error(f"Index creation error: {e}")
 
@@ -96,8 +118,8 @@ class Database:
         try:
             if self.ads.count_documents({}) == 0:
                 self.ads.insert_many([
-                    {'id': 1, 'title': 'Install App & Earn', 'reward': 2.0, 'link': 'https://t.me/+8SdeM5gBihoxZjU1', 'meta': '⏱️ 2 min • 1.2k completed', 'icon': '📱', 'order': 1, 'edited_at': None, 'claim_code': None, 'timer_seconds': 0},
-                    {'id': 2, 'title': 'Watch Video', 'reward': 0.5, 'link': 'https://t.me/+8SdeM5gBihoxZjU1', 'meta': '⏱️ 30 sec • 3.4k completed', 'icon': '🎬', 'order': 2, 'edited_at': None, 'claim_code': None, 'timer_seconds': 0},
+                    {'id': 1, 'title': 'Install App & Earn', 'reward': 2.0, 'link': 'https://t.me/+8SdeM5gBihoxZjU1', 'meta': '⏱️ 2 min • 1.2k completed', 'icon': '📱', 'order': 1, 'edited_at': None, 'claim_code': None, 'timer_seconds': 0, 'image_url': '', 'description': 'App install karo aur turant ₹2 kamao!'},
+                    {'id': 2, 'title': 'Watch Video', 'reward': 0.5, 'link': 'https://t.me/+8SdeM5gBihoxZjU1', 'meta': '⏱️ 30 sec • 3.4k completed', 'icon': '🎬', 'order': 2, 'edited_at': None, 'claim_code': None, 'timer_seconds': 0, 'image_url': '', 'description': 'Video dekho aur 50 pts pao!'},
                     {'id': 3, 'title': 'Join Channel', 'reward': 1.0, 'link': 'https://t.me/+8SdeM5gBihoxZjU1', 'meta': '⏱️ 1 min • 5.6k completed', 'icon': '📢', 'order': 3, 'edited_at': None, 'claim_code': None, 'timer_seconds': 0}
                 ])
                 logger.info("Default ads initialized")
