@@ -660,10 +660,21 @@ class AdminHandlers:
             parse_mode='Markdown'
         )
 
-        # Save blocked users list
+        # Save blocked users list AND auto-cleanup
         if blocked:
             context.user_data['last_broadcast_blocked'] = blocked
-            logger.info(f"Broadcast blocked by {len(blocked)} users")
+            logger.info(f"Broadcast blocked by {len(blocked)} users — auto-cleaning...")
+            deleted, failed_del = self.db.remove_blocked_users(blocked)
+            await status_msg.edit_text(
+                f"✅ **Broadcast Complete!**\n\n"
+                f"📨 Sent: {sent}\n"
+                f"❌ Failed: {failed}\n"
+                f"🚫 Blocked/Deleted: {len(blocked)}\n"
+                f"🧹 Auto-cleaned: {deleted} removed from DB\n"
+                f"👥 Total: {len(users)}",
+                parse_mode='Markdown'
+            )
+            context.user_data['last_broadcast_blocked'] = []
 
 
     async def clear_junk_users(self, query, context):
