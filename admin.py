@@ -660,22 +660,23 @@ class AdminHandlers:
             parse_mode='Markdown'
         )
 
-        # Save blocked users and auto-cleanup
+        # AUTO-REMOVE blocked/deleted users from DB immediately
         if blocked:
             context.user_data['last_broadcast_blocked'] = blocked
-            logger.info(f"Broadcast blocked by {len(blocked)} users — auto-cleaning")
+            logger.info(f"Broadcast blocked by {len(blocked)} users — auto removing...")
             try:
-                deleted, _ = self.db.remove_blocked_users(blocked)
+                deleted_count, _ = self.db.remove_blocked_users(blocked)
+                logger.info(f"✅ Auto-removed {deleted_count} blocked users from DB")
+                # Final message update karo with cleanup info
                 await status_msg.edit_text(
-                    f"✅ **Broadcast Complete!**\n\n"
+                    "✅ **Broadcast Complete!**\n\n"
                     f"📨 Sent: {sent}\n"
                     f"❌ Failed: {failed}\n"
-                    f"🚫 Blocked: {len(blocked)}\n"
-                    f"🧹 Auto-cleaned: {deleted} users removed\n"
+                    f"🚫 Blocked/Deleted: {len(blocked)}\n"
+                    f"🧹 Auto-cleaned: {deleted_count} users DB se remove\n"
                     f"👥 Total: {len(users)}",
-                    parse_mode='Markdown'
+                    parse_mode="Markdown"
                 )
-                context.user_data['last_broadcast_blocked'] = []
             except Exception as ce:
                 logger.error(f"Auto-cleanup error: {ce}")
 
