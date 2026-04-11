@@ -334,8 +334,9 @@ def update_ad_api():
         admin_user = db.get_user(int(admin_id))
         if not admin_user or not admin_user.get('is_admin', False):
             return jsonify({'success': False, 'message': 'Unauthorized'}), 403
-        # UPDATED: pass timer_seconds, image_url
+        # UPDATED: pass timer_seconds + image_url + description
         timer_seconds = int(data.get('timer_seconds', 0) or 0)
+        is_new = data.get('is_new', False)  # flag for notification
         success = db.update_ad(
             ad_id,
             data.get('title'),
@@ -345,8 +346,28 @@ def update_ad_api():
             data.get('icon'),
             claim_code=data.get('claim_code'),
             timer_seconds=timer_seconds,
-            image_url=data.get('image_url', '')
+            image_url=data.get('image_url', ''),
+            description=data.get('description', '')
         )
+        # Agar naya offer hai toh notification push karo
+        if success and is_new:
+            try:
+                ad_title = data.get('title', 'New Offer')
+                ad_pts = int(float(data.get('reward', 0)) * 100)
+                ad_img = data.get('image_url', '')
+                db.ads.update_one({'id': int(ad_id)}, {'$set': {'is_new_notif': True, 'notif_sent_at': datetime.now().isoformat()}})
+                # Store as pending notification for all users to fetch
+                db.notifications.insert_one({
+                    'type': 'new_offer',
+                    'title': f"💎 New Offer: {ad_title}",
+                    'body': f"Complete karo aur +{ad_pts} pts pao!",
+                    'image_url': ad_img,
+                    'ad_id': int(ad_id),
+                    'created_at': datetime.now().isoformat(),
+                    'created_ts': datetime.now().timestamp()
+                })
+            except Exception as ne:
+                logger.error(f"Notification insert error: {ne}")
         if success:
             return jsonify({'success': True, 'message': 'Ad updated! All claims reset.'})
         return jsonify({'success': False, 'message': 'Failed to update'})
@@ -1054,41 +1075,6 @@ def stats_api():
 # In-memory announcement (persists while server is running)
 _announcement = {'text': '', 'ts': 0}
 
-@app.route('/api/new-ad-notification', methods=['POST'])
-def new_ad_notification_api():
-    """Store notification when a new ad is created."""
-    try:
-        data = request.get_json()
-        admin_id = data.get('admin_id')
-        if not admin_id or not config.is_admin(admin_id):
-            return jsonify({'success': False, 'message': 'Unauthorized'}), 403
-        import json as _json
-        try:
-            with open('new_ad_notif.json', 'r') as f:
-                notifs = _json.load(f)
-        except:
-            notifs = []
-        notifs.insert(0, {'title': data.get('title',''), 'image_url': data.get('image_url',''), 'ts': datetime.now().timestamp()})
-        notifs = notifs[:20]
-        with open('new_ad_notif.json', 'w') as f:
-            _json.dump(notifs, f)
-        return jsonify({'success': True})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@app.route('/api/get-new-ads')
-def get_new_ads_api():
-    """Return new ad notifications."""
-    try:
-        import json as _json
-        try:
-            with open('new_ad_notif.json', 'r') as f:
-                return jsonify(_json.load(f))
-        except:
-            return jsonify([])
-    except:
-        return jsonify([])
-
 @app.route('/api/set-announcement', methods=['POST'])
 def set_announcement_api():
     global _announcement
@@ -1320,6 +1306,49 @@ def health_check():
     except:
         return jsonify({'status':'ok'})
 
+# ========== NOTIFICATIONS API ==========
+
+@app.route('/api/notifications')
+def get_notifications_api():
+    """Fetch pending notifications for user (new sponsored offers, daily bonuses etc.)"""
+    try:
+        since_ts = request.args.get('since', 0, type=float)
+        if not db or not db.ensure_connection():
+            return jsonify([])
+        notifs = list(db.notifications.find(
+            {'created_ts': {'$gt': since_ts}},
+            {'_id': 0}
+        ).sort('created_ts', -1).limit(20))
+        return jsonify(notifs)
+    except Exception as e:
+        logger.error(f"Notifications error: {e}")
+        return jsonify([])
+
+@app.route('/api/push-notification', methods=['POST'])
+def push_notification_api():
+    """Admin manually pushes a bell notification to all users"""
+    try:
+        data = request.get_json()
+        admin_id = data.get('admin_id')
+        if not admin_id or not config.is_admin(admin_id):
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+        title = data.get('title', '🔔 FilmyFund Update')
+        body = data.get('body', '')
+        image_url = data.get('image_url', '')
+        if not body:
+            return jsonify({'success': False, 'message': 'Body required'}), 400
+        db.notifications.insert_one({
+            'type': 'admin',
+            'title': title,
+            'body': body,
+            'image_url': image_url,
+            'created_at': datetime.now().isoformat(),
+            'created_ts': datetime.now().timestamp()
+        })
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @app.route('/webhook', methods=['POST'])
 def webhook():
     global bot_app, bot_loop
@@ -1339,6 +1368,15 @@ async def post_init(application):
     global config
     logger.info("Running post-initialization...")
     try:
+        # ── Step 1: Pehle purana webhook/polling conflict clear karo ──
+        try:
+            await application.bot.delete_webhook(drop_pending_updates=True)
+            logger.info("✅ Old webhook deleted (conflict clear)")
+            await asyncio.sleep(1)
+        except Exception as e:
+            logger.warning(f"delete_webhook warning (ok to ignore): {e}")
+
+        # ── Step 2: Commands set karo ──
         commands = [
             BotCommand("start", "Start the bot"),
             BotCommand("app", "Open Mini App"),
@@ -1350,25 +1388,20 @@ async def post_init(application):
         ]
         await application.bot.set_my_commands(commands)
 
+        # ── Step 3: Naya webhook set karo ──
         if config and config.WEBHOOK_URL:
             webhook_url = config.WEBHOOK_URL.rstrip('/').replace('/webhook','') + '/webhook'
-            # First delete any existing webhook to avoid conflict
-            try:
-                await application.bot.delete_webhook(drop_pending_updates=True)
-                logger.info("Old webhook deleted")
-            except Exception as dwe:
-                logger.warning(f"Delete webhook: {dwe}")
-            import asyncio as _aio
-            await _aio.sleep(1)  # Brief pause after delete
             await application.bot.set_webhook(
                 url=webhook_url,
                 allowed_updates=["message","channel_post","edited_channel_post","callback_query","inline_query"],
-                drop_pending_updates=True
+                drop_pending_updates=True,
+                max_connections=40
             )
             logger.info(f"✅ Webhook SET: {webhook_url}")
         else:
             logger.warning("⚠️ WEBHOOK_URL not set in env vars!")
 
+        # ── Step 4: Log channel startup message ──
         if config and config.LOG_CHANNEL_ID:
             try:
                 await application.bot.send_message(
@@ -1488,14 +1521,22 @@ def run_bot():
 
         bot_app.add_error_handler(error_handler)
 
-        bot_loop.run_until_complete(post_init(bot_app))
-        bot_loop.create_task(scheduled_jobs())
+        # ── Webhook mode: initialize + start WITHOUT run_polling ──
+        # run_polling() / run_webhook() mat use karo — wo Updater.start_polling() call
+        # karta hai jo already-active webhook se conflict deta hai (Render logs mein
+        # "Conflict: can't use getUpdates" wala error).
+        # Hum manually initialize → start → post_init karte hain.
+        async def _run_app():
+            await bot_app.initialize()   # Bot ready karo (no polling started)
+            await bot_app.start()        # Handlers active karo (still no polling)
+            await post_init(bot_app)     # Webhook set + commands
+            bot_loop.create_task(scheduled_jobs())
+            logger.info("✅ Bot started — WEBHOOK mode (Flask handles /webhook)")
+            # Event loop alive rakho — Flask /webhook route se updates aayenge
+            await asyncio.sleep(float("inf"))
 
-        logger.info("✅ Bot started — WEBHOOK mode (Flask handles /webhook)")
         bot_running = True
-        # Webhook mode: Flask receives updates at /webhook and forwards to bot_app
-        # No polling needed — just keep event loop alive for async operations
-        bot_loop.run_until_complete(asyncio.sleep(float('inf')))
+        bot_loop.run_until_complete(_run_app())
 
     except Exception as e:
         logger.error(f"Bot error: {e}")
