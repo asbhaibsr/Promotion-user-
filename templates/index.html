@@ -411,9 +411,9 @@
         .gstat-val{font-family:'Oxanium',sans-serif;font-size:19px;font-weight:900;color:var(--purple2);}
         .gstat-lbl{font-size:9px;color:var(--text3);margin-top:2px;}
         .games-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;}
-        .game-card{background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:18px 11px 14px;text-align:center;cursor:pointer;transition:transform .18s,border-color .2s;position:relative;overflow:hidden;}
-        .game-card:hover{border-color:rgba(124,92,252,.38);}
-        .game-card:active{transform:scale(.93);}
+        .game-card{background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:18px 11px 14px;text-align:center;cursor:pointer;transition:transform .18s,border-color .2s,box-shadow .2s;position:relative;overflow:hidden;}
+        .game-card:hover{border-color:rgba(124,92,252,.5);box-shadow:0 4px 20px rgba(124,92,252,.15);}
+        .game-card:active{transform:scale(.93);box-shadow:0 2px 10px rgba(124,92,252,.2);}
         .game-emoji{font-size:54px;display:block;margin-bottom:10px;}
         .game-img{width:80px;height:80px;object-fit:cover;display:block;margin:0 auto 10px;border-radius:18px;
             box-shadow:0 4px 18px rgba(0,0,0,.5),0 0 0 2px rgba(255,255,255,.1),0 0 20px rgba(124,92,252,.15);
@@ -432,7 +432,7 @@
         .ss-item .ss-lbl{font-size:10px;color:var(--text3);margin-top:2px;}
         .wheel-outer{position:relative;display:inline-block;margin:6px auto;}
         .wheel-ptr{position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-size:26px;z-index:5;}
-        #spinCanvas{border-radius:50%;box-shadow:0 0 0 5px var(--gold),0 0 0 9px rgba(240,192,64,.12),0 12px 40px rgba(240,192,64,.22);cursor:pointer;width:255px;height:255px;}
+        #spinCanvas{border-radius:50%;box-shadow:0 0 0 4px var(--gold),0 0 0 8px rgba(240,192,64,.15),0 0 0 12px rgba(240,192,64,.08),0 16px 50px rgba(240,192,64,.3);cursor:pointer;width:255px;height:255px;transition:box-shadow .3s;}
         .spin-result{background:linear-gradient(135deg,var(--green),#059669);border-radius:14px;padding:14px;margin:12px 0;display:none;animation:bounceIn .4s;}
         @keyframes bounceIn{0%{transform:scale(.5);opacity:0;}80%{transform:scale(1.06);}100%{transform:scale(1);opacity:1;}}
         .spin-result-amt{font-family:'Oxanium',sans-serif;font-size:38px;font-weight:900;color:#fff;}
@@ -454,10 +454,10 @@
         /* COIN */
         .coin-game-wrap{text-align:center;}
         .coin-outer{margin:16px auto;display:inline-block;perspective:800px;}
-        .coin{width:112px;height:112px;position:relative;transform-style:preserve-3d;transition:transform 1.2s cubic-bezier(.4,0,.2,1);cursor:pointer;margin:0 auto;}
-        .coin-face{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:50px;backface-visibility:hidden;box-shadow:inset 0 -7px 18px rgba(0,0,0,.28);}
-        .coin-h{background:radial-gradient(circle at 35% 35%,#fde68a,var(--gold),var(--gold-dim));}
-        .coin-t{background:radial-gradient(circle at 35% 35%,#e2e8f0,#94a3b8,#64748b);transform:rotateY(180deg);}
+        .coin{width:130px;height:130px;position:relative;transform-style:preserve-3d;transition:transform 1.4s cubic-bezier(.4,0,.2,1);cursor:pointer;margin:0 auto;filter:drop-shadow(0 8px 20px rgba(0,0,0,0.5));}
+        .coin-face{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:56px;backface-visibility:hidden;box-shadow:inset 0 -8px 20px rgba(0,0,0,.35),inset 0 3px 8px rgba(255,255,255,.2);}
+        .coin-h{background:radial-gradient(circle at 30% 30%,#fffde7,#fde68a,var(--gold),#b8860b);box-shadow:inset 2px 2px 8px rgba(255,255,255,0.5),inset -2px -2px 8px rgba(0,0,0,0.3);}
+        .coin-t{background:radial-gradient(circle at 30% 30%,#f8fafc,#cbd5e1,#64748b,#334155);transform:rotateY(180deg);box-shadow:inset 2px 2px 8px rgba(255,255,255,0.4),inset -2px -2px 8px rgba(0,0,0,0.4);}
         .coin-choices{display:flex;gap:9px;margin:13px 0;}
         .coin-choice{flex:1;padding:14px;border-radius:14px;font-size:22px;font-weight:900;cursor:pointer;border:2px solid var(--border);background:var(--bg3);transition:all .17s;color:var(--text);font-family:inherit;}
         .coin-choice.sel{border-color:var(--gold);background:rgba(240,192,64,.09);transform:translateY(-3px);}
@@ -508,9 +508,9 @@
         .color-res-win{background:linear-gradient(135deg,var(--green),#059669);color:#fff;border-radius:14px;padding:14px;text-align:center;display:none;animation:bounceIn .4s;margin:8px 0;}
         .color-res-lose{background:linear-gradient(135deg,var(--red),#dc2626);color:#fff;border-radius:14px;padding:14px;text-align:center;display:none;animation:bounceIn .4s;margin:8px 0;}
         /* CRASH GAME */
-        .crash-arena{background:linear-gradient(160deg,#020b1a,#060d2a,#0c0520);border-radius:20px;padding:16px;margin-bottom:10px;position:relative;overflow:hidden;height:185px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+        .crash-arena{background:linear-gradient(160deg,#010810,#050b20,#0a0318);border-radius:20px;padding:16px;margin-bottom:10px;position:relative;overflow:hidden;height:195px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid rgba(54,182,245,0.2);box-shadow:inset 0 0 40px rgba(54,182,245,0.05);}
         .crash-arena::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(54,182,245,.07),transparent 70%);}
-        .crash-multiplier{font-family:Oxanium,sans-serif;font-size:68px;font-weight:900;line-height:1;transition:color .15s;z-index:2;}
+        .crash-multiplier{font-family:Oxanium,sans-serif;font-size:72px;font-weight:900;line-height:1;transition:color .15s,text-shadow .15s;z-index:2;letter-spacing:-2px;}
         .crash-multiplier.safe{color:var(--green);text-shadow:0 0 30px rgba(25,216,158,.4);}
         .crash-multiplier.warning{color:var(--gold);text-shadow:0 0 30px rgba(240,192,64,.4);}
         .crash-multiplier.crashed{color:var(--red);text-shadow:0 0 30px rgba(255,78,106,.4);}
@@ -633,6 +633,9 @@
 
         /* Game earn tag */
         .game-earn-tag{display:inline-block;background:rgba(25,216,158,.12);border:1px solid rgba(25,216,158,.3);color:var(--green);padding:3px 10px;border-radius:20px;font-size:9px;font-weight:800;margin-top:4px;}
+        /* HD game card skill shimmer */
+        .game-card-skill::before{content:'';position:absolute;top:-100%;left:-100%;width:60%;height:300%;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.06) 50%,transparent 60%);transition:all 0.5s;pointer-events:none;}
+        .game-card-skill:hover::before{top:-100%;left:150%;transition:all 0.5s;}
 
         /* Premium card hover effects */
         .game-card-skill{transition:transform .18s,box-shadow .2s,border-color .2s !important;}
@@ -918,8 +921,8 @@
                 <img src="https://i.postimg.cc/zGbqh2Rk/89cdcea2-faf0-4d66-9011-7309cf5978fa.jpg" class="game-img" alt="Runner">
                 <div style="padding:10px;">
                     <div class="game-name" style="color:var(--purple2);">🏃 Runner</div>
-                    <div class="game-desc">Survive karo • Har second = pts!</div>
-                    <span class="game-earn-tag">0.5 pts/sec</span>
+                    <div class="game-desc">Save points tak paucho • HD shadow graphics!</div>
+                    <span class="game-earn-tag">Save Point = Earn!</span>
                 </div>
             </div>
             <div class="game-card game-card-skill" onclick="openGame('chess')" style="background:linear-gradient(135deg,#1a1200,#2a1e00);border:1.5px solid rgba(240,192,64,.4);">
@@ -953,42 +956,22 @@
         <!-- SKILL GAMES ROW 3 — Block Blast + Gem Match -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
             <div class="game-card game-card-skill" onclick="openBlockGame()" style="background:linear-gradient(135deg,#1a0a2e,#2e0a1a);border:1.5px solid rgba(139,92,246,.4);">
-                <img src="https://i.postimg.cc/7fL1Z55D/IMG-20260320-075702-067.jpg" class="game-img" alt="Block Blast" onerror="this.style.display='none'">
+                <div style="font-size:52px;text-align:center;padding:10px 0 2px;">🧱</div>
                 <div style="padding:10px;">
                     <div class="game-name" style="color:var(--purple2);">🧱 Block Blast</div>
-                    <div class="game-desc">Blocks fit karo • Lines clear karo!</div>
-                    <span class="game-earn-tag" style="background:rgba(139,92,246,.12);border-color:rgba(139,92,246,.3);color:var(--purple2);">50 pts/line</span>
+                    <div class="game-desc">Piece select → Grid tap → Lines clear!</div>
+                    <span class="game-earn-tag" style="background:rgba(139,92,246,.12);border-color:rgba(139,92,246,.3);color:var(--purple2);">Level badhega → Hard hoga</span>
                 </div>
             </div>
             <div class="game-card game-card-skill" onclick="openGemGame()" style="background:linear-gradient(135deg,#0a1e2e,#0a2e2e);border:1.5px solid rgba(56,189,248,.4);">
-                <div style="font-size:36px;text-align:center;padding:12px 0 4px;">💎🔥⭐</div>
+                <div style="font-size:36px;text-align:center;padding:12px 0 4px;">💎🔥💣</div>
                 <div style="padding:10px;">
-                    <div class="game-name" style="color:var(--blue);">💎 Gem Match</div>
-                    <div class="game-desc">3 gems match karo • Chain bonus!</div>
-                    <span class="game-earn-tag" style="background:rgba(56,189,248,.12);border-color:rgba(56,189,248,.3);color:var(--blue);">20 pts/match</span>
+                    <div class="game-name" style="color:var(--blue);">💎 Gem Blast</div>
+                    <div class="game-desc">Match 3 gems + 💣 Bomb power-ups!</div>
+                    <span class="game-earn-tag" style="background:rgba(56,189,248,.12);border-color:rgba(56,189,248,.3);color:var(--blue);">Chain = Multiplier!</span>
                 </div>
             </div>
         </div>
-        <!-- QUIZ GAME ROW -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
-            <div class="game-card game-card-skill" onclick="openQuizGame()" style="background:linear-gradient(135deg,#2a1a0a,#3a2a10);border:1.5px solid rgba(240,192,64,.4);">
-                <div style="font-size:44px;text-align:center;padding:10px 0;">🧠</div>
-                <div style="padding:10px;">
-                    <div class="game-name" style="color:var(--gold);">🧠 Quiz</div>
-                    <div class="game-desc">GK questions • Daily new!</div>
-                    <span class="game-earn-tag">100 pts/correct</span>
-                </div>
-            </div>
-            <div class="game-card game-card-skill" onclick="openMemoryGame()" style="background:linear-gradient(135deg,#1a0a28,#2a1040);border:1.5px solid rgba(168,85,247,.4);">
-                <div style="font-size:44px;text-align:center;padding:10px 0;">🃏</div>
-                <div style="padding:10px;">
-                    <div class="game-name" style="color:var(--purple2);">🃏 Memory</div>
-                    <div class="game-desc">Cards flip karo • Match banao!</div>
-                    <span class="game-earn-tag" style="background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.3);color:var(--purple2);">50 pts/match</span>
-                </div>
-            </div>
-        </div>
-
         <!-- DIVIDER -->
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
             <div style="flex:1;height:1px;background:var(--border);"></div>
@@ -999,10 +982,8 @@
             <div class="game-card" onclick="openGame('spin')"><img src="https://image2url.com/r2/default/images/1773972096056-ea04e437-9a04-470c-98ac-4da8383bdc75.jpg" class="game-img" alt="Spin"><div style="padding:8px;"><div class="game-name">🎡 Spin</div><div class="game-desc">Wheel ghumao!</div><span class="game-earn-tag">50 pts avg</span></div></div>
             <div class="game-card" onclick="openGame('crash')"><img src="https://i.postimg.cc/K85csJXs/Rocket-soaring-along-neon-graph-line.png" class="game-img" alt="Crash"><div style="padding:8px;"><div class="game-name">🚀 Crash</div><div class="game-desc">Rocket fly!</div><span class="game-earn-tag">Up to 10x</span></div></div>
             <div class="game-card" onclick="openGame('coin')"><img src="https://image2url.com/r2/default/images/1773972404884-e233660e-0845-4937-8f72-560d43048197.jpg" class="game-img" alt="Coin"><div style="padding:8px;"><div class="game-name">🪙 Coin</div><div class="game-desc">50/50!</div><span class="game-earn-tag">2x Win</span></div></div>
-            <div class="game-card" onclick="openGame('dice')"><img src="https://image2url.com/r2/default/images/1773972553734-03239078-a6c1-4c1f-a486-3cf3afe78f23.jpg" class="game-img" alt="Dice"><div style="padding:8px;"><div class="game-name">🎲 Dice</div><div class="game-desc">~17% chance</div><span class="game-earn-tag">5x Win</span></div></div>
-            <div class="game-card" onclick="openGame('color')"><img src="https://image2url.com/r2/default/images/1773972774324-44a03873-7e05-4729-bbec-c5945f0bca06.png" class="game-img" alt="Color"><div style="padding:8px;"><div class="game-name">🎨 Color</div><div class="game-desc">6 colors!</div><span class="game-earn-tag">Max 9x</span></div></div>
-            <div class="game-card" onclick="openGame('guess')"><img src="https://image2url.com/r2/default/images/1773972255665-85ed9fa1-283e-44ce-8bfb-3aa2eed64ea3.png" class="game-img" alt="Guess"><div style="padding:8px;"><div class="game-name">🔢 Guess</div><div class="game-desc">1-10 guess!</div><span class="game-earn-tag">8x Reward</span></div></div>
-        </div>
+
+</div>
         <!-- GAME STATS -->
         <div style="display:flex;gap:8px;margin-top:12px;">
             <div class="gstat"><div class="gstat-val" id="gameWins">0</div><div class="gstat-lbl">Wins</div></div>
@@ -1402,7 +1383,7 @@
 
 <!-- SPIN MODAL -->
 <div class="modal" id="spinModal">
-    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('spin')">←</div><div class="modal-title">🎰 Spin & Earn</div></div>
+    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('spin')">←</div><div class="modal-title">🎡 Lucky Spin</div></div>
     <div class="spin-wrap">
         <div class="spin-stats">
             <div class="ss-item"><div class="ss-val" id="spinBal">0 pts</div><div class="ss-lbl">Balance</div></div>
@@ -1575,11 +1556,12 @@
     <button class="crash-cashout-btn" id="crashCashoutBtn" onclick="doCrashCashout()">💸 CASHOUT NOW!</button>
     <div style="background:rgba(54,182,245,.07);border:1px solid rgba(54,182,245,.2);border-radius:11px;padding:10px 13px;font-size:11px;color:var(--text2);margin-top:7px;">
         🚀 <b style="color:var(--blue);">Kaise khele:</b><br>
-        1️⃣ Bet lagao aur START karo<br>
-        2️⃣ Multiplier badhega — 1x → 2x → 5x → ...<br>
-        3️⃣ Jab chahein CASHOUT karo — Bet × current multiplier milega!<br>
-        💥 <b style="color:var(--red);">Crash se pehle cashout nahi kiya = sab kuch jaega!</b><br>
-        💡 Auto-cashout set karo safe rhne ke liye (e.g. 2.0x)
+        1️⃣ Bet select karo aur START karo (1 Pass use hoga)<br>
+        2️⃣ Rocket fly karega! Multiplier badhta jaega — 1x → 2x → 10x!<br>
+        3️⃣ Jab chahein CASHOUT karo — Bet × multiplier milega!<br>
+        💥 <b style="color:var(--red);">Crash se pehle cashout karo — warna sab kuch jaega!</b><br>
+        🤖 Smart tip: Auto-cashout 2x pe set karo safe rehne ke liye<br>
+        📊 History dekhke decide karo — kab high jaata hai!
     </div>
 </div>
 
@@ -1672,13 +1654,13 @@
         <div style="background:var(--bg3);border-radius:16px;padding:14px;margin-bottom:12px;border:1px solid var(--border);">
             <div style="font-size:12px;font-weight:800;color:var(--text2);margin-bottom:8px;">⏱️ Challenge Time Chuno:</div>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;">
-                <button class="runner-mode-btn" onclick="selectRunnerMode('10s',this)">10 Sec<br><span style="color:var(--gold);font-size:9px;">Easy Start</span></button>
-                <button class="runner-mode-btn" onclick="selectRunnerMode('30s',this)">30 Sec<br><span style="color:var(--gold);font-size:9px;">Medium</span></button>
-                <button class="runner-mode-btn" onclick="selectRunnerMode('1m',this)">1 Min<br><span style="color:var(--gold);font-size:9px;">Hard</span></button>
+                <button class="runner-mode-btn" onclick="selectRunnerMode('10s',this)">10 Sec<br><span style="color:var(--gold);font-size:9px;">1 Save Point</span></button>
+                <button class="runner-mode-btn" onclick="selectRunnerMode('30s',this)">30 Sec<br><span style="color:var(--gold);font-size:9px;">2 Save Points</span></button>
+                <button class="runner-mode-btn" onclick="selectRunnerMode('1m',this)">1 Min<br><span style="color:var(--gold);font-size:9px;">4 Save Points</span></button>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                <button class="runner-mode-btn" onclick="selectRunnerMode('5m',this)">5 Min<br><span style="color:var(--red);font-size:9px;">Very Hard</span></button>
-                <button class="runner-mode-btn" onclick="selectRunnerMode('10m',this)">10 Min<br><span style="color:var(--red);font-size:9px;">EXTREME</span></button>
+                <button class="runner-mode-btn" onclick="selectRunnerMode('5m',this)">5 Min<br><span style="color:var(--red);font-size:9px;">12 Save Points</span></button>
+                <button class="runner-mode-btn" onclick="selectRunnerMode('10m',this)">10 Min<br><span style="color:var(--red);font-size:9px;">20 Points EXTREME</span></button>
             </div>
         </div>
 
@@ -1698,9 +1680,9 @@
         </div>
 
         <div style="background:rgba(255,78,106,.07);border:1px solid rgba(255,78,106,.2);border-radius:12px;padding:10px;font-size:10px;color:var(--text2);margin-bottom:12px;">
-            ⚠️ <b>Obstacles:</b> Black boxes, Fireballs, Falling rocks, Birds<br>
-            🎯 <b>Survive</b> jitna ho sake → har second pe paise milenge<br>
-            💀 <b>Mar gaye</b> → survived time ka hi reward milega
+            ⚠️ <b>Obstacles:</b> Black boxes, Fireballs, Falling rocks, Eye Monsters<br>
+            🎯 <b>Save Points</b> tak paucho → earning milegi! Jitne save points = utna reward<br>
+            ❤️ <b>3 Hearts</b> hain → Save point pe hearts dobara milenge!
         </div>
 
         <div style="display:flex;align-items:center;gap:8px;background:var(--bg3);border-radius:12px;padding:10px;margin-bottom:12px;">
@@ -1724,6 +1706,7 @@
     <div id="runnerGameScreen" style="display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,0,0,.4);">
             <div style="font-family:'Oxanium',sans-serif;font-size:13px;font-weight:900;color:var(--red);" id="runnerTimer">00:00</div>
+        <div id="runnerSaveIndicator" style="font-size:9px;color:#19d89e;font-weight:800;display:none;">💾 SAVES: 0</div>
             <div style="font-size:11px;color:var(--gold);font-weight:800;" id="runnerEarning">+0 pts</div>
             <div style="font-size:11px;color:var(--text2);" id="runnerLives">❤️❤️❤️</div>
         </div>
@@ -2175,14 +2158,14 @@ let diceChoice=null,diceRolling=false;
 // SPIN SEGS — MUST match backend SPIN_SEGMENTS exactly (same order, same index)
 // Backend: [{0.10},{0.50},{0.10},{1.0},{0.50},{0.10},{2.0},{0.10}]  weights:[15,6,15,3,6,15,1,15]
 const SEGS=[
-    {l:'10pts',v:.10,c:'#a78bfa'},
-    {l:'50pts',v:.50,c:'#f59e0b'},
-    {l:'10pts',v:.10,c:'#22d3a0'},
-    {l:'100pts',v:1.0,c:'#3b82f6'},
-    {l:'50pts',v:.50,c:'#38bdf8'},
-    {l:'10pts',v:.10,c:'#f97316'},
-    {l:'200pts',v:2.0,c:'#ff5b6b'},
-    {l:'10pts',v:.10,c:'#ec4899'}
+    {l:'10pts',v:.10,c:'#7c3aed'},
+    {l:'50pts',v:.50,c:'#d97706'},
+    {l:'10pts',v:.10,c:'#059669'},
+    {l:'100pts',v:1.0,c:'#1d4ed8'},
+    {l:'50pts',v:.50,c:'#0284c7'},
+    {l:'10pts',v:.10,c:'#c2410c'},
+    {l:'200pts',v:2.0,c:'#be123c'},
+    {l:'10pts',v:.10,c:'#7c2d12'}
 ];
 
 const MISSIONS_DEF=[
@@ -3776,23 +3759,38 @@ function drawWheel(angle){
     const cv=document.getElementById('spinCanvas');if(!cv)return;
     const ctx=cv.getContext('2d'),cx=127,cy=127,r=120,n=SEGS.length,seg=(2*Math.PI)/n;
     ctx.clearRect(0,0,255,255);
+    // Outer glow ring
+    ctx.save();
+    ctx.shadowColor='rgba(240,192,64,0.5)';
+    ctx.shadowBlur=20;
+    ctx.beginPath();ctx.arc(cx,cy,r+4,0,Math.PI*2);
+    ctx.strokeStyle='rgba(240,192,64,0.6)';ctx.lineWidth=3;ctx.stroke();
+    ctx.restore();
     SEGS.forEach((s,i)=>{
         const sa=angle+i*seg,ea=sa+seg;
+        // Segment fill with gradient
+        const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+        grad.addColorStop(0,s.c+'dd');grad.addColorStop(1,s.c);
         ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,sa,ea);ctx.closePath();
-        ctx.fillStyle=s.c;ctx.fill();ctx.strokeStyle='rgba(255,255,255,.14)';ctx.lineWidth=1.5;ctx.stroke();
+        ctx.fillStyle=grad;ctx.fill();
+        // Segment border
+        ctx.strokeStyle='rgba(255,255,255,0.18)';ctx.lineWidth=2;ctx.stroke();
+        // Text with shadow
         ctx.save();ctx.translate(cx,cy);ctx.rotate(sa+seg/2);ctx.textAlign='right';
-        ctx.fillStyle='#fff';ctx.font='bold 12px Space Grotesk';ctx.fillText(s.l,r-10,4);ctx.restore();
+        ctx.shadowColor='rgba(0,0,0,0.8)';ctx.shadowBlur=4;
+        ctx.fillStyle='#fff';ctx.font='bold 11px Space Grotesk';
+        ctx.fillText(s.l,r-8,4);
+        ctx.restore();
     });
-    ctx.beginPath();ctx.arc(cx,cy,20,0,2*Math.PI);
-    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,20);g.addColorStop(0,'#fff');g.addColorStop(1,'#ddd');
-    ctx.fillStyle=g;ctx.fill();
-    // Center circle with image
-    const _cImg=document.getElementById('_spinCenterImg')||document.createElement('img');
-    _cImg.id='_spinCenterImg';_cImg.src='https://i.postimg.cc/zGbqh2Rk/89cdcea2-faf0-4d66-9011-7309cf5978fa.jpg';
-    ctx.save();ctx.beginPath();ctx.arc(cx,cy,20,0,Math.PI*2);ctx.clip();
-    if(_cImg.complete&&_cImg.naturalWidth>0){ctx.drawImage(_cImg,cx-20,cy-20,40,40);}
-    else{ctx.fillStyle='#1a1a1a';ctx.fillText('SPIN',cx,cy);_cImg.onload=()=>drawWheel(spinAngle);}
-    ctx.restore();
+    // Center hub
+    const hubGrad=ctx.createRadialGradient(cx-6,cy-6,0,cx,cy,22);
+    hubGrad.addColorStop(0,'#fff');hubGrad.addColorStop(0.5,'#f0c040');hubGrad.addColorStop(1,'#8B4513');
+    ctx.beginPath();ctx.arc(cx,cy,22,0,2*Math.PI);
+    ctx.fillStyle=hubGrad;ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.8)';ctx.lineWidth=2;ctx.stroke();
+    // Star in center
+    ctx.font='16px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('⭐',cx,cy);
 }
 async function doSpin(){
     if(isSpinning)return;
@@ -4266,13 +4264,16 @@ async function startCrash(){
             multEl.className='crash-multiplier '+(crashCurrentMult<2?'safe':crashCurrentMult<5?'warning':'safe');
         }
 
-        // Move rocket up and right
+        // Move rocket up and right with smooth animation
         if(rocket){
             const pct=Math.min(frame/80,1);
             const bottom=20+pct*120;
-            const left=50+pct*30;
+            const left=45+pct*25;
             rocket.style.bottom=bottom+'px';
             rocket.style.left=left+'%';
+            rocket.style.transform='rotate(-45deg) scale('+(1+pct*0.3)+')';
+            rocket.style.filter='drop-shadow(0 0 '+(5+pct*15)+'px rgba(255,150,50,0.8))';
+            rocket.style.fontSize=(28+pct*10)+'px';
         }
 
         // Auto cashout
@@ -4409,13 +4410,16 @@ function selectRunnerBet(amt,el){
 }
 
 function updateRunnerPreview(){
-    const modes={'10s':{s:10,r:0.005},'30s':{s:30,r:0.004},'1m':{s:60,r:0.003},'5m':{s:300,r:0.002},'10m':{s:600,r:0.0015}};
+    const modes={'10s':{s:10,sp:1},'30s':{s:30,sp:2},'1m':{s:60,sp:4},'5m':{s:300,sp:12},'10m':{s:600,sp:20}};
     const m=modes[runnerMode];if(!m)return;
-    const maxEarn=(m.s*m.r).toFixed(3);
+    const saveReward=(30*0.005).toFixed(3); // 30 sec worth per save point
     const preview=document.getElementById('runnerRewardPreview');
     const txt=document.getElementById('runnerRewardTxt');
     preview.style.display='block';
-    txt.innerHTML='Bet: <b style="color:var(--gold);">'+toPoints(runnerBet)+' pts</b> • Time: <b>'+runnerMode+'</b><br>Max earn: <b style="color:var(--green);">'+toPoints(maxEarn)+' pts</b> + bet back<br>Per sec: <b style="color:var(--purple2);">'+toPoints(m.r)+' pts</b>';
+    txt.innerHTML='Bet: <b style="color:var(--gold);">'+toPoints(runnerBet)+' pts</b> • Time: <b>'+runnerMode+'</b><br>'
+        +'Save Points: <b style="color:var(--green);">~'+m.sp+' checkpoints</b><br>'
+        +'Each Save: <b style="color:var(--purple2);">+'+toPoints(saveReward)+' pts + ❤️❤️❤️ refill</b><br>'
+        +'<span style="color:var(--text3);font-size:9px;">Har save point pe hearts wapas aate hain!</span>';
 }
 
 let _runnerTryMode = false;
@@ -4463,9 +4467,9 @@ function initRunnerCanvas(){
 
     // Reset state
     rPlayer={x:70,y:rGroundY-48,vy:0,w:36,h:48,ducking:false,invincible:0};
-    rObstacles=[]; rPlatforms=[]; rParticles=[];
+    rObstacles=[]; rPlatforms=[]; rParticles=[]; rSavePoints=[]
     rScrollX=0; rScrollSpeed=3; rFrameCount=0;
-    rLastObstacleFrame=0; rBgX=0;
+    rLastObstacleFrame=0; rBgX=0; rSavePointsReached=0; rNextSavePointX=600;
     runnerLives=3; runnerJumping=false; runnerDucking=false;
     runnerEarningTotal=0; runnerSurvivedSecs=0;
     runnerGameActive=true;
@@ -4510,10 +4514,21 @@ function runnerDuckEnd(){
     rPlayer.h=48; rPlayer.y=Math.min(rPlayer.y,rGroundY-48);
 }
 
+let rSavePoints = []; // Save point objects on map
+let rSavePointsReached = 0; // How many save points reached
+let rSavePointSpacing = 800; // pixels between save points
+let rNextSavePointX = 600; // x position of next save point
+
+function spawnSavePoint(){
+    rSavePoints.push({x: rNextSavePointX + rCanvas.width, y: rGroundY - 60, w: 30, h: 60, type: 'save', active: true});
+    rNextSavePointX += rSavePointSpacing;
+}
+
 function spawnObstacle(){
     const CW=rCanvas.width;
-    const types=['box','fireball','rock','bird','spike'];
-    const weights=[30,25,20,15,10];
+    // Eye monsters like in screenshot!
+    const types=['box','fireball','rock','bird','spike','eye_monster'];
+    const weights=[25,20,15,15,10,15];
     let r2=Math.random()*100,cumW=0,type='box';
     for(let i=0;i<types.length;i++){cumW+=weights[i];if(r2<cumW){type=types[i];break;}}
 
@@ -4523,6 +4538,7 @@ function spawnObstacle(){
         rock:   {w:30,h:30,y:-30,color:'#666',emoji:'🪨',vy:4+Math.random()*2},
         bird:   {w:34,h:28,y:rGroundY-110-Math.random()*50,color:'#8B4513',emoji:'🦅',vy:Math.sin(rFrameCount/30)*2},
         spike:  {w:24,h:36,y:rGroundY-36,color:'#c0392b',emoji:'⚡',vy:0},
+        eye_monster:{w:36,h:50,y:rGroundY-50,color:'#ff0000',emoji:'👁️',vy:0},
     };
     const cfg=configs[type];
     rObstacles.push({x:CW+20,y:cfg.y,w:cfg.w,h:cfg.h,type,color:cfg.color,emoji:cfg.emoji,baseVy:cfg.vy,vy:cfg.vy,wave:Math.random()*Math.PI*2});
@@ -4543,7 +4559,8 @@ function runnerLoop(){
     // Update timer display
     const mins=Math.floor(remaining/60),secs=Math.max(0,Math.floor(remaining%60));
     document.getElementById('runnerTimer').textContent=`${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
-    runnerEarningTotal=parseFloat((runnerSurvivedSecs*runnerRewardPerSec).toFixed(4));
+    // Earning only via save points (rSavePointsReached tracks count)
+    runnerEarningTotal=parseFloat((rSavePointsReached * runnerRewardPerSec * 30).toFixed(4));
     document.getElementById('runnerEarning').textContent='+'+toPoints(runnerEarningTotal)+' pts';
     document.getElementById('runnerLives').textContent='❤️'.repeat(runnerLives)+'🖤'.repeat(Math.max(0,3-runnerLives));
 
@@ -4619,6 +4636,24 @@ function runnerLoop(){
         }
     });
     rObstacles=rObstacles.filter(o=>o.x>-60&&o.y<rCanvas.height+60);
+    
+    // Update save points
+    rSavePoints.forEach((sp, i) => {
+        sp.x -= rScrollSpeed;
+        // Check if player reached save point
+        if(sp.active && rPlayer.x + rPlayer.w > sp.x && rPlayer.x < sp.x + sp.w &&
+           rPlayer.y + rPlayer.h > sp.y && rPlayer.y < sp.y + sp.h){
+            sp.active = false;
+            rSavePointsReached++;
+            runnerLives = 3; // Reset hearts at save point!
+            const saveReward = runnerRewardPerSec * 30; // 30 sec worth
+            runnerEarningTotal += saveReward;
+            playSound('levelup');
+            showToast('💾 Save Point! +' + toPoints(saveReward) + ' pts! ❤️❤️❤️ Refilled!');
+            addParticle(sp.x + sp.w/2, sp.y + sp.h/2, '#19d89e');
+        }
+    });
+    rSavePoints = rSavePoints.filter(sp => sp.x > -60);
 
     // Update platforms
     rPlatforms.forEach(p=>p.x-=rScrollSpeed*0.5);
@@ -4643,86 +4678,170 @@ function drawRunnerFrame(elapsed){
     const CW=rCanvas.width,CH=rCanvas.height;
     rCtx.clearRect(0,0,CW,CH);
 
-    // ── Jump or Die B&W theme ──────────────────────────────
-    // Background - grey gradient
-    rCtx.fillStyle='#c8c8c8';
-    rCtx.fillRect(0,0,CW,CH);
-
-    // Spotlight effect from upper left (like screenshot)
-    const spotGrad=rCtx.createRadialGradient(80,0,10,80,0,CH*0.9);
-    spotGrad.addColorStop(0,'rgba(255,255,255,0.45)');
-    spotGrad.addColorStop(1,'rgba(0,0,0,0)');
-    rCtx.fillStyle=spotGrad;
-    rCtx.fillRect(0,0,CW,CH);
-
-    // Scrolling BG detail — subtle horizontal lines
-    rBgX+=rScrollSpeed*0.3;
-    rCtx.strokeStyle='rgba(180,180,180,0.4)';
-    rCtx.lineWidth=1;
-    for(let y=20;y<CH-50;y+=18){
-        rCtx.beginPath();rCtx.moveTo(0,y);rCtx.lineTo(CW,y);rCtx.stroke();
-    }
+    // ── HD Shadow Runner Theme (like screenshot) ───────────
     rScrollX+=rScrollSpeed;
-
-    // Ground — solid black block like screenshot
-    rCtx.fillStyle='#111';
-    rCtx.fillRect(0,rGroundY,CW,CH-rGroundY);
-    // Ground top edge highlight
-    rCtx.fillStyle='#333';
-    rCtx.fillRect(0,rGroundY,CW,3);
-
-    // Platforms — black solid blocks
-    rPlatforms.forEach(p=>{
-        rCtx.fillStyle='#222';
-        rCtx.fillRect(p.x,p.y,p.w,p.h);
-        rCtx.fillStyle='#444';
-        rCtx.fillRect(p.x,p.y,p.w,2);
-        // Pixel texture
-        rCtx.fillStyle='rgba(255,255,255,0.05)';
-        for(let bx=p.x;bx<p.x+p.w;bx+=8){
-            rCtx.fillRect(bx,p.y,4,p.h);
+    rBgX+=rScrollSpeed*0.3;
+    
+    // Dark atmospheric background
+    const bgGrad=rCtx.createLinearGradient(0,0,0,CH);
+    bgGrad.addColorStop(0,'#1a1a2e');
+    bgGrad.addColorStop(0.5,'#16213e');
+    bgGrad.addColorStop(1,'#0f0f0f');
+    rCtx.fillStyle=bgGrad; rCtx.fillRect(0,0,CW,CH);
+    
+    // Scrolling city silhouette BG (like screenshot)
+    rCtx.fillStyle='rgba(30,30,50,0.9)';
+    const cityBlocks=[{w:40,h:60},{w:30,h:80},{w:50,h:50},{w:35,h:90},{w:45,h:65},{w:25,h:100},{w:55,h:45},{w:40,h:75}];
+    cityBlocks.forEach((b,i)=>{
+        const bx=((i*100)-rBgX*0.2)%(CW+100)-50;
+        rCtx.fillRect(bx, rGroundY-b.h-10, b.w, b.h+10);
+        // Building windows
+        rCtx.fillStyle='rgba(240,192,64,0.15)';
+        for(let wy=rGroundY-b.h+5;wy<rGroundY-20;wy+=12)
+            for(let wx=bx+5;wx<bx+b.w-5;wx+=10)
+                if(Math.sin(wx*wy)>0.3) rCtx.fillRect(wx,wy,6,7);
+        rCtx.fillStyle='rgba(30,30,50,0.9)';
+    });
+    
+    // Distant spotlight from top-left (exactly like screenshot)
+    const spotGrad=rCtx.createRadialGradient(0,0,10,CW*0.4,CH*0.3,CW*0.8);
+    spotGrad.addColorStop(0,'rgba(200,200,255,0.12)');
+    spotGrad.addColorStop(1,'rgba(0,0,0,0)');
+    rCtx.fillStyle=spotGrad; rCtx.fillRect(0,0,CW,CH);
+    
+    // Speed lines effect when running fast
+    if(rScrollSpeed>5){
+        rCtx.strokeStyle='rgba(255,255,255,0.04)';
+        rCtx.lineWidth=1;
+        for(let sl=0;sl<8;sl++){
+            const ly=20+sl*22;
+            rCtx.beginPath();
+            rCtx.moveTo(CW,ly);
+            rCtx.lineTo(CW-(rScrollSpeed*8),ly);
+            rCtx.stroke();
         }
+    }
+
+    // HD Ground - dark with neon edge glow
+    const groundGrad=rCtx.createLinearGradient(0,rGroundY,0,CH);
+    groundGrad.addColorStop(0,'#1a1a2e');
+    groundGrad.addColorStop(0.1,'#0d0d1a');
+    groundGrad.addColorStop(1,'#000');
+    rCtx.fillStyle=groundGrad; rCtx.fillRect(0,rGroundY,CW,CH-rGroundY);
+    // Neon ground line
+    rCtx.shadowColor='#7c5cfc';
+    rCtx.shadowBlur=8;
+    rCtx.fillStyle='rgba(124,92,252,0.8)';
+    rCtx.fillRect(0,rGroundY,CW,2);
+    rCtx.shadowBlur=0;
+    // Scrolling ground tiles
+    rCtx.strokeStyle='rgba(124,92,252,0.15)';
+    rCtx.lineWidth=1;
+    const tileW=32;
+    const tileOff=(rScrollX%tileW);
+    for(let tx=-tileOff;tx<CW;tx+=tileW){
+        rCtx.beginPath();rCtx.moveTo(tx,rGroundY);rCtx.lineTo(tx,CH);rCtx.stroke();
+    }
+
+    // HD Platforms — dark with neon top edge
+    rPlatforms.forEach(p=>{
+        rCtx.fillStyle='#0a0a1a';
+        rCtx.fillRect(p.x,p.y,p.w,p.h);
+        // Neon top edge
+        rCtx.shadowColor='rgba(54,182,245,0.6)';
+        rCtx.shadowBlur=6;
+        rCtx.fillStyle='rgba(54,182,245,0.7)';
+        rCtx.fillRect(p.x,p.y,p.w,2);
+        rCtx.shadowBlur=0;
+        // Side edge
+        rCtx.fillStyle='rgba(54,182,245,0.2)';
+        rCtx.fillRect(p.x,p.y,2,p.h);
+        rCtx.fillRect(p.x+p.w-2,p.y,2,p.h);
     });
 
     // Obstacles — black pixel style like screenshot
     rObstacles.forEach(o=>{
         rCtx.save();
         if(o.type==='box'){
-            // Black box with pixel effect (like screenshot)
-            rCtx.fillStyle='#111';
+            // HD animated box obstacle
+            rCtx.shadowColor='rgba(255,78,106,0.4)';
+            rCtx.shadowBlur=8;
+            rCtx.fillStyle='#0d0d1a';
             rCtx.fillRect(o.x,o.y,o.w,o.h);
-            // Eye on box
-            rCtx.fillStyle='#fff';
-            rCtx.fillRect(o.x+o.w*0.55,o.y+o.h*0.2,o.w*0.25,o.h*0.25);
-            rCtx.fillStyle='#000';
-            rCtx.fillRect(o.x+o.w*0.62,o.y+o.h*0.27,o.w*0.1,o.h*0.1);
-            // Pixel crumble bottom
-            rCtx.fillStyle='#333';
+            rCtx.shadowBlur=0;
+            rCtx.strokeStyle='rgba(255,78,106,0.7)';
+            rCtx.lineWidth=1.5;
+            rCtx.strokeRect(o.x,o.y,o.w,o.h);
+            // Glowing eye on box
+            rCtx.shadowColor='#fff'; rCtx.shadowBlur=6;
+            rCtx.fillStyle='rgba(255,255,255,0.9)';
+            rCtx.beginPath();
+            rCtx.arc(o.x+o.w*0.6,o.y+o.h*0.35,o.w*0.15,0,Math.PI*2);
+            rCtx.fill();
+            rCtx.shadowBlur=0;
+            rCtx.fillStyle='#cc0000';
+            rCtx.beginPath();
+            rCtx.arc(o.x+o.w*0.62,o.y+o.h*0.36,o.w*0.07,0,Math.PI*2);
+            rCtx.fill();
+            // Crumble particles
+            rCtx.fillStyle='rgba(255,78,106,0.4)';
             for(let px=0;px<o.w;px+=4){
-                if(Math.sin(px+rFrameCount*0.1)>0.3){
-                    rCtx.fillRect(o.x+px,o.y+o.h,3,3+Math.abs(Math.sin(px))*4);
+                if(Math.sin(px*0.5+rFrameCount*0.15)>0.4){
+                    rCtx.fillRect(o.x+px,o.y+o.h,2,2+Math.abs(Math.sin(px))*5);
                 }
             }
         }else if(o.type==='spike'){
-            // Triangle spikes — black
-            rCtx.fillStyle='#111';
+            // HD glowing red spikes
+            rCtx.shadowColor='rgba(255,0,0,0.6)'; rCtx.shadowBlur=8;
             for(let si=0;si<3;si++){
+                const grad=rCtx.createLinearGradient(o.x+si*10,o.y+o.h,o.x+si*10+5,o.y);
+                grad.addColorStop(0,'#111');grad.addColorStop(1,'#cc0000');
+                rCtx.fillStyle=grad;
                 rCtx.beginPath();
                 rCtx.moveTo(o.x+si*10,o.y+o.h);
                 rCtx.lineTo(o.x+si*10+5,o.y);
                 rCtx.lineTo(o.x+si*10+10,o.y+o.h);
                 rCtx.fill();
             }
+            rCtx.shadowBlur=0;
         }else if(o.type==='bird'){
-            rCtx.fillStyle='#222';
-            // Simple bird shape
+            // HD dark eagle/bird
+            rCtx.fillStyle='#111';
+            rCtx.shadowColor='rgba(100,100,100,0.5)'; rCtx.shadowBlur=4;
             rCtx.beginPath();
             rCtx.ellipse(o.x+o.w/2,o.y+o.h/2,o.w/2,o.h/3,0,0,Math.PI*2);
             rCtx.fill();
-            // Wings
-            const wingY=o.y+o.h/2+Math.sin(rFrameCount/8)*5;
-            rCtx.fillRect(o.x-8,wingY,10,4);
-            rCtx.fillRect(o.x+o.w-2,wingY,10,4);
+            rCtx.shadowBlur=0;
+            // Animated wings
+            const wingAng=Math.sin(rFrameCount/6)*0.4;
+            const wingY=o.y+o.h/2;
+            rCtx.strokeStyle='#333'; rCtx.lineWidth=3;
+            // Left wing
+            rCtx.beginPath();rCtx.moveTo(o.x+o.w/2,wingY);
+            rCtx.quadraticCurveTo(o.x-8,wingY-10+wingAng*15,o.x-15,wingY+wingAng*10);
+            rCtx.stroke();
+            // Right wing
+            rCtx.beginPath();rCtx.moveTo(o.x+o.w/2,wingY);
+            rCtx.quadraticCurveTo(o.x+o.w+8,wingY-10+wingAng*15,o.x+o.w+15,wingY+wingAng*10);
+            rCtx.stroke();
+            // Red eye
+            rCtx.fillStyle='#cc0000';
+            rCtx.beginPath();rCtx.arc(o.x+o.w*0.65,o.y+o.h*0.35,3,0,Math.PI*2);rCtx.fill();
+        }else if(o.type==='eye_monster'){
+            // Red eye monster like screenshot!
+            rCtx.fillStyle='#111';
+            rCtx.fillRect(o.x, o.y, o.w, o.h);
+            // Fangs at bottom
+            rCtx.fillStyle='#111';
+            for(let fi=0;fi<3;fi++){ rCtx.fillRect(o.x+fi*12, o.y+o.h, 6, 10); }
+            // Big red eye
+            rCtx.shadowColor='#ff0000'; rCtx.shadowBlur=10;
+            rCtx.fillStyle='#cc0000';
+            rCtx.beginPath(); rCtx.arc(o.x+o.w/2, o.y+o.h*0.4, o.w*0.35, 0, Math.PI*2); rCtx.fill();
+            rCtx.shadowBlur=0;
+            // White part + pupil
+            rCtx.fillStyle='#fff'; rCtx.beginPath(); rCtx.arc(o.x+o.w/2, o.y+o.h*0.4, o.w*0.22, 0, Math.PI*2); rCtx.fill();
+            rCtx.fillStyle='#000'; rCtx.beginPath(); rCtx.arc(o.x+o.w/2, o.y+o.h*0.4, o.w*0.1, 0, Math.PI*2); rCtx.fill();
         }else{
             // Fireball/rock — dark circle
             rCtx.fillStyle=o.type==='fireball'?'#333':'#555';
@@ -4740,52 +4859,109 @@ function drawRunnerFrame(elapsed){
         rCtx.fillRect(p.x-2,p.y-2,4,4);
     });
     rCtx.globalAlpha=1;
+    
+    // Draw Save Points - green glowing pillars like checkpoint flags
+    rSavePoints.forEach(sp => {
+        if(!sp.active) return;
+        // Glowing pillar
+        rCtx.shadowColor = '#19d89e';
+        rCtx.shadowBlur = 15;
+        rCtx.fillStyle = 'rgba(25,216,158,0.85)';
+        rCtx.fillRect(sp.x + 12, sp.y, 6, sp.h);
+        // Flag at top
+        rCtx.fillStyle = '#19d89e';
+        rCtx.fillRect(sp.x + 12, sp.y, 22, 14);
+        rCtx.shadowBlur = 0;
+        // SAVE text
+        rCtx.fillStyle = '#000';
+        rCtx.font = 'bold 7px monospace';
+        rCtx.textAlign = 'left';
+        rCtx.fillText('SAVE', sp.x + 13, sp.y + 10);
+        // Pulse effect
+        rCtx.globalAlpha = 0.3 + 0.2 * Math.sin(rFrameCount / 10);
+        rCtx.strokeStyle = '#19d89e';
+        rCtx.lineWidth = 2;
+        rCtx.strokeRect(sp.x + 5, sp.y - 5, 35, sp.h + 10);
+        rCtx.globalAlpha = 1;
+    });
 
-    // Player — black square with eye (like screenshot)
+    // HD Player — neon glowing character like screenshot
     const pX=rPlayer.x,pY=rPlayer.y,pH=rPlayer.h,pW=rPlayer.w;
     const isInvincible=rPlayer.invincible>0&&Math.floor(rPlayer.invincible/5)%2===0;
     if(!isInvincible){
-        // Body — black square
-        rCtx.fillStyle='#111';
+        // Body glow
+        rCtx.shadowColor='#7c5cfc';
+        rCtx.shadowBlur=12;
+        rCtx.fillStyle='#0d0d1a';
         rCtx.fillRect(pX,pY,pW,pH);
-        // White outline
-        rCtx.strokeStyle='#fff';
-        rCtx.lineWidth=1.5;
+        rCtx.shadowBlur=0;
+        // Neon outline
+        rCtx.strokeStyle='rgba(124,92,252,0.9)';
+        rCtx.lineWidth=2;
         rCtx.strokeRect(pX,pY,pW,pH);
-        // Eye
-        rCtx.fillStyle='#fff';
-        rCtx.fillRect(pX+pW*0.55,pY+pH*0.2,pW*0.28,pH*0.28);
+        // Inner highlight
+        rCtx.fillStyle='rgba(124,92,252,0.1)';
+        rCtx.fillRect(pX+2,pY+2,pW-4,pH-4);
+        // Glowing eye
+        rCtx.shadowColor='#fff';
+        rCtx.shadowBlur=6;
+        rCtx.fillStyle='rgba(255,255,255,0.95)';
+        rCtx.beginPath();
+        rCtx.arc(pX+pW*0.65,pY+pH*0.3,pW*0.15,0,Math.PI*2);
+        rCtx.fill();
+        rCtx.shadowBlur=0;
+        // Pupil
         rCtx.fillStyle='#000';
-        rCtx.fillRect(pX+pW*0.62,pY+pH*0.27,pW*0.12,pH*0.12);
-        // Duck indicator
+        rCtx.beginPath();
+        rCtx.arc(pX+pW*0.67,pY+pH*0.31,pW*0.06,0,Math.PI*2);
+        rCtx.fill();
+        // Run particles at feet
+        if(!rPlayer.ducking && rScrollSpeed>3){
+            rCtx.fillStyle='rgba(124,92,252,0.4)';
+            for(let rp=0;rp<3;rp++){
+                rCtx.fillRect(pX+rp*4,pY+pH,3,2+rp);
+            }
+        }
+        // Duck indicator glow
         if(rPlayer.ducking){
-            rCtx.fillStyle='rgba(255,255,255,0.5)';
-            rCtx.fillRect(pX,pY+pH-4,pW,4);
+            rCtx.shadowColor='#19d89e';
+            rCtx.shadowBlur=8;
+            rCtx.fillStyle='rgba(25,216,158,0.6)';
+            rCtx.fillRect(pX,pY+pH-3,pW,3);
+            rCtx.shadowBlur=0;
         }
     }else{
-        // Invincible flash — white silhouette
-        rCtx.fillStyle='rgba(255,255,255,0.6)';
+        // Invincible — flashing purple glow
+        rCtx.shadowColor='#ff4e6a'; rCtx.shadowBlur=20;
+        rCtx.fillStyle='rgba(255,78,106,0.7)';
         rCtx.fillRect(pX,pY,pW,pH);
+        rCtx.shadowBlur=0;
     }
 
-    // Distance display top right
+    // HD HUD - Distance + Save Points display
     const dist=Math.floor(rScrollX/10);
-    rCtx.fillStyle='rgba(0,0,0,0.7)';
-    rCtx.fillRect(CW-90,2,88,28);
-    rCtx.fillStyle='#fff';
-    rCtx.font='bold 10px monospace';
-    rCtx.textAlign='left';
-    rCtx.fillText('DISTANCE',CW-86,13);
-    rCtx.font='bold 14px monospace';
-    rCtx.fillText(dist+'m',CW-86,25);
+    // Top right panel
+    rCtx.fillStyle='rgba(0,0,10,0.75)';
+    rCtx.beginPath();rCtx.roundRect(CW-105,4,102,30,6);rCtx.fill();
+    rCtx.strokeStyle='rgba(124,92,252,0.4)';rCtx.lineWidth=1;rCtx.stroke();
+    rCtx.fillStyle='rgba(124,92,252,0.7)';rCtx.font='bold 9px monospace';rCtx.textAlign='left';
+    rCtx.fillText('DISTANCE  SAVES',CW-101,15);
+    rCtx.fillStyle='#fff';rCtx.font='bold 13px monospace';
+    rCtx.fillText(dist+'m   '+rSavePointsReached,CW-101,28);
 
-    // HUD time bar at bottom of canvas
+    // HD Time bar at bottom
     const timeLeft=1-((Date.now()-runnerStartTime)/1000)/runnerMaxSecs;
-    rCtx.fillStyle='rgba(0,0,0,0.6)';
-    rCtx.fillRect(0,CH-10,CW,10);
+    rCtx.fillStyle='rgba(0,0,20,0.8)';rCtx.fillRect(0,CH-12,CW,12);
     const barColor=timeLeft>0.5?'#19d89e':timeLeft>0.25?'#f0c040':'#ff4e6a';
+    // Glow bar
+    rCtx.shadowColor=barColor; rCtx.shadowBlur=6;
     rCtx.fillStyle=barColor;
-    rCtx.fillRect(0,CH-10,CW*Math.max(0,timeLeft),10);
+    rCtx.fillRect(0,CH-10,CW*Math.max(0,timeLeft),8);
+    rCtx.shadowBlur=0;
+    // Time remaining text
+    const tlSec=Math.ceil(((Date.now()-runnerStartTime)/1000<runnerMaxSecs)?(runnerMaxSecs-(Date.now()-runnerStartTime)/1000):0);
+    rCtx.fillStyle='rgba(255,255,255,0.5)';rCtx.font='bold 7px monospace';rCtx.textAlign='center';
+    rCtx.fillText(tlSec+'s left',CW/2,CH-2);
 }
 
 async function finishRunnerGame(won){
@@ -4796,7 +4972,7 @@ async function finishRunnerGame(won){
     document.getElementById('runnerResult').style.display='block';
     document.getElementById('runnerResultEmoji').textContent=won?'🏆':'💀';
     document.getElementById('runnerResultTitle').textContent=won?'CHAMPION! 🎉':'Game Over!';
-    document.getElementById('runnerResultSub').textContent=`Survived: ${runnerSurvivedSecs}s of ${runnerMaxSecs}s`;
+    document.getElementById('runnerResultSub').textContent=`Survived: ${runnerSurvivedSecs}s | Save Points: ${rSavePointsReached} reached`;
 
     if(_runnerTryMode){
         document.getElementById('runnerResultReward').textContent='Try Mode — 0 pts';
@@ -4808,12 +4984,13 @@ async function finishRunnerGame(won){
     // Real game — report to server
     document.getElementById('runnerResultReward').textContent='⏳...';
     const r=await apiPost('/api/game/runner-finish',{
-        user_id:userData.user_id, mode:runnerMode, bet:runnerBet, survived_seconds:runnerSurvivedSecs
+        user_id:userData.user_id, mode:runnerMode, bet:runnerBet, survived_seconds:runnerSurvivedSecs,
+        save_points_reached:rSavePointsReached
     });
-    const reward=r?.reward||0;
+    const reward=r?.reward||runnerEarningTotal;
     document.getElementById('runnerResultReward').textContent='+'+toPoints(reward)+' pts';
     document.getElementById('runnerResultBreakdown').textContent=
-        'Bet back: '+toPoints(r?.bet_back||0)+' pts + Earned: '+toPoints(r?.earned||0)+' pts';
+        'Save Points: '+rSavePointsReached+' × ' + toPoints(runnerRewardPerSec*30) + ' pts each' + (r?.bet_back?' | Bet back: '+toPoints(r.bet_back||0)+' pts':'');
     if(reward>0){
         userData.balance=(userData.balance||0)+parseFloat(reward);
         userData.today_earned=(userData.today_earned||0)+parseFloat(reward);
@@ -4844,10 +5021,12 @@ const MAZE_DIFFS={easy:{time:120,pts:300,boxes:2,sz:7},medium:{time:90,pts:600,b
 // Premade Sokoban levels (guaranteed solvable)
 const SOKOBAN_LEVELS={
     easy:[
-        {grid:[[1,1,1,1,1,1,1],[1,0,0,1,0,0,1],[1,0,2,0,2,0,1],[1,1,0,0,0,1,1],[1,0,0,3,0,0,1],[1,0,1,0,1,0,1],[1,1,1,1,1,1,1]],
-         boxes:[{x:2,y:2},{x:4,y:2}],targets:[{x:2,y:4},{x:4,y:4}],player:{x:3,y:5}},
-        {grid:[[1,1,1,1,1,1,1],[1,0,0,1,0,0,1],[1,0,2,0,0,0,1],[1,1,0,0,2,0,1],[1,0,0,0,0,1,1],[1,0,3,0,0,0,1],[1,1,1,1,1,1,1]],
-         boxes:[{x:2,y:2},{x:4,y:3}],targets:[{x:3,y:4},{x:1,y:4}],player:{x:2,y:5}},
+        {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,2,0,2,0,1],[1,0,0,0,0,0,1],[1,0,0,0,0,0,1],[1,0,3,0,0,0,1],[1,1,1,1,1,1,1]],
+         boxes:[{x:2,y:2},{x:4,y:2}],targets:[{x:1,y:4},{x:5,y:4}],player:{x:2,y:5}},
+        {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,0,2,0,0,1],[1,0,2,0,0,0,1],[1,0,0,0,0,0,1],[1,0,0,3,0,0,1],[1,1,1,1,1,1,1]],
+         boxes:[{x:3,y:2},{x:2,y:3}],targets:[{x:1,y:1},{x:5,y:1}],player:{x:3,y:5}},
+        {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,0,2,0,0,1],[1,0,0,0,0,0,1],[1,0,2,0,0,0,1],[1,0,3,0,0,0,1],[1,1,1,1,1,1,1]],
+         boxes:[{x:3,y:2},{x:2,y:4}],targets:[{x:5,y:2},{x:5,y:4}],player:{x:2,y:5}},
     ],
     medium:[
         {grid:[[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,2,0,0,2,0,0,1],[1,0,0,0,0,0,2,0,1],[1,0,0,3,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1]],
@@ -4930,8 +5109,10 @@ function drawSokoban(){
     canvas.width=W; canvas.height=W;
     const cs=Math.floor(W/sz);
     const ctx=canvas.getContext('2d');
-    // Dark bg
-    ctx.fillStyle='#050c18'; ctx.fillRect(0,0,W,W);
+    // HD dark bg with subtle grid
+    const sokBgGrad=ctx.createLinearGradient(0,0,W,W);
+    sokBgGrad.addColorStop(0,'#040c18');sokBgGrad.addColorStop(1,'#080f20');
+    ctx.fillStyle=sokBgGrad; ctx.fillRect(0,0,W,W);
     for(let y=0;y<sz;y++){
         for(let x=0;x<sz;x++){
             const t=mazeGrid[y][x];
@@ -5110,8 +5291,10 @@ async function startSnake(tryFree){
 function drawSnake(){
     if(!snakeCTX||!snakeCvs)return;
     const cs=snakeCS,ctx=snakeCTX,W=snakeCvs.width;
-    // Dark BG
-    ctx.fillStyle='#030f03'; ctx.fillRect(0,0,W,W);
+    // HD Dark BG
+    const snkBg=ctx.createLinearGradient(0,0,W,W);
+    snkBg.addColorStop(0,'#020d02');snkBg.addColorStop(1,'#040f05');
+    ctx.fillStyle=snkBg; ctx.fillRect(0,0,W,W);
     // Grid
     ctx.strokeStyle='rgba(25,216,158,0.05)'; ctx.lineWidth=0.5;
     for(let i=0;i<=SN;i++){ctx.beginPath();ctx.moveTo(i*cs,0);ctx.lineTo(i*cs,W);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i*cs);ctx.lineTo(W,i*cs);ctx.stroke();}
@@ -5317,7 +5500,11 @@ function drawChessGame(hilights=[]){
     ctx.clearRect(0,0,W,W);
     for(let r=0;r<8;r++)for(let c=0;c<8;c++){
         const light=(r+c)%2===0;
-        ctx.fillStyle=light?'#f0d9b5':'#b58863';ctx.fillRect(c*cs,r*cs,cs,cs);
+        // HD chess squares with slight gradient
+        const sqGrad=ctx.createLinearGradient(c*cs,r*cs,(c+1)*cs,(r+1)*cs);
+        if(light){sqGrad.addColorStop(0,'#f5e4c0');sqGrad.addColorStop(1,'#e8c98a');}
+        else{sqGrad.addColorStop(0,'#c06a3a');sqGrad.addColorStop(1,'#9e5530');}
+        ctx.fillStyle=sqGrad;ctx.fillRect(c*cs,r*cs,cs,cs);
         if(chessSelected&&chessSelected.r===r&&chessSelected.c===c){ctx.fillStyle='rgba(255,255,0,0.55)';ctx.fillRect(c*cs,r*cs,cs,cs);}
         if(hilights.some(([hr,hc])=>hr===r&&hc===c)){
             if(chessBoard[r][c]){ctx.fillStyle='rgba(255,50,50,0.45)';ctx.fillRect(c*cs,r*cs,cs,cs);}
@@ -5525,49 +5712,90 @@ function renderBlockPieces(){
     container.innerHTML='';
     blockPieces.forEach((piece,idx)=>{
         if(!piece)return;
-        const cs=Math.min(32, Math.floor((container.offsetWidth||280)/3/piece.shape[0].length));
+        const cs=Math.min(30, Math.floor((container.offsetWidth||280)/3/Math.max(piece.shape[0].length,1)));
         const canvas=document.createElement('canvas');
-        canvas.width=piece.shape[0].length*cs+4;
-        canvas.height=piece.shape.length*cs+4;
-        canvas.style.cursor='pointer';
-        canvas.style.filter=blockSelected===idx?'drop-shadow(0 0 8px '+piece.color+')':'none';
-        canvas.style.transform=blockSelected===idx?'scale(1.1)':'scale(1)';
+        canvas.width=piece.shape[0].length*cs+6;
+        canvas.height=piece.shape.length*cs+6;
+        canvas.style.cursor='grab';
+        canvas.style.touchAction='none';
+        canvas.style.filter=blockSelected===idx?'drop-shadow(0 0 10px '+piece.color+')':'none';
+        canvas.style.transform=blockSelected===idx?'scale(1.15)':'scale(1)';
         canvas.style.transition='all .15s';
+        canvas.style.borderRadius='8px';
+        canvas.style.border=blockSelected===idx?'2px solid '+piece.color:'2px solid transparent';
         const ctx=canvas.getContext('2d');
         piece.shape.forEach((row,r)=>{row.forEach((cell,c)=>{
             if(cell){
-                ctx.fillStyle=piece.color;ctx.shadowColor=piece.color;ctx.shadowBlur=4;
-                ctx.beginPath();ctx.roundRect(c*cs+1,r*cs+1,cs-2,cs-2,4);ctx.fill();ctx.shadowBlur=0;
+                ctx.fillStyle=piece.color;ctx.shadowColor=piece.color;ctx.shadowBlur=6;
+                ctx.beginPath();ctx.roundRect(c*cs+2,r*cs+2,cs-2,cs-2,5);ctx.fill();ctx.shadowBlur=0;
+                // Shine
+                ctx.fillStyle='rgba(255,255,255,.25)';
+                ctx.beginPath();ctx.roundRect(c*cs+4,r*cs+4,cs*.4,cs*.2,2);ctx.fill();
             }
         });});
-        canvas.onclick=()=>{blockSelected=idx;renderBlockPieces();showToast('🖱️ Grid pe tap karo!');};
+        // Click to select
+        canvas.onclick=()=>{
+            blockSelected=(blockSelected===idx)?null:idx;
+            renderBlockPieces();
+            if(blockSelected!==null)showToast('✅ Selected! Grid pe tap karo jahan place karna hai');
+        };
+        // Touch/drag support
+        canvas.addEventListener('touchstart',(e)=>{e.preventDefault();blockSelected=idx;renderBlockPieces();},{passive:false});
         container.appendChild(canvas);
+        // Label below
+        const lbl=document.createElement('div');
+        lbl.style.cssText='font-size:9px;color:var(--text3);text-align:center;margin-top:3px;';
+        lbl.textContent=idx===blockSelected?'✅ Selected':'Tap to select';
+        container.appendChild(lbl);
     });
 }
 
 function handleBlockTap(evt){
     if(!blockActive)return;
+    if(blockSelected===null){showToast('👆 Neeche se piece select karo pehle!');return;}
     const canvas=document.getElementById('blockCanvas');
     const rect=canvas.getBoundingClientRect();
+    const scaleX=canvas.width/rect.width;
+    const scaleY=canvas.height/rect.height;
     const cs=canvas.width/BB_COLS;
-    const col=Math.floor((evt.clientX-rect.left)/cs);
-    const row=Math.floor((evt.clientY-rect.top)/cs);
-    if(blockSelected===null){showToast('Pehle neeche se piece choose karo!');return;}
+    // Handle both mouse and touch
+    const clientX=evt.touches?evt.touches[0].clientX:evt.clientX;
+    const clientY=evt.touches?evt.touches[0].clientY:evt.clientY;
+    const col=Math.floor((clientX-rect.left)*scaleX/cs);
+    const row=Math.floor((clientY-rect.top)*scaleY/cs);
     const piece=blockPieces[blockSelected];
     if(!piece)return;
-    // Try to center the piece on tap
-    const adjRow=Math.max(0,Math.min(row-Math.floor(piece.shape.length/2),BB_ROWS-piece.shape.length));
-    const adjCol=Math.max(0,Math.min(col-Math.floor(piece.shape[0].length/2),BB_COLS-piece.shape[0].length));
-    if(!canPlace(piece.shape,adjRow,adjCol)){showToast('❌ Yahan nahi!');return;}
-    placePiece(piece.shape,piece.color,adjRow,adjCol);
-    blockPieces[blockSelected]=null;blockSelected=null;
+    // Try exact position first, then try adjusted positions
+    let placed=false;
+    // Try top-left corner at tapped cell
+    const positions=[
+        [row, col],
+        [row-Math.floor(piece.shape.length/2), col-Math.floor(piece.shape[0].length/2)],
+        [Math.max(0,row-piece.shape.length+1), Math.max(0,col-piece.shape[0].length+1)],
+    ];
+    for(const [r,c] of positions){
+        const ar=Math.max(0,Math.min(r,BB_ROWS-piece.shape.length));
+        const ac=Math.max(0,Math.min(c,BB_COLS-piece.shape[0].length));
+        if(canPlace(piece.shape,ar,ac)){
+            placePiece(piece.shape,piece.color,ar,ac);
+            blockPieces[blockSelected]=null;blockSelected=null;
+            placed=true;
+            break;
+        }
+    }
+    if(!placed){showToast('❌ Yahan fit nahi hoga! Dusri jagah try karo');playSound('click');return;}
     const cleared=clearLines();
     if(cleared>0){
-        const bonus=cleared*cleared*50;
+        const bonus=cleared*cleared*50*blockLevel;
         blockScore+=bonus;
-        showToast('🔥 '+cleared+' line clear! +'+bonus+'pts');
-        playSound('earn');
-        if(blockScore>blockLevel*500){blockLevel++;showToast('⬆️ Level '+blockLevel+'!');}
+        showToast('🔥 '+cleared+' Line Clear! +'+bonus+' pts');
+        playSound('earn'); triggerConfetti();
+        if(blockScore>blockLevel*blockLevel*300){blockLevel++;showToast('⬆️ Level '+blockLevel+' Unlocked! Getting harder!');playSound('levelup');
+            // Add some pre-filled blocks to make it harder at higher levels
+            if(blockLevel>2){ const filledCells=blockLevel-1;
+                for(let f=0;f<filledCells;f++){ const fr=Math.floor(Math.random()*3)+BB_ROWS-4; const fc=Math.floor(Math.random()*BB_COLS); if(!blockGrid[fr][fc]) blockGrid[fr][fc]=BB_COLORS[Math.floor(Math.random()*BB_COLORS.length)]; }
+            }
+        }
     }else{
         blockScore+=piece.shape.flat().filter(Boolean).length*5;
         playSound('tap');
@@ -5576,6 +5804,7 @@ function handleBlockTap(evt){
     // Check if all pieces used → new batch
     if(blockPieces.every(p=>p===null)){
         generatePieces();
+        showToast('🧱 New pieces!');
         if(checkGameOver()){finishBlockBlast();return;}
     }else if(checkGameOver()){finishBlockBlast();return;}
     renderBlockPieces();
@@ -5624,10 +5853,13 @@ function selGemBet(a,el){
     el.classList.add('sel');
 }
 
+const GEM_BOMB = 99; // Special bomb gem type
 function initGemGrid(){
     gemGrid=Array.from({length:GM_ROWS},()=>
         Array.from({length:GM_COLS},()=>Math.floor(Math.random()*GEM_TYPES.length))
     );
+    // Add 2 random bombs
+    for(let b=0;b<2;b++){ const r=1+Math.floor(Math.random()*(GM_ROWS-2)); const c=1+Math.floor(Math.random()*(GM_COLS-2)); gemGrid[r][c]=GEM_BOMB; }
     // Ensure no initial matches
     let tries=0;
     while(findMatches().length>0&&tries<100){
@@ -5683,6 +5915,13 @@ function processMatches(){
         totalPts+=pts*chainCount; // Chain multiplier!
         matches=findMatches();
     }
+    // After big chain, add new bomb as reward
+    if(totalPts > 200){ 
+        const br=1+Math.floor(Math.random()*(GM_ROWS-2));
+        const bc=1+Math.floor(Math.random()*(GM_COLS-2));
+        if(gemGrid[br][bc]!==GEM_BOMB && gemGrid[br][bc]>=0) gemGrid[br][bc]=GEM_BOMB;
+        showToast('💣 Big chain! Naya bomb mila!');
+    }
     return totalPts;
 }
 
@@ -5722,7 +5961,8 @@ function drawGemGrid(){
                 cell.style.boxShadow=`0 0 12px ${GEM_COLORS[g]}`;
                 cell.style.transform='scale(1.1)';
             }
-            cell.textContent=g>=0?GEM_TYPES[g]:'';
+            cell.textContent=g===GEM_BOMB?'💣':(g>=0?GEM_TYPES[g]:'');
+            if(g===GEM_BOMB){cell.style.background='rgba(255,78,106,0.2)';cell.style.border='1.5px solid rgba(255,78,106,0.6)';cell.style.animation='pulse 1s infinite';}
             cell.onclick=()=>handleGemTap(r,c);
             container.appendChild(cell);
         }
@@ -5734,6 +5974,22 @@ function drawGemGrid(){
 
 function handleGemTap(r,c){
     if(!gemActive||gemGrid[r][c]<0)return;
+    // Bomb gem - tap to explode!
+    if(gemGrid[r][c]===GEM_BOMB){
+        const bombPts=150;
+        gemScore+=bombPts;
+        // Explode 3x3 area
+        for(let br=r-1;br<=r+1;br++) for(let bc=c-1;bc<=c+1;bc++) if(br>=0&&br<GM_ROWS&&bc>=0&&bc<GM_COLS) gemGrid[br][bc]=-1;
+        // Drop gems
+        for(let col=0;col<GM_COLS;col++){
+            let empty=0;
+            for(let row=GM_ROWS-1;row>=0;row--){ if(gemGrid[row][col]===-1)empty++; else if(empty>0){gemGrid[row+empty][col]=gemGrid[row][col];gemGrid[row][col]=-1;} }
+            for(let row=0;row<empty;row++)gemGrid[row][col]=Math.floor(Math.random()*GEM_TYPES.length);
+        }
+        gemMoves--;
+        playSound('jackpot'); triggerConfetti();
+        showToast('💣 BOMB! +'+bombPts+' pts! Area destroy!'); drawGemGrid(); return;
+    }
     if(!gemSelected){
         gemSelected={r,c};drawGemGrid();return;
     }
@@ -6493,10 +6749,10 @@ document.addEventListener('DOMContentLoaded',init);
         </div>
         <div style="font-weight:800;font-size:12px;color:var(--text2);margin-bottom:8px;">Bet select karo:</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
-            <button class="bet-chip sel" onclick="selBlockBet(1,this)">1 pt</button>
-            <button class="bet-chip" onclick="selBlockBet(5,this)">5 pts</button>
-            <button class="bet-chip" onclick="selBlockBet(10,this)">10 pts</button>
-            <button class="bet-chip" onclick="selBlockBet(25,this)">25 pts</button>
+            <button class="bet-chip sel" onclick="selBlockBet(1,this)">100 pts</button>
+            <button class="bet-chip" onclick="selBlockBet(2,this)">200 pts</button>
+            <button class="bet-chip" onclick="selBlockBet(5,this)">500 pts</button>
+            <button class="bet-chip" onclick="selBlockBet(10,this)">1000 pts</button>
         </div>
         <button onclick="startBlockBlast()" class="btn-gold btn-shine">🧱 Start (1 Pass)</button>
     </div>
@@ -6507,7 +6763,7 @@ document.addEventListener('DOMContentLoaded',init);
             <div id="blockLevel" style="font-size:12px;font-weight:800;color:var(--purple2);">Level 1</div>
             <button onclick="exitBlockBlast()" style="background:rgba(248,113,113,.12);border:1px solid var(--red);color:var(--red);border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;">Exit</button>
         </div>
-        <canvas id="blockCanvas" onclick="handleBlockTap(event)" style="display:block;border-radius:12px;max-width:100%;touch-action:none;"></canvas>
+        <canvas id="blockCanvas" onclick="handleBlockTap(event)" ontouchstart="handleBlockTap(event)" style="display:block;border-radius:12px;max-width:100%;touch-action:none;cursor:pointer;"></canvas>
         <div id="blockPiecesRow" style="display:flex;justify-content:space-around;align-items:center;margin-top:14px;min-height:60px;background:var(--bg3);border-radius:14px;padding:10px;border:1px solid var(--border);gap:16px;"></div>
         <div style="text-align:center;font-size:10px;color:var(--text3);margin-top:8px;">Pehle piece select karo → Phir grid pe tap karo</div>
     </div>
@@ -6528,7 +6784,7 @@ document.addEventListener('DOMContentLoaded',init);
 <div class="modal" id="gemmatchModal">
     <div class="modal-hdr">
         <div class="back-btn" onclick="exitGemMatch()">←</div>
-        <div class="modal-title">💎 Gem Match</div>
+        <div class="modal-title">💎 Gem Blast</div>
         <div id="gemBal" style="font-size:11px;color:var(--gold);font-weight:800;">0 pts</div>
     </div>
     <div style="padding:14px;">
@@ -6548,10 +6804,10 @@ document.addEventListener('DOMContentLoaded',init);
         </div>
         <div style="font-weight:800;font-size:12px;color:var(--text2);margin-bottom:8px;">Bet select karo:</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
-            <button class="bet-chip sel" onclick="selGemBet(1,this)">1 pt</button>
-            <button class="bet-chip" onclick="selGemBet(5,this)">5 pts</button>
-            <button class="bet-chip" onclick="selGemBet(10,this)">10 pts</button>
-            <button class="bet-chip" onclick="selGemBet(25,this)">25 pts</button>
+            <button class="bet-chip sel" onclick="selGemBet(1,this)">100 pts</button>
+            <button class="bet-chip" onclick="selGemBet(2,this)">200 pts</button>
+            <button class="bet-chip" onclick="selGemBet(5,this)">500 pts</button>
+            <button class="bet-chip" onclick="selGemBet(10,this)">1000 pts</button>
         </div>
         <button onclick="startGemMatch()" class="btn-gold btn-shine">💎 Start (1 Pass)</button>
     </div>
