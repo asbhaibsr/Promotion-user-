@@ -991,7 +991,6 @@ class Database:
             total_bonus = base_bonus + streak_bonus
 
             self.add_balance(user_id, total_bonus, f"Daily bonus for {date_str}")
-            self.add_passes(user_id, 1, "Daily bonus pass")
 
             self.daily_bonus.insert_one({
                 'user_id': user_id,
@@ -1006,7 +1005,7 @@ class Database:
             self._update_single_mission_progress(user_id, 'm_daily', 1)
             self.add_live_activity('bonus', user_id, total_bonus, f"claimed daily bonus streak:{new_streak}🔥")
             self.user_cache.pop(f"user_{user_id}", None)
-            return {'bonus': total_bonus, 'streak': new_streak, 'success': True, 'passes_added': 1}
+            return {'bonus': total_bonus, 'streak': new_streak, 'success': True, 'passes_added': 0}
         except Exception as e:
             logger.error(f"Error claiming day bonus: {e}")
             return None
@@ -1217,9 +1216,9 @@ class Database:
             logger.error(f"Error getting ads: {e}")
             return []
 
-    def update_ad(self, ad_id, title, reward, link, meta, icon=None, claim_code=None, timer_seconds=0):
+    def update_ad(self, ad_id, title, reward, link, meta, icon=None, claim_code=None, timer_seconds=0, image_url=None, description=None):
         """
-        UPDATED: saves timer_seconds.
+        UPDATED: saves timer_seconds, image_url, description.
         Resets all claims so users can claim again after edit.
         """
         try:
@@ -1230,7 +1229,9 @@ class Database:
                 'meta': meta,
                 'edited_at': datetime.now().isoformat(),
                 'claim_code': claim_code.upper() if claim_code else None,
-                'timer_seconds': int(timer_seconds) if timer_seconds else 0  # NEW
+                'timer_seconds': int(timer_seconds) if timer_seconds else 0,
+                'image_url': image_url or '',
+                'description': description or ''
             }
             if icon:
                 update_data['icon'] = icon
