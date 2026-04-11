@@ -334,7 +334,7 @@ def update_ad_api():
         admin_user = db.get_user(int(admin_id))
         if not admin_user or not admin_user.get('is_admin', False):
             return jsonify({'success': False, 'message': 'Unauthorized'}), 403
-        # UPDATED: pass timer_seconds, image_url, description
+        # UPDATED: pass timer_seconds, image_url
         timer_seconds = int(data.get('timer_seconds', 0) or 0)
         success = db.update_ad(
             ad_id,
@@ -345,8 +345,7 @@ def update_ad_api():
             data.get('icon'),
             claim_code=data.get('claim_code'),
             timer_seconds=timer_seconds,
-            image_url=data.get('image_url', ''),
-            description=data.get('description', '')
+            image_url=data.get('image_url', '')
         )
         if success:
             return jsonify({'success': True, 'message': 'Ad updated! All claims reset.'})
@@ -1057,25 +1056,19 @@ _announcement = {'text': '', 'ts': 0}
 
 @app.route('/api/new-ad-notification', methods=['POST'])
 def new_ad_notification_api():
-    """Store notification when a new ad is created, users will see it on bell."""
+    """Store notification when a new ad is created."""
     try:
         data = request.get_json()
         admin_id = data.get('admin_id')
         if not admin_id or not config.is_admin(admin_id):
             return jsonify({'success': False, 'message': 'Unauthorized'}), 403
-        title = data.get('title', '')
-        image_url = data.get('image_url', '')
         import json as _json
         try:
             with open('new_ad_notif.json', 'r') as f:
                 notifs = _json.load(f)
         except:
             notifs = []
-        notifs.insert(0, {
-            'title': title,
-            'image_url': image_url,
-            'ts': datetime.now().timestamp()
-        })
+        notifs.insert(0, {'title': data.get('title',''), 'image_url': data.get('image_url',''), 'ts': datetime.now().timestamp()})
         notifs = notifs[:20]
         with open('new_ad_notif.json', 'w') as f:
             _json.dump(notifs, f)
@@ -1085,7 +1078,7 @@ def new_ad_notification_api():
 
 @app.route('/api/get-new-ads')
 def get_new_ads_api():
-    """Return new ad notifications for users."""
+    """Return new ad notifications."""
     try:
         import json as _json
         try:
@@ -1096,7 +1089,7 @@ def get_new_ads_api():
     except:
         return jsonify([])
 
-
+@app.route('/api/set-announcement', methods=['POST'])
 def set_announcement_api():
     global _announcement
     try:
