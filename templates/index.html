@@ -999,9 +999,9 @@
             <div class="game-card" onclick="openGame('spin')"><img src="https://image2url.com/r2/default/images/1773972096056-ea04e437-9a04-470c-98ac-4da8383bdc75.jpg" class="game-img" alt="Spin"><div style="padding:8px;"><div class="game-name">🎡 Spin</div><div class="game-desc">Wheel ghumao!</div><span class="game-earn-tag">50 pts avg</span></div></div>
             <div class="game-card" onclick="openGame('crash')"><img src="https://i.postimg.cc/K85csJXs/Rocket-soaring-along-neon-graph-line.png" class="game-img" alt="Crash"><div style="padding:8px;"><div class="game-name">🚀 Crash</div><div class="game-desc">Rocket fly!</div><span class="game-earn-tag">Up to 10x</span></div></div>
             <div class="game-card" onclick="openGame('coin')"><img src="https://image2url.com/r2/default/images/1773972404884-e233660e-0845-4937-8f72-560d43048197.jpg" class="game-img" alt="Coin"><div style="padding:8px;"><div class="game-name">🪙 Coin</div><div class="game-desc">50/50!</div><span class="game-earn-tag">2x Win</span></div></div>
-            <div class="game-card game-card-skill" onclick="openTetrisGame()" style="background:linear-gradient(135deg,#0a0a28,#1a0a40);border:1.5px solid rgba(99,102,241,.4);">
-                <div style="font-size:54px;display:block;margin:10px auto 10px;text-align:center;">🟦</div>
-                <div style="padding:0 8px 8px;">
+            <div class="game-card game-card-skill" onclick="openTetrisGame()" style="background:linear-gradient(135deg,#0a0a28,#1a0a40);border:1.5px solid rgba(99,102,241,.4);grid-column:span 2;">
+                <div style="font-size:48px;text-align:center;margin:10px 0 6px;">🟦</div>
+                <div style="padding:0 8px 10px;text-align:center;">
                     <div class="game-name" style="color:#818cf8;">🟦 Tetriz Blitz</div>
                     <div class="game-desc">Blocks girane ka game!</div>
                     <span class="game-earn-tag">Level × 100 pts</span>
@@ -1192,7 +1192,7 @@
     <div class="today-claim-box" id="todayClaimBox">
         <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">Aaj ka bonus</div>
         <div class="today-claim-amt" id="todayBonusAmt">5 pts</div>
-        <div style="font-size:11px;color:var(--purple2);margin:6px 0;">✅ Sirf Points milenge — Koi Pass nahi!</div>
+        <div style="font-size:11px;color:var(--purple2);margin:6px 0;">✅ Sirf Points milenge (Pass nahi)</div>
         <div class="streak-row">
             <div class="streak-item"><div class="streak-val" id="streakDays2">0</div><div class="streak-lbl">Day Streak</div></div>
             <div class="streak-item"><div class="streak-val" id="bonusTotal">0 pts</div><div class="streak-lbl">Total Earned</div></div>
@@ -1358,6 +1358,7 @@
     <input id="promoTitle" class="inp" placeholder="Offer Title" type="text">
     <input id="promoDesc" class="inp" placeholder="Description" type="text">
     <input id="promoReward" class="inp" placeholder="Reward Amount (in ₹, auto-converts)" type="number" step="0.1">
+    <input id="promoImageUrl" class="inp" placeholder="🖼️ Image URL (optional, https://...)" type="url">
     <div style="display:flex;gap:8px;align-items:center;margin-top:8px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 14px;">
         <div style="flex:1;">
             <div style="font-size:11px;font-weight:800;color:var(--text);">🎟️ Passes bhi do?</div>
@@ -1365,8 +1366,6 @@
         </div>
         <input id="promoPassReward" class="inp" type="number" min="0" value="0" style="width:70px;text-align:center;font-size:14px;font-weight:900;">
     </div>
-    <input id="promoImageUrl" class="inp" placeholder="🖼️ Image URL (optional, https://...)" type="url" oninput="previewImg('promoImgTag','promoImagePreview',this.value)">
-    <div id="promoImagePreview" style="display:none;margin:4px 0 8px;"><img id="promoImgTag" src="" style="width:100%;max-height:140px;object-fit:cover;border-radius:12px;" onerror="this.parentElement.style.display='none'"></div>
     <input id="promoLink" class="inp" placeholder="Link URL" type="url">
     <input id="promoIcon" class="inp" placeholder="Icon emoji (e.g. 📱)" type="text">
     <input id="promoMeta" class="inp" placeholder="Meta text (e.g. ⏱️ 2 min)" type="text">
@@ -1381,9 +1380,7 @@
     <input type="hidden" id="editAdId">
     <input id="editAdTitle" class="inp" placeholder="Title" type="text">
     <input id="editAdReward" class="inp" placeholder="Reward (₹)" type="number" step="0.1">
-    <input id="editAdDesc" class="inp" placeholder="Description" type="text">
-    <input id="editAdImageUrl" class="inp" placeholder="🖼️ Image URL (optional, https://...)" type="url" oninput="previewImg('editImgTag','editImgPreview',this.value)">
-    <div id="editImgPreview" style="display:none;margin:4px 0 8px;"><img id="editImgTag" src="" style="width:100%;max-height:140px;object-fit:cover;border-radius:12px;" onerror="this.parentElement.style.display='none'"></div>
+    <input id="editAdImageUrl" class="inp" placeholder="🖼️ Image URL (optional, https://...)" type="url">
     <input id="editAdLink" class="inp" placeholder="Link URL" type="url">
     <input id="editAdMeta" class="inp" placeholder="Meta text" type="text">
     <input id="editAdIcon" class="inp" placeholder="Icon emoji" type="text">
@@ -2388,7 +2385,7 @@ async function loadWithdrawalHistory(){
     const d=await apiGet(`/api/user/${userData.user_id}/withdrawals`);
     renderHistory(d||[]);
 }
-async function loadLeaderboard(){const d=await apiGet('/api/leaderboard?mode='+lbMode);renderLeaderboard(d||[]);}
+// loadLeaderboard defined below
 async function loadRefActivity(){
     if(!userData.user_id)return;
     const d=await apiGet(`/api/user/${userData.user_id}/ref-activity`);
@@ -2437,7 +2434,7 @@ function updateUI(){
     else{profDp.textContent=fname.charAt(0).toUpperCase();}
     const _gbp=document.getElementById('gameBadgePasses');if(_gbp)_gbp.textContent=userData.passes||0;
     document.getElementById('gameWins').textContent=gameState.wins||0;
-    const winsTodayEl=document.getElementById('winsToday');if(winsTodayEl)winsTodayEl.textContent=gameState.today_wins||0;
+    const _wte=document.getElementById('winsToday');if(_wte)_wte.textContent=gameState.today_wins||0;
     document.getElementById('gameTodayEarned').textContent=fmtPts(toPoints(gameState.today_game_earned||0));
     document.getElementById('gameStreak').textContent=`${gameState.win_streak||0}🔥`;
     ['spinBal','spinPassesLeft','spinTodayEarned','guessPassLeft','guessBal','coinPassesLeft','coinBal','dicePassesLeft','diceBal','colorPassesLeft','colorBal','crashPassesLeft','crashBal'].forEach((id,i)=>{
@@ -3191,18 +3188,19 @@ function openBadgeShowcase(){
 
 function bsViewBadge(idx){
     const refs=userData.active_refs||0;
-    const unlocked=refs>=BADGES[idx].req;
     const b=BADGES[idx];
+    const unlocked=refs>=b.req;
     const claimed=(userData.claimed_badges||[]).includes(idx);
-    // Show full badge info popup
-    let existing=document.getElementById('badgeInfoOverlay');if(existing)existing.remove();
+    let ex=document.getElementById('badgeViewOverlay');if(ex)ex.remove();
     const overlay=document.createElement('div');
-    overlay.id='badgeInfoOverlay';
+    overlay.id='badgeViewOverlay';
     overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:900;display:flex;align-items:flex-end;justify-content:center;';
-    const statusBadge=claimed?'<div style="background:rgba(25,216,158,.15);border:1px solid var(--green);border-radius:12px;padding:10px;text-align:center;color:var(--green);font-weight:700;margin-bottom:10px;">✅ Already Claimed</div>'
-        :unlocked?`<button onclick="document.getElementById('badgeInfoOverlay').remove();openBadgeClaim(${idx})" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;border-radius:14px;padding:13px;font-weight:900;font-size:15px;cursor:pointer;font-family:inherit;margin-bottom:8px;">🏅 Claim Reward!</button>`
-        :`<div style="background:rgba(255,78,106,.08);border:1px solid rgba(255,78,106,.3);border-radius:12px;padding:12px;text-align:center;margin-bottom:10px;"><div style="color:var(--red);font-weight:800;font-size:13px;">🔒 Locked</div><div style="font-size:11px;color:var(--text2);margin-top:4px;">${b.req} active refs chahiye (${refs}/${b.req})</div></div>`;
-    overlay.innerHTML=`<div style="background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:480px;border:1px solid var(--border);padding:24px 18px 28px;">
+    const actionBtn=claimed
+        ?'<div style="background:rgba(25,216,158,.1);border:1px solid var(--green);border-radius:12px;padding:12px;text-align:center;color:var(--green);font-weight:700;margin-bottom:10px;">✅ Already Claimed</div>'
+        :unlocked
+            ?`<button onclick="document.getElementById('badgeViewOverlay').remove();openBadgeClaim(${idx})" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;border-radius:14px;padding:13px;font-weight:900;font-size:15px;cursor:pointer;font-family:inherit;margin-bottom:8px;">🏅 Claim Reward!</button>`
+            :`<div style="background:rgba(255,78,106,.08);border:1px solid rgba(255,78,106,.3);border-radius:12px;padding:12px;text-align:center;margin-bottom:10px;"><div style="color:var(--red);font-weight:800;font-size:13px;">🔒 ${b.req} refs chahiye</div><div style="font-size:11px;color:var(--text2);margin-top:4px;">Abhi: ${refs}/${b.req}</div></div>`;
+    overlay.innerHTML=`<div style="background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:480px;border:1px solid var(--border);padding:24px 18px 28px;max-height:80vh;overflow-y:auto;">
         <div style="text-align:center;margin-bottom:16px;">
             <img src="${b.img}" style="width:90px;height:90px;object-fit:contain;filter:${unlocked?'drop-shadow(0 0 16px rgba(240,192,64,.5))':'grayscale(1) brightness(0.4)'};margin-bottom:10px;">
             <div style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--gold);">${b.name}</div>
@@ -3210,13 +3208,13 @@ function bsViewBadge(idx){
         </div>
         <div style="background:linear-gradient(135deg,rgba(240,192,64,.1),rgba(124,92,252,.08));border:1px solid rgba(240,192,64,.25);border-radius:14px;padding:14px;margin-bottom:14px;">
             <div style="font-size:11px;color:var(--text2);margin-bottom:8px;font-weight:700;">🎁 Badge Rewards:</div>
-            <div style="display:flex;gap:12px;justify-content:center;">
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
                 ${b.passes>0?`<div style="text-align:center;background:rgba(124,92,252,.12);border-radius:12px;padding:10px 16px;"><div style="font-family:'Oxanium',sans-serif;font-size:24px;font-weight:900;color:var(--purple2);">+${b.passes}</div><div style="font-size:10px;color:var(--text3);">Passes</div></div>`:''}
                 ${b.balance>0?`<div style="text-align:center;background:rgba(240,192,64,.12);border-radius:12px;padding:10px 16px;"><div style="font-family:'Oxanium',sans-serif;font-size:24px;font-weight:900;color:var(--gold);">+${toPoints(b.balance)}</div><div style="font-size:10px;color:var(--text3);">Points</div></div>`:''}
             </div>
         </div>
-        ${statusBadge}
-        <button onclick="document.getElementById('badgeInfoOverlay').remove()" style="width:100%;background:var(--bg3);color:var(--text2);border:1px solid var(--border);border-radius:14px;padding:11px;font-weight:700;cursor:pointer;font-family:inherit;">← Wapas</button>
+        ${actionBtn}
+        <button onclick="document.getElementById('badgeViewOverlay').remove()" style="width:100%;background:var(--bg3);color:var(--text2);border:1px solid var(--border);border-radius:14px;padding:11px;font-weight:700;cursor:pointer;font-family:inherit;">← Wapas</button>
     </div>`;
     document.body.appendChild(overlay);
     overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
@@ -3280,9 +3278,9 @@ function renderRefActivityPaged(){
     }).join('');
     if(pager){
         pager.style.display=totalPages>1?'block':'none';
-        const info=document.getElementById('refPageInfo');if(info)info.textContent=(refPage+1)+'/'+totalPages+' ('+total+' total)';
-        const prev=document.getElementById('refPrevBtn'),next=document.getElementById('refNextBtn');
-        if(prev)prev.disabled=refPage===0;if(next)next.disabled=refPage>=totalPages-1;
+        const pi=document.getElementById('refPageInfo');if(pi)pi.textContent=(refPage+1)+'/'+totalPages+' ('+total+' total)';
+        const pb=document.getElementById('refPrevBtn'),nb=document.getElementById('refNextBtn');
+        if(pb)pb.disabled=refPage===0;if(nb)nb.disabled=refPage>=totalPages-1;
     }
 }
 function showCongratsPopup(){
@@ -3465,73 +3463,51 @@ async function claimSingleMission(missionId,reward){
 }
 
 // ============================================================
-// ADS with code + silent timer + popup + image + bell notif
+// ADS with code + silent timer
 // ============================================================
-function previewImg(imgId, previewId, url){
-    const prev=document.getElementById(previewId);
-    const img=document.getElementById(imgId);
-    if(url && url.startsWith('http')){img.src=url;prev.style.display='block';}
-    else{prev.style.display='none';}
-}
-
 function renderAds(claimedIds=[]){
-    window._claimedAdIds=claimedIds;
+    window._adClaimedIds=claimedIds;
     const c=document.getElementById('adsContainer');
     if(!adminAds.length){c.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3);">No offers yet</div>';return;}
     c.innerHTML=adminAds.map(ad=>{
         const isClaimed=claimedIds.includes(ad.id);
-        const imgHtml=ad.image_url?`<img src="${ad.image_url}" style="width:100%;max-height:130px;object-fit:cover;border-radius:10px;margin-bottom:8px;" onerror="this.style.display='none'">`:''
+        const imgHtml=ad.image_url?`<img src="${ad.image_url}" style="width:100%;max-height:120px;object-fit:cover;border-radius:10px;margin-bottom:7px;" onerror="this.style.display='none'">`:'<div class="ad-icon-box">'+(ad.icon||'📢')+'</div>';
         return`<div class="ad-card ${adminEditMode?'admin-mode':''} ${isClaimed&&!adminEditMode?'ad-claimed':''}" onclick="handleAdClick(${ad.id})">
             ${adminEditMode?`<div class="ad-del-btn" onclick="event.stopPropagation();delAd(${ad.id})">✕</div><div class="ad-edit-btn" onclick="event.stopPropagation();editAd(${ad.id})">✎</div>`:''}
             ${imgHtml}
-            <div style="display:flex;align-items:center;gap:10px;">
-            <div class="ad-icon-box">${ad.icon||'📢'}</div>
-            <div class="ad-info"><div class="ad-title">${ad.title}${ad.claim_code?'  🔑':''}${adminEditMode&&ad.claim_code?` <span style="font-size:9px;color:var(--blue);background:rgba(54,182,245,.1);padding:2px 6px;border-radius:8px;">Code: ${ad.claim_code}</span>`:''}</div>
-            <div class="ad-meta">${ad.meta||''}</div>
-            ${ad.description?'<div style="font-size:10px;color:var(--text3);margin-top:3px;">'+ad.description.slice(0,100)+'</div>':''}
-            ${isClaimed&&!adminEditMode?'<div class="ad-claimed-badge">✅ Claimed</div>':`<div class="ad-reward">+${toPoints(ad.reward)} pts</div>`}
-            </div></div>
+            <div class="ad-info"><div class="ad-title">${ad.title}${ad.claim_code?'  🔑':''}${adminEditMode&&ad.claim_code?` <span style="font-size:9px;color:var(--blue);background:rgba(54,182,245,.1);padding:2px 6px;border-radius:8px;">Code: ${ad.claim_code}</span>`:''}</div><div class="ad-meta">${ad.meta||''}</div>
+            ${ad.description?'<div style="font-size:10px;color:var(--text3);margin-top:3px;">'+ad.description.slice(0,80)+'</div>':''}
+            ${isClaimed&&!adminEditMode?`<div class="ad-claimed-badge">✅ Claimed</div>`:`<div class="ad-reward">+${toPoints(ad.reward)} pts</div>`}
+            </div>
         </div>`;
     }).join('');
 }
-
+// Ad popup showing full details
 function showAdPopup(adId){
     const ad=adminAds.find(a=>a.id===adId);if(!ad)return;
+    const isClaimed=window._adClaimedIds&&window._adClaimedIds.includes(ad.id);
     let ex=document.getElementById('adPopupOverlay');if(ex)ex.remove();
-    const isClaimed=window._claimedAdIds&&window._claimedAdIds.includes(ad.id);
     const overlay=document.createElement('div');
     overlay.id='adPopupOverlay';
     overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:900;display:flex;align-items:flex-end;justify-content:center;';
-    const imgTop=ad.image_url
-        ?`<img src="${ad.image_url}" style="width:100%;max-height:220px;object-fit:cover;border-radius:24px 24px 0 0;" onerror="this.style.display='none'">`
-        :`<div style="background:linear-gradient(135deg,var(--purple),var(--gold));height:90px;border-radius:24px 24px 0 0;display:flex;align-items:center;justify-content:center;font-size:56px;">${ad.icon||'📢'}</div>`;
+    const topImg=ad.image_url
+        ?`<img src="${ad.image_url}" style="width:100%;max-height:200px;object-fit:cover;border-radius:24px 24px 0 0;" onerror="this.style.display='none'">`
+        :`<div style="background:linear-gradient(135deg,var(--purple),var(--gold));height:80px;border-radius:24px 24px 0 0;display:flex;align-items:center;justify-content:center;font-size:48px;">${ad.icon||'📢'}</div>`;
     const claimBtn=isClaimed
-        ?'<div style="background:rgba(25,216,158,.1);border:1px solid var(--green);border-radius:12px;padding:12px;text-align:center;color:var(--green);font-weight:700;margin-bottom:8px;">✅ Already Claimed</div>'
+        ?'<div style="background:rgba(25,216,158,.1);border:1px solid var(--green);border-radius:12px;padding:12px;text-align:center;color:var(--green);font-weight:700;margin-bottom:10px;">✅ Already Claimed</div>'
         :`<button onclick="document.getElementById('adPopupOverlay').remove();handleAdClickDirect(${ad.id})" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;border-radius:14px;padding:14px;font-weight:900;font-size:15px;cursor:pointer;font-family:inherit;margin-bottom:8px;">🚀 Claim Karo</button>`;
-    overlay.innerHTML=`<div style="background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:480px;border:1px solid var(--border);max-height:90vh;overflow-y:auto;padding-bottom:24px;">
-        ${imgTop}
-        <div style="padding:20px 18px 0;">
-            <div style="font-family:'Oxanium',sans-serif;font-size:20px;font-weight:900;color:var(--gold);margin-bottom:6px;">${ad.title}</div>
-            ${ad.description?`<div style="font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:12px;background:var(--bg3);border-radius:12px;padding:12px;">${ad.description}</div>`:''}
-            <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">${ad.meta||''}</div>
-            <div style="background:linear-gradient(135deg,rgba(240,192,64,.15),rgba(124,92,252,.1));border:1.5px solid rgba(240,192,64,.3);border-radius:14px;padding:14px;text-align:center;margin-bottom:16px;">
-                <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">🎁 Reward</div>
-                <div style="font-family:'Oxanium',sans-serif;font-size:32px;font-weight:900;color:var(--gold);">+${toPoints(ad.reward)} pts</div>
-                <div style="font-size:10px;color:var(--text3);margin-top:3px;">+1 Pass bhi milega!</div>
-            </div>
-            ${claimBtn}
-            <button onclick="document.getElementById('adPopupOverlay').remove()" style="width:100%;background:var(--bg3);color:var(--text2);border:1px solid var(--border);border-radius:14px;padding:11px;font-weight:700;cursor:pointer;font-family:inherit;">← Wapas</button>
-        </div></div>`;
+    overlay.innerHTML=`<div style="background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:480px;border:1px solid var(--border);max-height:90vh;overflow-y:auto;padding-bottom:24px;">${topImg}<div style="padding:20px 18px 0;"><div style="font-family:'Oxanium',sans-serif;font-size:20px;font-weight:900;color:var(--gold);margin-bottom:6px;">${ad.title}</div>${ad.description?`<div style="font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:12px;background:var(--bg3);border-radius:12px;padding:12px;">${ad.description}</div>`:''}<div style="font-size:12px;color:var(--text3);margin-bottom:14px;">${ad.meta||''}</div><div style="background:linear-gradient(135deg,rgba(240,192,64,.15),rgba(124,92,252,.1));border:1.5px solid rgba(240,192,64,.3);border-radius:14px;padding:14px;text-align:center;margin-bottom:16px;"><div style="font-size:11px;color:var(--text2);margin-bottom:4px;">🎁 Reward</div><div style="font-family:'Oxanium',sans-serif;font-size:32px;font-weight:900;color:var(--gold);">+${toPoints(ad.reward)} pts</div><div style="font-size:10px;color:var(--text3);">+1 Pass bhi milega!</div></div>${claimBtn}<button onclick="document.getElementById('adPopupOverlay').remove()" style="width:100%;background:var(--bg3);color:var(--text2);border:1px solid var(--border);border-radius:14px;padding:11px;font-weight:700;cursor:pointer;font-family:inherit;">← Wapas</button></div></div>`;
     document.body.appendChild(overlay);
     overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
 }
 
+// Handle ad click — show popup first with full details
 async function handleAdClick(adId){
     if(adminEditMode)return;
     playSound('tap');
     showAdPopup(adId);
 }
-
+// Called from popup claim button
 async function handleAdClickDirect(adId){
     const ad=adminAds.find(a=>a.id===adId);if(!ad)return;
     window.open(ad.link,'_blank');
@@ -3573,34 +3549,18 @@ async function doClaimAd(ad){
 }
 function openAdminCreateOffer(){if(!userData.is_admin)return;openModal('createOffer');}
 async function submitAdminOffer(){
-    const title=document.getElementById('promoTitle').value.trim(),rw=document.getElementById('promoReward').value,l=document.getElementById('promoLink').value.trim(),ic=document.getElementById('promoIcon').value||'📢',m2=document.getElementById('promoMeta').value||'',code=document.getElementById('promoCode').value.trim().toUpperCase()||null,timer=parseInt(document.getElementById('promoTimer').value)||0;
+    const title=document.getElementById('promoTitle').value,rw=document.getElementById('promoReward').value,l=document.getElementById('promoLink').value,ic=document.getElementById('promoIcon').value||'📢',m2=document.getElementById('promoMeta').value||'',code=document.getElementById('promoCode').value.trim().toUpperCase()||null,timer=parseInt(document.getElementById('promoTimer').value)||0;
     const imageUrl=(document.getElementById('promoImageUrl')?.value||'').trim();
-    const desc=(document.getElementById('promoDesc')?.value||'').trim();
     if(!title||!rw||!l){showToast('❌ Title, Reward aur Link zaruri hain');return;}
     const newId=Date.now()%100000;
-    const r=await apiPost('/api/update-ad',{ad_id:newId,admin_id:userData.user_id,title,reward:parseFloat(rw),link:l,meta:m2,icon:ic,claim_code:code,timer_seconds:timer,image_url:imageUrl,description:desc});
-    if(r&&r.success){
-        await apiPost('/api/new-ad-notification',{admin_id:userData.user_id,title,image_url:imageUrl});
-        showToast('✅ Offer created! Bell notification bhi bheja!');
-        loadAds();closeModal('createOffer');
-        ['promoTitle','promoDesc','promoReward','promoLink','promoIcon','promoMeta','promoCode','promoTimer','promoImageUrl'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
-        const pp=document.getElementById('promoImagePreview');if(pp)pp.style.display='none';
-    }else showToast('❌ '+(r?.message||'Failed'));
+    const r=await apiPost('/api/update-ad',{ad_id:newId,admin_id:userData.user_id,title,reward:parseFloat(rw),link:l,meta:m2,icon:ic,claim_code:code,timer_seconds:timer,image_url:imageUrl});
+    if(r&&r.success){showToast('✅ Offer created!');loadAds();closeModal('createOffer');['promoTitle','promoDesc','promoReward','promoLink','promoIcon','promoMeta','promoCode','promoTimer','promoImageUrl'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});}
+    else showToast('❌ '+(r?.message||'Failed'));
 }
 function editAd(id){
     const ad=adminAds.find(a=>a.id===id);if(!ad)return;
-    document.getElementById('editAdId').value=ad.id;
-    document.getElementById('editAdTitle').value=ad.title;
-    document.getElementById('editAdReward').value=ad.reward;
-    document.getElementById('editAdLink').value=ad.link;
-    document.getElementById('editAdMeta').value=ad.meta||'';
-    document.getElementById('editAdIcon').value=ad.icon||'';
-    document.getElementById('editAdCode').value=ad.claim_code||'';
-    document.getElementById('editAdTimer').value=ad.timer_seconds||0;
-    const edDesc=document.getElementById('editAdDesc');if(edDesc)edDesc.value=ad.description||'';
-    const edImg=document.getElementById('editAdImageUrl');if(edImg)edImg.value=ad.image_url||'';
-    const edPrev=document.getElementById('editImgPreview');const edTag=document.getElementById('editImgTag');
-    if(edPrev&&edTag){if(ad.image_url){edTag.src=ad.image_url;edPrev.style.display='block';}else edPrev.style.display='none';}
+    document.getElementById('editAdId').value=ad.id;document.getElementById('editAdTitle').value=ad.title;document.getElementById('editAdReward').value=ad.reward;document.getElementById('editAdLink').value=ad.link;document.getElementById('editAdMeta').value=ad.meta||'';document.getElementById('editAdIcon').value=ad.icon||'';document.getElementById('editAdCode').value=ad.claim_code||'';document.getElementById('editAdTimer').value=ad.timer_seconds||0;
+    const imgEl=document.getElementById('editAdImageUrl');if(imgEl)imgEl.value=ad.image_url||'';
     openModal('editAd');
 }
 async function saveAd(){
@@ -3608,8 +3568,7 @@ async function saveAd(){
     const code=document.getElementById('editAdCode').value.trim().toUpperCase()||null;
     const timer=parseInt(document.getElementById('editAdTimer').value)||0;
     const imageUrl=(document.getElementById('editAdImageUrl')?.value||'').trim();
-    const desc=(document.getElementById('editAdDesc')?.value||'').trim();
-    const r=await apiPost('/api/update-ad',{ad_id:id,admin_id:userData.user_id,title:document.getElementById('editAdTitle').value,reward:parseFloat(document.getElementById('editAdReward').value),link:document.getElementById('editAdLink').value,meta:document.getElementById('editAdMeta').value,icon:document.getElementById('editAdIcon').value,claim_code:code,timer_seconds:timer,image_url:imageUrl,description:desc});
+    const r=await apiPost('/api/update-ad',{ad_id:id,admin_id:userData.user_id,title:document.getElementById('editAdTitle').value,reward:parseFloat(document.getElementById('editAdReward').value),link:document.getElementById('editAdLink').value,meta:document.getElementById('editAdMeta').value,icon:document.getElementById('editAdIcon').value,claim_code:code,timer_seconds:timer,image_url:imageUrl});
     if(r&&r.success){showToast('✅ Updated! Claims reset.');loadAds();closeModal('editAd');}else showToast('❌ '+(r?.message||'Failed'));
 }
 async function delAd(id){
@@ -4366,10 +4325,10 @@ function openGame(g,tryFree){
     // FIXED: Allow opening game — try mode allowed even with 0 passes
     // Passes check happens inside startGame functions, not here
     if(g==='spin'){drawWheel(spinAngle);openModal('spin');}
-    else if(g==='guess'){startGuess();openModal('guess');}
+    // guess removed
     else if(g==='coin'){resetCoinUI();openModal('coin');}
-    else if(g==='dice'){resetDiceUI();openModal('dice');}
-    else if(g==='color'){resetColorUI();openModal('color');}
+    // dice removed
+    // color removed
     else if(g==='crash'){resetCrashUI();renderCrashHistory();openModal('crash');}
     else if(g==='runner'){openRunnerGame();}
     else if(g==='maze'){openMazeGame();}
@@ -4383,7 +4342,7 @@ function openGame(g,tryFree){
 // 🏃 RUNNER GAME — Full Canvas Game Engine
 // ============================================================
 let runnerMode='10s', runnerBet=1, runnerGameActive=false;
-let runnerCheckpoints=[],runnerNextCheckpointAt=10,runnerCheckpointPts=0;
+let runnerCheckpointPts=0, runnerNextCheckpoint=10;
 let runnerAnimFrame=null, runnerStartTime=0, runnerSurvivedSecs=0;
 let runnerLives=3, runnerDucking=false, runnerJumping=false;
 let runnerEarningTotal=0, runnerMaxSecs=10;
@@ -4490,8 +4449,7 @@ function initRunnerCanvas(){
     rScrollX=0; rScrollSpeed=3; rFrameCount=0;
     rLastObstacleFrame=0; rBgX=0;
     runnerLives=3; runnerJumping=false; runnerDucking=false;
-    runnerEarningTotal=0; runnerSurvivedSecs=0;
-    runnerCheckpoints=[]; runnerNextCheckpointAt=10; runnerCheckpointPts=0;
+    runnerEarningTotal=0; runnerSurvivedSecs=0; runnerCheckpointPts=0; runnerNextCheckpoint=10;
     runnerGameActive=true;
     runnerStartTime=Date.now();
 
@@ -4562,15 +4520,8 @@ function runnerLoop(){
     if(!runnerGameActive)return;
     const elapsed=(Date.now()-runnerStartTime)/1000;
     runnerSurvivedSecs=Math.floor(elapsed);
-    // Checkpoint system — every 10 seconds = bonus pts
-    if(runnerSurvivedSecs>0 && runnerSurvivedSecs>=runnerNextCheckpointAt && !_runnerTryMode){
-        const cpBonus=runnerNextCheckpointAt*5;
-        runnerCheckpointPts+=cpBonus;
-        showToast('🏁 Checkpoint '+runnerNextCheckpointAt+'s! +'+cpBonus+' pts bonus!');
-        playSound('earn');
-        addParticle(rPlayer.x+rPlayer.w/2,rPlayer.y,'#fbbf24');
-        runnerNextCheckpointAt+=10;
-    }
+    // Checkpoint every 10s
+    if(!_runnerTryMode&&runnerSurvivedSecs>0&&runnerSurvivedSecs>=runnerNextCheckpoint){const cpPts=runnerNextCheckpoint*5;runnerCheckpointPts+=cpPts;showToast('🏁 Checkpoint! +'+cpPts+' pts!');playSound('earn');runnerNextCheckpoint+=10;}
     const remaining=runnerMaxSecs-elapsed;
 
     // Update timer display
@@ -4829,7 +4780,7 @@ async function finishRunnerGame(won){
     document.getElementById('runnerResult').style.display='block';
     document.getElementById('runnerResultEmoji').textContent=won?'🏆':'💀';
     document.getElementById('runnerResultTitle').textContent=won?'CHAMPION! 🎉':'Game Over!';
-    document.getElementById('runnerResultSub').textContent=`Survived: ${runnerSurvivedSecs}s | Checkpoints: ${Math.floor(runnerSurvivedSecs/10)}`;
+    document.getElementById('runnerResultSub').textContent=`Survived: ${runnerSurvivedSecs}s of ${runnerMaxSecs}s`;
 
     if(_runnerTryMode){
         document.getElementById('runnerResultReward').textContent='Try Mode — 0 pts';
@@ -4844,19 +4795,17 @@ async function finishRunnerGame(won){
         user_id:userData.user_id, mode:runnerMode, bet:runnerBet, survived_seconds:runnerSurvivedSecs
     });
     const reward=r?.reward||0;
-    const cpBonus=runnerCheckpointPts||0;
-    const totalReward=reward+fromPoints(cpBonus);
-    document.getElementById('runnerResultReward').textContent='+'+toPoints(totalReward)+' pts';
-    document.getElementById('runnerResultBreakdown').textContent=
-        'Earned: '+toPoints(reward)+' pts + Checkpoints: +'+cpBonus+' pts';
+    document.getElementById('runnerResultReward').textContent='+'+toPoints(reward+fromPoints(runnerCheckpointPts||0))+' pts';
+    const cpBonus=fromPoints(runnerCheckpointPts||0);
+    const totalReward=reward+cpBonus;
+    document.getElementById('runnerResultBreakdown').textContent='Earned: '+toPoints(reward)+' pts + Checkpoints: +'+toPoints(cpBonus)+' pts';
     if(totalReward>0){
         userData.balance=(userData.balance||0)+parseFloat(totalReward);
         userData.today_earned=(userData.today_earned||0)+parseFloat(totalReward);
         gameState.today_game_earned=(gameState.today_game_earned||0)+parseFloat(totalReward);
         if(won){gameState.wins=(gameState.wins||0)+1;gameState.today_wins=(gameState.today_wins||0)+1;}
-        updateUI(); if(won)triggerConfetti();
+        updateUI(); if(won)triggerConfetti(); showFloatingPts(toPoints(totalReward));
         playSound(won?'jackpot':'earn');
-        showFloatingPts(toPoints(totalReward));
     }else{ playSound('lose'); }
 }
 
@@ -4878,25 +4827,25 @@ let mazeActive=false,mazeMoveCount=0;
 let mazeGrid=[],mazePlayer={x:1,y:1},mazeBoxes=[],mazeTargets=[];
 const MAZE_DIFFS={easy:{time:120,pts:300,boxes:2,sz:7},medium:{time:90,pts:600,boxes:3,sz:9},hard:{time:60,pts:1000,boxes:4,sz:11}};
 
-// Premade Sokoban levels (guaranteed solvable, boxes not at walls)
+// Premade Sokoban levels (boxes placed away from walls - always pushable)
 const SOKOBAN_LEVELS={
     easy:[
         {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,0,2,0,0,1],[1,0,0,0,0,0,1],[1,0,0,0,2,0,1],[1,0,3,0,0,0,1],[1,1,1,1,1,1,1]],
-         boxes:[{x:3,y:2},{x:4,y:4}],targets:[{x:2,y:4},{x:4,y:4}],player:{x:2,y:5}},
-        {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,2,0,0,0,1],[1,0,0,0,0,0,1],[1,0,0,2,0,0,1],[1,0,0,0,3,0,1],[1,1,1,1,1,1,1]],
-         boxes:[{x:2,y:2},{x:3,y:4}],targets:[{x:3,y:5},{x:5,y:5}],player:{x:4,y:5}},
-        {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,0,2,0,0,1],[1,0,2,0,0,0,1],[1,0,0,0,0,0,1],[1,0,3,0,0,0,1],[1,1,1,1,1,1,1]],
-         boxes:[{x:3,y:2},{x:2,y:3}],targets:[{x:4,y:4},{x:5,y:4}],player:{x:2,y:5}},
+         boxes:[{x:3,y:2},{x:4,y:4}],targets:[{x:2,y:4},{x:4,y:2}],player:{x:2,y:5}},
+        {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,2,0,0,0,1],[1,0,0,0,0,0,1],[1,0,0,0,2,0,1],[1,0,0,3,0,0,1],[1,1,1,1,1,1,1]],
+         boxes:[{x:2,y:2},{x:4,y:4}],targets:[{x:4,y:2},{x:2,y:4}],player:{x:3,y:5}},
+        {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,0,0,2,0,1],[1,0,2,0,0,0,1],[1,0,0,0,0,0,1],[1,0,0,3,0,0,1],[1,1,1,1,1,1,1]],
+         boxes:[{x:4,y:2},{x:2,y:3}],targets:[{x:2,y:2},{x:4,y:4}],player:{x:3,y:5}},
     ],
     medium:[
-        {grid:[[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,2,0,0,0,0,0,1],[1,0,0,0,2,0,0,0,1],[1,0,0,0,0,0,2,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,3,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1]],
-         boxes:[{x:2,y:2},{x:4,y:3},{x:6,y:4}],targets:[{x:6,y:5},{x:4,y:5},{x:2,y:5}],player:{x:4,y:6}},
-        {grid:[[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,0,2,0,2,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,2,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,3,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1]],
-         boxes:[{x:3,y:2},{x:5,y:2},{x:4,y:4}],targets:[{x:2,y:6},{x:4,y:6},{x:6,y:6}],player:{x:3,y:6}},
+        {grid:[[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,2,0,0,0,0,0,1],[1,0,0,0,0,2,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,2,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,3,0,0,0,1],[1,1,1,1,1,1,1,1,1]],
+         boxes:[{x:2,y:2},{x:5,y:3},{x:3,y:5}],targets:[{x:6,y:2},{x:2,y:5},{x:6,y:5}],player:{x:4,y:7}},
+        {grid:[[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,0,2,0,0,0,0,1],[1,0,0,0,0,0,2,0,1],[1,0,2,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,3,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1]],
+         boxes:[{x:3,y:2},{x:6,y:3},{x:2,y:4}],targets:[{x:2,y:6},{x:4,y:6},{x:6,y:6}],player:{x:4,y:6}},
     ],
     hard:[
-        {grid:[[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,2,0,0,2,0,0,0,0,1],[1,0,0,0,0,0,0,2,0,0,1],[1,0,0,2,0,0,0,0,0,0,1],[1,0,0,0,0,3,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1]],
-         boxes:[{x:2,y:2},{x:5,y:2},{x:7,y:3},{x:3,y:4}],targets:[{x:2,y:8},{x:4,y:8},{x:6,y:8},{x:8,y:8}],player:{x:5,y:5}},
+        {grid:[[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,2,0,0,0,0,0,0,0,1],[1,0,0,0,2,0,0,0,0,0,1],[1,0,0,0,0,0,2,0,0,0,1],[1,0,0,0,0,0,0,0,2,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,3,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1]],
+         boxes:[{x:2,y:2},{x:4,y:3},{x:6,y:4},{x:8,y:5}],targets:[{x:2,y:8},{x:4,y:8},{x:6,y:8},{x:8,y:8}],player:{x:4,y:7}},
     ]
 };
 
@@ -5087,7 +5036,7 @@ function exitMaze(){if(mazeInterval)clearInterval(mazeInterval);mazeActive=false
 let snakeBet=1,snakeActive=false,snakeTimer=60,snakeInterval=null,snakeFrameId=null;
 let snake=[],snakeDirV={x:1,y:0},snakeNextDir={x:1,y:0};
 let snakeFood={x:5,y:5},snakeScore=0,snakeCS=20,snakeCvs=null,snakeCTX=null,snakeLastMove=0;
-let snakeBombs=[],snakeTraps=[];
+let snakeBombs=[],snakeTraps=[],snakeFrozen=false;
 const SN=16;
 const SN_TARGETS=[{dots:5,secs:60,bonus:50,txt:'5 dots=+50'},{dots:10,secs:45,bonus:150,txt:'10 dots=+150'},{dots:15,secs:30,bonus:400,txt:'15 dots=+400'}];
 
@@ -5104,23 +5053,9 @@ function placeFood(){let f,t=0;do{f={x:1+Math.floor(Math.random()*(SN-2)),y:1+Ma
 
 function placeBombsAndTraps(){
     snakeBombs=[];snakeTraps=[];
-    // Place 2-3 bombs (💣) that kill snake instantly
-    for(let i=0;i<3;i++){
-        let b,t=0;
-        do{b={x:1+Math.floor(Math.random()*(SN-2)),y:1+Math.floor(Math.random()*(SN-2))};t++;}
-        while((b.x===snakeFood.x&&b.y===snakeFood.y||snake.some(s=>s.x===b.x&&s.y===b.y)||snakeBombs.some(x=>x.x===b.x&&x.y===b.y))&&t<200);
-        snakeBombs.push(b);
-    }
-    // Place 2 traps (🕸️) that freeze snake for 1 sec
-    for(let i=0;i<2;i++){
-        let tr,t=0;
-        do{tr={x:1+Math.floor(Math.random()*(SN-2)),y:1+Math.floor(Math.random()*(SN-2))};t++;}
-        while((tr.x===snakeFood.x&&tr.y===snakeFood.y||snake.some(s=>s.x===tr.x&&s.y===tr.y)||snakeBombs.some(x=>x.x===tr.x&&x.y===tr.y)||snakeTraps.some(x=>x.x===tr.x&&x.y===tr.y))&&t<200);
-        snakeTraps.push(tr);
-    }
+    for(let i=0;i<2;i++){let b,t=0;do{b={x:2+Math.floor(Math.random()*(SN-4)),y:2+Math.floor(Math.random()*(SN-4))};t++;}while((b.x===snakeFood.x&&b.y===snakeFood.y||snake.some(s=>s.x===b.x&&s.y===b.y))&&t<100);snakeBombs.push(b);}
+    for(let i=0;i<2;i++){let tr,t=0;do{tr={x:2+Math.floor(Math.random()*(SN-4)),y:2+Math.floor(Math.random()*(SN-4))};t++;}while((tr.x===snakeFood.x&&tr.y===snakeFood.y||snake.some(s=>s.x===tr.x&&s.y===tr.y)||snakeBombs.some(b=>b.x===tr.x&&b.y===tr.y))&&t<100);snakeTraps.push(tr);}
 }
-let snakeFrozen=false;
-
 async function startSnake(tryFree){
     const _snakeTry = tryFree || (userData.passes||0)<=0;
     if(!_snakeTry){
@@ -5134,8 +5069,7 @@ async function startSnake(tryFree){
     snake=[{x:8,y:8},{x:7,y:8},{x:6,y:8},{x:5,y:8}];
     snakeDirV={x:1,y:0}; snakeNextDir={x:1,y:0};
     snakeScore=0; snakeTimer=60; snakeActive=true; snakeLastMove=0;
-    placeFood();
-    snakeBombs=[];snakeTraps=[];placeBombsAndTraps();
+    placeFood();placeBombsAndTraps();
     snakeCvs=document.getElementById('snakeCanvas');
     const parentW=snakeCvs.parentElement.offsetWidth||window.innerWidth;
     const W=Math.min(parentW-8,380);
@@ -5156,29 +5090,13 @@ async function startSnake(tryFree){
         snakeLastMove=ts;
         snakeDirV=snakeNextDir;
         const head={x:snake[0].x+snakeDirV.x,y:snake[0].y+snakeDirV.y};
-        if(head.x<0||head.x>=SN||head.y<0||head.y>=SN||snake.some(s=>s.x===head.x&&s.y===head.y)){
-            snakeActive=false;clearInterval(snakeInterval);cancelAnimationFrame(snakeFrameId);finishSnake();return;
-        }
-        // Bomb collision = instant death
-        if(snakeBombs.some(b=>b.x===head.x&&b.y===head.y)){
-            playSound('lose');showToast('💣 Bomb! Game Over!');
-            snakeActive=false;clearInterval(snakeInterval);cancelAnimationFrame(snakeFrameId);finishSnake();return;
-        }
-        // Trap collision = freeze 1.5sec
-        const trapIdx=snakeTraps.findIndex(t=>t.x===head.x&&t.y===head.y);
-        if(trapIdx>-1&&!snakeFrozen){
-            snakeTraps.splice(trapIdx,1);snakeFrozen=true;
-            showToast('🕸️ Trap! Frozen 1.5s!');playSound('click');
-            setTimeout(()=>{snakeFrozen=false;},1500);
-        }
+        if(head.x<0||head.x>=SN||head.y<0||head.y>=SN||snake.some(s=>s.x===head.x&&s.y===head.y)){snakeActive=false;clearInterval(snakeInterval);cancelAnimationFrame(snakeFrameId);finishSnake();return;}
+        // Bomb = instant death
+        if(snakeBombs&&snakeBombs.some(b=>b.x===head.x&&b.y===head.y)){playSound('lose');showToast('💣 Bomb! Game Over!');snakeActive=false;clearInterval(snakeInterval);cancelAnimationFrame(snakeFrameId);finishSnake();return;}
+        // Trap = freeze 1.5s
+        if(snakeTraps){const ti=snakeTraps.findIndex(t=>t.x===head.x&&t.y===head.y);if(ti>-1&&!snakeFrozen){snakeTraps.splice(ti,1);snakeFrozen=true;showToast('🕸️ Trap! Frozen 1.5s!');setTimeout(()=>{snakeFrozen=false;},1500);}}
         snake.unshift(head);
-        if(head.x===snakeFood.x&&head.y===snakeFood.y){
-            snakeScore++;
-            // Every 5 dots, place new bombs/traps
-            if(snakeScore%5===0)placeBombsAndTraps();
-            else placeFood();
-            playSound('tap');
-        }else snake.pop();
+        if(head.x===snakeFood.x&&head.y===snakeFood.y){snakeScore++;if(snakeScore%5===0)placeBombsAndTraps();else placeFood();playSound('tap');}else snake.pop();
         drawSnake();
         document.getElementById('snakeScore').textContent='🍎 '+snakeScore;
         document.getElementById('snakeEarning').textContent=(snakeScore*toPoints(snakeBet)*3)+' pts';
@@ -5215,16 +5133,10 @@ function drawSnake(){
             ctx.beginPath();ctx.arc(ex2,ey2,er,0,Math.PI*2);ctx.fill();
         }
     });
-    // Draw bombs
-    if(snakeBombs)snakeBombs.forEach(b=>{
-        ctx.font=Math.floor(cs*0.78)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.fillText('💣',b.x*cs+cs/2,b.y*cs+cs/2);
-    });
-    // Draw traps
-    if(snakeTraps)snakeTraps.forEach(t=>{
-        ctx.font=Math.floor(cs*0.78)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.fillText('🕸️',t.x*cs+cs/2,t.y*cs+cs/2);
-    });
+    // Draw bombs 💣
+    if(snakeBombs)snakeBombs.forEach(b=>{ctx.font=Math.floor(cs*0.75)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('💣',b.x*cs+cs/2,b.y*cs+cs/2);});
+    // Draw traps 🕸️
+    if(snakeTraps)snakeTraps.forEach(t=>{ctx.font=Math.floor(cs*0.75)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🕸️',t.x*cs+cs/2,t.y*cs+cs/2);});
     // BIG pulsing food
     const pulse=0.82+Math.sin(Date.now()/200)*0.18;
     const fx=snakeFood.x*cs+cs/2, fy=snakeFood.y*cs+cs/2;
@@ -5665,18 +5577,9 @@ function handleBlockTap(evt){
     drawBlockGame();
     // Check if all pieces used → new batch
     if(blockPieces.every(p=>p===null)){
-        // Check if board is fully empty (all cleared) = LEVEL UP
         const allEmpty=blockGrid.every(row=>row.every(c=>c===null));
-        if(allEmpty){
-            blockLevel++;
-            blockScore+=blockLevel*200;
-            showToast('🎉 Level '+blockLevel+'! Board clear! +'+blockLevel*200+' bonus!');
-            playSound('jackpot');triggerConfetti();
-            // Harder pieces at higher levels
-            generatePieces();
-        } else {
-            generatePieces();
-        }
+        if(allEmpty){blockLevel++;blockScore+=blockLevel*200;showToast('🎉 Level '+blockLevel+'! Board Clear! +'+blockLevel*200+' bonus!');playSound('jackpot');triggerConfetti();}
+        generatePieces();
         if(checkGameOver()){finishBlockBlast();return;}
     }else if(checkGameOver()){finishBlockBlast();return;}
     renderBlockPieces();
@@ -5706,7 +5609,7 @@ function exitBlockBlast(){blockActive=false;closeModal('blockblast');}
 // ============================================================
 // 💎 GEM MATCH — Match 3 gems (Candy Crush style)
 // ============================================================
-let gemBet=1,gemActive=false,gemScore=0,gemMoves=30,gemSelected=null,gemGrid=[],gemTimeLeft=60,gemTimerInt=null;
+let gemBet=1,gemActive=false,gemScore=0,gemMoves=20,gemSelected=null,gemGrid=[];
 const GM_ROWS=7,GM_COLS=7;
 const GEM_TYPES=['💎','🔥','⭐','🍀','💜','🧡'];
 const GEM_COLORS=['#38bdf8','#ef4444','#fbbf24','#10d9a0','#8b5cf6','#f97316'];
@@ -5796,14 +5699,7 @@ async function startGemMatch(){
     userData.balance=Math.max(0,(userData.balance||0)-gemBet);
     updateUI();
     initGemGrid();
-    gemScore=0;gemMoves=30;gemTimeLeft=60;gemActive=true;gemSelected=null;
-    if(gemTimerInt)clearInterval(gemTimerInt);
-    gemTimerInt=setInterval(()=>{
-        if(!gemActive){clearInterval(gemTimerInt);return;}
-        gemTimeLeft--;
-        const te=document.getElementById('gemTimeDisplay');if(te)te.textContent=gemTimeLeft+'s';
-        if(gemTimeLeft<=0){gemActive=false;clearInterval(gemTimerInt);finishGemMatch();}
-    },1000);
+    gemScore=0;gemMoves=20;gemActive=true;gemSelected=null;
     document.getElementById('gemSetup').style.display='none';
     document.getElementById('gemGameArea').style.display='block';
     document.getElementById('gemResult').style.display='none';
@@ -5836,7 +5732,7 @@ function drawGemGrid(){
         }
     }
     const se=document.getElementById('gemScore');if(se)se.textContent=gemScore+' pts';
-    const me=document.getElementById('gemMoves');if(me)me.textContent=gemMoves+' moves | '+(gemTimeLeft||60)+'s';
+    const me=document.getElementById('gemMoves');if(me)me.textContent=gemMoves+' moves left';
     if(gemMoves<=0){finishGemMatch();return;}
 }
 
@@ -5869,7 +5765,6 @@ function handleGemTap(r,c){
 
 async function finishGemMatch(){
     gemActive=false;
-    if(gemTimerInt)clearInterval(gemTimerInt);
     const pts=gemScore;const rup=fromPoints(pts);
     if(rup>0){
         await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'gemmatch',bet:gemBet,survived_seconds:gemScore});
@@ -5906,185 +5801,74 @@ function exitRunnerGame(){
 // ============================================================
 const TZ_COLS=10,TZ_ROWS=18;
 const TZ_PIECES=[
-    {shape:[[1,1,1,1]],color:'#22d3ee'},       // I
-    {shape:[[1,1],[1,1]],color:'#fbbf24'},       // O
-    {shape:[[0,1,0],[1,1,1]],color:'#a78bfa'},   // T
-    {shape:[[1,0],[1,0],[1,1]],color:'#f97316'}, // L
-    {shape:[[0,1],[0,1],[1,1]],color:'#3b82f6'}, // J
-    {shape:[[0,1,1],[1,1,0]],color:'#22c55e'},   // S
-    {shape:[[1,1,0],[0,1,1]],color:'#ef4444'},   // Z
+    {shape:[[1,1,1,1]],color:'#22d3ee'},
+    {shape:[[1,1],[1,1]],color:'#fbbf24'},
+    {shape:[[0,1,0],[1,1,1]],color:'#a78bfa'},
+    {shape:[[1,0],[1,0],[1,1]],color:'#f97316'},
+    {shape:[[0,1],[0,1],[1,1]],color:'#3b82f6'},
+    {shape:[[0,1,1],[1,1,0]],color:'#22c55e'},
+    {shape:[[1,1,0],[0,1,1]],color:'#ef4444'},
 ];
-let tzBet=1,tzActive=false,tzScore=0,tzLevel=1,tzLines=0;
-let tzGrid=[],tzPiece=null,tzPieceX=0,tzPieceY=0;
-let tzInterval=null,tzFrameId=null,tzTry=false;
+let tzBet=1,tzActive=false,tzScore=0,tzLevel=1,tzLines=0,tzTry=false;
+let tzGrid=[],tzPiece=null,tzPieceX=0,tzPieceY=0,tzTimer=null;
 
 function selTetrizBet(a,el){if(a>(userData.balance||0)){showToast('❌ Points kam hain!');return;}tzBet=a;document.querySelectorAll('#tetrizModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
-
-function openTetrisGame(){
-    document.getElementById('tetrizBal').textContent=fmtPts(toPoints(userData.balance||0));
-    document.getElementById('tetrizSetup').style.display='block';
-    document.getElementById('tetrizGame').style.display='none';
-    document.getElementById('tetrizResult').style.display='none';
-    openModal('tetriz');
-}
-
+function openTetrisGame(){document.getElementById('tetrizBal').textContent=fmtPts(toPoints(userData.balance||0));document.getElementById('tetrizSetup').style.display='block';document.getElementById('tetrizGame').style.display='none';document.getElementById('tetrizResult').style.display='none';openModal('tetriz');}
 function tzNewGrid(){return Array.from({length:TZ_ROWS},()=>Array(TZ_COLS).fill(null));}
-
-function tzNewPiece(){
-    const p=TZ_PIECES[Math.floor(Math.random()*TZ_PIECES.length)];
-    return {shape:p.shape.map(r=>[...r]),color:p.color};
-}
-
-function tzSpawn(){
-    tzPiece=tzNewPiece();
-    tzPieceX=Math.floor((TZ_COLS-tzPiece.shape[0].length)/2);
-    tzPieceY=0;
-    if(tzCollides(tzPieceX,tzPieceY,tzPiece.shape)){
-        tzActive=false;clearInterval(tzInterval);finishTetriz();
-    }
-}
-
-function tzCollides(x,y,shape){
-    for(let r=0;r<shape.length;r++)
-        for(let c=0;c<shape[r].length;c++)
-            if(shape[r][c]){
-                const gr=y+r,gc=x+c;
-                if(gr>=TZ_ROWS||gc<0||gc>=TZ_COLS||gr<0)return true;
-                if(gr>=0&&tzGrid[gr][gc])return true;
-            }
-    return false;
-}
-
+function tzNewPiece(){const p=TZ_PIECES[Math.floor(Math.random()*TZ_PIECES.length)];return{shape:p.shape.map(r=>[...r]),color:p.color};}
+function tzSpawn(){tzPiece=tzNewPiece();tzPieceX=Math.floor((TZ_COLS-tzPiece.shape[0].length)/2);tzPieceY=0;if(tzCollides(tzPieceX,tzPieceY,tzPiece.shape)){tzActive=false;clearTimeout(tzTimer);finishTetriz();}}
+function tzCollides(x,y,shape){for(let r=0;r<shape.length;r++)for(let c=0;c<shape[r].length;c++)if(shape[r][c]){const gr=y+r,gc=x+c;if(gr>=TZ_ROWS||gc<0||gc>=TZ_COLS||gr<0)return true;if(gr>=0&&tzGrid[gr][gc])return true;}return false;}
 function tzLock(){
-    tzPiece.shape.forEach((row,r)=>row.forEach((c,col)=>{
-        if(c){const gr=tzPieceY+r;if(gr>=0)tzGrid[gr][tzPieceX+col]=tzPiece.color;}
-    }));
-    // Clear full lines
+    tzPiece.shape.forEach((row,r)=>row.forEach((c,col)=>{if(c){const gr=tzPieceY+r;if(gr>=0)tzGrid[gr][tzPieceX+col]=tzPiece.color;}}));
     let cleared=0;
-    for(let r=TZ_ROWS-1;r>=0;r--){
-        if(tzGrid[r].every(c=>c!==null)){
-            tzGrid.splice(r,1);
-            tzGrid.unshift(Array(TZ_COLS).fill(null));
-            cleared++;r++;
-        }
-    }
-    if(cleared>0){
-        const pts=[0,100,300,500,800][Math.min(cleared,4)]*tzLevel;
-        tzScore+=pts;tzLines+=cleared;
-        const newLevel=Math.floor(tzLines/10)+1;
-        if(newLevel>tzLevel){tzLevel=newLevel;showToast('⬆️ Level '+tzLevel+'!');playSound('earn');}
-        else{playSound('tap');}
-        if(pts>0)showFloatingPts(pts);
-    }
+    for(let r=TZ_ROWS-1;r>=0;r--){if(tzGrid[r].every(c=>c!==null)){tzGrid.splice(r,1);tzGrid.unshift(Array(TZ_COLS).fill(null));cleared++;r++;}}
+    if(cleared>0){const pts=[0,100,300,500,800][Math.min(cleared,4)]*tzLevel;tzScore+=pts;tzLines+=cleared;const nl=Math.floor(tzLines/10)+1;if(nl>tzLevel){tzLevel=nl;showToast('⬆️ Level '+tzLevel+'!');}if(pts>0)showFloatingPts(pts);playSound(cleared>=2?'earn':'tap');}
     document.getElementById('tetrizScore').textContent=tzScore+' pts';
     document.getElementById('tetrizLevel').textContent='Level '+tzLevel;
     document.getElementById('tetrizLines').textContent='Lines: '+tzLines;
     tzSpawn();
 }
-
-function tetrizMove(dx){
-    if(!tzActive||!tzPiece)return;
-    if(!tzCollides(tzPieceX+dx,tzPieceY,tzPiece.shape))tzPieceX+=dx;
-    drawTetriz();
-}
-
-function tetrizRotate(){
-    if(!tzActive||!tzPiece)return;
-    const rot=tzPiece.shape[0].map((_,c)=>tzPiece.shape.map(row=>row[c]).reverse());
-    if(!tzCollides(tzPieceX,tzPieceY,rot))tzPiece.shape=rot;
-    else if(!tzCollides(tzPieceX+1,tzPieceY,rot)){tzPiece.shape=rot;tzPieceX++;}
-    else if(!tzCollides(tzPieceX-1,tzPieceY,rot)){tzPiece.shape=rot;tzPieceX--;}
-    drawTetriz();
-}
-
-function tetrizDrop(){
-    if(!tzActive||!tzPiece)return;
-    while(!tzCollides(tzPieceX,tzPieceY+1,tzPiece.shape))tzPieceY++;
-    tzScore+=2;// drop bonus
-    tzLock();drawTetriz();
-}
-
+function tetrizMove(dx){if(!tzActive||!tzPiece)return;if(!tzCollides(tzPieceX+dx,tzPieceY,tzPiece.shape))tzPieceX+=dx;drawTetriz();}
+function tetrizRotate(){if(!tzActive||!tzPiece)return;const rot=tzPiece.shape[0].map((_,c)=>tzPiece.shape.map(row=>row[c]).reverse());if(!tzCollides(tzPieceX,tzPieceY,rot))tzPiece.shape=rot;else if(!tzCollides(tzPieceX+1,tzPieceY,rot)){tzPiece.shape=rot;tzPieceX++;}else if(!tzCollides(tzPieceX-1,tzPieceY,rot)){tzPiece.shape=rot;tzPieceX--;}drawTetriz();}
+function tetrizDrop(){if(!tzActive||!tzPiece)return;while(!tzCollides(tzPieceX,tzPieceY+1,tzPiece.shape))tzPieceY++;tzScore+=2;tzLock();drawTetriz();}
 function drawTetriz(){
-    const cvs=document.getElementById('tetrizCanvas');if(!cvs)return;
+    const cvs=document.getElementById('tetrizCanvas');if(!cvs||!tzActive)return;
     const W=Math.min(cvs.parentElement.offsetWidth-8||300,320);
     const cs=Math.floor(W/TZ_COLS);
     cvs.width=TZ_COLS*cs;cvs.height=TZ_ROWS*cs;
     const ctx=cvs.getContext('2d');
     ctx.fillStyle='#050510';ctx.fillRect(0,0,cvs.width,cvs.height);
-    // Grid lines
     ctx.strokeStyle='rgba(99,102,241,0.08)';ctx.lineWidth=0.5;
     for(let r=0;r<=TZ_ROWS;r++){ctx.beginPath();ctx.moveTo(0,r*cs);ctx.lineTo(TZ_COLS*cs,r*cs);ctx.stroke();}
     for(let c=0;c<=TZ_COLS;c++){ctx.beginPath();ctx.moveTo(c*cs,0);ctx.lineTo(c*cs,TZ_ROWS*cs);ctx.stroke();}
-    // Locked blocks
-    tzGrid.forEach((row,r)=>row.forEach((col,c)=>{
-        if(col){
-            ctx.fillStyle=col;ctx.shadowColor=col;ctx.shadowBlur=4;
-            ctx.beginPath();ctx.roundRect(c*cs+1,r*cs+1,cs-2,cs-2,3);ctx.fill();
-            ctx.shadowBlur=0;
-            ctx.fillStyle='rgba(255,255,255,0.25)';
-            ctx.beginPath();ctx.roundRect(c*cs+2,r*cs+2,cs*0.4,cs*0.2,1);ctx.fill();
-        }
-    }));
-    // Ghost piece (where it will land)
+    tzGrid.forEach((row,r)=>row.forEach((col,c)=>{if(col){ctx.fillStyle=col;ctx.shadowColor=col;ctx.shadowBlur=4;ctx.beginPath();ctx.roundRect(c*cs+1,r*cs+1,cs-2,cs-2,3);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='rgba(255,255,255,0.25)';ctx.beginPath();ctx.roundRect(c*cs+2,r*cs+2,cs*0.4,cs*0.2,1);ctx.fill();}}));
     if(tzPiece){
-        let ghostY=tzPieceY;
-        while(!tzCollides(tzPieceX,ghostY+1,tzPiece.shape))ghostY++;
-        tzPiece.shape.forEach((row,r)=>row.forEach((c,col)=>{
-            if(c){
-                ctx.fillStyle='rgba(255,255,255,0.08)';
-                ctx.beginPath();ctx.roundRect((tzPieceX+col)*cs+1,(ghostY+r)*cs+1,cs-2,cs-2,3);ctx.fill();
-            }
-        }));
-        // Active piece
-        tzPiece.shape.forEach((row,r)=>row.forEach((c,col)=>{
-            if(c){
-                ctx.fillStyle=tzPiece.color;ctx.shadowColor=tzPiece.color;ctx.shadowBlur=8;
-                ctx.beginPath();ctx.roundRect((tzPieceX+col)*cs+1,(tzPieceY+r)*cs+1,cs-2,cs-2,3);ctx.fill();
-                ctx.shadowBlur=0;
-                ctx.fillStyle='rgba(255,255,255,0.3)';
-                ctx.beginPath();ctx.roundRect((tzPieceX+col)*cs+3,(tzPieceY+r)*cs+3,cs*0.35,cs*0.18,1);ctx.fill();
-            }
-        }));
+        let gy=tzPieceY;while(!tzCollides(tzPieceX,gy+1,tzPiece.shape))gy++;
+        tzPiece.shape.forEach((row,r)=>row.forEach((c,col)=>{if(c){ctx.fillStyle='rgba(255,255,255,0.07)';ctx.beginPath();ctx.roundRect((tzPieceX+col)*cs+1,(gy+r)*cs+1,cs-2,cs-2,3);ctx.fill();}}));
+        tzPiece.shape.forEach((row,r)=>row.forEach((c,col)=>{if(c){ctx.fillStyle=tzPiece.color;ctx.shadowColor=tzPiece.color;ctx.shadowBlur=8;ctx.beginPath();ctx.roundRect((tzPieceX+col)*cs+1,(tzPieceY+r)*cs+1,cs-2,cs-2,3);ctx.fill();ctx.shadowBlur=0;}}));
     }
 }
-
+function tzTick(){
+    if(!tzActive)return;
+    if(!tzCollides(tzPieceX,tzPieceY+1,tzPiece.shape)){tzPieceY++;}else{tzLock();}
+    drawTetriz();
+    tzTimer=setTimeout(tzTick,Math.max(100,800-tzLevel*60));
+}
 async function startTetriz(tryFree){
     tzTry=tryFree||(userData.passes||0)<=0;
     if(!tzTry){
         if((userData.balance||0)<tzBet){showToast('❌ Points kam hain!');return;}
         const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'tetriz',bet:tzBet});
         if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
-        userData.passes=Math.max(0,(userData.passes||1)-1);
-        userData.balance=Math.max(0,(userData.balance||0)-tzBet);
-        updateUI();
-    } else showToast('🎮 Try Mode — No Reward!');
+        userData.passes=Math.max(0,(userData.passes||1)-1);userData.balance=Math.max(0,(userData.balance||0)-tzBet);updateUI();
+    }else showToast('🎮 Try Mode — No Reward!');
     tzGrid=tzNewGrid();tzScore=0;tzLevel=1;tzLines=0;tzActive=true;
-    document.getElementById('tetrizSetup').style.display='none';
-    document.getElementById('tetrizGame').style.display='block';
-    document.getElementById('tetrizResult').style.display='none';
-    tzSpawn();drawTetriz();
-    const baseSpd=800;
-    if(tzInterval)clearInterval(tzInterval);
-    function tick(){
-        if(!tzActive)return;
-        if(!tzCollides(tzPieceX,tzPieceY+1,tzPiece.shape)){tzPieceY++;}
-        else{tzLock();}
-        drawTetriz();
-        const spd=Math.max(100,baseSpd-tzLevel*60);
-        tzInterval=setTimeout(tick,spd);
-    }
-    tzInterval=setTimeout(tick,baseSpd);
-    document.onkeydown=e=>{
-        if(!tzActive)return;
-        if(e.key==='ArrowLeft')tetrizMove(-1);
-        else if(e.key==='ArrowRight')tetrizMove(1);
-        else if(e.key==='ArrowUp')tetrizRotate();
-        else if(e.key==='ArrowDown'){tetrizDrop();e.preventDefault();}
-    };
+    document.getElementById('tetrizSetup').style.display='none';document.getElementById('tetrizGame').style.display='block';document.getElementById('tetrizResult').style.display='none';
+    tzSpawn();drawTetriz();clearTimeout(tzTimer);tzTick();
+    document.onkeydown=e=>{if(!tzActive)return;if(e.key==='ArrowLeft')tetrizMove(-1);else if(e.key==='ArrowRight')tetrizMove(1);else if(e.key==='ArrowUp')tetrizRotate();else if(e.key==='ArrowDown'){tetrizDrop();e.preventDefault();}};
 }
-
 async function finishTetriz(){
-    tzActive=false;clearTimeout(tzInterval);document.onkeydown=null;
+    tzActive=false;clearTimeout(tzTimer);document.onkeydown=null;
     const pts=tzScore;const rup=fromPoints(pts);
     if(rup>0&&!tzTry){
         await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'tetriz',bet:tzBet,survived_seconds:tzLines});
@@ -6093,16 +5877,15 @@ async function finishTetriz(){
         if(tzLines>=5){gameState.wins=(gameState.wins||0)+1;gameState.today_wins=(gameState.today_wins||0)+1;}
         updateUI();if(pts>0)showFloatingPts(pts);if(pts>500)triggerConfetti();
     }
-    document.getElementById('tetrizGame').style.display='none';
-    document.getElementById('tetrizResult').style.display='block';
+    document.getElementById('tetrizGame').style.display='none';document.getElementById('tetrizResult').style.display='block';
     document.getElementById('tetrizResultEmoji').textContent=tzLines>=20?'🏆':tzLines>=10?'🟦':'😅';
-    document.getElementById('tetrizResultTitle').textContent=tzLines>=20?'Tetriz Master! 🏆':tzLines>=10?'Badiya!':'Agli baar aur!';
+    document.getElementById('tetrizResultTitle').textContent=tzLines>=20?'Tetriz Master! 🏆':tzLines>=10?'Badiya Khela!':'Agli baar aur!';
     document.getElementById('tetrizResultReward').textContent='+'+pts+' pts | '+tzLines+' lines | Lv.'+tzLevel;
     playSound(pts>200?'jackpot':'earn');
     if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;updateMissionsUI();}
 }
 function resetTetriz(){document.getElementById('tetrizSetup').style.display='block';document.getElementById('tetrizGame').style.display='none';document.getElementById('tetrizResult').style.display='none';}
-function exitTetriz(){tzActive=false;clearTimeout(tzInterval);document.onkeydown=null;closeModal('tetriz');}
+function exitTetriz(){tzActive=false;clearTimeout(tzTimer);document.onkeydown=null;closeModal('tetriz');}
 
 // ============================================================
 // TAB & MODAL
@@ -6301,7 +6084,7 @@ async function sendRefNudge(refUserId, refName){
     }catch(e){showToast('❌ Network error');}
 }
 
-// renderRefActivity moved to paginated version above
+// renderRefActivity (paginated version above)
 // ═══════ NOTIFICATION SYSTEM ═══════
 const NOTIF_KEY = 'ff_notifications';
 let notifications = [];
@@ -6381,23 +6164,17 @@ async function checkBroadcastNotifications(){
             }
         }
     } catch(e){}
-    // Also check new sponsored offers
+    // Check new sponsored offers notification
     try {
         const ads = await apiGet('/api/get-new-ads');
         if(ads && ads.length){
             ads.slice(0,3).forEach(ad=>{
-                const key='ff_newad_'+ad.ts;
-                try{
-                    if(!localStorage.getItem(key)){
-                        localStorage.setItem(key,'1');
-                        addNotification('offer','💎 Naya Sponsored Offer!','📢 '+ad.title+' — Click karke claim karo!',ad.image_url||'');
-                    }
-                }catch(e){}
+                const key='ff_newad_'+Math.floor(ad.ts||0);
+                try{if(!localStorage.getItem(key)){localStorage.setItem(key,'1');addNotification('offer','💎 Naya Sponsored Offer!','📢 '+ad.title+' — Claim karo!',ad.image_url||'');}}catch(e){}
             });
         }
     } catch(e){}
 }
-
 
 
 function playSound(type){
@@ -6843,9 +6620,9 @@ document.addEventListener('DOMContentLoaded',init);
         <div style="text-align:center;font-size:40px;margin-bottom:8px;">🟦</div>
         <div style="text-align:center;font-weight:900;font-size:18px;color:#818cf8;margin-bottom:4px;">Tetriz Blitz!</div>
         <div style="background:var(--bg3);border-radius:14px;padding:12px;margin-bottom:10px;font-size:10px;color:var(--text2);">
-            🟦 Blocks girate hain — sahi jagah rakhkar lines clear karo<br>
-            🎯 Puri line clear = 100 pts | Level clear = Level × 200 bonus<br>
-            💀 Top pe pahucha = Game Over | ⬇️ Fast drop karo extra pts ke liye!
+            🟦 Blocks girate hain — sahi jagah rakh ke lines clear karo<br>
+            🎯 Puri line clear = 100 pts | Level up karo bonus ke liye!<br>
+            💀 Blocks top pe pahunche = Game Over | ⬇️ Fast drop bonus pts!
         </div>
         <div style="margin-bottom:10px;">
             <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:6px;">💰 Bet:</div>
@@ -6870,17 +6647,17 @@ document.addEventListener('DOMContentLoaded',init);
         <canvas id="tetrizCanvas" style="width:100%;border-radius:10px;display:block;background:#050510;"></canvas>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;">
             <button ontouchstart="tetrizMove(-1)" onclick="tetrizMove(-1)" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;">⬅️</button>
-            <button ontouchstart="tetrizDrop()" onclick="tetrizDrop()" style="background:rgba(99,102,241,.25);border:1px solid rgba(99,102,241,.5);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;">⬇️ Drop</button>
+            <button ontouchstart="tetrizDrop()" onclick="tetrizDrop()" style="background:rgba(99,102,241,.25);border:1px solid rgba(99,102,241,.5);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;font-weight:900;color:#818cf8;">DROP</button>
             <button ontouchstart="tetrizMove(1)" onclick="tetrizMove(1)" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);border-radius:12px;padding:14px;font-size:20px;cursor:pointer;">➡️</button>
         </div>
-        <button ontouchstart="tetrizRotate()" onclick="tetrizRotate()" style="width:100%;margin-top:8px;background:rgba(99,102,241,.2);border:1px solid rgba(99,102,241,.4);border-radius:12px;padding:12px;font-size:16px;font-weight:900;cursor:pointer;color:#818cf8;">🔄 Rotate</button>
+        <button ontouchstart="tetrizRotate()" onclick="tetrizRotate()" style="width:100%;margin-top:8px;background:rgba(99,102,241,.2);border:1px solid rgba(99,102,241,.4);border-radius:12px;padding:12px;font-size:15px;font-weight:900;cursor:pointer;color:#818cf8;">🔄 Rotate</button>
     </div>
     <div id="tetrizResult" style="display:none;padding:20px;text-align:center;">
         <div id="tetrizResultEmoji" style="font-size:60px;margin-bottom:10px;">🟦</div>
         <div id="tetrizResultTitle" style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:#818cf8;margin-bottom:6px;"></div>
         <div style="background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:14px;">
             <div style="font-size:11px;color:var(--text2);">Score | Lines | Level</div>
-            <div id="tetrizResultReward" style="font-family:'Oxanium',sans-serif;font-size:28px;font-weight:900;color:var(--gold);margin-top:4px;"></div>
+            <div id="tetrizResultReward" style="font-family:'Oxanium',sans-serif;font-size:26px;font-weight:900;color:var(--gold);margin-top:4px;"></div>
         </div>
         <button class="btn-purple" onclick="resetTetriz()" style="width:100%;margin-bottom:8px;">🔄 Play Again</button>
         <button onclick="exitTetriz()" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:11px;font-weight:800;cursor:pointer;">← Back</button>
