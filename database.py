@@ -1216,9 +1216,9 @@ class Database:
             logger.error(f"Error getting ads: {e}")
             return []
 
-    def update_ad(self, ad_id, title, reward, link, meta, icon=None, claim_code=None, timer_seconds=0, image_url=None, description=None):
+    def update_ad(self, ad_id, title, reward, link, meta, icon=None, claim_code=None, timer_seconds=0, image_url=None):
         """
-        UPDATED: saves timer_seconds, image_url, description.
+        UPDATED: saves timer_seconds, image_url.
         Resets all claims so users can claim again after edit.
         """
         try:
@@ -1230,8 +1230,7 @@ class Database:
                 'edited_at': datetime.now().isoformat(),
                 'claim_code': claim_code.upper() if claim_code else None,
                 'timer_seconds': int(timer_seconds) if timer_seconds else 0,
-                'image_url': image_url or '',
-                'description': description or ''
+                'image_url': image_url or ''
             }
             if icon:
                 update_data['icon'] = icon
