@@ -334,7 +334,7 @@ def update_ad_api():
         admin_user = db.get_user(int(admin_id))
         if not admin_user or not admin_user.get('is_admin', False):
             return jsonify({'success': False, 'message': 'Unauthorized'}), 403
-        # UPDATED: pass timer_seconds
+        # UPDATED: pass timer_seconds, image_url, description
         timer_seconds = int(data.get('timer_seconds', 0) or 0)
         success = db.update_ad(
             ad_id,
@@ -344,7 +344,9 @@ def update_ad_api():
             data.get('meta'),
             data.get('icon'),
             claim_code=data.get('claim_code'),
-            timer_seconds=timer_seconds
+            timer_seconds=timer_seconds,
+            image_url=data.get('image_url', ''),
+            description=data.get('description', '')
         )
         if success:
             return jsonify({'success': True, 'message': 'Ad updated! All claims reset.'})
@@ -1053,7 +1055,48 @@ def stats_api():
 # In-memory announcement (persists while server is running)
 _announcement = {'text': '', 'ts': 0}
 
-@app.route('/api/set-announcement', methods=['POST'])
+@app.route('/api/new-ad-notification', methods=['POST'])
+def new_ad_notification_api():
+    """Store notification when a new ad is created, users will see it on bell."""
+    try:
+        data = request.get_json()
+        admin_id = data.get('admin_id')
+        if not admin_id or not config.is_admin(admin_id):
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+        title = data.get('title', '')
+        image_url = data.get('image_url', '')
+        import json as _json
+        try:
+            with open('new_ad_notif.json', 'r') as f:
+                notifs = _json.load(f)
+        except:
+            notifs = []
+        notifs.insert(0, {
+            'title': title,
+            'image_url': image_url,
+            'ts': datetime.now().timestamp()
+        })
+        notifs = notifs[:20]
+        with open('new_ad_notif.json', 'w') as f:
+            _json.dump(notifs, f)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/get-new-ads')
+def get_new_ads_api():
+    """Return new ad notifications for users."""
+    try:
+        import json as _json
+        try:
+            with open('new_ad_notif.json', 'r') as f:
+                return jsonify(_json.load(f))
+        except:
+            return jsonify([])
+    except:
+        return jsonify([])
+
+
 def set_announcement_api():
     global _announcement
     try:
