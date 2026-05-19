@@ -21,6 +21,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>💰 FilmyFund - Play & Win</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- AdsGram SDK -->
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Oxanium:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
 /*
@@ -222,7 +224,7 @@
         /* MODALS */
         .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:300;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 13px calc(var(--nav-h) + env(safe-area-inset-bottom) + 24px);display:none;}
         .modal.open{display:block;animation:slideUp .25s ease;}
-        #runnerModal.open{display:flex;flex-direction:column;}
+        
         @keyframes slideUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
         .modal-hdr{display:flex;align-items:center;gap:12px;padding:13px 0 14px;position:sticky;top:0;z-index:10;background:var(--bg);}
         .back-btn{width:40px;height:40px;background:var(--bg3);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;border:1px solid var(--border);flex-shrink:0;}
@@ -880,6 +882,57 @@
             <button class="admin-add-btn" id="addOfferBtn" onclick="openAdminCreateOffer()" style="display:none;">➕ <span data-t="add_offer">Add</span></button>
         </div>
         <div id="adsContainer"></div>
+
+        <!-- ══════════════════════════════════════ -->
+        <!-- ADSGRAM — REWARD AD (Video) -->
+        <!-- ══════════════════════════════════════ -->
+        <div style="background:linear-gradient(135deg,#0a1a30,#111b3a);border:1.5px solid rgba(54,182,245,.25);border-radius:18px;padding:14px 15px;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                <div style="width:42px;height:42px;background:linear-gradient(135deg,rgba(54,182,245,.2),rgba(124,92,252,.2));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;">📺</div>
+                <div style="flex:1;">
+                    <div style="font-family:'Oxanium',sans-serif;font-weight:900;font-size:14px;color:var(--blue);">Daily Reward Ad</div>
+                    <div style="font-size:10px;color:var(--text2);">Ad dekho • +10 pts pao!</div>
+                </div>
+                <div style="background:linear-gradient(135deg,var(--blue),rgba(124,92,252,.8));color:#fff;padding:5px 10px;border-radius:20px;font-size:10px;font-weight:800;">+10 pts</div>
+            </div>
+            <button id="rewardAdBtn" onclick="showRewardAd()" style="width:100%;background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;border:none;border-radius:14px;padding:12px;font-weight:900;font-size:13px;cursor:pointer;font-family:inherit;">
+                ▶️ Ad Dekho — 10 Pts Pao!
+            </button>
+            <div id="rewardAdStatus" style="text-align:center;font-size:10px;color:var(--text3);margin-top:6px;"></div>
+        </div>
+
+        <!-- ══════════════════════════════════════ -->
+        <!-- ADSGRAM — TASK / NATIVE ADS SECTION -->
+        <!-- ══════════════════════════════════════ -->
+        <div class="section-head" style="margin-top:2px;">
+            <h3>📋 Earn Tasks</h3>
+            <span style="font-size:10px;color:var(--text3);">Task complete = pts!</span>
+        </div>
+
+        <!-- Native Ad Card 1 -->
+        <div id="nativeAdContainer1" style="background:var(--card);border:1px solid rgba(240,192,64,.15);border-radius:14px;padding:13px;margin-bottom:9px;cursor:pointer;" onclick="showNativeAd(1)">
+            <div style="display:flex;align-items:center;gap:11px;">
+                <div style="width:44px;height:44px;background:linear-gradient(135deg,rgba(240,192,64,.12),rgba(240,192,64,.04));border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">⭐</div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:700;font-size:13px;margin-bottom:2px;">Featured Task</div>
+                    <div style="font-size:11px;color:var(--text2);">Sponsor ka kaam karo, paise pao!</div>
+                </div>
+                <div style="background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:6px 11px;border-radius:28px;font-weight:800;font-size:12px;flex-shrink:0;">+50 pts</div>
+            </div>
+        </div>
+
+        <!-- Native Ad Card 2 -->
+        <div id="nativeAdContainer2" style="background:var(--card);border:1px solid rgba(25,216,158,.15);border-radius:14px;padding:13px;margin-bottom:9px;cursor:pointer;" onclick="showNativeAd(2)">
+            <div style="display:flex;align-items:center;gap:11px;">
+                <div style="width:44px;height:44px;background:linear-gradient(135deg,rgba(25,216,158,.12),rgba(25,216,158,.04));border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🎯</div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:700;font-size:13px;margin-bottom:2px;">Bonus Challenge</div>
+                    <div style="font-size:11px;color:var(--text2);">Special offer — limited time!</div>
+                </div>
+                <div style="background:linear-gradient(135deg,var(--green),#059669);color:#fff;padding:6px 11px;border-radius:28px;font-weight:800;font-size:12px;flex-shrink:0;">+30 pts</div>
+            </div>
+        </div>
+
         <div class="section-head" style="margin-top:5px;">
             <h3 data-t="live_activity">⚡ Live Activity</h3>
             <span style="font-size:10px;color:var(--text3)">Real-time</span>
@@ -914,21 +967,13 @@
 <!-- GAMES PAGE -->
 <div class="page" id="gamesPage">
     <div class="page-inner">
-        <!-- SKILL GAMES ROW 1 — Runner + Chess side by side -->
+        <!-- SKILL GAMES ROW 1 — Chess full width -->
         <div style="font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">⚡ Skill Games</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-            <div class="game-card game-card-skill" onclick="openGame('runner')" style="background:linear-gradient(135deg,#0d0a20,#1a0d38);border:1.5px solid rgba(139,92,246,.4);">
-                <img src="https://i.postimg.cc/zGbqh2Rk/89cdcea2-faf0-4d66-9011-7309cf5978fa.jpg" class="game-img" alt="Runner">
-                <div style="padding:10px;">
-                    <div class="game-name" style="color:var(--purple2);">🏃 Runner</div>
-                    <div class="game-desc">Save points tak paucho • HD shadow graphics!</div>
-                    <span class="game-earn-tag">Save Point = Earn!</span>
-                </div>
-            </div>
-            <div class="game-card game-card-skill" onclick="openGame('chess')" style="background:linear-gradient(135deg,#1a1200,#2a1e00);border:1.5px solid rgba(240,192,64,.4);">
-                <img src="https://i.postimg.cc/7LzPFtHD/a4ee8463-c918-40e5-ac55-82e4dcbc9164.jpg" class="game-img" alt="Chess">
-                <div style="padding:10px;">
-                    <div class="game-name" style="color:var(--gold);">♟️ Chess</div>
+        <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px;">
+            <div class="game-card game-card-skill" onclick="openGame('chess')" style="background:linear-gradient(135deg,#1a1200,#2a1e00);border:1.5px solid rgba(240,192,64,.4);display:flex;align-items:center;gap:12px;text-align:left;padding:14px;">
+                <img src="https://i.postimg.cc/7LzPFtHD/a4ee8463-c918-40e5-ac55-82e4dcbc9164.jpg" class="game-img" alt="Chess" style="width:70px;height:70px;border-radius:12px;object-fit:cover;">
+                <div style="flex:1;">
+                    <div class="game-name" style="color:var(--gold);font-size:17px;">♟️ Chess</div>
                     <div class="game-desc">AI ko harao • Strong minimax AI</div>
                     <span class="game-earn-tag">Checkmate = 4x!</span>
                 </div>
@@ -1638,175 +1683,6 @@
         <!-- All badges grid -->
         <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:10px;">🏆 Sare Badges:</div>
         <div id="bsAllBadges" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;"></div>
-    </div>
-</div>
-
-<!-- RUNNER GAME MODAL -->
-<div class="modal" id="runnerModal" style="padding:0;overflow:hidden;flex-direction:column;">
-    <div style="padding:12px 14px 8px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-        <div class="back-btn" onclick="exitRunnerGame()">←</div>
-        <div style="font-family:'Oxanium',sans-serif;font-weight:900;font-size:15px;">🏃 JUMP OR DIE!</div>
-        <div id="runnerBalDisplay" style="font-size:12px;color:var(--gold);font-weight:800;">0 pts</div>
-    </div>
-
-    <!-- SETUP SCREEN -->
-    <div id="runnerSetup" style="padding:16px;overflow-y:auto;flex:1;padding-bottom:80px;">
-        <div style="background:var(--bg3);border-radius:16px;padding:14px;margin-bottom:12px;border:1px solid var(--border);">
-            <div style="font-size:12px;font-weight:800;color:var(--text2);margin-bottom:8px;">⏱️ Challenge Time Chuno:</div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;">
-                <button class="runner-mode-btn" onclick="selectRunnerMode('10s',this)">10 Sec<br><span style="color:var(--gold);font-size:9px;">1 Save Point</span></button>
-                <button class="runner-mode-btn" onclick="selectRunnerMode('30s',this)">30 Sec<br><span style="color:var(--gold);font-size:9px;">2 Save Points</span></button>
-                <button class="runner-mode-btn" onclick="selectRunnerMode('1m',this)">1 Min<br><span style="color:var(--gold);font-size:9px;">4 Save Points</span></button>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                <button class="runner-mode-btn" onclick="selectRunnerMode('5m',this)">5 Min<br><span style="color:var(--red);font-size:9px;">12 Save Points</span></button>
-                <button class="runner-mode-btn" onclick="selectRunnerMode('10m',this)">10 Min<br><span style="color:var(--red);font-size:9px;">20 Points EXTREME</span></button>
-            </div>
-        </div>
-
-        <div style="background:var(--bg3);border-radius:16px;padding:14px;margin-bottom:12px;border:1px solid var(--border);">
-            <div style="font-size:12px;font-weight:800;color:var(--text2);margin-bottom:8px;">💰 Bet Amount:</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button class="bet-chip" onclick="selectRunnerBet(1,this)">100 pts</button>
-                <button class="bet-chip" onclick="selectRunnerBet(2,this)">200 pts</button>
-                <button class="bet-chip" onclick="selectRunnerBet(5,this)">500 pts</button>
-                <button class="bet-chip" onclick="selectRunnerBet(10,this)">1000 pts</button>
-            </div>
-        </div>
-
-        <div id="runnerRewardPreview" style="background:linear-gradient(135deg,rgba(25,216,158,.1),rgba(124,92,252,.08));border:1px solid rgba(25,216,158,.2);border-radius:14px;padding:12px;margin-bottom:12px;font-size:11px;color:var(--text2);display:none;">
-            <div style="color:var(--green);font-weight:900;font-size:13px;margin-bottom:4px;">💰 Potential Rewards:</div>
-            <div id="runnerRewardTxt"></div>
-        </div>
-
-        <div style="background:rgba(255,78,106,.07);border:1px solid rgba(255,78,106,.2);border-radius:12px;padding:10px;font-size:10px;color:var(--text2);margin-bottom:12px;">
-            ⚠️ <b>Obstacles:</b> Black boxes, Fireballs, Falling rocks, Eye Monsters<br>
-            🎯 <b>Save Points</b> tak paucho → earning milegi! Jitne save points = utna reward<br>
-            ❤️ <b>3 Hearts</b> hain → Save point pe hearts dobara milenge!
-        </div>
-
-        <div style="display:flex;align-items:center;gap:8px;background:var(--bg3);border-radius:12px;padding:10px;margin-bottom:12px;">
-            <img src="https://i.postimg.cc/15X5YpmT/1773974388103.png" style="width:28px;height:28px;object-fit:contain;">
-            <div style="font-size:12px;">Passes available: <b id="runnerPassCount" style="color:var(--purple2);">0</b></div>
-        </div>
-
-    </div>
-    <!-- Fixed start button always visible -->
-    <div id="runnerStartWrap" style="position:sticky;bottom:0;left:0;right:0;padding:12px 16px;background:var(--bg2);border-top:1px solid var(--border);flex-shrink:0;z-index:10;">
-        <div style="display:flex;gap:8px;margin-bottom:8px;">
-            <button onclick="startRunnerGame(true)" style="flex:1;background:var(--bg3);border:1.5px solid var(--border);color:var(--text2);border-radius:16px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;">🎮 Try Free</button>
-            <button onclick="startRunnerGame(false)" class="btn-gold" style="flex:2;font-size:14px;padding:12px;font-family:'Oxanium',sans-serif;font-weight:900;">🏃 Start (1 Pass)</button>
-        </div>
-        <button class="btn-gold" id="runnerStartBtn" onclick="startRunnerGame(false)" style="display:none;width:100%;font-size:16px;padding:15px;font-family:'Oxanium',sans-serif;font-weight:900;letter-spacing:1px;">
-            🏃 JUMP OR DIE — START! (1 Pass + Bet)
-        </button>
-    </div>
-
-    <!-- GAME SCREEN -->
-    <div id="runnerGameScreen" style="display:none;">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,0,0,.4);">
-            <div style="font-family:'Oxanium',sans-serif;font-size:13px;font-weight:900;color:var(--red);" id="runnerTimer">00:00</div>
-        <div id="runnerSaveIndicator" style="font-size:9px;color:#19d89e;font-weight:800;display:none;">💾 SAVES: 0</div>
-            <div style="font-size:11px;color:var(--gold);font-weight:800;" id="runnerEarning">+0 pts</div>
-            <div style="font-size:11px;color:var(--text2);" id="runnerLives">❤️❤️❤️</div>
-        </div>
-        <canvas id="runnerCanvas" style="width:100%;display:block;touch-action:none;"></canvas>
-        <div style="display:flex;gap:8px;padding:10px 12px;background:rgba(0,0,0,.3);">
-            <button id="runnerJumpBtn" style="flex:1;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:16px;padding:18px;font-size:22px;font-weight:900;cursor:pointer;active:transform:scale(.95);" ontouchstart="runnerJump()" onclick="runnerJump()">⬆️ JUMP</button>
-            <button id="runnerDuckBtn" style="flex:1;background:linear-gradient(135deg,#1a1a2e,#2d2d5e);color:#fff;border:1px solid var(--border);border-radius:16px;padding:18px;font-size:22px;font-weight:900;cursor:pointer;" ontouchstart="runnerDuck()" onclick="runnerDuck()">⬇️ DUCK</button>
-        </div>
-    </div>
-
-    <!-- RESULT SCREEN -->
-    <div id="runnerResult" style="display:none;padding:20px;text-align:center;">
-        <div style="font-size:64px;margin-bottom:12px;" id="runnerResultEmoji">💀</div>
-        <div style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;margin-bottom:6px;" id="runnerResultTitle">Game Over!</div>
-        <div style="font-size:13px;color:var(--text2);margin-bottom:16px;" id="runnerResultSub">Survived: 0 seconds</div>
-        <div style="background:var(--bg3);border-radius:16px;padding:16px;margin-bottom:16px;">
-            <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Kamai:</div>
-            <div style="font-family:'Oxanium',sans-serif;font-size:36px;font-weight:900;color:var(--gold);" id="runnerResultReward">+0 pts</div>
-            <div style="font-size:10px;color:var(--text3);" id="runnerResultBreakdown"></div>
-        </div>
-        <button class="btn-purple" onclick="resetRunnerGame()" style="width:100%;margin-bottom:8px;">🔄 Play Again</button>
-        <button onclick="exitRunnerGame()" style="width:100%;background:var(--bg3);color:var(--text2);border:1px solid var(--border);border-radius:14px;padding:12px;font-weight:800;cursor:pointer;">← Back</button>
-    </div>
-</div>
-
-<!-- BUY PASSES MODAL -->
-<div class="modal" id="buyPassesModal">
-    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('buyPasses')">←</div><div class="modal-title">🛒 Passes Kharido</div></div>
-    <div style="padding:4px 0 10px;text-align:center;font-size:11px;color:var(--text2);">UPI se payment karo, turant passes paao!</div>
-
-    <!-- UPI ID Box -->
-    <div style="background:linear-gradient(135deg,#0f2027,#1a3a4a);border:1.5px solid rgba(54,182,245,.35);border-radius:16px;padding:14px;margin-bottom:14px;text-align:center;">
-        <div style="font-size:10px;color:var(--text2);margin-bottom:4px;">💳 Payment karo is UPI ID pe:</div>
-        <div style="font-family:'Oxanium',sans-serif;font-size:17px;font-weight:900;color:var(--gold);letter-spacing:.5px;" id="storeUpiId">arsadsaifi8272@ibl</div>
-        <button onclick="navigator.clipboard.writeText('arsadsaifi8272@ibl').then(()=>showToast('✅ UPI ID copied!'))" style="margin-top:7px;background:rgba(54,182,245,.15);color:var(--blue);border:1px solid rgba(54,182,245,.3);border-radius:20px;padding:5px 16px;font-size:10px;font-weight:800;cursor:pointer;">📋 Copy UPI ID</button>
-    </div>
-
-    <!-- Packages -->
-    <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:8px;">📦 Package Chuno:</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;" id="passPackages">
-        <div class="pass-pkg" onclick="selectPackage(1,this)" data-pkg="1">
-            <div class="pkg-passes">15</div>
-            <div class="pkg-label">Passes</div>
-            <div class="pkg-price">₹50</div>
-        </div>
-        <div class="pass-pkg sel" onclick="selectPackage(2,this)" data-pkg="2">
-            <div class="pkg-passes">30</div>
-            <div class="pkg-label">Passes</div>
-            <div class="pkg-price">₹100</div>
-            <div class="pkg-badge">Popular</div>
-        </div>
-        <div class="pass-pkg" onclick="selectPackage(3,this)" data-pkg="3">
-            <div class="pkg-passes">60</div>
-            <div class="pkg-label">Passes</div>
-            <div class="pkg-price">₹200</div>
-            <div class="pkg-badge best">Best</div>
-        </div>
-    </div>
-
-    <!-- Transaction ID -->
-    <div style="margin-bottom:10px;">
-        <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:5px;">🔢 Transaction ID / UTR Number:</div>
-        <input type="text" id="txnIdInput" class="inp" placeholder="Payment ke baad mila number daalo..." style="font-size:13px;">
-    </div>
-
-    <!-- Screenshot upload -->
-    <div style="margin-bottom:14px;">
-        <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:5px;">📸 Screenshot (optional):</div>
-        <label for="payScreenshot" style="display:flex;align-items:center;gap:8px;background:var(--bg3);border:1.5px dashed var(--border);border-radius:12px;padding:12px;cursor:pointer;">
-            <span style="font-size:22px;">📷</span>
-            <div>
-                <div style="font-size:11px;font-weight:700;">Screenshot attach karo</div>
-                <div id="screenshotName" style="font-size:10px;color:var(--text3);">No file selected</div>
-            </div>
-        </label>
-        <input type="file" id="payScreenshot" accept="image/*" style="display:none;" onchange="handleScreenshot(this)">
-    </div>
-
-    <button class="btn-gold" onclick="submitPassPurchase()" style="width:100%;font-size:14px;padding:14px;">
-        ✅ Submit — Passes Request Bhejo
-    </button>
-    <div style="text-align:center;font-size:9px;color:var(--text3);margin-top:8px;">Admin verify karega, 5-30 minutes mein passes add ho jaayenge</div>
-</div>
-
-<!-- BADGE CLAIM MODAL -->
-<div class="modal" id="badgeClaimModal">
-    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('badgeClaim')">←</div><div class="modal-title">🏅 Badge Claim Karo</div></div>
-    <div style="text-align:center;padding:10px 0 20px;">
-        <img id="claimBadgeImg" src="" style="width:100px;height:100px;object-fit:contain;filter:drop-shadow(0 0 20px rgba(240,192,64,.6));animation:badgeFloat 2s ease-in-out infinite;margin-bottom:12px;">
-        <div id="claimBadgeName" style="font-family:'Oxanium',sans-serif;font-size:24px;font-weight:900;color:var(--gold);margin-bottom:4px;"></div>
-        <div id="claimBadgeDesc" style="font-size:12px;color:var(--text2);margin-bottom:16px;"></div>
-        <div style="background:linear-gradient(135deg,rgba(240,192,64,.15),rgba(124,92,252,.1));border:1.5px solid rgba(240,192,64,.4);border-radius:16px;padding:16px;margin:0 4px 16px;">
-            <div style="font-size:11px;color:var(--text2);margin-bottom:8px;">🎁 Is Badge ka Reward:</div>
-            <div id="claimBadgeRewardPasses" style="font-size:18px;font-weight:900;color:var(--purple2);margin-bottom:4px;"></div>
-            <div id="claimBadgeRewardBalance" style="font-size:18px;font-weight:900;color:var(--gold);"></div>
-        </div>
-        <button id="claimBadgeBtn" class="btn-gold" onclick="doClaimBadge()" style="width:90%;font-size:16px;padding:14px;font-family:'Oxanium',sans-serif;font-weight:900;">
-            🏅 Claim Reward!
-        </button>
-        <div id="claimBadgeAlready" style="display:none;background:rgba(25,216,158,.1);border:1px solid var(--green);border-radius:12px;padding:10px;margin-top:10px;color:var(--green);font-weight:700;font-size:12px;">✅ Ye badge already claim ho chuka hai!</div>
     </div>
 </div>
 
@@ -4361,655 +4237,6 @@ function openGame(g,tryFree){
 // ============================================================
 // 🏃 RUNNER GAME — Full Canvas Game Engine
 // ============================================================
-let runnerMode='10s', runnerBet=1, runnerGameActive=false;
-let runnerAnimFrame=null, runnerStartTime=0, runnerSurvivedSecs=0;
-let runnerLives=3, runnerDucking=false, runnerJumping=false;
-let runnerEarningTotal=0, runnerMaxSecs=10;
-let runnerRewardPerSec=0.005;
-
-// Game objects
-let rPlayer={x:70,y:0,vy:0,w:36,h:48,ducking:false,invincible:0};
-let rObstacles=[], rPlatforms=[], rParticles=[];
-let rGroundY=0, rScrollX=0, rScrollSpeed=3;
-let rCanvas=null, rCtx=null;
-let rFrameCount=0, rLastObstacleFrame=0, rBgX=0;
-
-// Platform definitions (relative to ground)
-const PLATFORM_TEMPLATES=[
-    {rx:400,ry:-80,w:100,h:16},
-    {rx:700,ry:-130,w:90,h:16},
-    {rx:1000,ry:-60,w:120,h:16},
-    {rx:1300,ry:-100,w:80,h:16},
-    {rx:1600,ry:-70,w:110,h:16},
-];
-
-function openRunnerGame(){
-    document.getElementById('runnerPassCount').textContent=userData.passes||0;
-    document.getElementById('runnerBalDisplay').textContent=fmtPts(toPoints(userData.balance||0));
-    document.getElementById('runnerSetup').style.display='block';
-    document.getElementById('runnerGameScreen').style.display='none';
-    document.getElementById('runnerResult').style.display='none';
-    openModal('runner');
-}
-
-function selectRunnerMode(mode,el){
-    runnerMode=mode;
-    document.querySelectorAll('.runner-mode-btn').forEach(b=>b.classList.remove('sel'));
-    el.classList.add('sel');
-    updateRunnerPreview();
-    playSound('tap');
-}
-
-function selectRunnerBet(amt,el){
-    if(amt>userData.balance){showToast('❌ Balance kam hai!');return;}
-    runnerBet=amt;
-    document.querySelectorAll('#runnerModal .bet-chip').forEach(b=>b.classList.remove('sel'));
-    el.classList.add('sel');
-    updateRunnerPreview();
-    playSound('tap');
-}
-
-function updateRunnerPreview(){
-    const modes={'10s':{s:10,sp:1},'30s':{s:30,sp:2},'1m':{s:60,sp:4},'5m':{s:300,sp:12},'10m':{s:600,sp:20}};
-    const m=modes[runnerMode];if(!m)return;
-    const saveReward=(30*0.005).toFixed(3); // 30 sec worth per save point
-    const preview=document.getElementById('runnerRewardPreview');
-    const txt=document.getElementById('runnerRewardTxt');
-    preview.style.display='block';
-    txt.innerHTML='Bet: <b style="color:var(--gold);">'+toPoints(runnerBet)+' pts</b> • Time: <b>'+runnerMode+'</b><br>'
-        +'Save Points: <b style="color:var(--green);">~'+m.sp+' checkpoints</b><br>'
-        +'Each Save: <b style="color:var(--purple2);">+'+toPoints(saveReward)+' pts + ❤️❤️❤️ refill</b><br>'
-        +'<span style="color:var(--text3);font-size:9px;">Har save point pe hearts wapas aate hain!</span>';
-}
-
-let _runnerTryMode = false;
-
-async function startRunnerGame(tryFree){
-    if(!runnerMode){showToast('❌ Mode chuno!');return;}
-    _runnerTryMode = tryFree || false;
-
-    if(!_runnerTryMode){
-        if((userData.passes||0)<=0){
-            // Auto switch to try mode
-            _runnerTryMode=true;
-            showToast('🎮 Try Mode — No passes, no reward!');
-        } else if(userData.balance<runnerBet){
-            showToast('❌ Balance kam hai!');return;
-        } else {
-            // Real game — deduct pass via API
-            const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:runnerMode,bet:runnerBet});
-            if(!r||!r.success){showToast('❌ '+(r?.message||'Server error — retry'));return;}
-            userData.passes=Math.max(0,(userData.passes||1)-1);
-            userData.balance=Math.max(0,userData.balance-runnerBet);
-            runnerMaxSecs=r.seconds||10;
-            runnerRewardPerSec=r.reward_per_sec||0.005;
-            updateUI();
-        }
-    } else {
-        showToast('🎮 Try Mode — No Reward!');
-        runnerMaxSecs=10; runnerRewardPerSec=0;
-    }
-
-    document.getElementById('runnerSetup').style.display='none';
-    document.getElementById('runnerStartWrap').style.display='none';
-    document.getElementById('runnerGameScreen').style.display='block';
-    document.getElementById('runnerResult').style.display='none';
-    initRunnerCanvas();
-    playSound('rocket');
-}
-
-function initRunnerCanvas(){
-    rCanvas=document.getElementById('runnerCanvas');
-    const CW=rCanvas.parentElement.offsetWidth||360;
-    rCanvas.width=CW; rCanvas.height=220;
-    rCtx=rCanvas.getContext('2d');
-    rGroundY=rCanvas.height-50;
-
-    // Reset state
-    rPlayer={x:70,y:rGroundY-48,vy:0,w:36,h:48,ducking:false,invincible:0};
-    rObstacles=[]; rPlatforms=[]; rParticles=[]; rSavePoints=[]
-    rScrollX=0; rScrollSpeed=3; rFrameCount=0;
-    rLastObstacleFrame=0; rBgX=0; rSavePointsReached=0; rNextSavePointX=600;
-    runnerLives=3; runnerJumping=false; runnerDucking=false;
-    runnerEarningTotal=0; runnerSurvivedSecs=0;
-    runnerGameActive=true;
-    runnerStartTime=Date.now();
-
-    // Init platforms
-    PLATFORM_TEMPLATES.forEach(pt=>{
-        rPlatforms.push({x:pt.rx,y:rGroundY+pt.ry,w:pt.w,h:pt.h,passed:false});
-    });
-
-    // Keyboard controls
-    document.onkeydown=e=>{
-        if(e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW')runnerJump();
-        if(e.code==='ArrowDown'||e.code==='KeyS')runnerDuck();
-    };
-    document.onkeyup=e=>{
-        if(e.code==='ArrowDown'||e.code==='KeyS')runnerDuckEnd();
-    };
-
-    runnerLoop();
-}
-
-function runnerJump(){
-    if(!runnerGameActive)return;
-    if(rPlayer.y>=rGroundY-rPlayer.h-2||(rPlayer.onPlatform)){
-        rPlayer.vy=-13;
-        runnerJumping=true;
-        rPlayer.onPlatform=false;
-        playSound('tap');
-    }
-}
-
-function runnerDuck(){
-    if(!runnerGameActive)return;
-    runnerDucking=true;
-    rPlayer.ducking=true;
-    rPlayer.h=24; rPlayer.y=rGroundY-24;
-}
-function runnerDuckEnd(){
-    runnerDucking=false;
-    rPlayer.ducking=false;
-    rPlayer.h=48; rPlayer.y=Math.min(rPlayer.y,rGroundY-48);
-}
-
-let rSavePoints = []; // Save point objects on map
-let rSavePointsReached = 0; // How many save points reached
-let rSavePointSpacing = 800; // pixels between save points
-let rNextSavePointX = 600; // x position of next save point
-
-function spawnSavePoint(){
-    rSavePoints.push({x: rNextSavePointX + rCanvas.width, y: rGroundY - 60, w: 30, h: 60, type: 'save', active: true});
-    rNextSavePointX += rSavePointSpacing;
-}
-
-function spawnObstacle(){
-    const CW=rCanvas.width;
-    // Eye monsters like in screenshot!
-    const types=['box','fireball','rock','bird','spike','eye_monster'];
-    const weights=[25,20,15,15,10,15];
-    let r2=Math.random()*100,cumW=0,type='box';
-    for(let i=0;i<types.length;i++){cumW+=weights[i];if(r2<cumW){type=types[i];break;}}
-
-    const configs={
-        box:    {w:32,h:40,y:rGroundY-40,color:'#1a1a1a',emoji:'📦',vy:0},
-        fireball:{w:28,h:28,y:rGroundY-120-Math.random()*40,color:'#ff4e00',emoji:'🔥',vy:2+Math.random()*2},
-        rock:   {w:30,h:30,y:-30,color:'#666',emoji:'🪨',vy:4+Math.random()*2},
-        bird:   {w:34,h:28,y:rGroundY-110-Math.random()*50,color:'#8B4513',emoji:'🦅',vy:Math.sin(rFrameCount/30)*2},
-        spike:  {w:24,h:36,y:rGroundY-36,color:'#c0392b',emoji:'⚡',vy:0},
-        eye_monster:{w:36,h:50,y:rGroundY-50,color:'#ff0000',emoji:'👁️',vy:0},
-    };
-    const cfg=configs[type];
-    rObstacles.push({x:CW+20,y:cfg.y,w:cfg.w,h:cfg.h,type,color:cfg.color,emoji:cfg.emoji,baseVy:cfg.vy,vy:cfg.vy,wave:Math.random()*Math.PI*2});
-}
-
-function addParticle(x,y,color){
-    for(let i=0;i<6;i++){
-        rParticles.push({x,y,vx:(Math.random()-0.5)*5,vy:-Math.random()*5-2,life:1,color});
-    }
-}
-
-function runnerLoop(){
-    if(!runnerGameActive)return;
-    const elapsed=(Date.now()-runnerStartTime)/1000;
-    runnerSurvivedSecs=Math.floor(elapsed);
-    const remaining=runnerMaxSecs-elapsed;
-
-    // Update timer display
-    const mins=Math.floor(remaining/60),secs=Math.max(0,Math.floor(remaining%60));
-    document.getElementById('runnerTimer').textContent=`${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
-    // Earning only via save points (rSavePointsReached tracks count)
-    runnerEarningTotal=parseFloat((rSavePointsReached * runnerRewardPerSec * 30).toFixed(4));
-    document.getElementById('runnerEarning').textContent='+'+toPoints(runnerEarningTotal)+' pts';
-    document.getElementById('runnerLives').textContent='❤️'.repeat(runnerLives)+'🖤'.repeat(Math.max(0,3-runnerLives));
-
-    // Time up — win!
-    if(elapsed>=runnerMaxSecs){
-        runnerGameActive=false;
-        finishRunnerGame(true);
-        return;
-    }
-
-    // Harder: speed increases faster
-    rScrollSpeed=3.5+elapsed/20;
-    rFrameCount++;
-
-    // Spawn obstacles — frequency increases with time
-    // Harder: spawn faster, speed increases quicker
-    const spawnInterval=Math.max(30,75-elapsed*1.2);
-    if(rFrameCount-rLastObstacleFrame>spawnInterval){
-        spawnObstacle();
-        // Double spawn at high difficulty
-        if(elapsed>20&&Math.random()>0.6)spawnObstacle();
-        rLastObstacleFrame=rFrameCount;
-    }
-
-    // Physics
-    rPlayer.vy+=0.7;
-    rPlayer.y+=rPlayer.vy;
-    rPlayer.onPlatform=false;
-
-    // Ground collision
-    if(rPlayer.y>=rGroundY-rPlayer.h){
-        rPlayer.y=rGroundY-rPlayer.h;
-        rPlayer.vy=0;
-        runnerJumping=false;
-    }
-
-    // Platform collision
-    rPlatforms.forEach(p=>{
-        if(rPlayer.x+rPlayer.w>p.x&&rPlayer.x<p.x+p.w&&
-           rPlayer.y+rPlayer.h>=p.y&&rPlayer.y+rPlayer.h<=p.y+p.h+10&&rPlayer.vy>=0){
-            rPlayer.y=p.y-rPlayer.h;
-            rPlayer.vy=0;
-            rPlayer.onPlatform=true;
-            runnerJumping=false;
-        }
-    });
-
-    // Invincibility frames
-    if(rPlayer.invincible>0)rPlayer.invincible--;
-
-    // Update obstacles
-    rObstacles.forEach((o,i)=>{
-        o.x-=rScrollSpeed;
-        // Wave movement for birds/fireballs
-        if(o.type==='bird'||o.type==='fireball'){
-            o.y+=Math.sin(rFrameCount/20+o.wave)*1.5;
-        }
-        if(o.type==='rock'){o.vy+=0.2;o.y+=o.vy;}
-
-        // Collision with player
-        if(rPlayer.invincible<=0&&
-           rPlayer.x+4<o.x+o.w-4&&rPlayer.x+rPlayer.w-4>o.x+4&&
-           rPlayer.y+4<o.y+o.h-4&&rPlayer.y+rPlayer.h-4>o.y+4){
-            runnerLives--;
-            rPlayer.invincible=90;
-            addParticle(rPlayer.x+rPlayer.w/2,rPlayer.y+rPlayer.h/2,'#ff4e6a');
-            playSound('lose');
-            if(runnerLives<=0){
-                runnerGameActive=false;
-                finishRunnerGame(false);
-                return;
-            }
-        }
-    });
-    rObstacles=rObstacles.filter(o=>o.x>-60&&o.y<rCanvas.height+60);
-    
-    // Update save points
-    rSavePoints.forEach((sp, i) => {
-        sp.x -= rScrollSpeed;
-        // Check if player reached save point
-        if(sp.active && rPlayer.x + rPlayer.w > sp.x && rPlayer.x < sp.x + sp.w &&
-           rPlayer.y + rPlayer.h > sp.y && rPlayer.y < sp.y + sp.h){
-            sp.active = false;
-            rSavePointsReached++;
-            runnerLives = 3; // Reset hearts at save point!
-            const saveReward = runnerRewardPerSec * 30; // 30 sec worth
-            runnerEarningTotal += saveReward;
-            playSound('levelup');
-            showToast('💾 Save Point! +' + toPoints(saveReward) + ' pts! ❤️❤️❤️ Refilled!');
-            addParticle(sp.x + sp.w/2, sp.y + sp.h/2, '#19d89e');
-        }
-    });
-    rSavePoints = rSavePoints.filter(sp => sp.x > -60);
-
-    // Update platforms
-    rPlatforms.forEach(p=>p.x-=rScrollSpeed*0.5);
-    rPlatforms=rPlatforms.filter(p=>p.x>-200);
-    // Spawn new platforms
-    if(rPlatforms.length<4){
-        const lastX=Math.max(...rPlatforms.map(p=>p.x),rCanvas.width);
-        rPlatforms.push({x:lastX+300+Math.random()*200,y:rGroundY-60-Math.random()*100,w:80+Math.random()*60,h:16,passed:false});
-    }
-
-    // Update particles
-    rParticles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life-=0.05;});
-    rParticles=rParticles.filter(p=>p.life>0);
-
-    // Draw everything
-    drawRunnerFrame(elapsed);
-
-    runnerAnimFrame=requestAnimationFrame(runnerLoop);
-}
-
-function drawRunnerFrame(elapsed){
-    const CW=rCanvas.width,CH=rCanvas.height;
-    rCtx.clearRect(0,0,CW,CH);
-
-    // ── HD Shadow Runner Theme (like screenshot) ───────────
-    rScrollX+=rScrollSpeed;
-    rBgX+=rScrollSpeed*0.3;
-    
-    // Dark atmospheric background
-    const bgGrad=rCtx.createLinearGradient(0,0,0,CH);
-    bgGrad.addColorStop(0,'#1a1a2e');
-    bgGrad.addColorStop(0.5,'#16213e');
-    bgGrad.addColorStop(1,'#0f0f0f');
-    rCtx.fillStyle=bgGrad; rCtx.fillRect(0,0,CW,CH);
-    
-    // Scrolling city silhouette BG (like screenshot)
-    rCtx.fillStyle='rgba(30,30,50,0.9)';
-    const cityBlocks=[{w:40,h:60},{w:30,h:80},{w:50,h:50},{w:35,h:90},{w:45,h:65},{w:25,h:100},{w:55,h:45},{w:40,h:75}];
-    cityBlocks.forEach((b,i)=>{
-        const bx=((i*100)-rBgX*0.2)%(CW+100)-50;
-        rCtx.fillRect(bx, rGroundY-b.h-10, b.w, b.h+10);
-        // Building windows
-        rCtx.fillStyle='rgba(240,192,64,0.15)';
-        for(let wy=rGroundY-b.h+5;wy<rGroundY-20;wy+=12)
-            for(let wx=bx+5;wx<bx+b.w-5;wx+=10)
-                if(Math.sin(wx*wy)>0.3) rCtx.fillRect(wx,wy,6,7);
-        rCtx.fillStyle='rgba(30,30,50,0.9)';
-    });
-    
-    // Distant spotlight from top-left (exactly like screenshot)
-    const spotGrad=rCtx.createRadialGradient(0,0,10,CW*0.4,CH*0.3,CW*0.8);
-    spotGrad.addColorStop(0,'rgba(200,200,255,0.12)');
-    spotGrad.addColorStop(1,'rgba(0,0,0,0)');
-    rCtx.fillStyle=spotGrad; rCtx.fillRect(0,0,CW,CH);
-    
-    // Speed lines effect when running fast
-    if(rScrollSpeed>5){
-        rCtx.strokeStyle='rgba(255,255,255,0.04)';
-        rCtx.lineWidth=1;
-        for(let sl=0;sl<8;sl++){
-            const ly=20+sl*22;
-            rCtx.beginPath();
-            rCtx.moveTo(CW,ly);
-            rCtx.lineTo(CW-(rScrollSpeed*8),ly);
-            rCtx.stroke();
-        }
-    }
-
-    // HD Ground - dark with neon edge glow
-    const groundGrad=rCtx.createLinearGradient(0,rGroundY,0,CH);
-    groundGrad.addColorStop(0,'#1a1a2e');
-    groundGrad.addColorStop(0.1,'#0d0d1a');
-    groundGrad.addColorStop(1,'#000');
-    rCtx.fillStyle=groundGrad; rCtx.fillRect(0,rGroundY,CW,CH-rGroundY);
-    // Neon ground line
-    rCtx.shadowColor='#7c5cfc';
-    rCtx.shadowBlur=8;
-    rCtx.fillStyle='rgba(124,92,252,0.8)';
-    rCtx.fillRect(0,rGroundY,CW,2);
-    rCtx.shadowBlur=0;
-    // Scrolling ground tiles
-    rCtx.strokeStyle='rgba(124,92,252,0.15)';
-    rCtx.lineWidth=1;
-    const tileW=32;
-    const tileOff=(rScrollX%tileW);
-    for(let tx=-tileOff;tx<CW;tx+=tileW){
-        rCtx.beginPath();rCtx.moveTo(tx,rGroundY);rCtx.lineTo(tx,CH);rCtx.stroke();
-    }
-
-    // HD Platforms — dark with neon top edge
-    rPlatforms.forEach(p=>{
-        rCtx.fillStyle='#0a0a1a';
-        rCtx.fillRect(p.x,p.y,p.w,p.h);
-        // Neon top edge
-        rCtx.shadowColor='rgba(54,182,245,0.6)';
-        rCtx.shadowBlur=6;
-        rCtx.fillStyle='rgba(54,182,245,0.7)';
-        rCtx.fillRect(p.x,p.y,p.w,2);
-        rCtx.shadowBlur=0;
-        // Side edge
-        rCtx.fillStyle='rgba(54,182,245,0.2)';
-        rCtx.fillRect(p.x,p.y,2,p.h);
-        rCtx.fillRect(p.x+p.w-2,p.y,2,p.h);
-    });
-
-    // Obstacles — black pixel style like screenshot
-    rObstacles.forEach(o=>{
-        rCtx.save();
-        if(o.type==='box'){
-            // HD animated box obstacle
-            rCtx.shadowColor='rgba(255,78,106,0.4)';
-            rCtx.shadowBlur=8;
-            rCtx.fillStyle='#0d0d1a';
-            rCtx.fillRect(o.x,o.y,o.w,o.h);
-            rCtx.shadowBlur=0;
-            rCtx.strokeStyle='rgba(255,78,106,0.7)';
-            rCtx.lineWidth=1.5;
-            rCtx.strokeRect(o.x,o.y,o.w,o.h);
-            // Glowing eye on box
-            rCtx.shadowColor='#fff'; rCtx.shadowBlur=6;
-            rCtx.fillStyle='rgba(255,255,255,0.9)';
-            rCtx.beginPath();
-            rCtx.arc(o.x+o.w*0.6,o.y+o.h*0.35,o.w*0.15,0,Math.PI*2);
-            rCtx.fill();
-            rCtx.shadowBlur=0;
-            rCtx.fillStyle='#cc0000';
-            rCtx.beginPath();
-            rCtx.arc(o.x+o.w*0.62,o.y+o.h*0.36,o.w*0.07,0,Math.PI*2);
-            rCtx.fill();
-            // Crumble particles
-            rCtx.fillStyle='rgba(255,78,106,0.4)';
-            for(let px=0;px<o.w;px+=4){
-                if(Math.sin(px*0.5+rFrameCount*0.15)>0.4){
-                    rCtx.fillRect(o.x+px,o.y+o.h,2,2+Math.abs(Math.sin(px))*5);
-                }
-            }
-        }else if(o.type==='spike'){
-            // HD glowing red spikes
-            rCtx.shadowColor='rgba(255,0,0,0.6)'; rCtx.shadowBlur=8;
-            for(let si=0;si<3;si++){
-                const grad=rCtx.createLinearGradient(o.x+si*10,o.y+o.h,o.x+si*10+5,o.y);
-                grad.addColorStop(0,'#111');grad.addColorStop(1,'#cc0000');
-                rCtx.fillStyle=grad;
-                rCtx.beginPath();
-                rCtx.moveTo(o.x+si*10,o.y+o.h);
-                rCtx.lineTo(o.x+si*10+5,o.y);
-                rCtx.lineTo(o.x+si*10+10,o.y+o.h);
-                rCtx.fill();
-            }
-            rCtx.shadowBlur=0;
-        }else if(o.type==='bird'){
-            // HD dark eagle/bird
-            rCtx.fillStyle='#111';
-            rCtx.shadowColor='rgba(100,100,100,0.5)'; rCtx.shadowBlur=4;
-            rCtx.beginPath();
-            rCtx.ellipse(o.x+o.w/2,o.y+o.h/2,o.w/2,o.h/3,0,0,Math.PI*2);
-            rCtx.fill();
-            rCtx.shadowBlur=0;
-            // Animated wings
-            const wingAng=Math.sin(rFrameCount/6)*0.4;
-            const wingY=o.y+o.h/2;
-            rCtx.strokeStyle='#333'; rCtx.lineWidth=3;
-            // Left wing
-            rCtx.beginPath();rCtx.moveTo(o.x+o.w/2,wingY);
-            rCtx.quadraticCurveTo(o.x-8,wingY-10+wingAng*15,o.x-15,wingY+wingAng*10);
-            rCtx.stroke();
-            // Right wing
-            rCtx.beginPath();rCtx.moveTo(o.x+o.w/2,wingY);
-            rCtx.quadraticCurveTo(o.x+o.w+8,wingY-10+wingAng*15,o.x+o.w+15,wingY+wingAng*10);
-            rCtx.stroke();
-            // Red eye
-            rCtx.fillStyle='#cc0000';
-            rCtx.beginPath();rCtx.arc(o.x+o.w*0.65,o.y+o.h*0.35,3,0,Math.PI*2);rCtx.fill();
-        }else if(o.type==='eye_monster'){
-            // Red eye monster like screenshot!
-            rCtx.fillStyle='#111';
-            rCtx.fillRect(o.x, o.y, o.w, o.h);
-            // Fangs at bottom
-            rCtx.fillStyle='#111';
-            for(let fi=0;fi<3;fi++){ rCtx.fillRect(o.x+fi*12, o.y+o.h, 6, 10); }
-            // Big red eye
-            rCtx.shadowColor='#ff0000'; rCtx.shadowBlur=10;
-            rCtx.fillStyle='#cc0000';
-            rCtx.beginPath(); rCtx.arc(o.x+o.w/2, o.y+o.h*0.4, o.w*0.35, 0, Math.PI*2); rCtx.fill();
-            rCtx.shadowBlur=0;
-            // White part + pupil
-            rCtx.fillStyle='#fff'; rCtx.beginPath(); rCtx.arc(o.x+o.w/2, o.y+o.h*0.4, o.w*0.22, 0, Math.PI*2); rCtx.fill();
-            rCtx.fillStyle='#000'; rCtx.beginPath(); rCtx.arc(o.x+o.w/2, o.y+o.h*0.4, o.w*0.1, 0, Math.PI*2); rCtx.fill();
-        }else{
-            // Fireball/rock — dark circle
-            rCtx.fillStyle=o.type==='fireball'?'#333':'#555';
-            rCtx.beginPath();
-            rCtx.arc(o.x+o.w/2,o.y+o.h/2,o.w/2,0,Math.PI*2);
-            rCtx.fill();
-        }
-        rCtx.restore();
-    });
-
-    // Particles — black pixels like screenshot crumble
-    rParticles.forEach(p=>{
-        rCtx.globalAlpha=p.life;
-        rCtx.fillStyle='#222';
-        rCtx.fillRect(p.x-2,p.y-2,4,4);
-    });
-    rCtx.globalAlpha=1;
-    
-    // Draw Save Points - green glowing pillars like checkpoint flags
-    rSavePoints.forEach(sp => {
-        if(!sp.active) return;
-        // Glowing pillar
-        rCtx.shadowColor = '#19d89e';
-        rCtx.shadowBlur = 15;
-        rCtx.fillStyle = 'rgba(25,216,158,0.85)';
-        rCtx.fillRect(sp.x + 12, sp.y, 6, sp.h);
-        // Flag at top
-        rCtx.fillStyle = '#19d89e';
-        rCtx.fillRect(sp.x + 12, sp.y, 22, 14);
-        rCtx.shadowBlur = 0;
-        // SAVE text
-        rCtx.fillStyle = '#000';
-        rCtx.font = 'bold 7px monospace';
-        rCtx.textAlign = 'left';
-        rCtx.fillText('SAVE', sp.x + 13, sp.y + 10);
-        // Pulse effect
-        rCtx.globalAlpha = 0.3 + 0.2 * Math.sin(rFrameCount / 10);
-        rCtx.strokeStyle = '#19d89e';
-        rCtx.lineWidth = 2;
-        rCtx.strokeRect(sp.x + 5, sp.y - 5, 35, sp.h + 10);
-        rCtx.globalAlpha = 1;
-    });
-
-    // HD Player — neon glowing character like screenshot
-    const pX=rPlayer.x,pY=rPlayer.y,pH=rPlayer.h,pW=rPlayer.w;
-    const isInvincible=rPlayer.invincible>0&&Math.floor(rPlayer.invincible/5)%2===0;
-    if(!isInvincible){
-        // Body glow
-        rCtx.shadowColor='#7c5cfc';
-        rCtx.shadowBlur=12;
-        rCtx.fillStyle='#0d0d1a';
-        rCtx.fillRect(pX,pY,pW,pH);
-        rCtx.shadowBlur=0;
-        // Neon outline
-        rCtx.strokeStyle='rgba(124,92,252,0.9)';
-        rCtx.lineWidth=2;
-        rCtx.strokeRect(pX,pY,pW,pH);
-        // Inner highlight
-        rCtx.fillStyle='rgba(124,92,252,0.1)';
-        rCtx.fillRect(pX+2,pY+2,pW-4,pH-4);
-        // Glowing eye
-        rCtx.shadowColor='#fff';
-        rCtx.shadowBlur=6;
-        rCtx.fillStyle='rgba(255,255,255,0.95)';
-        rCtx.beginPath();
-        rCtx.arc(pX+pW*0.65,pY+pH*0.3,pW*0.15,0,Math.PI*2);
-        rCtx.fill();
-        rCtx.shadowBlur=0;
-        // Pupil
-        rCtx.fillStyle='#000';
-        rCtx.beginPath();
-        rCtx.arc(pX+pW*0.67,pY+pH*0.31,pW*0.06,0,Math.PI*2);
-        rCtx.fill();
-        // Run particles at feet
-        if(!rPlayer.ducking && rScrollSpeed>3){
-            rCtx.fillStyle='rgba(124,92,252,0.4)';
-            for(let rp=0;rp<3;rp++){
-                rCtx.fillRect(pX+rp*4,pY+pH,3,2+rp);
-            }
-        }
-        // Duck indicator glow
-        if(rPlayer.ducking){
-            rCtx.shadowColor='#19d89e';
-            rCtx.shadowBlur=8;
-            rCtx.fillStyle='rgba(25,216,158,0.6)';
-            rCtx.fillRect(pX,pY+pH-3,pW,3);
-            rCtx.shadowBlur=0;
-        }
-    }else{
-        // Invincible — flashing purple glow
-        rCtx.shadowColor='#ff4e6a'; rCtx.shadowBlur=20;
-        rCtx.fillStyle='rgba(255,78,106,0.7)';
-        rCtx.fillRect(pX,pY,pW,pH);
-        rCtx.shadowBlur=0;
-    }
-
-    // HD HUD - Distance + Save Points display
-    const dist=Math.floor(rScrollX/10);
-    // Top right panel
-    rCtx.fillStyle='rgba(0,0,10,0.75)';
-    rCtx.beginPath();rCtx.roundRect(CW-105,4,102,30,6);rCtx.fill();
-    rCtx.strokeStyle='rgba(124,92,252,0.4)';rCtx.lineWidth=1;rCtx.stroke();
-    rCtx.fillStyle='rgba(124,92,252,0.7)';rCtx.font='bold 9px monospace';rCtx.textAlign='left';
-    rCtx.fillText('DISTANCE  SAVES',CW-101,15);
-    rCtx.fillStyle='#fff';rCtx.font='bold 13px monospace';
-    rCtx.fillText(dist+'m   '+rSavePointsReached,CW-101,28);
-
-    // HD Time bar at bottom
-    const timeLeft=1-((Date.now()-runnerStartTime)/1000)/runnerMaxSecs;
-    rCtx.fillStyle='rgba(0,0,20,0.8)';rCtx.fillRect(0,CH-12,CW,12);
-    const barColor=timeLeft>0.5?'#19d89e':timeLeft>0.25?'#f0c040':'#ff4e6a';
-    // Glow bar
-    rCtx.shadowColor=barColor; rCtx.shadowBlur=6;
-    rCtx.fillStyle=barColor;
-    rCtx.fillRect(0,CH-10,CW*Math.max(0,timeLeft),8);
-    rCtx.shadowBlur=0;
-    // Time remaining text
-    const tlSec=Math.ceil(((Date.now()-runnerStartTime)/1000<runnerMaxSecs)?(runnerMaxSecs-(Date.now()-runnerStartTime)/1000):0);
-    rCtx.fillStyle='rgba(255,255,255,0.5)';rCtx.font='bold 7px monospace';rCtx.textAlign='center';
-    rCtx.fillText(tlSec+'s left',CW/2,CH-2);
-}
-
-async function finishRunnerGame(won){
-    if(runnerAnimFrame){cancelAnimationFrame(runnerAnimFrame);runnerAnimFrame=null;}
-    document.onkeydown=null;document.onkeyup=null;
-
-    document.getElementById('runnerGameScreen').style.display='none';
-    document.getElementById('runnerResult').style.display='block';
-    document.getElementById('runnerResultEmoji').textContent=won?'🏆':'💀';
-    document.getElementById('runnerResultTitle').textContent=won?'CHAMPION! 🎉':'Game Over!';
-    document.getElementById('runnerResultSub').textContent=`Survived: ${runnerSurvivedSecs}s | Save Points: ${rSavePointsReached} reached`;
-
-    if(_runnerTryMode){
-        document.getElementById('runnerResultReward').textContent='Try Mode — 0 pts';
-        document.getElementById('runnerResultBreakdown').textContent='Pass lo → asli paise kamao!';
-        playSound(won?'earn':'lose');
-        return;
-    }
-
-    // Real game — report to server
-    document.getElementById('runnerResultReward').textContent='⏳...';
-    const r=await apiPost('/api/game/runner-finish',{
-        user_id:userData.user_id, mode:runnerMode, bet:runnerBet, survived_seconds:runnerSurvivedSecs,
-        save_points_reached:rSavePointsReached
-    });
-    const reward=r?.reward||runnerEarningTotal;
-    document.getElementById('runnerResultReward').textContent='+'+toPoints(reward)+' pts';
-    document.getElementById('runnerResultBreakdown').textContent=
-        'Save Points: '+rSavePointsReached+' × ' + toPoints(runnerRewardPerSec*30) + ' pts each' + (r?.bet_back?' | Bet back: '+toPoints(r.bet_back||0)+' pts':'');
-    if(reward>0){
-        userData.balance=(userData.balance||0)+parseFloat(reward);
-        userData.today_earned=(userData.today_earned||0)+parseFloat(reward);
-        gameState.today_game_earned=(gameState.today_game_earned||0)+parseFloat(reward);
-        updateUI(); if(won)triggerConfetti();
-        playSound(won?'jackpot':'earn');
-    }else{ playSound('lose'); }
-}
-
-function resetRunnerGame(){
-    runnerGameActive=false;
-    if(runnerAnimFrame){cancelAnimationFrame(runnerAnimFrame);runnerAnimFrame=null;}
-    document.getElementById('runnerSetup').style.display='block';
-    document.getElementById('runnerStartWrap').style.display='block';
-    document.getElementById('runnerGameScreen').style.display='none';
-    document.getElementById('runnerResult').style.display='none';
-    document.getElementById('runnerPassCount').textContent=userData.passes||0;
-}
-
 // ============================================================
 // 📦 SOKOBAN — Push ALL boxes to targets (real Sokoban!)
 // ============================================================
@@ -6040,13 +5267,6 @@ function exitGemMatch(){gemActive=false;closeModal('gemmatch');}
 function exitChess(){if(chessInterval)clearInterval(chessInterval);chessActive=false;closeModal('chess');}
 
 
-function exitRunnerGame(){
-    runnerGameActive=false;
-    if(runnerAnimFrame){cancelAnimationFrame(runnerAnimFrame);runnerAnimFrame=null;}
-    document.onkeydown=null;document.onkeyup=null;
-    closeModal('runner');
-}
-
 // ============================================================
 // TAB & MODAL
 // ============================================================
@@ -6723,6 +5943,124 @@ async function init(){
     setInterval(async()=>{await loadUser();await loadGameState();checkShortlinkReminder();checkStreakChallenge();},60000);
 }
 document.addEventListener('DOMContentLoaded',init);
+
+// ============================================================
+// ADSGRAM — Reward Block: 30567 | Task Block: task-30568
+// ============================================================
+const ADSGRAM_REWARD_BLOCK = '30567';
+const ADSGRAM_TASK_BLOCK   = 'task-30568';
+
+let rewardController = null;
+let taskController   = null;
+let rewardAdCooldown = false;
+let taskAdCooldown   = false;
+
+async function initAdsGram() {
+    try {
+        if (typeof AdController === 'undefined') return;
+        rewardController = await AdController.init({ blockId: ADSGRAM_REWARD_BLOCK });
+        taskController   = await AdController.init({ blockId: ADSGRAM_TASK_BLOCK });
+        console.log('✅ AdsGram OK — Reward:30567 Task:task-30568');
+    } catch(e) {
+        console.log('AdsGram init error:', e);
+    }
+}
+
+// Reward Ad show karo (user click kare toh)
+async function showRewardAd() {
+    if (!userData || !userData.user_id) {
+        showToast('❌ Pehle login karo!');
+        return;
+    }
+    if (rewardAdCooldown) {
+        showToast('⏳ Thoda wait karo!');
+        return;
+    }
+
+    const btn = document.getElementById('rewardAdBtn');
+    const status = document.getElementById('rewardAdStatus');
+
+    // AdsGram SDK available check
+    if (typeof AdController === 'undefined') {
+        showToast('📺 Ad system load ho raha hai...');
+        return;
+    }
+
+    try {
+        btn.disabled = true;
+        btn.textContent = '⏳ Ad load ho rahi hai...';
+        status.textContent = '';
+
+        if (!rewardController) {
+            rewardController = await AdController.init({ blockId: ADSGRAM_REWARD_BLOCK });
+        }
+
+        await rewardController.show();
+
+        // Ad puri dekhi — server ko notify karo
+        const resp = await fetch(`/api/adsgram-reward?userId=${userData.user_id}&blockId=${ADSGRAM_REWARD_BLOCK}`);
+        const data = await resp.json();
+
+        if (data.success) {
+            showToast('🎉 +10 pts mil gaye! Ad bonus!');
+            status.textContent = '✅ Reward credited!';
+            await loadUser();
+        } else {
+            status.textContent = data.message || 'Reward pending...';
+        }
+
+        // 5 minute cooldown
+        rewardAdCooldown = true;
+        btn.textContent = '⏳ 5 min baad dobara...';
+        setTimeout(() => {
+            rewardAdCooldown = false;
+            btn.disabled = false;
+            btn.textContent = '▶️ Ad Dekho — 10 Pts Pao!';
+            status.textContent = '';
+        }, 5 * 60 * 1000);
+
+    } catch(e) {
+        console.log('Ad error:', e);
+        // User ne ad skip ki ya error — no reward
+        btn.disabled = false;
+        btn.textContent = '▶️ Ad Dekho — 10 Pts Pao!';
+        status.textContent = e?.message?.includes('No fill') ? '😔 Abhi koi ad available nahi' : '❌ Ad puri dekho reward ke liye!';
+        setTimeout(() => { status.textContent = ''; }, 3000);
+    }
+}
+
+// Task Ad show karo (Task cards click)
+async function showNativeAd(cardNum) {
+    if (!userData || !userData.user_id) { showToast('❌ Pehle login karo!'); return; }
+    if (taskAdCooldown) { showToast('⏳ Task thoda baad try karo!'); return; }
+    try {
+        if (typeof AdController === 'undefined') {
+            showToast('📺 Ad load ho rahi hai...');
+            return;
+        }
+        if (!taskController) {
+            taskController = await AdController.init({ blockId: ADSGRAM_TASK_BLOCK });
+        }
+        await taskController.show();
+        // Reward after task ad
+        const resp = await fetch(`/api/adsgram-reward?userId=${userData.user_id}&blockId=${ADSGRAM_TASK_BLOCK}`);
+        const data = await resp.json();
+        if (data.success) {
+            showToast('🎯 Task complete! +10 pts!');
+            await loadUser();
+        }
+        // 3 min cooldown
+        taskAdCooldown = true;
+        setTimeout(() => { taskAdCooldown = false; }, 3 * 60 * 1000);
+    } catch(e) {
+        console.log('Task ad error:', e);
+        showToast('❌ Task pura karo reward ke liye!');
+    }
+}
+
+// AdsGram init on load
+setTimeout(initAdsGram, 2000);
+
 </script>
 
 <!-- BLOCK BLAST MODAL -->
