@@ -88,7 +88,7 @@
         .hamburger-btn{width:40px;height:40px;border-radius:12px;background:var(--bg3);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:transform .15s;}
         .hamburger-btn span{width:16px;height:2px;background:var(--text);border-radius:2px;transition:all .3s;}
         .hamburger-btn:active{transform:scale(.9);}
-        .topbar-balance{background:linear-gradient(135deg,rgba(240,192,64,.14),rgba(240,192,64,.04));border:1px solid rgba(240,192,64,.22);border-radius:28px;padding:7px 14px;font-family:'Oxanium',sans-serif;font-weight:800;font-size:14px;color:var(--gold);}
+        .topbar-balance{background:linear-gradient(135deg,rgba(240,192,64,.14),rgba(240,192,64,.04));border:1px solid rgba(240,192,64,.22);border-radius:28px;padding:7px 14px;font-family:'Oxanium',sans-serif;font-weight:900;font-size:15px;color:var(--gold);}
 
         /* SIDEBAR */
         .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;opacity:0;transition:opacity .3s;}
@@ -118,17 +118,17 @@
         .balance-card::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(240,192,64,.1),transparent 65%);pointer-events:none;}
         .balance-card::after{content:'';position:absolute;bottom:-40px;left:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(124,92,252,.09),transparent 65%);pointer-events:none;}
         .balance-label{font-size:11px;color:var(--text2);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px;}
-        .balance-main{font-family:'Oxanium',sans-serif;font-size:46px;font-weight:900;color:var(--gold);line-height:1.05;text-shadow:0 0 36px rgba(240,192,64,.22);}
+        .balance-main{font-family:'Oxanium',sans-serif;font-size:54px;font-weight:900;color:var(--gold);line-height:1.05;text-shadow:0 0 36px rgba(240,192,64,.22);}
         .balance-sub{display:flex;gap:7px;margin-top:13px;flex-wrap:wrap;}
         .bsub-item{flex:1;min-width:80px;background:rgba(255,255,255,.04);border-radius:12px;padding:9px 11px;border:1px solid var(--border);}
         .bsub-label{font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
-        .bsub-val{font-size:17px;font-weight:800;color:var(--gold);margin-top:2px;font-family:'Oxanium',sans-serif;}
+        .bsub-val{font-size:20px;font-weight:900;color:var(--gold);margin-top:2px;font-family:'Oxanium',sans-serif;}
 
         /* PASSES CARD */
         .passes-card{background:linear-gradient(135deg,#180d50,#120932);border:1px solid rgba(124,92,252,.22);border-radius:18px;padding:13px 15px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
         .passes-info{display:flex;align-items:center;gap:9px;}
         .passes-icon{font-size:24px;}
-        .passes-text .passes-count{font-family:'Oxanium',sans-serif;font-size:24px;font-weight:900;color:var(--purple2);}
+        .passes-text .passes-count{font-family:'Oxanium',sans-serif;font-size:30px;font-weight:900;color:var(--purple2);}
         .passes-text .passes-lbl{font-size:10px;color:var(--text2);margin-top:-2px;}
         .passes-earn-btn{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;padding:9px 15px;border-radius:28px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;}
 
@@ -743,197 +743,100 @@
 <!-- HOME PAGE -->
 <div class="page active" id="homePage">
     <div class="page-inner">
-        <!-- Announcement Banner -->
+
+        <!-- ANNOUNCEMENT BANNER -->
         <div id="announcementBanner" style="display:none;background:linear-gradient(135deg,rgba(139,92,252,.9),rgba(56,189,248,.85));padding:10px 14px;border-radius:14px;margin-bottom:10px;animation:scaleIn .3s ease;border:1px solid rgba(255,255,255,.15);"><div style="display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">📢</span><div style="flex:1;font-size:12px;font-weight:700;color:#fff;" id="announcementText"></div><button onclick="dismissAnnouncement()" style="background:rgba(255,255,255,.2);border:none;border-radius:8px;color:#fff;width:22px;height:22px;font-size:14px;cursor:pointer;flex-shrink:0;">×</button></div></div>
-        <div class="balance-card">
+
+        <!-- SHORTLINK REMINDER — only shows if pending -->
+        <div id="shortlinkReminder" style="display:none;background:linear-gradient(135deg,#ff6b35,#ff4e6a);border-radius:16px;padding:12px 14px;margin-bottom:10px;cursor:pointer;" onclick="showRewardAd();setTimeout(()=>window.open(MOVIE_GROUP_LINK,'_blank'),500);">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div style="font-size:28px;">🎬</div>
+                <div style="flex:1;"><div style="font-family:'Oxanium',sans-serif;font-size:13px;font-weight:900;color:#fff;">⚡ MOVIE SEARCH = 50 pts FREE!</div><div style="font-size:10px;color:rgba(255,255,255,.85);margin-top:2px;">Movie search karo → Shortlink complete karo → Bonus!</div></div>
+                <div style="background:rgba(255,255,255,.25);padding:6px 10px;border-radius:20px;font-weight:900;font-size:11px;color:#fff;white-space:nowrap;">GO →</div>
+            </div>
+        </div>
+
+        <!-- ① BALANCE CARD — Main Hero -->
+        <div class="balance-card" style="margin-bottom:10px;">
             <div class="balance-label" data-t="your_balance">🪙 Aapke Points</div>
             <div class="balance-main pts-display" id="balAmt">0 pts</div>
-            <div id="balRupees" style="font-size:11px;color:var(--text2);margin-top:-4px;font-weight:700;">= ₹0.00 withdrawal value</div>
-            <div class="balance-sub">
+            <div id="balRupees" style="font-size:14px;color:rgba(240,192,64,.7);margin-top:-2px;font-weight:800;font-family:'Oxanium',sans-serif;">= ₹0.00</div>
+            <div class="balance-sub" style="margin-top:12px;">
                 <div class="bsub-item"><div class="bsub-label" data-t="today_earned">Aaj Kamaya</div><div class="bsub-val" id="todayEarned">0 pts</div></div>
-                <div class="bsub-item"><div class="bsub-label" data-t="active_refs"><img src="https://i.postimg.cc/cCV72d3Z/refer-earn-concept-business-partnership-strategy-vector-illustration-185038-443.jpg" style="width:14px;height:14px;object-fit:cover;border-radius:3px;vertical-align:middle;margin-right:3px;"> Active Refs</div><div class="bsub-val" id="activeRefs">0</div></div>
-                <div class="bsub-item"><div class="bsub-label">📅 Month Refs</div><div class="bsub-val" id="monthRefsDisplay">0</div></div>
+                <div class="bsub-item"><div class="bsub-label">Active Refs</div><div class="bsub-val" id="activeRefs">0</div></div>
+                <div class="bsub-item"><div class="bsub-label">🎟️ Passes</div><div class="bsub-val" id="passCount">0</div></div>
             </div>
-            <!-- Withdraw progress bar -->
-            <div style="margin-top:9px;" id="wdProgressWrap">
-                <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-bottom:3px;">
-                    <span>Withdrawal Progress</span>
-                    <span id="wdProgressTxt">0/20 refs</span>
-                </div>
-                <div style="height:6px;background:var(--bg2);border-radius:6px;overflow:hidden;">
-                    <div id="wdProgressBar" class="progress-animated" style="height:100%;background:linear-gradient(90deg,#f0c040,#19d89e);border-radius:6px;width:0%;transition:width .8s cubic-bezier(.4,0,.2,1);"></div>
-                </div>
-                <div id="wdProgressMsg" style="font-size:9px;color:var(--text3);margin-top:2px;text-align:right;"></div>
-            </div>
-            <!-- Badge on home — premium box design -->
-            <div onclick="openBadgeShowcase()" style="display:flex;align-items:center;gap:10px;margin-top:10px;background:linear-gradient(135deg,rgba(240,192,64,.1),rgba(124,92,252,.08));border-radius:16px;padding:10px 13px;border:1.5px solid rgba(240,192,64,.3);cursor:pointer;position:relative;overflow:hidden;transition:all .2s;" ontouchstart="this.style.opacity='.8'" ontouchend="this.style.opacity='1'">
-                <div style="position:absolute;top:-20px;right:-20px;width:60px;height:60px;background:radial-gradient(circle,rgba(240,192,64,.12),transparent);border-radius:50%;pointer-events:none;"></div>
-                <div style="position:relative;flex-shrink:0;">
-                    <img id="homeBadgeImg" src="https://i.postimg.cc/prJbHJvn/4946de51-23b6-473f-8192-764e1ca09041.jpg" style="width:46px;height:46px;object-fit:contain;border-radius:12px;box-shadow:0 4px 14px rgba(240,192,64,.3);">
-                    <div id="homeBadgeClaimDot" style="display:none;position:absolute;top:-5px;right:-5px;width:13px;height:13px;background:var(--red);border-radius:50%;border:2px solid var(--bg);box-shadow:0 0 6px rgba(255,78,106,.6);animation:pulse 1.2s infinite;"></div>
-                </div>
-                <div style="flex:1;min-width:0;">
-                    <div id="homeBadgeName" style="font-family:'Oxanium',sans-serif;font-size:12px;font-weight:900;color:var(--gold);">🥉 Starter</div>
-                    <div id="homeBadgeProgress" style="font-size:9px;color:var(--text3);margin-top:2px;">0/10 refs → next badge</div>
-                    <div style="height:3px;background:var(--bg2);border-radius:3px;margin-top:4px;overflow:hidden;"><div id="homeBadgeBar" style="height:100%;background:linear-gradient(90deg,var(--gold),var(--purple2));border-radius:3px;width:0%;transition:width .5s;"></div></div>
-                </div>
-                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;">
-                    <div style="background:var(--gold);color:#000;border-radius:8px;padding:4px 9px;font-size:9px;font-weight:900;white-space:nowrap;">🏅 Badges</div>
-                    <div style="font-size:8px;color:var(--text3);">tap to view</div>
-                </div>
+            <!-- Quick action buttons -->
+            <div style="display:flex;gap:8px;margin-top:12px;">
+                <button onclick="openModal('withdraw')" style="flex:1;background:rgba(25,216,158,.12);border:1px solid rgba(25,216,158,.3);color:var(--green);border-radius:12px;padding:9px;font-weight:800;font-size:11px;cursor:pointer;font-family:inherit;">💸 Withdraw</button>
+                <button onclick="openModal('referral')" style="flex:1;background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.25);color:var(--gold);border-radius:12px;padding:9px;font-weight:800;font-size:11px;cursor:pointer;font-family:inherit;">👥 Refer</button>
+                <button onclick="openModal('earnPasses')" style="flex:1;background:rgba(124,92,252,.12);border:1px solid rgba(124,92,252,.3);color:var(--purple2);border-radius:12px;padding:9px;font-weight:800;font-size:11px;cursor:pointer;font-family:inherit;">📖 Guide</button>
             </div>
         </div>
-        <!-- 🔥 SHORTLINK REMINDER BANNER — for pending referred users -->
-        <div id="shortlinkReminder" style="display:none;background:linear-gradient(135deg,#ff6b35,#ff4e6a);border-radius:16px;padding:14px;margin-bottom:12px;animation:glowPulse 2s infinite;cursor:pointer;" onclick="window.open(MOVIE_GROUP_LINK,'_blank')">
-            <div style="display:flex;align-items:center;gap:10px;">
-                <div style="font-size:32px;animation:badgeFloat 2s infinite;">🎬</div>
+
+        <!-- ② DAILY BONUS + STREAK row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px;">
+            <!-- Daily Bonus -->
+            <div class="daily-bonus-card" onclick="openModal('dailyBonus')" id="dailyBonusCard" style="margin-bottom:0;flex-direction:column;align-items:flex-start;gap:6px;padding:14px;">
+                <div id="dailyBonusIcon" style="font-size:28px;">🎁</div>
                 <div style="flex:1;">
-                    <div style="font-family:'Oxanium',sans-serif;font-size:14px;font-weight:900;color:#fff;">⚡ MOVIE SEARCH KARO = 50 pts FREE!</div>
-                    <div style="font-size:11px;color:rgba(255,255,255,.85);margin-top:3px;">Group mein jaake koi bhi movie search karo → Shortlink complete karo → Turant bonus!</div>
+                    <div style="font-weight:800;font-size:13px;" data-t="daily_bonus">Daily Bonus</div>
+                    <div style="font-size:10px;color:var(--text2);margin-top:2px;" id="dailyBonusSubtitle" data-t="claim_today">Aaj claim karo!</div>
                 </div>
-                <div style="background:rgba(255,255,255,.25);padding:8px 12px;border-radius:28px;font-weight:900;font-size:11px;color:#fff;white-space:nowrap;">GO →</div>
+                <div style="background:linear-gradient(135deg,var(--green),#059669);color:#fff;padding:6px 12px;border-radius:20px;font-weight:800;font-size:11px;align-self:flex-start;" id="dailyBonusBtn">Claim</div>
+            </div>
+            <!-- Watch Ad Earn -->
+            <div style="background:linear-gradient(135deg,#0a1628,#0d1240);border:1.5px solid rgba(54,182,245,.3);border-radius:18px;padding:14px;cursor:pointer;transition:transform .15s;display:flex;flex-direction:column;gap:6px;" onclick="showRewardAd()" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform=''">
+                <div style="font-size:28px;">📺</div>
+                <div style="font-weight:800;font-size:13px;color:var(--blue);">Watch & Earn</div>
+                <div style="font-size:10px;color:var(--text2);">Ad dekho • +10 pts!</div>
+                <button id="rewardAdBtn" style="background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;border:none;border-radius:20px;padding:6px 10px;font-weight:800;font-size:11px;cursor:pointer;font-family:inherit;align-self:flex-start;">▶️ +10 pts</button>
+                <div id="rewardAdStatus" style="font-size:9px;color:var(--text3);"></div>
             </div>
         </div>
 
-        <!-- 🔥 STREAK CHALLENGE BANNER -->
-        <div id="streakChallenge" style="display:none;background:linear-gradient(135deg,#0f2027,#2c5364);border:1.5px solid rgba(25,216,158,.4);border-radius:16px;padding:12px 14px;margin-bottom:12px;">
-            <div style="display:flex;align-items:center;gap:10px;">
-                <div style="font-size:26px;">🔥</div>
-                <div style="flex:1;">
-                    <div style="font-family:'Oxanium',sans-serif;font-size:12px;font-weight:900;color:var(--green);" id="streakChallengeTitle">7-Day Streak Challenge!</div>
-                    <div style="font-size:10px;color:var(--text2);margin-top:2px;" id="streakChallengeSub">7 din daily bonus claim karo = ₹2 bonus!</div>
-                </div>
-                <div id="streakChallengeBtn" style="background:var(--green);color:#000;padding:6px 12px;border-radius:28px;font-weight:900;font-size:10px;cursor:pointer;display:none;" onclick="claimStreakBonus()">CLAIM!</div>
-            </div>
-            <div style="height:5px;background:rgba(255,255,255,.1);border-radius:4px;margin-top:8px;overflow:hidden;">
-                <div id="streakChallengeBar" style="height:100%;background:linear-gradient(90deg,var(--green),var(--gold));border-radius:4px;width:0%;transition:width .5s;"></div>
-            </div>
-        </div>
-
-        <div class="passes-card">
-            <div class="passes-info">
-                <div class="passes-icon"><img src="https://i.postimg.cc/15X5YpmT/1773974388103.png" style="width:38px;height:38px;object-fit:contain;"></div>
-                <div class="passes-text"><div class="passes-count" id="passCount">0</div><div class="passes-lbl" data-t="game_passes">Game Passes</div></div>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:5px;">
-                <button class="passes-earn-btn btn-shine" onclick="openModal('earnPasses')" data-t="earn_passes">+ Earn Free</button>
-                <button style="background:linear-gradient(135deg,#f0c040,#d97706);color:#000;border:none;border-radius:20px;padding:6px 13px;font-weight:900;font-size:10px;cursor:pointer;white-space:nowrap;" onclick="openModal('buyPasses')">🛒 Buy Passes</button>
-            </div>
-        </div>
-        <!-- HAPPY HOURS BANNER — shows only during 8-9 PM -->
-        <div class="happy-hours-banner" id="happyHoursBanner">
-            <div class="hh-icon">⚡</div>
-            <div class="hh-text">
-                <div class="hh-title">HAPPY HOURS CHAL RAHA HAI!</div>
-                <div class="hh-sub">Games mein 2x earning abhi! ⏰</div>
-            </div>
-            <div class="hh-timer" id="hhTimer">--:--</div>
-        </div>
-
-        <!-- MILESTONE BONUS CARD -->
-        <div class="milestone-card" id="milestoneCard">
-            <div class="milestone-title">🎯 Referral Milestones</div>
-            <div id="milestoneList">Loading...</div>
-        </div>
-
-        <!-- WEEKLY BONUS CARD -->
-        <div class="weekly-bonus-card" id="weeklyCard">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div style="font-family:'Oxanium',sans-serif;font-size:14px;font-weight:900;color:var(--blue);">📅 Weekly Bonus</div>
-                <div id="weeklyBonusStatus" style="font-size:11px;color:var(--text2);">7 din claim karo → 100 pts extra!</div>
-            </div>
-            <div class="weekly-days" id="weeklyDays"></div>
-        </div>
-
-        <div class="daily-bonus-card" onclick="openModal('dailyBonus')" id="dailyBonusCard">
-            <div id="dailyBonusIcon"><img src="https://i.postimg.cc/50DFNn2V/image.png" style="width:48px;height:48px;object-fit:contain;border-radius:10px;"></div>
-            <div style="flex:1;">
-                <div style="font-weight:700;font-size:14px;" data-t="daily_bonus">Daily Bonus</div>
-                <div style="font-size:11px;color:var(--text2);margin-top:2px;" id="dailyBonusSubtitle" data-t="claim_today">Aaj ka bonus claim karo!</div>
-            </div>
-            <div style="background:linear-gradient(135deg,var(--green),#059669);color:#fff;padding:7px 13px;border-radius:28px;font-weight:800;font-size:11px;" id="dailyBonusBtn" data-t="claim">Claim</div>
-        </div>
-        <div class="mission-card" onclick="openModal('missions')">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;">
+        <!-- ③ MISSIONS card -->
+        <div class="mission-card" onclick="openModal('missions')" style="margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                 <div style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:900;" data-t="daily_missions">🎯 Daily Missions</div>
-                <div style="background:rgba(0,0,0,.18);padding:4px 11px;border-radius:28px;font-size:11px;font-weight:800;" data-t="mission_total_reward">600+ pts Reward</div>
+                <div style="background:rgba(0,0,0,.18);padding:4px 11px;border-radius:20px;font-size:11px;font-weight:800;">600+ pts</div>
             </div>
             <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;">
-                <span data-t="complete_earn">Missions complete karo, paise pao!</span>
+                <span data-t="complete_earn">Complete karo, paise pao!</span>
                 <span><b id="missionsDone">0</b>/<b id="missionsTotal">6</b></span>
             </div>
             <div class="mission-bar-bg"><div class="mission-bar-fill" id="missionBarFill" style="width:0%"></div></div>
         </div>
-        <div class="ref-card">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;"><img src="https://i.postimg.cc/cCV72d3Z/refer-earn-concept-business-partnership-strategy-vector-illustration-185038-443.jpg" style="width:44px;height:44px;object-fit:cover;border-radius:10px;flex-shrink:0;"><div style="font-family:'Oxanium',sans-serif;font-size:17px;font-weight:800;" data-t="refer_earn_title">Refer & Earn</div></div>
-            <div style="font-size:11px;color:var(--text2);margin-bottom:11px;" data-t="refer_sub">Dost ko invite karo • 3 Passes + 60 pts bonus pao!</div>
+
+        <!-- ④ REFER & EARN card — compact -->
+        <div class="ref-card" style="margin-bottom:10px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                <img src="https://i.postimg.cc/cCV72d3Z/refer-earn-concept-business-partnership-strategy-vector-illustration-185038-443.jpg" style="width:40px;height:40px;object-fit:cover;border-radius:10px;flex-shrink:0;">
+                <div>
+                    <div style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:800;" data-t="refer_earn_title">Refer & Earn</div>
+                    <div style="font-size:11px;color:var(--text2);" data-t="refer_sub">Dost invite karo • 3 Passes + 60 pts!</div>
+                </div>
+            </div>
             <div class="ref-link-box">
                 <span class="ref-link-text" id="refLinkText">https://t.me/...</span>
                 <button class="ref-copy-btn" onclick="copyRef()" data-t="copy">Copy</button>
             </div>
-            <div class="share-grid">
+            <div class="share-grid" style="margin-top:8px;">
                 <div class="share-btn" onclick="shareOn('telegram')"><span>📱</span><span>Telegram</span></div>
                 <div class="share-btn" onclick="shareOn('whatsapp')"><span>💬</span><span>WhatsApp</span></div>
                 <div class="share-btn" onclick="shareOn('other')"><span>🔗</span><span data-t="share_more">Share</span></div>
             </div>
         </div>
+
+        <!-- ⑤ SPONSORED OFFERS -->
         <div class="section-head">
             <h3 data-t="sponsored">💎 Sponsored Offers</h3>
             <button class="admin-add-btn" id="addOfferBtn" onclick="openAdminCreateOffer()" style="display:none;">➕ <span data-t="add_offer">Add</span></button>
         </div>
         <div id="adsContainer"></div>
 
-        <!-- ══════════════════════════════════════ -->
-        <!-- ADSGRAM — REWARD AD (Video) -->
-        <!-- ══════════════════════════════════════ -->
-        <div style="background:linear-gradient(135deg,#0a1a30,#111b3a);border:1.5px solid rgba(54,182,245,.25);border-radius:18px;padding:14px 15px;margin-bottom:12px;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-                <div style="width:42px;height:42px;background:linear-gradient(135deg,rgba(54,182,245,.2),rgba(124,92,252,.2));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;">📺</div>
-                <div style="flex:1;">
-                    <div style="font-family:'Oxanium',sans-serif;font-weight:900;font-size:14px;color:var(--blue);">Daily Reward Ad</div>
-                    <div style="font-size:10px;color:var(--text2);">Ad dekho • +10 pts pao!</div>
-                </div>
-                <div style="background:linear-gradient(135deg,var(--blue),rgba(124,92,252,.8));color:#fff;padding:5px 10px;border-radius:20px;font-size:10px;font-weight:800;">+10 pts</div>
-            </div>
-            <button id="rewardAdBtn" onclick="showRewardAd()" style="width:100%;background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;border:none;border-radius:14px;padding:12px;font-weight:900;font-size:13px;cursor:pointer;font-family:inherit;">
-                ▶️ Ad Dekho — 10 Pts Pao!
-            </button>
-            <div id="rewardAdStatus" style="text-align:center;font-size:10px;color:var(--text3);margin-top:6px;"></div>
-        </div>
-
-        <!-- ══════════════════════════════════════ -->
-        <!-- ADSGRAM — TASK / NATIVE ADS SECTION -->
-        <!-- ══════════════════════════════════════ -->
-        <div class="section-head" style="margin-top:2px;">
-            <h3>📋 Earn Tasks</h3>
-            <span style="font-size:10px;color:var(--text3);">Task complete = pts!</span>
-        </div>
-
-        <!-- Native Ad Card 1 -->
-        <div id="nativeAdContainer1" style="background:var(--card);border:1px solid rgba(240,192,64,.15);border-radius:14px;padding:13px;margin-bottom:9px;cursor:pointer;" onclick="showNativeAd(1)">
-            <div style="display:flex;align-items:center;gap:11px;">
-                <div style="width:44px;height:44px;background:linear-gradient(135deg,rgba(240,192,64,.12),rgba(240,192,64,.04));border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">⭐</div>
-                <div style="flex:1;min-width:0;">
-                    <div style="font-weight:700;font-size:13px;margin-bottom:2px;">Featured Task</div>
-                    <div style="font-size:11px;color:var(--text2);">Sponsor ka kaam karo, paise pao!</div>
-                </div>
-                <div style="background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:6px 11px;border-radius:28px;font-weight:800;font-size:12px;flex-shrink:0;">+50 pts</div>
-            </div>
-        </div>
-
-        <!-- Native Ad Card 2 -->
-        <div id="nativeAdContainer2" style="background:var(--card);border:1px solid rgba(25,216,158,.15);border-radius:14px;padding:13px;margin-bottom:9px;cursor:pointer;" onclick="showNativeAd(2)">
-            <div style="display:flex;align-items:center;gap:11px;">
-                <div style="width:44px;height:44px;background:linear-gradient(135deg,rgba(25,216,158,.12),rgba(25,216,158,.04));border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🎯</div>
-                <div style="flex:1;min-width:0;">
-                    <div style="font-weight:700;font-size:13px;margin-bottom:2px;">Bonus Challenge</div>
-                    <div style="font-size:11px;color:var(--text2);">Special offer — limited time!</div>
-                </div>
-                <div style="background:linear-gradient(135deg,var(--green),#059669);color:#fff;padding:6px 11px;border-radius:28px;font-weight:800;font-size:12px;flex-shrink:0;">+30 pts</div>
-            </div>
-        </div>
-
-        <div class="section-head" style="margin-top:5px;">
+        <!-- ⑥ LIVE ACTIVITY — compact -->
+        <div class="section-head" style="margin-top:8px;">
             <h3 data-t="live_activity">⚡ Live Activity</h3>
             <span style="font-size:10px;color:var(--text3)">Real-time</span>
         </div>
@@ -943,6 +846,7 @@
             </div>
             <div class="live-list" id="liveList"><div style="text-align:center;padding:16px;color:var(--text3)">Loading...</div></div>
         </div>
+
     </div>
 </div>
 
@@ -967,6 +871,12 @@
 <!-- GAMES PAGE -->
 <div class="page" id="gamesPage">
     <div class="page-inner">
+        <!-- HAPPY HOURS BANNER — shows only during 8-9 PM -->
+        <div class="happy-hours-banner" id="happyHoursBanner" style="display:none;">
+            <div class="hh-icon">⚡</div>
+            <div class="hh-text"><div class="hh-title">HAPPY HOURS!</div><div class="hh-sub">Games 2x earning! ⏰</div></div>
+            <div class="hh-timer" id="hhTimer">--:--</div>
+        </div>
         <!-- SKILL GAMES ROW 1 — Chess full width -->
         <div style="font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">⚡ Skill Games</div>
         <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px;">
@@ -1029,12 +939,7 @@
             <div class="game-card" onclick="openGame('coin')"><img src="https://image2url.com/r2/default/images/1773972404884-e233660e-0845-4937-8f72-560d43048197.jpg" class="game-img" alt="Coin"><div style="padding:8px;"><div class="game-name">🪙 Coin</div><div class="game-desc">50/50!</div><span class="game-earn-tag">2x Win</span></div></div>
 
 </div>
-        <!-- GAME STATS -->
-        <div style="display:flex;gap:8px;margin-top:12px;">
-            <div class="gstat"><div class="gstat-val" id="gameWins">0</div><div class="gstat-lbl">Wins</div></div>
-            <div class="gstat"><div class="gstat-val" id="gameTodayEarned">0 pts</div><div class="gstat-lbl">Today</div></div>
-            <div class="gstat"><div class="gstat-val" id="gameStreak">0🔥</div><div class="gstat-lbl">Streak</div></div>
-        </div>
+
     </div>
 </div>
 
@@ -1081,11 +986,29 @@
                 👑 Champion (500) = VIP tag + Runner game bonus time<br>
                 🔥 Legend (1000) = Extra daily spin<br>
                 ✨ God Tier (10k) = Max earnings unlock!<br>
-                <span style="color:var(--purple2);font-weight:700;">🏃 Runner game mein zyada refs = zyada reward/sec!</span>
+
             </div>
         </div>
 
         <!-- Runner Challenge removed from profile -->
+
+        <!-- MILESTONE CARD — in profile -->
+        <div class="milestone-card" id="milestoneCard" style="margin-top:11px;">
+            <div class="milestone-title">🎯 Referral Milestones</div>
+            <div id="milestoneList">Loading...</div>
+        </div>
+
+        <!-- WITHDRAWAL PROGRESS — in profile -->
+        <div id="wdProgressWrap" style="background:var(--bg3);border-radius:14px;padding:12px;margin-top:11px;border:1px solid var(--border);">
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:4px;">
+                <span>Withdrawal Progress</span>
+                <span id="wdProgressTxt">₹0 / ₹20</span>
+            </div>
+            <div style="height:7px;background:var(--bg2);border-radius:6px;overflow:hidden;">
+                <div id="wdProgressBar" class="progress-animated" style="height:100%;background:linear-gradient(90deg,#f0c040,#19d89e);border-radius:6px;width:0%;transition:width .8s;"></div>
+            </div>
+            <div id="wdProgressMsg" style="font-size:9px;color:var(--text3);margin-top:3px;text-align:right;"></div>
+        </div>
 
         <div class="ref-activity-section">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;">
@@ -1131,14 +1054,7 @@
 <!-- ======= MODALS ======= -->
 
 <!-- DAILY BONUS -->
-<!-- ANNOUNCEMENT BANNER -->
-<div id="announcementBanner" style="display:none;background:linear-gradient(135deg,rgba(139,92,246,.95),rgba(54,182,245,.9));padding:12px 14px;margin:8px 14px;border-radius:14px;position:relative;border:1px solid rgba(255,255,255,.15);box-shadow:0 4px 16px rgba(124,92,252,.3);animation:scaleIn .3s ease;z-index:100;">
-    <div style="display:flex;align-items:center;gap:10px;">
-        <div style="font-size:20px;flex-shrink:0;">📢</div>
-        <div style="flex:1;font-size:13px;font-weight:700;color:#fff;" id="announcementText"></div>
-        <button onclick="dismissAnnouncement()" style="background:rgba(255,255,255,.2);border:none;border-radius:8px;width:24px;height:24px;color:#fff;font-size:16px;cursor:pointer;flex-shrink:0;line-height:1;">×</button>
-    </div>
-</div>
+<!-- Announcement banner is in homePage -->
 
 <!-- ADMIN PANEL MODAL -->
 <!-- NOTIFICATION PANEL -->
@@ -1216,6 +1132,30 @@
         <button class="btn-gold" id="claimBonusBtn2" onclick="claimBonus()">🎉 CLAIM NOW</button>
     </div>
     <div id="streakBrokenMsg" style="display:none;" class="streak-broken-msg">⚠️ Kal bonus nahi liya — streak toot gayi! Ab 0.05 se shuru hoga.</div>
+    <!-- WEEKLY BONUS — inside daily bonus modal -->
+    <div class="weekly-bonus-card" id="weeklyCardModal" style="margin-top:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-family:'Oxanium',sans-serif;font-size:14px;font-weight:900;color:var(--blue);">📅 Weekly Bonus</div>
+            <div id="weeklyBonusStatus" style="font-size:11px;color:var(--text2);">7 din = 100 pts!</div>
+        </div>
+        <div class="weekly-days" id="weeklyDays" style="margin-top:8px;"></div>
+    </div>
+
+    <!-- STREAK CHALLENGE — inside daily bonus modal -->
+    <div id="streakChallenge" style="display:none;background:linear-gradient(135deg,#0f2027,#2c5364);border:1.5px solid rgba(25,216,158,.4);border-radius:16px;padding:12px 14px;margin-top:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <div style="font-size:22px;">🔥</div>
+            <div style="flex:1;">
+                <div style="font-family:'Oxanium',sans-serif;font-size:12px;font-weight:900;color:var(--green);" id="streakChallengeTitle">7-Day Challenge!</div>
+                <div style="font-size:10px;color:var(--text2);margin-top:2px;" id="streakChallengeSub">Roz claim karo = bonus!</div>
+            </div>
+            <div id="streakChallengeBtn" style="background:var(--green);color:#000;padding:6px 12px;border-radius:20px;font-weight:900;font-size:10px;cursor:pointer;display:none;" onclick="claimStreakBonus()">CLAIM!</div>
+        </div>
+        <div style="height:5px;background:rgba(255,255,255,.1);border-radius:4px;margin-top:8px;overflow:hidden;">
+            <div id="streakChallengeBar" style="height:100%;background:linear-gradient(90deg,var(--green),var(--gold));border-radius:4px;width:0%;transition:width .5s;"></div>
+        </div>
+    </div>
+
     <div id="alreadyClaimedMsg" style="display:none;text-align:center;padding:16px;background:rgba(25,216,158,.07);border-radius:12px;border:1px solid rgba(25,216,158,.22);margin-top:12px;">
         <div style="font-size:28px;margin-bottom:5px;">✅</div>
         <div style="font-weight:800;color:var(--green);" data-t="already_claimed">Aaj ka bonus claim ho gaya!</div>
@@ -1333,7 +1273,10 @@
 <div class="modal" id="supportModal">
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('support')">←</div><div class="modal-title">📩 Support</div></div>
     <div class="card-section">
-        <p style="margin-bottom:11px;font-size:12px;">Seedha contact: <a href="https://t.me/asbhiabsr" style="color:var(--blue);font-weight:800;" target="_blank">@asbhiabsr</a></p>
+        <div style="background:rgba(54,182,245,.08);border:1px solid rgba(54,182,245,.2);border-radius:12px;padding:12px;margin-bottom:12px;">
+            <div style="font-size:12px;margin-bottom:8px;">Seedha contact karo:</div>
+            <a href="https://www.astoolswala.online/2026/05/tg-support.html?m=1" target="_blank" style="display:block;background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;padding:11px;border-radius:12px;font-weight:800;font-size:13px;text-align:center;text-decoration:none;">📩 Telegram pe Contact Karo</a>
+        </div>
         <textarea id="supportMsg" class="inp" placeholder="Apna message likho (min 10 chars)..." style="height:110px;resize:none;"></textarea>
         <button class="btn-gold" onclick="sendSupport()">📤 SEND MESSAGE</button>
     </div>
@@ -1417,7 +1360,7 @@
         <div class="wd-progress-bar"><div class="wd-progress-fill" id="wdProgressFill" style="width:0%"></div></div>
         <div class="wd-progress-text" id="wdProgressText">0/20 refs this month</div>
     </div>
-    <div class="avail-balance"><img src="https://i.postimg.cc/26CCdW9w/wallet-3d-icon-png-download-10033542.png" style="width:52px;height:52px;object-fit:contain;margin-bottom:6px;"><div style="font-size:11px;color:var(--text2);margin-bottom:3px;">Available Balance</div><div class="avail-amt" id="wdrawBal">0 pts</div><div style="font-size:11px;color:var(--text2);margin-top:3px;">Minimum: ₹20</div></div>
+    <div class="avail-balance"><img src="https://i.postimg.cc/26CCdW9w/wallet-3d-icon-png-download-10033542.png" style="width:52px;height:52px;object-fit:contain;margin-bottom:6px;"><div style="font-size:11px;color:var(--text2);margin-bottom:3px;">Available Balance</div><div class="avail-amt" id="wdrawBal">₹0.00</div><div style="font-size:11px;color:var(--text2);margin-top:3px;">Minimum: ₹20 (2000 pts)</div></div>
     <input id="wdrawAmt" class="inp" placeholder="Amount (min ₹20)" type="number" min="20">
     <div class="method-btn" onclick="selMethod('upi')" id="methodUpi"><span style="font-size:24px;">📱</span><div><div style="font-weight:700;">UPI</div><div style="font-size:10px;color:var(--text2);">Instant</div></div></div>
     <div class="method-btn" onclick="selMethod('bank')" id="methodBank"><span style="font-size:24px;">🏦</span><div><div style="font-weight:700;">Bank Transfer</div><div style="font-size:10px;color:var(--text2);">1-2 working days</div></div></div>
@@ -2254,23 +2197,30 @@ function updateUI(){
     const totalTodayEarned=userData.today_earned||0;
     const todayPts=toPoints(totalTodayEarned);
 
-    document.getElementById('balAmt').textContent=balDisplay;
+    // Smooth balance update with glow effect
+    const balEl=document.getElementById('balAmt');
+    if(balEl){
+        balEl.textContent=balDisplay;
+        balEl.style.textShadow='0 0 40px rgba(240,192,64,.7),0 0 80px rgba(240,192,64,.3)';
+        setTimeout(()=>{balEl.style.textShadow='0 0 36px rgba(240,192,64,.22)';},800);
+    }
     document.getElementById('topbarBalance').textContent=balDisplay;
     // Update rupee value subtitle
     const rupeesEl=document.getElementById('balRupees');
-    if(rupeesEl)rupeesEl.textContent='= ₹'+bal.toFixed(2)+' withdrawal value';
+    if(rupeesEl)rupeesEl.textContent='= ₹'+bal.toFixed(2)+' (₹20 min withdrawal)';
     document.getElementById('todayEarned').textContent=fmtPts(todayPts);
     document.getElementById('activeRefs').textContent=userData.active_refs||0;
     // Month refs display in balance card
     const monthRefsEl=document.getElementById('monthRefsDisplay');
     if(monthRefsEl)monthRefsEl.textContent=userData.month_active_refs||0;
     document.getElementById('passCount').textContent=userData.passes||0;
+    const pcg=document.getElementById('passCountGames');if(pcg)pcg.textContent=userData.passes||0;
     document.getElementById('wdrawBal').textContent='₹'+bal.toFixed(2);  // withdrawal shows ₹
     document.getElementById('epPassCount').textContent=userData.passes||0;
     const fname=userData.first_name||'Guest';
     document.getElementById('profileName').textContent=fname;
     document.getElementById('profileTier').textContent=getTierName(userData.tier||1);
-    document.getElementById('pBal').textContent=bal;
+    document.getElementById('pBal').textContent=fmtPts(toPoints(bal));
     document.getElementById('pTotal').textContent=fmtPts(toPoints(userData.total_earned||0));
     document.getElementById('pStreak').textContent=`${userStreak}🔥`;
     document.getElementById('pTotalRefs').textContent=userData.total_refs||0;
@@ -2326,7 +2276,7 @@ function updateWithdrawProgress(){
     const claimedBadges=getClaimedBadges();
     const idx=getBadgeIndex(userData.active_refs||0);
     const canClaim=!claimedBadges.includes(idx);
-    const dot=document.getElementById('homeBadgeClaimDot');
+    const dot=document.getElementById('homeBadgeClaimDot')||document.getElementById('badgeUnlockMsg');
     if(dot)dot.style.display=canClaim?'block':'none';
 }
 function getTierName(t){return t>=4?'💎 DIAMOND':t===3?'🥇 GOLD':t===2?'🥈 SILVER':'🥉 BASIC';}
@@ -2687,10 +2637,11 @@ function updateBadgeUI(){
     const nextBadge=BADGES[idx+1]||null;
 
     // ── Home page mini badge ─────────────────────────────────
-    const homeImg=document.getElementById('homeBadgeImg');
-    const homeNm=document.getElementById('homeBadgeName');
-    const homeProg=document.getElementById('homeBadgeProgress');
-    const homeBar=document.getElementById('homeBadgeBar');
+    // Badge elements now in profile page (not home)
+    const homeImg=document.getElementById('homeBadgeImg')||document.getElementById('badgeImgCurrent');
+    const homeNm=document.getElementById('homeBadgeName')||document.getElementById('badgeNameCurrent');
+    const homeProg=document.getElementById('homeBadgeProgress')||document.getElementById('badgeProgressTxt');
+    const homeBar=document.getElementById('homeBadgeBar')||document.getElementById('badgeProgressFill');
     if(homeImg)homeImg.src=badge.img;
     if(homeNm)homeNm.textContent=badge.name;
     if(homeProg){
@@ -2904,7 +2855,7 @@ function nameColor(name){
 function renderLiveActivity(acts){
     const el=document.getElementById('liveList');
     if(!acts||!acts.length){el.innerHTML='<div style="text-align:center;padding:14px;color:var(--text3);">No activity yet</div>';return;}
-    el.innerHTML=acts.slice(0,15).map(a=>{
+    el.innerHTML=acts.slice(0,8).map(a=>{
         const nm=a.user_name||'User';
         const initial=(nm||'U')[0].toUpperCase();
         const [c1,c2]=nameColor(nm);
@@ -4216,8 +4167,16 @@ async function doCrashCashout(){
     setTimeout(resetCrashUI,2400);
 }
 
+// Track last game ad time
+let _lastGameAdTime = 0;
 function openGame(g,tryFree){
     playSound('tap');
+    // Show ad every 5 minutes when opening games
+    const now=Date.now();
+    if(now-_lastGameAdTime>5*60*1000){
+        _lastGameAdTime=now;
+        showTabAd(); // show banner prompt
+    }
     // FIXED: Allow opening game — try mode allowed even with 0 passes
     // Passes check happens inside startGame functions, not here
     if(g==='spin'){drawWheel(spinAngle);openModal('spin');}
@@ -4290,7 +4249,7 @@ function selMazeDiff(d,el){
 }
 
 async function startMaze(tryFree){
-    const _mazeTry = tryFree || (userData.passes||0)<=0;
+    window._mazeTry = tryFree || (userData.passes||0)<=0;
     if(!_mazeTry){
         if((userData.balance||0)<mazeBet){showToast('❌ Points kam hain!');return;}
         const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'maze',bet:mazeBet});
@@ -4427,7 +4386,7 @@ async function finishMaze(won){
     }
     const rup=fromPoints(pts);
     if(rup>0){
-        if(!_mazeTry)await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'maze',bet:mazeBet,survived_seconds:cfg.time-mazeTimer});
+        if(!window._mazeTry)await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'maze',bet:mazeBet,survived_seconds:cfg.time-mazeTimer});
         userData.balance=(userData.balance||0)+rup;
         userData.today_earned=(userData.today_earned||0)+rup;
         gameState.today_game_earned=(gameState.today_game_earned||0)+rup;
@@ -4469,7 +4428,7 @@ function snakeDir(d){const m={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right
 function placeFood(){let f,t=0;do{f={x:1+Math.floor(Math.random()*(SN-2)),y:1+Math.floor(Math.random()*(SN-2))};t++;}while(snake.some(s=>s.x===f.x&&s.y===f.y)&&t<300);snakeFood=f;}
 
 async function startSnake(tryFree){
-    const _snakeTry = tryFree || (userData.passes||0)<=0;
+    window._snakeTry = tryFree || (userData.passes||0)<=0;
     if(!_snakeTry){
         if((userData.balance||0)<snakeBet){showToast('❌ Points kam hain!');return;}
         const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'snake',bet:snakeBet});
@@ -4565,7 +4524,7 @@ async function finishSnake(){
     SN_TARGETS.forEach(t=>{if(snakeScore>=t.dots&&elapsed<=t.secs){pts+=t.bonus;showToast('🎯 Target! +'+t.bonus+' pts!');}});
     const rup=fromPoints(pts);
     if(rup>0){
-        if(!_snakeTry)await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'snake',bet:snakeBet,survived_seconds:snakeScore});
+        if(!window._snakeTry)await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'snake',bet:snakeBet,survived_seconds:snakeScore});
         userData.balance=(userData.balance||0)+rup;userData.today_earned=(userData.today_earned||0)+rup;
         gameState.today_game_earned=(gameState.today_game_earned||0)+rup;gameState.totalPlays=(gameState.totalPlays||0)+1;
         if(snakeScore>=5)gameState.wins=(gameState.wins||0)+1;
@@ -4702,7 +4661,7 @@ function selChessBet(a,el){if(a>(userData.balance||0)){showToast('❌ Points kam
 function selChessTime(t,el){chessTimeSetting=t;chessMult={60:2,30:4,15:8}[t]||2;document.querySelectorAll('#chessModal .runner-mode-btn').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
 
 async function startChess(tryFree){
-    const _chessTry = tryFree || (userData.passes||0)<=0;
+    window._chessTry = tryFree || (userData.passes||0)<=0;
     if(!_chessTry){
         if((userData.balance||0)<chessBet){showToast('❌ Points kam hain!');return;}
         const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'chess',bet:chessBet});
@@ -4782,7 +4741,7 @@ async function finishChess(reason){
     else{pts=0;title='Haar Gaye!';emoji='😔';}
     const rup=fromPoints(pts);
     if(rup>0){
-        if(!_chessTry)await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'chess',bet:chessBet,survived_seconds:chessMoveCount});
+        if(!window._chessTry)await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'chess',bet:chessBet,survived_seconds:chessMoveCount});
         userData.balance=(userData.balance||0)+rup;userData.today_earned=(userData.today_earned||0)+rup;
         gameState.today_game_earned=(gameState.today_game_earned||0)+rup;gameState.totalPlays=(gameState.totalPlays||0)+1;
         if(reason==='checkmate')gameState.wins=(gameState.wins||0)+1;
@@ -5271,6 +5230,7 @@ function exitChess(){if(chessInterval)clearInterval(chessInterval);chessActive=f
 // TAB & MODAL
 // ============================================================
 const pageIds=['homePage','rankPage','gamesPage','profilePage','historyPage'];
+let _lastTabAdTime = 0;
 function switchTab(idx){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -5278,15 +5238,49 @@ function switchTab(idx){
     document.getElementById(`nav${idx}`).classList.add('active');
     playSound('tap');window.scrollTo(0,0);
     if(idx===1)loadLeaderboard();
-    else if(idx===3){updateUI();loadRefActivity();}
+    else if(idx===3){updateUI();loadRefActivity();updateMilestoneCard();updateBadgeUI();}
     else if(idx===4)loadWithdrawalHistory();
+    // Show interstitial ad when switching to Games tab (max once per 3 min)
+    if(idx===2){
+        const now=Date.now();
+        if(now-_lastTabAdTime > 3*60*1000){
+            _lastTabAdTime=now;
+            setTimeout(()=>showTabAd(),500);
+        }
+    }
+}
+
+// Small interstitial ad when opening games
+async function showTabAd(){
+    try{
+        if(typeof AdController==='undefined')return;
+        if(!rewardController)rewardController=await AdController.init({blockId:ADSGRAM_REWARD_BLOCK});
+        // Show reward ad silently (user has to interact)
+        // Just show a small banner prompt instead
+        const banner=document.createElement('div');
+        banner.style.cssText='position:fixed;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 55px);left:13px;right:13px;background:linear-gradient(135deg,rgba(10,26,48,.97),rgba(13,18,64,.97));border:1px solid rgba(54,182,245,.3);border-radius:14px;padding:10px 14px;z-index:150;display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:toastIn .3s ease;';
+        const watchBtn=document.createElement('button');
+        watchBtn.textContent='\u25B6\uFE0F +10 pts';
+        watchBtn.style.cssText='background:linear-gradient(135deg,#36b6f5,#7c5cfc);color:#fff;border:none;border-radius:20px;padding:6px 12px;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap;';
+        watchBtn.onclick=function(){showRewardAd();banner.remove();};
+        const closeBtn=document.createElement('button');
+        closeBtn.textContent='\u2715';
+        closeBtn.style.cssText='background:rgba(255,255,255,.1);border:none;border-radius:20px;padding:6px 10px;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;';
+        closeBtn.onclick=function(){banner.remove();};
+        const icon=document.createElement('span');icon.textContent='\uD83D\uDCFA';icon.style.fontSize='20px';
+        const txt=document.createElement('div');txt.style.cssText='flex:1;font-size:12px;font-weight:700;color:#fff;';txt.textContent='Ad dekho, 10 pts pao!';
+        banner.appendChild(icon);banner.appendChild(txt);banner.appendChild(watchBtn);banner.appendChild(closeBtn);
+        document.body.appendChild(banner);
+        setTimeout(()=>{if(banner.parentElement)banner.remove();},6000);
+    }catch(e){}
 }
 function openModal(id){
     const el=document.getElementById(id+'Modal');if(!el)return;
     el.classList.add('open');
-    if(id==='missions'){loadMissions();}  // Always reload missions fresh
-    if(id==='dailyBonus')buildTrainChain();
+    if(id==='missions'){loadMissions();}
+    if(id==='dailyBonus'){buildTrainChain();updateWeeklyBonus();checkStreakChallenge();}
     if(id==='withdraw'){updateWithdrawCondition();}
+    if(id==='profile'||id==='profilePage'){updateMilestoneCard();updateBadgeUI();}
 }
 function closeModal(id){
     const el=document.getElementById(id+'Modal');if(el)el.classList.remove('open');
@@ -5768,7 +5762,8 @@ function checkStreakChallenge(){
     if(!el || !bar) return;
 
     const streak = userData.daily_streak || 0;
-    el.style.display = 'block';
+    // Only show if streak > 0 (inside daily bonus modal)
+    el.style.display = streak > 0 ? 'block' : 'none';
 
     if(streak >= 30){
         title.textContent = '🏆 30-Day Legend Challenge!';
@@ -5942,6 +5937,8 @@ async function init(){
     setInterval(checkBroadcastNotifications, 60000);
     setInterval(async()=>{await loadUser();await loadGameState();checkShortlinkReminder();checkStreakChallenge();},60000);
 }
+
+
 document.addEventListener('DOMContentLoaded',init);
 
 // ============================================================
