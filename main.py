@@ -1288,6 +1288,47 @@ def game_quiz_api():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
 
+# ========== ADSGRAM REWARD WEBHOOK ==========
+
+@app.route('/api/adsgram-reward')
+def adsgram_reward():
+    """
+    AdsGram GET webhook — jab user ad pura dekhe tab yahan GET request aati hai.
+    URL format: /api/adsgram-reward?userId=[userId]&blockId=int-30566
+    [userId] ko AdsGram khud replace karta hai user ke Telegram ID se.
+    """
+    try:
+        # AdsGram 'userId' parameter bhejta hai (capital I)
+        user_id = (
+            request.args.get('userId') or
+            request.args.get('userid') or
+            request.args.get('user_id')
+        )
+        block_id = request.args.get('blockId', 'adsgram')
+
+        if not user_id:
+            logger.warning("AdsGram reward: userId missing in request")
+            return jsonify({'success': False, 'message': 'userId missing'}), 400
+
+        user_id = int(user_id)
+        reward_pts = 0.10  # ₹0.10 = 10 pts per ad watch
+
+        if not db or not db.ensure_connection():
+            return jsonify({'success': False, 'message': 'DB error'}), 503
+
+        # Add balance to user
+        db.add_balance(user_id, reward_pts, f'AdsGram reward ({block_id})')
+        db.add_live_activity('bonus', user_id, reward_pts, '📺 Ad dekhi! +10 pts')
+        db.user_cache.pop(f"user_{user_id}", None)
+
+        logger.info(f"✅ AdsGram reward: user={user_id} block={block_id} +₹{reward_pts}")
+        return jsonify({'success': True, 'message': 'Reward added', 'reward': reward_pts}), 200
+
+    except Exception as e:
+        logger.error(f"AdsGram reward error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
 @app.route('/health')
 def health():
     status = {'status': 'ok', 'time': datetime.now().isoformat(), 'db_connected': db.connected if db else False}
