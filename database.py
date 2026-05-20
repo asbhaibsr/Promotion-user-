@@ -29,7 +29,7 @@ class Database:
             self.client = MongoClient(
                 config.MONGODB_URI,
                 serverSelectionTimeoutMS=5000,
-                maxPoolSize=10,
+                maxPoolSize=20,
                 tlsCAFile=certifi.where()
             )
             self.client.admin.command('ping')
@@ -1769,7 +1769,7 @@ class Database:
             result = {'success': True, 'won': won, 'result': actual_result, 'choice': choice, 'bet': bet, 'reward': 0}
 
             if won:
-                reward = bet * 2
+                reward = round(bet * 1.6, 2)  # 60% user payout, 40% house edge
                 earn_result = self.add_game_earning(user_id, reward, 'coin', f"Coin flip win ₹{reward}")
                 result['reward'] = earn_result.get('earned', 0)
                 result['today_earned'] = earn_result.get('today_total', 0)
@@ -1874,12 +1874,12 @@ class Database:
     # ========== COLOR PREDICTION GAME ==========
 
     COLOR_CONFIG = {
-        'red':    {'mult': 2,  'prob': 0.30},
-        'green':  {'mult': 2,  'prob': 0.28},
-        'blue':   {'mult': 2,  'prob': 0.25},
-        'yellow': {'mult': 4,  'prob': 0.10},
-        'purple': {'mult': 4,  'prob': 0.05},
-        'orange': {'mult': 9,  'prob': 0.02},
+        'red':    {'mult': 1.6,  'prob': 0.30},  # 40% house edge
+        'green':  {'mult': 1.6,  'prob': 0.28},  # 40% house edge
+        'blue':   {'mult': 1.6,  'prob': 0.25},  # 40% house edge
+        'yellow': {'mult': 3.2,  'prob': 0.10},  # ~80% of old 4x
+        'purple': {'mult': 3.2,  'prob': 0.05},  # ~80% of old 4x
+        'orange': {'mult': 7.2,  'prob': 0.02},  # ~80% of old 9x
     }
 
     def process_game_color(self, user_id, choice, bet):
