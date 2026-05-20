@@ -314,6 +314,12 @@ def claim_ad_api():
         reward = data.get('reward')
         if not all([user_id, ad_id is not None, reward]):
             return jsonify({'success': False, 'message': 'Missing data'}), 400
+        # Profit optimization: user gets max 60% of claimed reward (house keeps 40%)
+        try:
+            reward_val = float(reward)
+            reward = round(reward_val * 0.60, 2)
+        except (ValueError, TypeError):
+            pass
         success = db.claim_ad(user_id, ad_id, reward)
         if success:
             return jsonify({'success': True, 'message': 'Reward added! +1 Pass bhi mila!'})
@@ -1311,7 +1317,7 @@ def adsgram_reward():
             return jsonify({'success': False, 'message': 'userId missing'}), 400
 
         user_id = int(user_id)
-        reward_pts = 0.10  # ₹0.10 = 10 pts per ad watch
+        reward_pts = 0.06  # ₹0.06 = 6 pts per ad (60% user payout, 40% house profit)
 
         if not db or not db.ensure_connection():
             return jsonify({'success': False, 'message': 'DB error'}), 503
