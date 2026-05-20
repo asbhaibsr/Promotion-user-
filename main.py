@@ -574,6 +574,36 @@ def verify_passes_api():
         logger.error(f"Verify passes error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@app.route('/api/settings')
+def get_settings_api():
+    """Public settings — UPI ID for pass purchases"""
+    try:
+        if not db or not db.ensure_connection():
+            return jsonify({'upi_id': 'filmyfund@upi'})
+        settings = db.get_settings() if hasattr(db, 'get_settings') else {}
+        return jsonify({
+            'upi_id': settings.get('upi_id', 'filmyfund@upi'),
+            'min_withdraw': settings.get('min_withdraw', 5000),
+        })
+    except Exception as e:
+        logger.error(f"Settings error: {e}")
+        return jsonify({'upi_id': 'filmyfund@upi'})
+
+@app.route('/api/settings', methods=['POST'])
+def save_settings_api():
+    """Admin save settings"""
+    try:
+        data = request.get_json()
+        if not db or not db.ensure_connection():
+            return jsonify({'success': False}), 503
+        if hasattr(db, 'save_settings'):
+            db.save_settings(data)
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Save settings error: {e}")
+        return jsonify({'success': False}), 500
+
+
 @app.route('/api/claim-weekly-bonus', methods=['POST'])
 def claim_weekly_bonus_api():
     try:
@@ -1600,11 +1630,25 @@ def run_bot():
 def run_flask():
     port = int(os.environ.get('PORT', 10000))
     logger.info(f"Flask starting on port {port}")
+    time.sleep(2)  # Give previous instance time to release port
     try:
         from waitress import serve
         serve(app, host='0.0.0.0', port=port, threads=8, channel_timeout=60, connection_limit=200)
     except ImportError:
         app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False, threaded=True)
+    except OSError as e:
+        if 'Address already in use' in str(e):
+            logger.warning(f"Port {port} busy — waiting 6s then retrying...")
+            time.sleep(6)
+            try:
+                from waitress import serve
+                serve(app, host='0.0.0.0', port=port, threads=8, channel_timeout=60, connection_limit=200)
+            except Exception as e2:
+                logger.error(f"Flask retry failed: {e2}")
+                sys.exit(1)
+        else:
+            logger.error(f"Flask OSError: {e}")
+            sys.exit(1)
     except Exception as e:
         logger.error(f"Flask error: {e}")
         sys.exit(1)
