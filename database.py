@@ -1711,7 +1711,7 @@ class Database:
             return {'success': False, 'message': str(e)}
 
     def process_game_guess(self, user_id, guess, bet):
-        """Number guess — costs 1 pass."""
+        """Number guess — costs 1 pass per attempt, fixed reward on win."""
         try:
             user_id = int(user_id)
             today = datetime.now().date().isoformat()
@@ -1721,14 +1721,14 @@ class Database:
             if not user or user.get('passes', 0) <= 0:
                 return {'success': False, 'message': 'Passes nahi hain!'}
 
-            deduct_result = self.deduct_game_balance(user_id, bet, 'guess')
-            if not deduct_result.get('success'):
-                return deduct_result
+            # Deduct 1 pass per attempt
+            self.deduct_pass(user_id)
 
             secret = state.get('guess_secret', random.randint(1, 10))
             attempts_used = state.get('guess_attempts_used', 0) + 1
             is_correct = (guess == secret)
             is_last_attempt = (attempts_used >= 3)
+            FIXED_WIN_REWARD = 5  # fixed 500 pts (5 units)
 
             result = {
                 'success': True, 'correct': is_correct,
@@ -1737,17 +1737,14 @@ class Database:
             }
 
             if is_correct:
-                reward = bet * 8
-                earn_result = self.add_game_earning(user_id, reward, 'guess', "Guess correct! x8")
+                earn_result = self.add_game_earning(user_id, FIXED_WIN_REWARD, 'guess', "Guess correct! +500 pts")
                 result['reward'] = earn_result.get('earned', 0)
                 result['today_earned'] = earn_result.get('today_total', 0)
-                self.deduct_pass(user_id)
                 self.game_states.update_one(
                     {'user_id': user_id, 'date': today},
                     {'$set': {'guess_secret': random.randint(1, 10), 'guess_attempts_used': 0}}
                 )
             elif is_last_attempt:
-                self.deduct_pass(user_id)
                 self.game_states.update_one(
                     {'user_id': user_id, 'date': today},
                     {'$set': {'guess_secret': random.randint(1, 10), 'guess_attempts_used': 0}}
@@ -1775,20 +1772,18 @@ class Database:
             if not user or user.get('passes', 0) <= 0:
                 return {'success': False, 'message': 'Passes nahi hain!'}
 
-            deduct_result = self.deduct_game_balance(user_id, bet, 'coin')
-            if not deduct_result.get('success'):
-                return deduct_result
-
-            self.deduct_pass(user_id)
+            # Deduct 1 pass (no balance deduction)
+            if not self.deduct_pass(user_id):
+                return {'success': False, 'message': 'Pass deduct nahi hua'}
 
             actual_result = 'heads' if random.random() < 0.5 else 'tails'
             won = (choice == actual_result)
 
-            result = {'success': True, 'won': won, 'result': actual_result, 'choice': choice, 'bet': bet, 'reward': 0}
+            FIXED_WIN = 5  # 500 pts
+            result = {'success': True, 'won': won, 'result': actual_result, 'choice': choice, 'bet': 1, 'reward': 0}
 
             if won:
-                reward = round(bet * 1.6, 2)  # 60% user payout, 40% house edge
-                earn_result = self.add_game_earning(user_id, reward, 'coin', f"Coin flip win ₹{reward}")
+                earn_result = self.add_game_earning(user_id, FIXED_WIN, 'coin', "Coin flip win! +500 pts")
                 result['reward'] = earn_result.get('earned', 0)
                 result['today_earned'] = earn_result.get('today_total', 0)
 
@@ -1914,11 +1909,8 @@ class Database:
             user = self.get_user(user_id)
             if not user or user.get('passes', 0) <= 0:
                 return {'success': False, 'message': 'Passes nahi hain!'}
-            deduct_result = self.deduct_game_balance(user_id, bet, 'color')
-            if not deduct_result.get('success'):
-                return deduct_result
+            # Deduct 1 pass only (no balance deduction)
             if not self.deduct_pass(user_id):
-                self.add_balance(user_id, bet, "Color refund")
                 return {'success': False, 'message': 'Pass deduct nahi hua'}
             # Weighted color pick
             probs = [self.COLOR_CONFIG[c]['prob'] for c in valid_colors]
@@ -1932,12 +1924,13 @@ class Database:
                     break
             won = (choice == result_color)
             result = {'success': True, 'won': won, 'result_color': result_color, 'choice': choice, 'reward': 0}
+            # Fixed rewards per color (no bet multiplier)
+            COLOR_FIXED_REWARDS = {'red': 8, 'green': 8, 'blue': 10, 'gold': 15, 'purple': 20}
             if won:
-                mult = self.COLOR_CONFIG[result_color]['mult']
-                reward = round(bet * mult, 2)
-                earn_result = self.add_game_earning(user_id, reward, 'color', f"Color {result_color} {mult}x")
-                result['reward'] = earn_result.get('earned', reward)
-                result['multiplier'] = mult
+                fixed_reward = COLOR_FIXED_REWARDS.get(result_color, 8)
+                earn_result = self.add_game_earning(user_id, fixed_reward, 'color', f"Color {result_color} win!")
+                result['reward'] = earn_result.get('earned', fixed_reward)
+                result['multiplier'] = COLOR_FIXED_REWARDS.get(result_color, 8)
                 result['today_earned'] = earn_result.get('today_total', 0)
             return result
         except Exception as e:
@@ -2128,6 +2121,34 @@ class Database:
         except Exception as e:
             logger.error(f"Error getting system stats: {e}")
             return {}
+
+
+    def get_settings(self):
+        """Get app settings from DB (UPI ID, etc.)"""
+        try:
+            if not self.ensure_connection():
+                return {}
+            doc = self.db.settings.find_one({'_id': 'app_settings'})
+            if doc:
+                doc.pop('_id', None)
+                return doc
+            return {}
+        except Exception as e:
+            logger.error(f"get_settings error: {e}")
+            return {}
+
+    def save_settings(self, data):
+        """Save app settings to DB"""
+        try:
+            if not self.ensure_connection():
+                return False
+            data['_id'] = 'app_settings'
+            data['updated_at'] = datetime.utcnow()
+            self.db.settings.replace_one({'_id': 'app_settings'}, data, upsert=True)
+            return True
+        except Exception as e:
+            logger.error(f"save_settings error: {e}")
+            return False
 
     def cleanup(self):
         try:
