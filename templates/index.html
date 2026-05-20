@@ -33,23 +33,14 @@
  */
 
         *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-        :root{
-            --bg:#07080f;--bg2:#0d1020;--bg3:#151828;--card:#111422;
-            --gold:#f0c040;--gold2:#ffd700;--gold-dim:#c8961f;
-            --purple:#7c5cfc;--purple2:#a98aff;
-            --green:#19d89e;--red:#ff4e6a;--blue:#36b6f5;
-            --text:#eef0fb;--text2:#6d7a9f;--text3:#3d4560;
-            --border:rgba(255,255,255,0.05);
-            --shadow:0 8px 32px rgba(0,0,0,0.6);
-            --nav-h:68px;--r:16px;
-        }
+        :root { /* Replaced */ }
         [data-theme="light"]{
             --bg:#f2f5ff;--bg2:#e8ecfb;--bg3:#dde3f7;--card:#fff;
             --text:#111528;--text2:#4a5677;--text3:#8899bb;
             --border:rgba(0,0,0,0.07);--shadow:0 6px 22px rgba(0,0,0,0.1);
         }
-        html,body{background:var(--bg);color:var(--text);min-height:100%;overflow-x:hidden;font-family:'Space Grotesk',sans-serif;}
-        body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);}
+        html,body { /* Replaced */ }
+        body { /* Replaced */ }
         ::-webkit-scrollbar{width:3px;height:3px;}
         ::-webkit-scrollbar-thumb{background:var(--gold);border-radius:4px;}
 
@@ -62,7 +53,7 @@
         .onboard-lang-row{display:flex;gap:8px;padding:12px 14px;background:var(--bg3);flex-shrink:0;}
         .onboard-lang-btn{flex:1;padding:9px;border-radius:10px;background:var(--bg2);border:1.5px solid var(--border);text-align:center;cursor:pointer;font-size:12px;font-weight:700;transition:all .2s;}
         .onboard-lang-btn.active{border-color:var(--gold);background:rgba(240,192,64,.1);color:var(--gold);}
-        .onboard-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px;flex:1;}
+        .onboard-body { /* Replaced */ }
         .onboard-section{margin-bottom:14px;}
         .onboard-section-title{font-family:'Oxanium',sans-serif;font-size:13px;font-weight:900;color:var(--gold);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
         .onboard-item{display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);}
@@ -666,7 +657,48 @@
         .neon-glow{box-shadow:0 0 15px rgba(240,192,64,.3),0 0 30px rgba(240,192,64,.1);transition:box-shadow .3s;}
         .neon-glow:active{box-shadow:0 0 20px rgba(240,192,64,.5),0 0 40px rgba(240,192,64,.2);}
 
-    </style>
+    
+:root {
+    --bg-main: #0a0a0c;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --primary: #00ff88;
+    --text-main: #ffffff;
+    --text-muted: #888899;
+    --accent: #ff007a;
+    --border-light: rgba(255, 255, 255, 0.08);
+    --bg: #0a0a0c;
+    --nav-bg: rgba(10, 10, 12, 0.8);
+    --text: #ffffff;
+    --text2: #aaaaaa;
+    --text3: #888899;
+    --gold: #FFD700;
+    --green: #00ff88;
+    --red: #ff3c3c;
+    --blue: #36b6f5;
+    --purple: #9d4edd;
+    --nav-h: 65px;
+}
+
+body {
+    background: radial-gradient(circle at top, #1a1a24 0%, var(--bg-main) 100%);
+    color: var(--text-main);
+    font-family: 'Space Grotesk', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+    margin:0; padding:0; box-sizing:border-box;
+    -webkit-tap-highlight-color: transparent;
+    padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 20px);
+}
+
+.card, .mission-box, .game-container {
+    background: var(--card-bg) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+}
+
+</style>
 </head>
 <body>
 
@@ -788,20 +820,13 @@
                 </div>
                 <div style="background:linear-gradient(135deg,var(--green),#059669);color:#fff;padding:6px 12px;border-radius:20px;font-weight:800;font-size:11px;align-self:flex-start;" id="dailyBonusBtn">Claim</div>
             </div>
-            <!-- Watch Ad Earn — Beautiful Card -->
-            <div style="background:linear-gradient(135deg,#041830,#0d1850);border:1.5px solid rgba(54,182,245,.4);border-radius:18px;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 20px rgba(54,182,245,.12);" onclick="showRewardAd()" ontouchstart="this.style.transform='scale(.97)';this.style.boxShadow='none'" ontouchend="this.style.transform='';this.style.boxShadow='0 4px 20px rgba(54,182,245,.12)'">
-                <div style="background:linear-gradient(90deg,rgba(54,182,245,.15),transparent);padding:12px 14px;display:flex;align-items:center;gap:10px;">
-                    <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--blue),#7c5cfc);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 0 12px rgba(54,182,245,.3);">📺</div>
-                    <div style="flex:1;">
-                        <div style="font-family:'Oxanium',sans-serif;font-weight:900;font-size:14px;color:var(--text);">Watch & Earn</div>
-                        <div style="font-size:11px;color:var(--text3);margin-top:1px;">Ad dekho, turant pao</div>
-                    </div>
-                    <div style="background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:900;font-family:'Oxanium',sans-serif;box-shadow:0 0 10px rgba(54,182,245,.3);">+10 pts</div>
-                </div>
-                <div style="padding:10px 14px 12px;display:flex;align-items:center;gap:10px;">
-                    <button id="rewardAdBtn" style="flex:1;background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;border:none;border-radius:30px;padding:11px 16px;font-weight:900;font-size:13px;cursor:pointer;font-family:'Oxanium',sans-serif;letter-spacing:.3px;box-shadow:0 4px 12px rgba(54,182,245,.25);">▶ Ad Dekho — +10 pts</button>
-                </div>
-                <div id="rewardAdStatus" style="font-size:10px;color:var(--text3);text-align:center;padding-bottom:8px;"></div>
+            <!-- Watch Ad Earn -->
+            <div style="background:linear-gradient(135deg,#0a1628,#0d1240);border:1.5px solid rgba(54,182,245,.3);border-radius:18px;padding:14px;cursor:pointer;transition:transform .15s;display:flex;flex-direction:column;gap:6px;" onclick="showRewardAd()" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform=''">
+                <div style="font-size:28px;">📺</div>
+                <div style="font-weight:800;font-size:13px;color:var(--blue);">Watch & Earn</div>
+                <div style="font-size:10px;color:var(--text2);">Ad dekho • +10 pts!</div>
+                <button id="rewardAdBtn" style="background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;border:none;border-radius:20px;padding:6px 10px;font-weight:800;font-size:11px;cursor:pointer;font-family:inherit;align-self:flex-start;">▶️ +10 pts</button>
+                <div id="rewardAdStatus" style="font-size:9px;color:var(--text3);"></div>
             </div>
         </div>
 
@@ -848,35 +873,13 @@
         </div>
         <div id="adsContainer"></div>
 
-        <!-- AdsGram Task Ad (task-30639) — Beautiful Card -->
-        <div id="adsgram-task-wrapper" style="margin-bottom:12px;">
-            <div style="background:linear-gradient(135deg,#1a0a3a,#0d0624);border:1.5px solid rgba(124,92,252,.35);border-radius:20px;overflow:hidden;">
-                <div style="padding:14px 16px 10px;display:flex;align-items:center;gap:10px;">
-                    <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--purple),#7c3aed);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📋</div>
-                    <div style="flex:1;">
-                        <div style="font-family:'Oxanium',sans-serif;font-weight:900;font-size:14px;color:var(--text);">Daily Task Ad</div>
-                        <div style="font-size:11px;color:var(--text3);margin-top:2px;">Complete karo, reward pao!</div>
-                    </div>
-                    <div style="background:linear-gradient(135deg,var(--purple),var(--gold));color:#fff;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:900;font-family:'Oxanium',sans-serif;">+Pts</div>
-                </div>
-                <div style="padding:0 14px 14px;">
-                    <adsgram-task
-                        data-block-id="task-30639"
-                        class="adsgram-task-el"
-                        style="
-                            --adsgram-task-font-size:13px;
-                            --adsgram-task-icon-size:38px;
-                            --adsgram-task-button-width:100%;
-                            --adsgram-task-icon-border-radius:10px;
-                            display:block;width:100%;
-                        "
-                    >
-                        <div slot="button" style="background:linear-gradient(135deg,var(--purple),var(--gold));color:#fff;border:none;padding:11px 20px;border-radius:30px;font-weight:900;font-size:13px;cursor:pointer;font-family:'Oxanium',sans-serif;width:100%;text-align:center;letter-spacing:.3px;">▶ Task Complete Karo</div>
-                        <div slot="claim" style="background:linear-gradient(135deg,var(--green),#059669);color:#fff;border:none;padding:11px 20px;border-radius:30px;font-weight:900;font-size:13px;cursor:pointer;font-family:'Oxanium',sans-serif;width:100%;text-align:center;">🎁 Claim Reward</div>
-                        <div slot="done" style="background:rgba(25,216,158,.1);border:1px solid var(--green);color:var(--green);padding:10px 20px;border-radius:30px;font-weight:900;font-size:13px;font-family:'Oxanium',sans-serif;width:100%;text-align:center;">✅ Aaj Ka Task Done!</div>
-                    </adsgram-task>
-                </div>
-            </div>
+        <!-- AdsGram Task Ad (task-30568) -->
+        <div id="adsgram-task-wrapper" style="margin-bottom:10px;">
+            <adsgram-task
+                data-block-id="task-30568"
+                class="adsgram-task-el"
+                style="--adsgram-task-font-size:13px;--adsgram-task-icon-size:40px;"
+            ></adsgram-task>
         </div>
 
         <!-- ⑥ LIVE ACTIVITY — compact -->
@@ -915,17 +918,6 @@
 <!-- GAMES PAGE -->
 <div class="page" id="gamesPage">
     <div class="page-inner">
-        <!-- PASSES BAR at top -->
-        <div style="background:linear-gradient(135deg,#1c0e4a,#0f0624);border:1.5px solid rgba(124,92,252,.3);border-radius:16px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">
-            <div style="display:flex;align-items:center;gap:10px;">
-                <div style="font-size:26px;">🎟️</div>
-                <div>
-                    <div style="font-size:11px;color:var(--text3);">Aapke Passes</div>
-                    <div style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--purple2);" id="gameBadgePasses">0</div>
-                </div>
-            </div>
-            <button onclick="openModal('earnPasses')" style="background:linear-gradient(135deg,var(--purple),var(--gold));color:#fff;border:none;padding:8px 16px;border-radius:20px;font-weight:900;font-size:12px;cursor:pointer;font-family:inherit;">+ Earn Passes</button>
-        </div>
         <!-- HAPPY HOURS BANNER — shows only during 8-9 PM -->
         <div class="happy-hours-banner" id="happyHoursBanner" style="display:none;">
             <div class="hh-icon">⚡</div>
@@ -1290,69 +1282,6 @@
     <div class="ep-method"><div class="ep-method-icon">🛒</div><div class="ep-method-info"><div class="ep-method-title">Passes Kharido</div><div class="ep-method-desc">Direct ₹ se passes buy karo</div></div><div onclick="closeModal('earnPasses');openModal('buyPasses');" class="ep-method-badge" style="cursor:pointer;background:var(--grad-gold);color:#000;">Buy →</div></div>
     </div>
 </div>
-<!-- BUY PASSES MODAL -->
-<div class="modal" id="buyPassesModal">
-    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('buyPasses')">←</div><div class="modal-title">🛒 Passes Kharido</div></div>
-    <div style="padding:14px;">
-
-        <!-- UPI Info -->
-        <div style="background:linear-gradient(135deg,rgba(240,192,64,.12),rgba(240,192,64,.04));border:1.5px solid rgba(240,192,64,.3);border-radius:18px;padding:16px;margin-bottom:14px;text-align:center;">
-            <div style="font-size:11px;color:var(--text3);margin-bottom:6px;">UPI se payment karo</div>
-            <div style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--gold);letter-spacing:1px;" id="adminUpiDisplay">Loading...</div>
-            <button onclick="navigator.clipboard.writeText(document.getElementById('adminUpiDisplay').textContent).then(()=>showToast('✅ UPI copied!'))" style="background:rgba(240,192,64,.15);border:1px solid rgba(240,192,64,.3);color:var(--gold);border-radius:10px;padding:5px 14px;font-size:11px;font-weight:800;cursor:pointer;margin-top:8px;">📋 Copy UPI</button>
-            <div style="font-size:10px;color:var(--text3);margin-top:8px;">Payment ke baad Transaction ID daalo neeche</div>
-        </div>
-
-        <!-- Package Selection -->
-        <div style="font-family:'Oxanium',sans-serif;font-size:14px;font-weight:900;color:var(--text);margin-bottom:10px;">Package Chuno:</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
-            <div class="pass-pkg sel" onclick="selectPackage(1,this)" data-pkg="1">
-                <div style="font-size:20px;margin-bottom:4px;">🎟️</div>
-                <div class="pkg-passes">15</div>
-                <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">Passes</div>
-                <div class="pkg-price">₹50</div>
-                <div style="font-size:9px;color:var(--text3);">Starter</div>
-            </div>
-            <div class="pass-pkg" onclick="selectPackage(2,this)" data-pkg="2" style="position:relative;">
-                <div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;font-size:8px;font-weight:900;padding:2px 6px;border-radius:10px;white-space:nowrap;">BEST VALUE</div>
-                <div style="font-size:20px;margin-bottom:4px;">🎟️🎟️</div>
-                <div class="pkg-passes">30</div>
-                <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">Passes</div>
-                <div class="pkg-price">₹100</div>
-                <div style="font-size:9px;color:var(--text3);">Value Pack</div>
-            </div>
-            <div class="pass-pkg" onclick="selectPackage(3,this)" data-pkg="3">
-                <div style="font-size:20px;margin-bottom:4px;">🎟️🎟️🎟️</div>
-                <div class="pkg-passes">60</div>
-                <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">Passes</div>
-                <div class="pkg-price">₹200</div>
-                <div style="font-size:9px;color:var(--text3);">Mega Pack</div>
-            </div>
-        </div>
-
-        <!-- Transaction ID Input -->
-        <div style="margin-bottom:10px;">
-            <div style="font-size:12px;color:var(--text2);font-weight:700;margin-bottom:6px;">Transaction ID / UTR Number:</div>
-            <input id="txnIdInput" type="text" placeholder="e.g. 412345678901" style="width:100%;background:var(--bg3);border:1.5px solid var(--border);color:var(--text);border-radius:12px;padding:11px 14px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box;">
-        </div>
-
-        <!-- Optional Screenshot -->
-        <div style="margin-bottom:14px;">
-            <div style="font-size:12px;color:var(--text2);font-weight:700;margin-bottom:6px;">Payment Screenshot (optional):</div>
-            <label style="display:flex;align-items:center;gap:8px;background:var(--bg3);border:1.5px dashed var(--border);border-radius:12px;padding:11px 14px;cursor:pointer;">
-                <span style="font-size:18px;">📎</span>
-                <span id="screenshotName" style="font-size:12px;color:var(--text3);">No file selected</span>
-                <input type="file" accept="image/*" onchange="handleScreenshot(this)" style="display:none;">
-            </label>
-        </div>
-
-        <!-- Submit Button -->
-        <button onclick="submitPassPurchase()" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;padding:14px;border-radius:36px;font-weight:900;font-size:15px;cursor:pointer;font-family:'Oxanium',sans-serif;letter-spacing:.3px;box-shadow:0 4px 16px rgba(240,192,64,.3);">💳 Request Submit Karo</button>
-
-        <div style="font-size:10px;color:var(--text3);text-align:center;margin-top:10px;line-height:1.6;">Admin verify karega. 5-30 min mein passes add ho jayenge.<br>Support: <span style="color:var(--blue);">@FilmyFundSupport</span></div>
-    </div>
-</div>
-
 <!-- MISSIONS -->
 <div class="modal" id="missionsModal">
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('missions')">←</div><div class="modal-title">🎯 <span data-t="missions">Missions</span></div></div>
@@ -1510,10 +1439,17 @@
 <div class="modal" id="guessModal">
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('guess')">←</div><div class="modal-title">🔢 Number Guess</div></div>
     <div class="guess-display"><div class="guess-num" id="guessDisp">?</div><div class="guess-hint" id="guessHint">1 se 10 ke beech guess karo</div></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0;background:rgba(124,92,252,.08);border:1px solid rgba(124,92,252,.2);border-radius:12px;padding:8px 12px;">
-        <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:18px;">🎟️</span><span style="font-weight:900;font-size:13px;color:var(--purple2);">1 Pass per Play</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0;">
+        <span style="font-weight:700;font-size:12px;">Bet:</span>
+        <span style="font-family:'Oxanium',sans-serif;font-size:17px;font-weight:900;color:var(--gold);" id="guessBetDisp">100 pts</span>
         <span style="font-size:11px;color:var(--text2);">Passes: <b style="color:var(--purple2);" id="guessPassLeft">0</b></span>
         <span style="font-size:11px;color:var(--text2);">Bal: <b style="color:var(--gold);" id="guessBal">0 pts</b></span>
+    </div>
+    <div class="bet-row">
+        <div class="bet-chip sel" onclick="selGuessBet(1,this)">100 pts</div>
+        <div class="bet-chip" onclick="selGuessBet(2,this)">200 pts</div>
+        <div class="bet-chip" onclick="selGuessBet(5,this)">500 pts</div>
+        <div class="bet-chip" onclick="selGuessBet(10,this)">1000 pts</div>
     </div>
     <div class="num-grid" id="numGrid"></div>
     <div style="background:rgba(25,216,158,.07);border:1px solid rgba(25,216,158,.2);border-radius:11px;padding:10px 13px;margin:6px 0;font-size:11px;color:var(--text2);">
@@ -1537,15 +1473,17 @@
             <button class="coin-choice" id="coinChoiceH" onclick="chooseCoin('heads')">👑<br><span style="font-size:12px;">Heads</span></button>
             <button class="coin-choice" id="coinChoiceT" onclick="chooseCoin('tails')">⚡<br><span style="font-size:12px;">Tails</span></button>
         </div>
-        <div style="background:rgba(124,92,252,.08);border:1px solid rgba(124,92,252,.2);border-radius:12px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
-            <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:18px;">🎟️</span><span style="font-weight:900;font-size:13px;color:var(--purple2);">1 Pass per Play</span></div>
-            <span style="font-size:11px;color:var(--text2);">Jeeto: <b style="color:var(--green);">+50 pts</b></span>
+        <div class="bet-row">
+            <div class="bet-chip sel" onclick="selCoinBet(1,this)">100 pts</div>
+            <div class="bet-chip" onclick="selCoinBet(2,this)">200 pts</div>
+            <div class="bet-chip" onclick="selCoinBet(5,this)">500 pts</div>
+            <div class="bet-chip" onclick="selCoinBet(10,this)">1000 pts</div>
         </div>
         <div class="coin-res-win" id="coinResWin"><div class="coin-res-big">🎉 JEETE!</div><div id="coinWinAmt" style="font-family:'Oxanium',sans-serif;font-size:30px;font-weight:900;margin-top:4px;">+0 pts</div></div>
-        <div class="coin-res-lose" id="coinResLose"><div class="coin-res-big">😢 HARE!</div><div id="coinLoseAmt" style="font-size:18px;margin-top:4px;">Better luck next time!</div></div>
+        <div class="coin-res-lose" id="coinResLose"><div class="coin-res-big">😢 HARE!</div><div id="coinLoseAmt" style="font-size:18px;margin-top:4px;">-0 pts</div></div>
         <button class="btn-gold" id="flipBtn" onclick="doFlip()">🪙 FLIP!</button>
         <div style="background:rgba(54,182,245,.07);border:1px solid rgba(54,182,245,.2);border-radius:11px;padding:9px 13px;text-align:center;font-size:11px;color:var(--text2);margin-top:7px;">
-            🎯 <b style="color:var(--blue);">50/50 chance</b> — Jeeto: +50 pts • 1 Pass use hoga
+            🎯 <b style="color:var(--blue);">50/50 chance</b> — Jeeto: Bet × 2 • Haaro: Bet wapas nahi
         </div>
     </div>
 </div>
@@ -1608,7 +1546,10 @@
         <button class="color-btn cb-orange" onclick="chooseColor('orange',this)">🟠<br>ORANGE<br><span style="font-size:10px;opacity:.8;">9x</span></button>
     </div>
     <div class="bet-row">
-        <div style="background:rgba(124,92,252,.08);border:1px solid rgba(124,92,252,.2);border-radius:12px;padding:8px 12px;text-align:center;font-weight:900;font-size:13px;color:var(--purple2);">🎟️ 1 Pass per Play — Jeeto: +80 pts</div>
+        <div class="bet-chip sel" onclick="selColorBet(1,this)">100 pts</div>
+        <div class="bet-chip" onclick="selColorBet(2,this)">200 pts</div>
+        <div class="bet-chip" onclick="selColorBet(5,this)">500 pts</div>
+        <div class="bet-chip" onclick="selColorBet(10,this)">1000 pts</div>
     </div>
     <div class="color-res-win" id="colorResWin"><div style="font-family:Oxanium,sans-serif;font-size:36px;font-weight:900;">🎉 JEETE!</div><div id="colorWinAmt" style="font-family:Oxanium,sans-serif;font-size:28px;font-weight:900;margin-top:4px;">+0 pts</div></div>
     <div class="color-res-lose" id="colorResLose"><div style="font-family:Oxanium,sans-serif;font-size:36px;font-weight:900;">😢 HARE!</div><div id="colorLoseInfo" style="font-size:14px;margin-top:4px;">Try again!</div></div>
@@ -1750,8 +1691,16 @@
             ⏱️ Jitni tez solve karo → utne zyada points!<br>
             💡 Easy=2 boxes | Medium=3 boxes | Hard=4 boxes
         </div>
-        <div style="margin-bottom:10px;background:rgba(124,92,252,.08);border:1px solid rgba(124,92,252,.2);border-radius:12px;padding:10px;text-align:center;font-weight:900;font-size:13px;color:var(--purple2);">
-            🎟️ 1 Pass per Game • Complete fast = More pts!
+        <div style="margin-bottom:10px;">
+            <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:6px;">💰 Bet:</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="bet-chip" onclick="selMazeBet(1,this)">100 pts</button>
+                <button class="bet-chip" onclick="selMazeBet(10,this)">1000 pts</button>
+                <button class="bet-chip" onclick="selMazeBet(15,this)">1500 pts</button>
+                <button class="bet-chip" onclick="selMazeBet(20,this)">2000 pts</button>
+                <button class="bet-chip" onclick="selMazeBet(40,this)">4000 pts</button>
+                <button class="bet-chip" onclick="selMazeBet(50,this)">5000 pts</button>
+            </div>
         </div>
         <div style="margin-bottom:10px;">
             <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:6px;">⚡ Difficulty:</div>
@@ -1761,9 +1710,10 @@
                 <button class="runner-mode-btn" onclick="selMazeDiff('hard',this)">Hard<br><span style="font-size:9px;color:var(--red);">25s | 8x</span></button>
             </div>
         </div>
-        <div id="mazeRewardPreview" style="text-align:center;font-size:11px;color:var(--gold);font-weight:800;margin-bottom:8px;padding:6px;background:rgba(240,192,64,.08);border-radius:10px;">🏆 Jaldi solve karo = zyada points!</div>
+        <div id="mazeRewardPreview" style="text-align:center;font-size:11px;color:var(--gold);font-weight:800;margin-bottom:8px;padding:6px;background:rgba(240,192,64,.08);border-radius:10px;">🏆 Bet lagao to reward dikhega</div>
         <div style="display:flex;gap:8px;">
-    <button onclick="startMaze(false)" class="btn-gold" style="flex:1;padding:12px;font-size:14px;">🗺️ Game Start — 1 Pass</button>
+    <button onclick="startMaze(true)" style="flex:1;background:var(--bg3);border:1.5px solid var(--border);color:var(--text2);border-radius:16px;padding:12px;font-size:12px;font-weight:900;cursor:pointer;">🎮 Try Free</button>
+    <button onclick="startMaze(false)" class="btn-gold" style="flex:2;padding:12px;font-size:13px;">🗺️ Start (1 Pass)</button>
 </div>
     </div>
     <div id="mazeGame" style="display:none;padding:10px;">
@@ -2282,17 +2232,11 @@ let _allRefs=[];
 async function loadRefActivity(reset=true){
     if(!userData.user_id)return;
     if(reset){_refPage=0;_allRefs=[];}
-    const el=document.getElementById('refActivityList');
-    if(el&&reset)el.innerHTML='<div style="color:var(--text3);font-size:12px;text-align:center;padding:12px;">Loading...</div>';
-    try{
-        const d=await apiGet('/api/user/'+userData.user_id+'/ref-activity?page='+_refPage+'&limit=10');
-        const newRefs=d||[];
-        _allRefs=[..._allRefs,...newRefs];
-        renderRefActivity(_allRefs, newRefs.length>=10);
-        if(newRefs.length>0) _refPage++;
-    }catch(e){
-        if(el)el.innerHTML='<div style="color:var(--text3);font-size:11px;text-align:center;padding:12px;">Load failed. Tap to retry.</div>';
-    }
+    const d=await apiGet(`/api/user/${userData.user_id}/ref-activity?page=${_refPage}&limit=10`);
+    const newRefs=d||[];
+    _allRefs=[..._allRefs,...newRefs];
+    renderRefActivity(_allRefs, newRefs.length>=10);
+    _refPage++;
 }
 
 // ============================================================
@@ -2931,7 +2875,7 @@ async function claimBonus(){
     const today=new Date().toISOString().split('T')[0];
     if(claimedDates.includes(today)){showToast('✅ '+t('already_claimed'));return;}
     const btn=document.getElementById('claimBonusBtn2');
-    if(btn){btn.disabled=true;btn.textContent='⏳...';showAutoInterstitialAd();}
+    if(btn){btn.disabled=true;btn.textContent='⏳...';}
     const r=await apiPost('/api/claim-day-bonus',{user_id:userData.user_id,date:today});
     if(btn){btn.disabled=false;btn.innerHTML='🎉 CLAIM NOW';}
     if(r&&r.success){
@@ -3341,7 +3285,6 @@ async function claimSingleMission(missionId,reward){
             updateUI();
             playSound('mission');
             showToast('🎯 Mission! +'+toPoints(mReward)+' pts mila!');
-            setTimeout(showAutoInterstitialAd, 1200);
         }else if(r?.message==='Already claimed'){
             // Backend also says claimed — keep our local claimed=true, dont revert
             // silently accept
@@ -3416,7 +3359,7 @@ function openAdPopup(adId){
 }
 function closeAdPopup(){const p=document.getElementById('adDetailPopup');if(p)p.remove();}
 
-// Handle ad click — open link, 20s visible countdown timer, then claim
+// Handle ad click — open link, silent timer, then code or direct claim
 async function handleAdClick(adId){
     if(adminEditMode)return;
     const ad=adminAds.find(a=>a.id===adId);if(!ad)return;
@@ -3425,45 +3368,16 @@ async function handleAdClick(adId){
     // Open link first
     window.open(ad.link,'_blank');
 
-    // Show visible 20s countdown popup
-    showAdCountdownPopup(ad, 20);
-}
+    const timerSec=parseInt(ad.timer_seconds)||0;
 
-// Visible countdown popup — user sees timer, reward button appears after
-function showAdCountdownPopup(ad, seconds){
-    const existing=document.getElementById('adCountdownPopup');if(existing)existing.remove();
-    const popup=document.createElement('div');
-    popup.id='adCountdownPopup';
-    popup.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9100;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease;';
-    popup.innerHTML=`
-        <div style="background:var(--bg2);border-radius:22px;width:100%;max-width:360px;padding:28px 20px;text-align:center;border:1.5px solid var(--gold);">
-            <div style="font-size:40px;margin-bottom:10px;">⏳</div>
-            <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;margin-bottom:6px;color:var(--gold);">Link dekho, reward pao!</div>
-            <div style="font-size:12px;color:var(--text2);margin-bottom:20px;">Thoda ruko, reward aa raha hai 🎁</div>
-            <div id="adTimerCircle" style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--gold));margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;font-family:'Oxanium',sans-serif;color:#fff;box-shadow:0 0 20px rgba(240,192,64,.3);">${seconds}</div>
-            <div id="adCountdownClaimDiv" style="display:none;">
-                <button onclick="closeAdCountdown();handleAdClaimFinal(${ad.id});" style="width:100%;background:linear-gradient(135deg,var(--green),#059669);color:#fff;border:none;padding:15px;border-radius:36px;font-weight:900;font-size:15px;cursor:pointer;font-family:inherit;animation:pulse 1s infinite;">🎉 Claim +${toPoints(ad.reward)} pts!</button>
-            </div>
-            <div id="adTimerMsg" style="font-size:11px;color:var(--text3);margin-top:10px;">Kripya link mein raho...</div>
-        </div>`;
-    document.body.appendChild(popup);
-    let remaining=seconds;
-    const intv=setInterval(()=>{
-        remaining--;
-        const circle=document.getElementById('adTimerCircle');
-        const claimDiv=document.getElementById('adCountdownClaimDiv');
-        const msg=document.getElementById('adTimerMsg');
-        if(circle)circle.textContent=remaining>0?remaining:'✅';
-        if(remaining<=0){
-            clearInterval(intv);
-            if(claimDiv)claimDiv.style.display='block';
-            if(msg)msg.textContent='Ab claim karo! 🎉';
-        }
-    },1000);
-}
-function closeAdCountdown(){const p=document.getElementById('adCountdownPopup');if(p)p.remove();}
-async function handleAdClaimFinal(adId){
-    const ad=adminAds.find(a=>a.id===adId);if(!ad)return;
+    if(timerSec>0){
+        // Silent wait — user does NOT see countdown
+        showToast('Link khul gaya! Thoda wait karo phir claim karo...');
+        adTimerRunning=true;
+        await silentWait(timerSec*1000);
+        adTimerRunning=false;
+    }
+
     if(ad.claim_code){
         currentAdForCode=ad;
         document.getElementById('codeInput').value='';
@@ -3489,10 +3403,7 @@ async function doClaimAd(ad){
         userData.balance+=ad.reward;userData.today_earned+=ad.reward;
         userData.passes=(userData.passes||0)+1;
         if(missionStates['m_passes']){missionStates['m_passes'].progress=1;missionStates['m_passes'].completed=true;}
-        updateUI();updateMissionsUI();playSound('earn');
-        // Show 1.3x reward bonus popup
-        showClaimBoostPopup(ad.reward);
-        setTimeout(showAutoInterstitialAd,1500);
+        updateUI();updateMissionsUI();showToast('✅ +'+toPoints(ad.reward)+' pts! +1 Pass');playSound('earn');
         await loadAds();
     }else showToast('❌ '+(r?.message||'Already claimed'));
 }
@@ -3587,7 +3498,7 @@ async function replySupport(msgId,userId){
 // ============================================================
 // SHARE
 // ============================================================
-function copyRef(){navigator.clipboard.writeText(getRefLink()).then(()=>showToast('✅ Link copied!'));playSound('tap');setTimeout(showAutoInterstitialAd,800);}
+function copyRef(){navigator.clipboard.writeText(getRefLink()).then(()=>showToast('✅ Link copied!'));playSound('tap');}
 function shareOn(platform){
     const link=getRefLink();
     const text=lang==='hi'?`💰 FilmyFund se paise kamao!\nMere referral link se join karo aur daily earning shuru karo:\n${link}`:`💰 Earn money with FilmyFund!\nJoin using my referral link:\n${link}`;
@@ -3730,7 +3641,6 @@ async function doWithdraw(){
         userData.balance-=amt;updateUI();closeModal('withdraw');showToast('✅ Withdrawal requested!');playSound('earn');
         if(missionStates['m_withdraw']){missionStates['m_withdraw'].progress=1;missionStates['m_withdraw'].completed=true;}
         updateMissionsUI();
-        setTimeout(showAutoInterstitialAd,1500);
     }else showToast('❌ '+(r?.message||'Failed'));
 }
 async function sendSupport(){
@@ -3844,11 +3754,11 @@ function selGuessBet(a,el){if(a>userData.balance){showToast('❌ Points kam hain
 async function makeGuess(num){
     if(!guessActive)return;
     if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
-    if(!userData.passes||userData.passes<1){showNoPassPopup();return;}
+    if(userData.balance<guessBet){showToast('❌ Balance kam hai!');return;}
     guessAttempts++;
     playSound('tap');
     document.querySelectorAll('.num-btn').forEach(b=>b.disabled=true);
-    const r=await apiPost('/api/game/guess',{user_id:userData.user_id,guess:num,bet:1,use_pass:true});
+    const r=await apiPost('/api/game/guess',{user_id:userData.user_id,guess:num,bet:guessBet});
     if(!r||!r.success){
         const btn2=document.getElementById('nb'+num);
         if(btn2)btn2.classList.add('wrong');
@@ -3908,11 +3818,11 @@ async function doFlip(){
     if(!coinChoice){showToast('❌ Pehle Heads ya Tails choose karo!');return;}
     if(coinFlipping)return;
     if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
-    if(!userData.passes||userData.passes<1){showNoPassPopup();return;}
+    if(userData.balance<coinBet){showToast('❌ Balance kam hai!');return;}
     coinFlipping=true;document.getElementById('flipBtn').disabled=true;
     document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';
     playSound('flip');
-    const r=await apiPost('/api/game/coin',{user_id:userData.user_id,choice:coinChoice,bet:1,use_pass:true});
+    const r=await apiPost('/api/game/coin',{user_id:userData.user_id,choice:coinChoice,bet:coinBet});
     const coin=document.getElementById('theCoin');
     const actualResult=r?.result||(Math.random()<.5?'heads':'tails');
     const deg=actualResult==='heads'?5*360:5*360+180;
@@ -4075,7 +3985,7 @@ async function doColorPredict(){
     if(!colorChoice){showToast('❌ Pehle color choose karo!');return;}
     if(colorPlaying)return;
     if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
-    if(!userData.passes||userData.passes<1){showNoPassPopup();return;}
+    if(userData.balance<colorBet){showToast('❌ Balance kam hai!');return;}
     colorPlaying=true;
     const btn=document.getElementById('colorPlayBtn');btn.disabled=true;btn.textContent='⏳ Spinning...';
     document.getElementById('colorResWin').style.display='none';
@@ -4094,7 +4004,7 @@ async function doColorPredict(){
         animIdx++;
     },120);
 
-    const r=await apiPost('/api/game/color',{user_id:userData.user_id,choice:colorChoice,bet:1,use_pass:true});
+    const r=await apiPost('/api/game/color',{user_id:userData.user_id,choice:colorChoice,bet:colorBet});
 
     setTimeout(()=>{
         clearInterval(animInterval);
@@ -4346,11 +4256,8 @@ function openGame(g,tryFree){
         _lastGameAdTime=now;
         showTabAd(); // show banner prompt
     }
-    // ALL games require at least 1 pass
-    if(!userData.passes || userData.passes < 1){
-        showNoPassPopup();
-        return;
-    }
+    // FIXED: Allow opening game — try mode allowed even with 0 passes
+    // Passes check happens inside startGame functions, not here
     if(g==='spin'){drawWheel(spinAngle);openModal('spin');}
     else if(g==='guess'){startGuess();openModal('guess');}
     else if(g==='coin'){resetCoinUI();openModal('coin');}
@@ -4363,29 +4270,6 @@ function openGame(g,tryFree){
     else if(g==='chess'){openChessGame();}
     else if(g==='blockblast'){openBlockGame();}
     else if(g==='gemmatch'){openGemGame();}
-}
-
-// Show popup when user has no passes
-function showNoPassPopup(){
-    const existing=document.getElementById('noPassPopup');if(existing)existing.remove();
-    const popup=document.createElement('div');
-    popup.id='noPassPopup';
-    popup.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease;';
-    popup.innerHTML=`
-        <div style="background:var(--bg2);border-radius:22px;width:100%;max-width:340px;padding:26px 20px;text-align:center;border:1.5px solid var(--purple);">
-            <div style="font-size:42px;margin-bottom:10px;">🎟️</div>
-            <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;margin-bottom:6px;color:var(--text);">Pass Chahiye!</div>
-            <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">Games khelne ke liye <b>Pass</b> zaroori hai.</div>
-            <div style="font-size:11px;color:var(--text3);margin-bottom:20px;">Passes kaise milenge:</div>
-            <div style="background:var(--bg3);border-radius:14px;padding:12px;margin-bottom:16px;text-align:left;font-size:12px;color:var(--text2);line-height:1.8;">
-                ✅ Refer karo → <b style="color:var(--green);">+3 Passes</b><br>
-                🎁 Daily bonus claim karo → <b style="color:var(--gold);">+1 Pass</b><br>
-                💎 Sponsored offer complete karo → <b style="color:var(--blue);">+1 Pass</b>
-            </div>
-            <button onclick="closeModal('noPassPopup');document.getElementById('noPassPopup')?.remove();openModal('earnPasses');" style="width:100%;background:linear-gradient(135deg,var(--purple),var(--gold));color:#fff;border:none;padding:13px;border-radius:30px;font-weight:900;font-size:14px;cursor:pointer;font-family:inherit;margin-bottom:8px;">🎟️ Passes Kamao</button>
-            <button onclick="document.getElementById('noPassPopup').remove();" style="width:100%;background:transparent;border:1px solid var(--border);color:var(--text3);padding:10px;border-radius:30px;font-size:13px;cursor:pointer;">Baad mein</button>
-        </div>`;
-    document.body.appendChild(popup);
 }
 
 // ============================================================
@@ -4446,8 +4330,8 @@ function selMazeDiff(d,el){
 async function startMaze(tryFree){
     window._mazeTry = tryFree || (userData.passes||0)<=0;
     if(!_mazeTry){
-        if(!userData.passes||userData.passes<1){showNoPassPopup();return;}
-        const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'maze',bet:1,use_pass:true});
+        if((userData.balance||0)<mazeBet){showToast('❌ Points kam hain!');return;}
+        const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'maze',bet:mazeBet});
         if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
         userData.passes=Math.max(0,(userData.passes||1)-1);
         userData.balance=Math.max(0,(userData.balance||0)-mazeBet);
@@ -5476,19 +5360,6 @@ function openModal(id){
     if(id==='dailyBonus'){buildTrainChain();updateWeeklyBonus();checkStreakChallenge();}
     if(id==='withdraw'){updateWithdrawCondition();}
     if(id==='profile'||id==='profilePage'){updateMilestoneCard();updateBadgeUI();}
-    if(id==='buyPasses'){loadAdminUpi();}
-}
-
-async function loadAdminUpi(){
-    try{
-        const d=await apiGet('/api/settings');
-        const upi=(d&&d.upi_id)||'filmyfund@upi';
-        const el=document.getElementById('adminUpiDisplay');
-        if(el)el.textContent=upi;
-    }catch(e){
-        const el=document.getElementById('adminUpiDisplay');
-        if(el)el.textContent='filmyfund@upi';
-    }
 }
 function closeModal(id){
     const el=document.getElementById(id+'Modal');if(el)el.classList.remove('open');
@@ -6160,11 +6031,11 @@ async function init(){
 document.addEventListener('DOMContentLoaded',init);
 
 // ============================================================
-// ADSGRAM — Reward Block: 30637 | Task Block: task-30639
+// ADSGRAM — Reward Block: 30567 | Task Block: task-30568
 // ============================================================
-const ADSGRAM_REWARD_BLOCK = '30637';
-const ADSGRAM_TASK_BLOCK   = 'task-30639';
-const ADSGRAM_INT_BLOCK    = '30637';  // Interstitial (Reward type)
+const ADSGRAM_REWARD_BLOCK = '30567';
+const ADSGRAM_TASK_BLOCK   = 'task-30568';
+const ADSGRAM_INT_BLOCK    = 'int-30566';  // Interstitial — game result ke baad
 
 let rewardController = null;
 let taskController   = null;
@@ -6175,13 +6046,17 @@ let _intAdCooldown   = false;  // 3 min cooldown between interstitials
 
 async function initAdsGram() {
     try {
-        if (typeof AdController === 'undefined') return;
-        rewardController = await AdController.init({ blockId: ADSGRAM_REWARD_BLOCK });
-        taskController   = await AdController.init({ blockId: ADSGRAM_TASK_BLOCK });
-        intController    = await AdController.init({ blockId: ADSGRAM_INT_BLOCK });
-        console.log('✅ AdsGram OK — Reward:30637 Task:task-30639 Int:30637');
+        if (typeof window.AdController === 'undefined') {
+            console.warn('AdsGram script not loaded. Retrying...');
+            setTimeout(initAdsGram, 2000);
+            return;
+        }
+        rewardController = await window.AdController.init({ blockId: ADSGRAM_REWARD_BLOCK }).catch(e => console.log('Reward Ad Init Error'));
+        taskController   = await window.AdController.init({ blockId: ADSGRAM_TASK_BLOCK }).catch(e => console.log('Task Ad Init Error'));
+        intController    = await window.AdController.init({ blockId: ADSGRAM_INT_BLOCK }).catch(e => console.log('Int Ad Init Error'));
+        console.log('✅ AdsGram Successfully Initialized!');
     } catch(e) {
-        console.log('AdsGram init error:', e);
+        console.error('AdsGram System Error:', e);
     }
 
     // ── <adsgram-task> web component event listeners ──
@@ -6241,88 +6116,6 @@ async function showInterstitialAd() {
         console.log('Interstitial ad:', e?.message || e);
     }
 }
-
-// Auto interstitial — claim actions pe automatically show hoga
-let _autoIntCooldown = false;
-async function showAutoInterstitialAd() {
-    try {
-        if (_autoIntCooldown) return;
-        if (typeof AdController === 'undefined') return;
-        if (!intController) {
-            intController = await AdController.init({ blockId: ADSGRAM_INT_BLOCK });
-        }
-        _autoIntCooldown = true;
-        setTimeout(() => { _autoIntCooldown = false; }, 2 * 60 * 1000);
-        await intController.show();
-    } catch(e) {
-        console.log('Auto interstitial:', e?.message || e);
-    }
-}
-
-// 1.3x Boost popup after claim — extra 30% reward dene wala prompt
-function showClaimBoostPopup(baseReward) {
-    const pts = toPoints(baseReward);
-    const bonusPts = Math.round(pts * 0.3);
-    showToast('✅ +' + pts + ' pts! +1 Pass mila!');
-    // Show 1.3x offer popup after 1.5s
-    setTimeout(() => {
-        const existing = document.getElementById('claimBoostPopup'); if(existing) existing.remove();
-        const popup = document.createElement('div');
-        popup.id = 'claimBoostPopup';
-        popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9200;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease;';
-        popup.innerHTML = `
-            <div style="background:var(--bg2);border-radius:22px;width:100%;max-width:340px;padding:24px 20px;text-align:center;border:2px solid var(--gold);box-shadow:0 0 30px rgba(240,192,64,.2);">
-                <div style="font-size:40px;margin-bottom:8px;">🎁</div>
-                <div style="font-family:'Oxanium',sans-serif;font-size:20px;font-weight:900;color:var(--gold);margin-bottom:6px;">+30% Bonus!</div>
-                <div style="font-size:13px;color:var(--text2);margin-bottom:16px;">Ek aur ad dekho aur extra <b style="color:var(--green);">+${bonusPts} pts</b> pao!</div>
-                <button onclick="closeClaimBoost();showRewardAd();" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;padding:13px;border-radius:30px;font-weight:900;font-size:14px;cursor:pointer;font-family:inherit;margin-bottom:8px;">📺 Ad Dekho +${bonusPts} pts</button>
-                <button onclick="closeClaimBoost();" style="width:100%;background:transparent;border:1px solid var(--border);color:var(--text3);padding:10px;border-radius:30px;font-size:13px;cursor:pointer;font-family:inherit;">Nahi chahiye</button>
-            </div>`;
-        document.body.appendChild(popup);
-        setTimeout(() => closeClaimBoost(), 8000); // auto close 8s
-    }, 1800);
-}
-function closeClaimBoost(){const p=document.getElementById('claimBoostPopup');if(p)p.remove();}
-
-// Random popup ad — kabhi bhi appear ho sakta hai (with close button + claim message)
-let _popupAdShown = false;
-let _popupAdCooldown = false;
-function scheduleRandomPopupAd() {
-    // Show after 45-90 seconds randomly, then every 3-5 min
-    const delay = (15 + Math.random() * 10) * 1000; // First: 15-25s
-    setTimeout(async () => {
-        if (!_popupAdCooldown && userData && userData.user_id) {
-            await showRandomPopupAd();
-        }
-        // Schedule next one: every 2-3 min
-        const nextDelay = (2 + Math.random() * 1) * 60 * 1000;
-        setTimeout(() => scheduleRandomPopupAd(), nextDelay);
-    }, delay);
-}
-async function showRandomPopupAd() {
-    if (_popupAdCooldown) return;
-    _popupAdCooldown = true;
-    setTimeout(() => { _popupAdCooldown = false; }, 4 * 60 * 1000);
-
-    // Show popup first, then ad
-    const popup = document.createElement('div');
-    popup.id = 'randomAdPopup';
-    popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:8800;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .3s ease;';
-    popup.innerHTML = `
-        <div style="background:var(--bg2);border-radius:22px;width:100%;max-width:340px;padding:24px 20px;text-align:center;border:1.5px solid var(--purple);position:relative;">
-            <button onclick="closeRandomAdPopup();" style="position:absolute;top:12px;right:12px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);width:28px;height:28px;border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
-            <div style="font-size:36px;margin-bottom:10px;">💰</div>
-            <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--text);margin-bottom:6px;">Paise Milenge!</div>
-            <div style="font-size:12px;color:var(--text2);margin-bottom:18px;">Ye ad dekho aur <b style="color:var(--gold);">+10 pts</b> instantly pao!</div>
-            <button onclick="closeRandomAdPopup();showRewardAd();" style="width:100%;background:linear-gradient(135deg,var(--purple),var(--blue));color:#fff;border:none;padding:13px;border-radius:30px;font-weight:900;font-size:14px;cursor:pointer;font-family:inherit;margin-bottom:8px;">📺 Claim Karo — +10 pts</button>
-            <button onclick="closeRandomAdPopup();" style="width:100%;background:transparent;border:none;color:var(--text3);padding:8px;font-size:12px;cursor:pointer;">Baad mein</button>
-        </div>`;
-    document.body.appendChild(popup);
-    // Auto close after 12s
-    setTimeout(() => closeRandomAdPopup(), 12000);
-}
-function closeRandomAdPopup(){const p=document.getElementById('randomAdPopup');if(p)p.remove();}
-
 
 // Reward Ad show karo (user click kare toh)
 async function showRewardAd() {
@@ -6418,7 +6211,6 @@ async function showNativeAd(cardNum) {
 
 // AdsGram init on load
 setTimeout(initAdsGram, 2000);
-scheduleRandomPopupAd();
 
 </script>
 
@@ -6534,8 +6326,3 @@ scheduleRandomPopupAd();
 </body>
 </html>
 <!-- FilmyFund © 2025 | Owner: @asbhaibsr | Channel: @asbhai_bsr | t.me/asbhaibsr -->
-⬆️⬆️ Aapki movie hazir hai! Enjoy kijiye. ✨
-
-⚠️ Ye 30 min mein delete ho jayegi, please abhi Save kar lein or ek "Reaction" ❤️ de dein, taaki mujhe pata chal sake ki aapne ishe save kr liya.
-
-🤝 Group mein ek-dusre ki help zaroor karein, agar aapke paas movie ho toh share karein! 🙏
