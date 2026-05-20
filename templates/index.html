@@ -351,10 +351,13 @@
         .badge-slot img{width:44px;height:44px;object-fit:contain;border-radius:8px;transition:all .2s;}
         .badge-slot.locked{opacity:.35;filter:grayscale(1);border-color:rgba(255,255,255,.05);}
         .badge-slot.locked img{filter:grayscale(1) brightness(0.4);}
-        .badge-slot.unlocked{border-color:rgba(124,92,252,.4);background:rgba(124,92,252,.07);box-shadow:0 2px 8px rgba(124,92,252,.12);}
-        .badge-slot.unlocked img{filter:drop-shadow(0 0 6px rgba(124,92,252,.4));}
-        .badge-slot.current{border-color:var(--gold);background:linear-gradient(135deg,rgba(240,192,64,.15),rgba(124,92,252,.08));box-shadow:0 0 16px rgba(240,192,64,.3),inset 0 0 8px rgba(240,192,64,.06);transform:scale(1.05);}
-        .badge-slot.current img{filter:drop-shadow(0 0 12px rgba(240,192,64,.8));animation:badgeFloat 2s ease-in-out infinite;}
+        .badge-slot.unlocked{border-color:rgba(124,92,252,.6);background:rgba(124,92,252,.1);box-shadow:0 0 12px rgba(124,92,252,.35),0 0 24px rgba(124,92,252,.15),inset 0 0 6px rgba(124,92,252,.08);animation:badgeGlow 2.5s ease-in-out infinite alternate;}
+        @keyframes badgeGlow{from{box-shadow:0 0 8px rgba(124,92,252,.3),0 0 16px rgba(124,92,252,.1);}to{box-shadow:0 0 16px rgba(124,92,252,.6),0 0 32px rgba(124,92,252,.25);}}
+        .badge-slot.unlocked img{filter:drop-shadow(0 0 8px rgba(124,92,252,.7));}
+        .badge-slot.locked{opacity:.3;filter:grayscale(1) brightness(0.5);border-color:rgba(255,255,255,.04);cursor:not-allowed;}
+        .badge-slot.locked img{filter:grayscale(1) brightness(0.3);}
+        .badge-slot.current{border-color:var(--gold);background:linear-gradient(135deg,rgba(240,192,64,.18),rgba(124,92,252,.1));box-shadow:0 0 20px rgba(240,192,64,.5),0 0 40px rgba(240,192,64,.2),inset 0 0 10px rgba(240,192,64,.08);transform:scale(1.06);}
+        .badge-slot.current img{filter:drop-shadow(0 0 14px rgba(240,192,64,.9));animation:badgeFloat 2s ease-in-out infinite;}
         .badge-slot-lbl{font-size:8px;font-weight:700;color:var(--text3);text-align:center;}
         .badge-slot.unlocked .badge-slot-lbl{color:var(--purple2);}
         .badge-slot.current .badge-slot-lbl{color:var(--gold);font-weight:900;}
@@ -822,9 +825,12 @@
                 <button class="ref-copy-btn" onclick="copyRef()" data-t="copy">Copy</button>
             </div>
             <div class="share-grid" style="margin-top:8px;">
-                <div class="share-btn" onclick="shareOn('telegram')"><span>📱</span><span>Telegram</span></div>
+                <div class="share-btn" onclick="shareOn('telegram')"><span>✈️</span><span>Telegram</span></div>
                 <div class="share-btn" onclick="shareOn('whatsapp')"><span>💬</span><span>WhatsApp</span></div>
-                <div class="share-btn" onclick="shareOn('other')"><span>🔗</span><span data-t="share_more">Share</span></div>
+                <div class="share-btn" onclick="shareOn('instagram')"><span>📸</span><span>Instagram</span></div>
+                <div class="share-btn" onclick="shareOn('facebook')"><span>👥</span><span>Facebook</span></div>
+                <div class="share-btn" onclick="shareOn('twitter')"><span>🐦</span><span>Twitter/X</span></div>
+                <div class="share-btn share-btn-main" onclick="shareOn('native')" style="grid-column:1/-1;background:linear-gradient(135deg,var(--purple),var(--blue));color:#fff;font-weight:900;"><span>🚀</span><span>Sabhi Apps se Share Karo</span></div>
             </div>
         </div>
 
@@ -834,6 +840,15 @@
             <button class="admin-add-btn" id="addOfferBtn" onclick="openAdminCreateOffer()" style="display:none;">➕ <span data-t="add_offer">Add</span></button>
         </div>
         <div id="adsContainer"></div>
+
+        <!-- AdsGram Task Ad (task-30568) -->
+        <div id="adsgram-task-wrapper" style="margin-bottom:10px;">
+            <adsgram-task
+                data-block-id="task-30568"
+                class="adsgram-task-el"
+                style="--adsgram-task-font-size:13px;--adsgram-task-icon-size:40px;"
+            ></adsgram-task>
+        </div>
 
         <!-- ⑥ LIVE ACTIVITY — compact -->
         <div class="section-head" style="margin-top:8px;">
@@ -2180,10 +2195,16 @@ async function loadWithdrawalHistory(){
     renderHistory(d||[]);
 }
 async function loadLeaderboard(){const d=await apiGet('/api/leaderboard?mode='+lbMode);renderLeaderboard(d||[]);}
-async function loadRefActivity(){
+let _refPage=0;
+let _allRefs=[];
+async function loadRefActivity(reset=true){
     if(!userData.user_id)return;
-    const d=await apiGet(`/api/user/${userData.user_id}/ref-activity`);
-    renderRefActivity(d||[]);
+    if(reset){_refPage=0;_allRefs=[];}
+    const d=await apiGet(`/api/user/${userData.user_id}/ref-activity?page=${_refPage}&limit=10`);
+    const newRefs=d||[];
+    _allRefs=[..._allRefs,...newRefs];
+    renderRefActivity(_allRefs, newRefs.length>=10);
+    _refPage++;
 }
 
 // ============================================================
@@ -2205,7 +2226,7 @@ function updateUI(){try{
         setTimeout(()=>{balEl.style.textShadow='0 0 36px rgba(240,192,64,.22)';},800);
     }
     setEl('topbarBalance',balDisplay);
-    if(rupeesEl)rupeesEl.textContent='= ₹'+bal.toFixed(2)+' (₹20 min withdrawal)';
+    const rupeesEl=document.getElementById('balRupees');if(rupeesEl)rupeesEl.textContent='= ₹'+bal.toFixed(2)+' (₹20 min withdrawal)';
     setEl('todayEarned',fmtPts(todayPts));
     setEl('activeRefs',userData.active_refs||0);
     // Month refs display in balance card
@@ -3448,10 +3469,34 @@ async function replySupport(msgId,userId){
 function copyRef(){navigator.clipboard.writeText(getRefLink()).then(()=>showToast('✅ Link copied!'));playSound('tap');}
 function shareOn(platform){
     const link=getRefLink();
-    const text=lang==='hi'?`FilmyFund se paise kamao! 💰\nMere referral link se join karo:\n${link}`:`Earn money with FilmyFund! 💰\nJoin using my referral link:\n${link}`;
-    if(platform==='telegram'){window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('FilmyFund se paise kamao!')}`, '_blank');}
-    else if(platform==='whatsapp'){window.open(`https://wa.me/?text=${encodeURIComponent(text)}`,'_blank');}
-    else{if(navigator.share){navigator.share({title:'FilmyFund',text,url:link}).catch(()=>{navigator.clipboard.writeText(link);showToast('✅ Link copied!');});}else{navigator.clipboard.writeText(link);showToast('✅ Link copied!');}}
+    const text=lang==='hi'?`💰 FilmyFund se paise kamao!\nMere referral link se join karo aur daily earning shuru karo:\n${link}`:`💰 Earn money with FilmyFund!\nJoin using my referral link:\n${link}`;
+    const enc=encodeURIComponent;
+    if(platform==='telegram'){
+        window.open(`https://t.me/share/url?url=${enc(link)}&text=${enc('💰 FilmyFund se paise kamao! Mere link se join karo!')}`, '_blank');
+    } else if(platform==='whatsapp'){
+        window.open(`https://wa.me/?text=${enc(text)}`,'_blank');
+    } else if(platform==='instagram'){
+        // Instagram direct share nahi hota — clipboard copy karo aur guide karo
+        navigator.clipboard.writeText(link).then(()=>{
+            showToast('📋 Link copy ho gaya! Instagram Story mein paste karo');
+        });
+    } else if(platform==='facebook'){
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${enc(link)}&quote=${enc(text)}`,'_blank');
+    } else if(platform==='twitter'){
+        window.open(`https://twitter.com/intent/tweet?text=${enc(text)}`,'_blank');
+    } else if(platform==='native'){
+        // Native share sheet — sab apps dikhenge (WhatsApp, Instagram, Telegram, Gmail etc.)
+        if(navigator.share){
+            navigator.share({title:'FilmyFund — Paise Kamao!', text, url:link})
+                .catch(()=>{navigator.clipboard.writeText(link);showToast('✅ Link copy ho gaya!');});
+        } else {
+            navigator.clipboard.writeText(link);
+            showToast('✅ Link copy ho gaya! Kisi bhi app mein paste karo');
+        }
+    } else {
+        if(navigator.share){navigator.share({title:'FilmyFund',text,url:link}).catch(()=>{navigator.clipboard.writeText(link);showToast('✅ Link copied!');});}
+        else{navigator.clipboard.writeText(link);showToast('✅ Link copied!');}
+    }
     playSound('tap');
 }
 
@@ -5460,11 +5505,11 @@ async function sendRefNudge(refUserId, refName){
     }catch(e){showToast('❌ Network error');}
 }
 
-function renderRefActivity(refs){
+function renderRefActivity(refs, hasMore=false){
     const el=document.getElementById('refActivity');
     if(!el)return;
     if(!refs||!refs.length){el.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px;font-size:12px;">Koi refer nahi abhi • Share karo!</div>';return;}
-    el.innerHTML=refs.slice(0,10).map(r=>{
+    el.innerHTML=refs.map(r=>{
         const isActive=r.is_active;
         const isBlocked=r.bot_blocked;
         const name=r.first_name||'User';
@@ -5483,7 +5528,17 @@ function renderRefActivity(refs){
             </div>
         </div>`;
     }).join('');
-    if(refs.length>10){el.innerHTML+='<div style="text-align:center;font-size:11px;color:var(--text3);padding:8px;">+ '+(refs.length-10)+' more...</div>';}
+    // Load More button
+    const existing=document.getElementById('refLoadMoreBtn');
+    if(existing)existing.remove();
+    if(hasMore){
+        const btn=document.createElement('button');
+        btn.id='refLoadMoreBtn';
+        btn.textContent='📋 Load More Referrals';
+        btn.style.cssText='width:100%;margin-top:10px;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text2);font-weight:800;font-size:12px;cursor:pointer;';
+        btn.onclick=()=>loadRefActivity(false);
+        el.after(btn);
+    }
 }
 // ═══════ NOTIFICATION SYSTEM (FULLY UPDATED) ═══════
 const NOTIF_KEY = 'ff_notifications';
@@ -5966,6 +6021,46 @@ async function initAdsGram() {
         console.log('✅ AdsGram OK — Reward:30567 Task:task-30568 Int:int-30566');
     } catch(e) {
         console.log('AdsGram init error:', e);
+    }
+
+    // ── <adsgram-task> web component event listeners ──
+    const taskEl = document.querySelector('adsgram-task');
+    if (taskEl) {
+        // User ne task complete kiya → backend ko notify karo
+        taskEl.addEventListener('reward', async () => {
+            try {
+                if (!userData || !userData.user_id) return;
+                // Spinner show karo
+                const wrapper = document.getElementById('adsgram-task-wrapper');
+                if (wrapper) wrapper.style.opacity = '0.6';
+
+                const resp = await fetch(`/api/adsgram-reward?userId=${userData.user_id}&blockId=${ADSGRAM_TASK_BLOCK}`);
+                const data = await resp.json();
+
+                if (data.success) {
+                    showToast('🎯 Task complete! +6 pts!');
+                    await loadUser();
+                    updateUI();
+                }
+                if (wrapper) wrapper.style.opacity = '1';
+            } catch(e) {
+                console.log('Task reward error:', e);
+            }
+        });
+
+        // Error hone par silently ignore
+        taskEl.addEventListener('onError', (e) => {
+            console.log('AdsGram task error:', e);
+        });
+
+        // Koi task available nahi — wrapper hide karo
+        taskEl.addEventListener('onBannerNotFound', () => {
+            const wrapper = document.getElementById('adsgram-task-wrapper');
+            if (wrapper) wrapper.style.display = 'none';
+            console.log('AdsGram: No task available');
+        });
+
+        console.log('✅ adsgram-task event listeners attached');
     }
 }
 
