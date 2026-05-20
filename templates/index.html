@@ -2189,7 +2189,7 @@ async function loadRefActivity(){
 // ============================================================
 // UI UPDATE
 // ============================================================
-function updateUI(){
+function updateUI(){try{
     const bal=userData.balance||0;
     const pts=toPoints(bal);
     const balDisplay=fmtPts(pts);
@@ -2204,40 +2204,37 @@ function updateUI(){
         balEl.style.textShadow='0 0 40px rgba(240,192,64,.7),0 0 80px rgba(240,192,64,.3)';
         setTimeout(()=>{balEl.style.textShadow='0 0 36px rgba(240,192,64,.22)';},800);
     }
-    document.getElementById('topbarBalance').textContent=balDisplay;
-    // Update rupee value subtitle
-    const rupeesEl=document.getElementById('balRupees');
+    setEl('topbarBalance',balDisplay);
     if(rupeesEl)rupeesEl.textContent='= ₹'+bal.toFixed(2)+' (₹20 min withdrawal)';
-    document.getElementById('todayEarned').textContent=fmtPts(todayPts);
-    document.getElementById('activeRefs').textContent=userData.active_refs||0;
+    setEl('todayEarned',fmtPts(todayPts));
+    setEl('activeRefs',userData.active_refs||0);
     // Month refs display in balance card
     const monthRefsEl=document.getElementById('monthRefsDisplay');
     if(monthRefsEl)monthRefsEl.textContent=userData.month_active_refs||0;
-    document.getElementById('passCount').textContent=userData.passes||0;
+    setEl('passCount',userData.passes||0);
     const pcg=document.getElementById('passCountGames');if(pcg)pcg.textContent=userData.passes||0;
-    document.getElementById('wdrawBal').textContent='₹'+bal.toFixed(2);  // withdrawal shows ₹
-    document.getElementById('epPassCount').textContent=userData.passes||0;
+    setEl('wdrawBal','₹'+bal.toFixed(2));
+    setEl('epPassCount',userData.passes||0);
     const fname=userData.first_name||'Guest';
-    document.getElementById('profileName').textContent=fname;
-    document.getElementById('profileTier').textContent=getTierName(userData.tier||1);
-    document.getElementById('pBal').textContent=fmtPts(toPoints(bal));
-    document.getElementById('pTotal').textContent=fmtPts(toPoints(userData.total_earned||0));
-    document.getElementById('pStreak').textContent=`${userStreak}🔥`;
-    document.getElementById('pTotalRefs').textContent=userData.total_refs||0;
-    document.getElementById('pActiveRefs').textContent=userData.active_refs||0;
-    document.getElementById('pPendingRefs').textContent=userData.pending_refs||0;
-    document.getElementById('pGamesWon').textContent=userData.games_won||0;
-    document.getElementById('pRefLink').textContent=getRefLink();
-    document.getElementById('refLinkText').textContent=getRefLink();
-    document.getElementById('refLinkText2').textContent=getRefLink();
+    setEl('profileName',fname);
+    setEl('profileTier',getTierName(userData.tier||1));
+    setEl('pBal',fmtPts(toPoints(bal)));
+    setEl('pTotal',fmtPts(toPoints(userData.total_earned||0)));
+    setEl('pStreak',`${userStreak}🔥`);
+    setEl('pTotalRefs',userData.total_refs||0);
+    setEl('pActiveRefs',userData.active_refs||0);
+    setEl('pPendingRefs',userData.pending_refs||0);
+    setEl('pGamesWon',userData.games_won||0);
+    setEl('pRefLink',getRefLink());
+    setEl('refLinkText',getRefLink());
+    setEl('refLinkText2',getRefLink());
     const profDp=document.getElementById('profileDp');
-    if(userData.photo_url){profDp.innerHTML=`<img src="${userData.photo_url}" alt="${fname.charAt(0)}">`;}
-    else{profDp.textContent=fname.charAt(0).toUpperCase();}
+    if(profDp){if(userData.photo_url){profDp.innerHTML=`<img src="${userData.photo_url}" alt="${fname.charAt(0)}">"`;}else{profDp.textContent=fname.charAt(0).toUpperCase();}}
     const _gbp=document.getElementById('gameBadgePasses');if(_gbp)_gbp.textContent=userData.passes||0;
     // Game stats — wins today (session), today earned, streak
-    document.getElementById('gameWins').textContent=(gameState.wins||0);
-    document.getElementById('gameTodayEarned').textContent=fmtPts(toPoints(gameState.today_game_earned||0));
-    document.getElementById('gameStreak').textContent=`${gameState.win_streak||0}🔥`;
+    setEl('gameWins',gameState.wins||0);
+    setEl('gameTodayEarned',fmtPts(toPoints(gameState.today_game_earned||0)));
+    setEl('gameStreak',`${gameState.win_streak||0}🔥`);
     // Also update "wins today" label explicitly
     const gwLbl=document.querySelector('#gameWins+.gstat-lbl');
     if(gwLbl)gwLbl.textContent='Wins Today';
@@ -2251,7 +2248,7 @@ function updateUI(){
     updateWeeklyBonus();
     updateMilestoneCard();
     updateWithdrawProgress();
-}
+}catch(e){console.warn('updateUI error (non-fatal):',e);}}
 
 function updateWithdrawProgress(){
     const bal=userData.balance||0;
@@ -3660,6 +3657,7 @@ async function doSpin(){
         document.getElementById('spinResultTxt').textContent=spinActual>=2?'🎉 Jackpot!':'✅ Badhaai ho!';
         document.getElementById('spinResultBox').style.display='block';
         playSound(spinActual>=2?'jackpot':'earn');btn.disabled=false;btn.textContent='🎰 SPIN (1 Pass)';
+        setTimeout(showInterstitialAd, 1500);  // Interstitial after spin result
     }
     requestAnimationFrame(anim);
 }
@@ -3708,6 +3706,7 @@ async function makeGuess(num){
         if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
         playSound('earn');showToast('🎉 +'+toPoints(guessReward)+' pts!');showFloatingPts(toPoints(guessReward));
         updateUI();updateMissionsUI();
+        setTimeout(showInterstitialAd, 800);  // Interstitial after correct guess
         guessActive=false;
         setTimeout(startGuess,2000);
     }else if(r.secret!=null||(guessAttempts>=guessMaxAttempts)){
@@ -3758,6 +3757,7 @@ async function doFlip(){
             if(r.won){document.getElementById('coinWinAmt').textContent='+'+toPoints(r.reward||0)+' pts';document.getElementById('coinResWin').style.display='block';playSound('earn');showToast('🎉 +'+toPoints(r.reward||0)+' pts!');gameState.wins=(gameState.wins||0)+1;if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}}
             else{document.getElementById('coinLoseAmt').textContent='-'+toPoints(coinBet)+' pts';document.getElementById('coinResLose').style.display='block';playSound('lose');showToast('😢 Haar gaye! -'+toPoints(coinBet)+' pts');}
             await loadUser();updateUI();updateMissionsUI();
+            setTimeout(showInterstitialAd, 800);  // Interstitial after coin result
         }
         setTimeout(()=>{document.getElementById('flipBtn').disabled=false;document.getElementById('coinResWin').style.display='none';document.getElementById('coinResLose').style.display='none';coinChoice=null;document.getElementById('coinChoiceH').classList.remove('sel');document.getElementById('coinChoiceT').classList.remove('sel');coin.style.transition='none';coin.style.transform='rotateY(0deg)';},2500);
     },1300);
@@ -3857,6 +3857,7 @@ async function doDiceRoll(){
         updateUI();updateMissionsUI();
         // Auto reset after 3s
         setTimeout(()=>resetDiceUI(),3000);
+        setTimeout(showInterstitialAd, 1500);  // Interstitial after dice result
     },1800);
 }
 
@@ -3979,6 +3980,7 @@ async function doColorPredict(){
             playSound('lose');showToast(`❌ ${rc?.emoji||''} ${result.toUpperCase()} aaya!`);
         }
         updateUI();updateMissionsUI();
+        setTimeout(showInterstitialAd, 1000);  // Interstitial after color result
         setTimeout(resetColorUI,3200);
     },1800);
 }
@@ -5946,20 +5948,41 @@ document.addEventListener('DOMContentLoaded',init);
 // ============================================================
 const ADSGRAM_REWARD_BLOCK = '30567';
 const ADSGRAM_TASK_BLOCK   = 'task-30568';
+const ADSGRAM_INT_BLOCK    = 'int-30566';  // Interstitial — game result ke baad
 
 let rewardController = null;
 let taskController   = null;
+let intController    = null;
 let rewardAdCooldown = false;
 let taskAdCooldown   = false;
+let _intAdCooldown   = false;  // 3 min cooldown between interstitials
 
 async function initAdsGram() {
     try {
         if (typeof AdController === 'undefined') return;
         rewardController = await AdController.init({ blockId: ADSGRAM_REWARD_BLOCK });
         taskController   = await AdController.init({ blockId: ADSGRAM_TASK_BLOCK });
-        console.log('✅ AdsGram OK — Reward:30567 Task:task-30568');
+        intController    = await AdController.init({ blockId: ADSGRAM_INT_BLOCK });
+        console.log('✅ AdsGram OK — Reward:30567 Task:task-30568 Int:int-30566');
     } catch(e) {
         console.log('AdsGram init error:', e);
+    }
+}
+
+// Interstitial ad — game result ke baad silently show karo (no reward, no user prompt)
+async function showInterstitialAd() {
+    try {
+        if (_intAdCooldown) return;            // 3 min mein ek baar hi
+        if (typeof AdController === 'undefined') return;
+        if (!intController) {
+            intController = await AdController.init({ blockId: ADSGRAM_INT_BLOCK });
+        }
+        _intAdCooldown = true;
+        setTimeout(() => { _intAdCooldown = false; }, 3 * 60 * 1000);
+        await intController.show();
+    } catch(e) {
+        // Silently ignore — user experience disturb nahi honi chahiye
+        console.log('Interstitial ad:', e?.message || e);
     }
 }
 
