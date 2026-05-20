@@ -105,9 +105,10 @@ class Handlers:
                         logger.error(f"Notify referrer duplicate: {e}")
 
                 keyboard = [
-                    [InlineKeyboardButton("📱 MINI APP KHOLO",
+                    [InlineKeyboardButton("💰 Start Earning",
                         web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}"))],
-                    [InlineKeyboardButton("🎬 MOVIE GROUP", url=self.config.MOVIE_GROUP_LINK)]
+                    [InlineKeyboardButton("🎬 MOVIE GROUP", url=self.config.MOVIE_GROUP_LINK)],
+                    [InlineKeyboardButton("📢 All Groups & Channels", url="https://t.me/addlist/tN-IEpLgpUQzMGY1")]
                 ]
                 await update.message.reply_text(
                     f"👋 Welcome back *{user.first_name}!*\n\nMini App kholo:",
@@ -204,7 +205,8 @@ class Handlers:
                 )
                 keyboard = [
                     [InlineKeyboardButton("🎬 MOVIE GROUP JOIN KARO", url=movie_group)],
-                    [InlineKeyboardButton("📱 MINI APP", web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}"))],
+                    [InlineKeyboardButton("💰 Start Earning", web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}"))],
+                    [InlineKeyboardButton("📢 All Groups & Channels", url="https://t.me/addlist/tN-IEpLgpUQzMGY1")]
                 ]
                 await update.message.reply_text(
                     welcome_text, reply_markup=InlineKeyboardMarkup(keyboard),
@@ -235,9 +237,10 @@ class Handlers:
                     pass
             else:
                 keyboard = [
-                    [InlineKeyboardButton("💰 MINI APP KHOLO",
+                    [InlineKeyboardButton("💰 Start Earning",
                         web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}"))],
-                    [InlineKeyboardButton("🎬 MOVIE GROUP", url=movie_group)]
+                    [InlineKeyboardButton("🎬 MOVIE GROUP", url=movie_group)],
+                    [InlineKeyboardButton("📢 All Groups & Channels", url="https://t.me/addlist/tN-IEpLgpUQzMGY1")]
                 ]
                 await update.message.reply_text(
                     f"🎬 *FilmyFund mein Swagat Hai, {user.first_name}!*\n\n"
@@ -583,7 +586,7 @@ class Handlers:
             # Referred user ko bhi batao
             try:
                 keyboard = [[InlineKeyboardButton(
-                    "📱 Mini App Kholo",
+                    "💰 Start Earning",
                     web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user_id}")
                 )]]
                 await context.bot.send_message(
@@ -641,7 +644,7 @@ class Handlers:
     async def open_app(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         user = update.effective_user
         keyboard = [[InlineKeyboardButton(
-            "📱 MINI APP KHOLO",
+            "💰 Start Earning",
             web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}")
         )]]
         await update.message.reply_text(
@@ -813,7 +816,7 @@ class Handlers:
                 uid = u['user_id']
                 name = u.get('first_name', 'User')
                 try:
-                    kb = [[InlineKeyboardButton("📱 Mini App Kholo",
+                    kb = [[InlineKeyboardButton("💰 Start Earning",
                         web_app=WebAppInfo(url=f"{webapp_url}/?user_id={uid}"))]]
                     await context.bot.send_message(
                         chat_id=uid,
