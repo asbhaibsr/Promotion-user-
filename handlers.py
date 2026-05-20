@@ -27,6 +27,7 @@ import re
 import json
 from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from telegram.error import Forbidden, BadRequest
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
 
@@ -602,6 +603,12 @@ class Handlers:
                     parse_mode=ParseMode.MARKDOWN
                 )
                 logger.info(f"User {user_id} notified of verification")
+            except Forbidden:
+                logger.warning(f"User {user_id} ne bot block kar diya — marking blocked")
+                try:
+                    self.db.mark_user_blocked(user_id)
+                except Exception:
+                    pass
             except Exception as e:
                 logger.error(f"Notify user {user_id} FAILED: {e}")
 
@@ -612,6 +619,13 @@ class Handlers:
 
             search = self.db.record_daily_search(user_id)
             logger.info(f"record_daily_search({user_id}) → {search}")
+
+            # Movie search mission progress update (m_search5)
+            try:
+                self.db._update_single_mission_progress(user_id, 'm_search5', 1)
+                logger.info(f"m_search5 mission updated for user {user_id}")
+            except Exception as me:
+                logger.error(f"Mission update error: {me}")
 
             if search.get('success'):
                 referrer_id = search.get('referrer_id')
