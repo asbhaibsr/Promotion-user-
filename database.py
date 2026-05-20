@@ -880,11 +880,16 @@ class Database:
 
     # ========== REF ACTIVITY ==========
 
-    def get_ref_activity(self, referrer_id, limit=20):
+    def get_ref_activity(self, referrer_id, limit=10, skip=0):
         try:
             referrer_id = int(referrer_id)
             today = datetime.now().date().isoformat()
-            refs = list(self.referrals.find({'referrer_id': referrer_id}).limit(limit))
+            refs = list(
+                self.referrals.find({'referrer_id': referrer_id})
+                .sort('is_active', -1)  # active refs pehle
+                .skip(skip)
+                .limit(limit)
+            )
             result = []
             for ref in refs:
                 referred_user = self.get_user(ref['referred_id'])
@@ -896,16 +901,29 @@ class Database:
                     'first_name': referred_user.get('first_name', 'User'),
                     'username': referred_user.get('username', ''),
                     'is_active': ref.get('is_active', False),
+                    'bot_blocked': referred_user.get('bot_blocked', False),
                     'activation_date': ref.get('activation_date', ''),
                     'join_date': ref.get('join_date', ''),
                     'earnings': ref.get('earnings', 0),
-                    'today_searched': bool(today_search),
+                    'today_search': bool(today_search),
                     'last_search_date': ref.get('last_search_date', '')
                 })
             return result
         except Exception as e:
             logger.error(f"Error getting ref activity: {e}")
             return []
+
+    def mark_user_blocked(self, user_id):
+        """User ne bot block kiya — flag lagao aur optional auto-remove."""
+        try:
+            user_id = int(user_id)
+            self.users.update_one(
+                {'user_id': user_id},
+                {'$set': {'bot_blocked': True, 'blocked_at': datetime.now().isoformat()}}
+            )
+            logger.info(f"User {user_id} marked as bot_blocked")
+        except Exception as e:
+            logger.error(f"mark_user_blocked error: {e}")
 
     # ========== DAILY REFERRAL EARNINGS ==========
 
