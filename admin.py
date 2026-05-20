@@ -623,11 +623,18 @@ class AdminHandlers:
             if not uid:
                 continue
             try:
-                # Use copy_message with OK/Delete buttons
-                bc_kb = InlineKeyboardMarkup([[
+                # Build keyboard — preserve original inline buttons, add OK/Delete at bottom
+                existing_kb = []
+                if message.reply_markup and hasattr(message.reply_markup, 'inline_keyboard'):
+                    existing_kb = message.reply_markup.inline_keyboard  # list of rows
+
+                bc_row = [
                     InlineKeyboardButton("✅ OK", callback_data="bc_ok"),
                     InlineKeyboardButton("🗑️ Delete", callback_data="bc_delete")
-                ]])
+                ]
+                final_kb = list(existing_kb) + [bc_row]
+                bc_kb = InlineKeyboardMarkup(final_kb)
+
                 await context.bot.copy_message(
                     chat_id=uid,
                     from_chat_id=message.chat_id,
