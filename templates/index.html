@@ -48,7 +48,7 @@
             --text:#111528;--text2:#4a5677;--text3:#8899bb;
             --border:rgba(0,0,0,0.07);--shadow:0 6px 22px rgba(0,0,0,0.1);
         }
-        html,body{background:var(--bg);color:var(--text);min-height:100%;overflow-x:hidden;font-family:'Space Grotesk',sans-serif;}
+        html,body{background:var(--bg);color:var(--text);min-height:100%;overflow-x:hidden;font-family:'Space Grotesk',sans-serif;width:100%;max-width:100vw;}button,input,select{max-width:100%;}
         body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);}
         ::-webkit-scrollbar{width:3px;height:3px;}
         ::-webkit-scrollbar-thumb{background:var(--gold);border-radius:4px;}
@@ -788,20 +788,20 @@
                 </div>
                 <div style="background:linear-gradient(135deg,var(--green),#059669);color:#fff;padding:6px 12px;border-radius:20px;font-weight:800;font-size:11px;align-self:flex-start;" id="dailyBonusBtn">Claim</div>
             </div>
-            <!-- Watch Ad Earn — Beautiful Card -->
-            <div style="background:linear-gradient(135deg,#041830,#0d1850);border:1.5px solid rgba(54,182,245,.4);border-radius:18px;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 20px rgba(54,182,245,.12);" onclick="showRewardAd()" ontouchstart="this.style.transform='scale(.97)';this.style.boxShadow='none'" ontouchend="this.style.transform='';this.style.boxShadow='0 4px 20px rgba(54,182,245,.12)'">
-                <div style="background:linear-gradient(90deg,rgba(54,182,245,.15),transparent);padding:12px 14px;display:flex;align-items:center;gap:10px;">
-                    <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--blue),#7c5cfc);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 0 12px rgba(54,182,245,.3);">📺</div>
-                    <div style="flex:1;">
-                        <div style="font-family:'Oxanium',sans-serif;font-weight:900;font-size:14px;color:var(--text);">Watch & Earn</div>
-                        <div style="font-size:11px;color:var(--text3);margin-top:1px;">Ad dekho, turant pao</div>
+            <!-- Watch Ad Earn — Mobile Fixed -->
+            <div style="background:linear-gradient(135deg,#041830,#0d1850);border:1.5px solid rgba(54,182,245,.4);border-radius:18px;overflow:hidden;">
+                <div style="padding:10px 12px 4px;display:flex;align-items:center;gap:8px;">
+                    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue),#7c5cfc);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📺</div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-family:'Oxanium',sans-serif;font-weight:900;font-size:13px;color:var(--text);">Watch & Earn</div>
+                        <div style="font-size:10px;color:var(--text3);">Ad dekho, pao pts</div>
                     </div>
-                    <div style="background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:900;font-family:'Oxanium',sans-serif;box-shadow:0 0 10px rgba(54,182,245,.3);">+10 pts</div>
+                    <div style="background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;padding:4px 8px;border-radius:16px;font-size:10px;font-weight:900;white-space:nowrap;">+10 pts</div>
                 </div>
-                <div style="padding:10px 14px 12px;display:flex;align-items:center;gap:10px;">
-                    <button id="rewardAdBtn" style="flex:1;background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;border:none;border-radius:30px;padding:11px 16px;font-weight:900;font-size:13px;cursor:pointer;font-family:'Oxanium',sans-serif;letter-spacing:.3px;box-shadow:0 4px 12px rgba(54,182,245,.25);">▶ Ad Dekho — +10 pts</button>
+                <div style="padding:6px 12px 10px;">
+                    <button id="rewardAdBtn" onclick="showRewardAd()" style="width:100%;background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;border:none;border-radius:22px;padding:9px 4px;font-weight:900;font-size:11px;cursor:pointer;font-family:'Oxanium',sans-serif;">▶ Ad Dekho</button>
                 </div>
-                <div id="rewardAdStatus" style="font-size:10px;color:var(--text3);text-align:center;padding-bottom:8px;"></div>
+                <div id="rewardAdStatus" style="font-size:9px;color:var(--text3);text-align:center;padding-bottom:5px;"></div>
             </div>
         </div>
 
@@ -945,7 +945,7 @@
             </div>
         </div>
         <!-- SKILL GAMES ROW 2 — Sokoban + Snake side by side -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;width:100%;overflow:hidden;">
             <div class="game-card game-card-skill" onclick="openGame('maze')" style="background:linear-gradient(135deg,#0a1628,#0d2040);border:1.5px solid rgba(54,182,245,.4);">
                 <img src="https://i.postimg.cc/3rX44NH8/b6b10c99-9c7a-4404-93fe-afdb9750fedc.jpg" class="game-img" alt="Sokoban">
                 <div style="padding:10px;">
@@ -964,7 +964,7 @@
             </div>
         </div>
         <!-- SKILL GAMES ROW 3 — Block Blast + Gem Match -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;width:100%;overflow:hidden;">
             <div class="game-card game-card-skill" onclick="openBlockGame()" style="background:linear-gradient(135deg,#1a0a2e,#2e0a1a);border:1.5px solid rgba(139,92,246,.4);">
                 <div style="font-size:52px;text-align:center;padding:10px 0 2px;">🧱</div>
                 <div style="padding:10px;">
@@ -1810,20 +1810,11 @@
             🎯 <b style="color:var(--purple2);">Targets:</b> 5 dots=+50pts | 10 dots=+150pts | 15 dots=+400pts<br>
             ⏱️ 60 second | Snake speed increases!
         </div>
-        <div style="margin-bottom:10px;">
-            <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:6px;">💰 Bet:</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button class="bet-chip" onclick="selSnakeBet(1,this)">100 pts</button>
-                <button class="bet-chip" onclick="selSnakeBet(5,this)">500 pts</button>
-                <button class="bet-chip" onclick="selSnakeBet(10,this)">1000 pts</button>
-                <button class="bet-chip" onclick="selSnakeBet(20,this)">2000 pts</button>
-                <button class="bet-chip" onclick="selSnakeBet(50,this)">5000 pts</button>
-            </div>
+        <div style="background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.25);border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:13px;font-weight:900;color:var(--purple2);">🎟️ 1 Pass per Game</div>
+            <div style="font-size:11px;color:var(--text3);">Passes: <b id="snakePassDisp" style="color:var(--purple2);">0</b></div>
         </div>
-        <div style="display:flex;gap:8px;">
-    <button onclick="startSnake(true)" style="flex:1;background:var(--bg3);border:1.5px solid var(--border);color:var(--text2);border-radius:16px;padding:12px;font-size:12px;font-weight:900;cursor:pointer;">🎮 Try Free</button>
-    <button onclick="startSnake(false)" class="btn-gold" style="flex:2;padding:12px;font-size:13px;">🐍 Start (1 Pass)</button>
-</div>
+        <button onclick="startSnake(false)" class="btn-gold" style="width:100%;padding:14px;font-size:14px;">🐍 Start — 1 Pass</button>
     </div>
     <div id="snakeGame" style="display:none;padding:8px;">
         <div id="snakeTargetInfo" style="font-size:9px;color:var(--purple2);text-align:center;margin-bottom:4px;font-weight:700;background:rgba(124,92,252,.08);border-radius:8px;padding:4px;"></div>
@@ -1868,15 +1859,9 @@
             ⏱️ Jitna zyada time bachao = zyada reward<br>
             💀 Time khatam = haar • Checkmate = bada inam!
         </div>
-        <div style="margin-bottom:10px;">
-            <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:6px;">💰 Bet:</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button class="bet-chip" onclick="selChessBet(1,this)">100 pts</button>
-                <button class="bet-chip" onclick="selChessBet(5,this)">500 pts</button>
-                <button class="bet-chip" onclick="selChessBet(10,this)">1000 pts</button>
-                <button class="bet-chip" onclick="selChessBet(20,this)">2000 pts</button>
-                <button class="bet-chip" onclick="selChessBet(50,this)">5000 pts</button>
-            </div>
+        <div style="background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.25);border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:13px;font-weight:900;color:var(--purple2);">🎟️ 1 Pass per Game</div>
+            <div style="font-size:11px;color:var(--text3);">Passes: <b id="chessPassDisp" style="color:var(--purple2);">0</b></div>
         </div>
         <div style="margin-bottom:10px;">
             <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:6px;">⚡ Time:</div>
@@ -1886,10 +1871,7 @@
                 <button class="runner-mode-btn" onclick="selChessTime(15,this)">15s<br><span style="font-size:9px;color:var(--red);">Extreme | 8x</span></button>
             </div>
         </div>
-        <div style="display:flex;gap:8px;">
-    <button onclick="startChess(true)" style="flex:1;background:var(--bg3);border:1.5px solid var(--border);color:var(--text2);border-radius:16px;padding:12px;font-size:12px;font-weight:900;cursor:pointer;">🎮 Try Free</button>
-    <button onclick="startChess(false)" class="btn-gold" style="flex:2;padding:12px;font-size:13px;">♟️ Start (1 Pass)</button>
-</div>
+        <button onclick="startChess(false)" class="btn-gold" style="width:100%;padding:14px;font-size:14px;">♟️ Start — 1 Pass</button>
     </div>
     <div id="chessGame" style="display:none;padding:8px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -2150,6 +2132,8 @@ async function loadUser(){
         updateWithdrawCondition();
         // Show movie group message for newly referred users
         checkReferralWelcome();
+        // Init AdsGram after user data is ready
+        if(typeof ensureAdsGram==='function') ensureAdsGram();
     }
 }
 async function loadGameState(){
@@ -2340,6 +2324,11 @@ function updateUI(){try{
     const profDp=document.getElementById('profileDp');
     if(profDp){if(userData.photo_url){profDp.innerHTML=`<img src="${userData.photo_url}" alt="${fname.charAt(0)}">"`;}else{profDp.textContent=fname.charAt(0).toUpperCase();}}
     const _gbp=document.getElementById('gameBadgePasses');if(_gbp)_gbp.textContent=userData.passes||0;
+    // Update per-game pass displays
+    const passes = userData.passes||0;
+    ['snakePassDisp','chessPassDisp','blockPassDisp','gemPassDisp','guessPassLeft'].forEach(id=>{
+        const el=document.getElementById(id);if(el)el.textContent=passes;
+    });
     // Game stats — wins today (session), today earned, streak
     setEl('gameWins',gameState.wins||0);
     setEl('gameTodayEarned',fmtPts(toPoints(gameState.today_game_earned||0)));
@@ -4618,18 +4607,18 @@ function openSnakeGame(){
     document.getElementById('snakeResult').style.display='none';
     openModal('snake');
 }
-function selSnakeBet(a,el){if(a>(userData.balance||0)){showToast('❌ Points kam hain!');return;}snakeBet=a;document.querySelectorAll('#snakeModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+function selSnakeBet(a,el){} // bet removed — pass-only mode
 function snakeDir(d){const m={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}};const nd=m[d];if(nd&&!(nd.x===-snakeDirV.x&&nd.y===-snakeDirV.y))snakeNextDir=nd;}
 function placeFood(){let f,t=0;do{f={x:1+Math.floor(Math.random()*(SN-2)),y:1+Math.floor(Math.random()*(SN-2))};t++;}while(snake.some(s=>s.x===f.x&&s.y===f.y)&&t<300);snakeFood=f;}
 
 async function startSnake(tryFree){
     window._snakeTry = tryFree || (userData.passes||0)<=0;
     if(!_snakeTry){
-        if((userData.balance||0)<snakeBet){showToast('❌ Points kam hain!');return;}
-        const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'snake',bet:snakeBet});
+        if(!userData.passes||userData.passes<1){showNoPassPopup();return;}
+        const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'snake',bet:1,use_pass:true});
         if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
         userData.passes=Math.max(0,(userData.passes||1)-1);
-        userData.balance=Math.max(0,(userData.balance||0)-snakeBet);
+        userData.passes=Math.max(0,(userData.passes||1)-1);
         updateUI();
     } else { showToast('🎮 Try Mode — No Reward!'); }
     snake=[{x:8,y:8},{x:7,y:8},{x:6,y:8},{x:5,y:8}];
@@ -4663,7 +4652,7 @@ async function startSnake(tryFree){
         if(head.x===snakeFood.x&&head.y===snakeFood.y){snakeScore++;placeFood();playSound('tap');}else snake.pop();
         drawSnake();
         document.getElementById('snakeScore').textContent='🍎 '+snakeScore;
-        document.getElementById('snakeEarning').textContent=(snakeScore*toPoints(snakeBet)*15)+' pts';
+        document.getElementById('snakeEarning').textContent=(snakeScore*15)+' pts';
     }
     snakeFrameId=requestAnimationFrame(loop);
     snakeInterval=setInterval(()=>{if(!snakeActive){clearInterval(snakeInterval);return;}snakeTimer--;document.getElementById('snakeTimer').textContent=snakeTimer+'s';if(snakeTimer<=0){snakeActive=false;clearInterval(snakeInterval);cancelAnimationFrame(snakeFrameId);finishSnake();}},1000);
@@ -4719,7 +4708,7 @@ async function finishSnake(){
     SN_TARGETS.forEach(t=>{if(snakeScore>=t.dots&&elapsed<=t.secs){pts+=t.bonus;showToast('🎯 Target! +'+t.bonus+' pts!');}});
     const rup=fromPoints(pts);
     if(rup>0){
-        if(!window._snakeTry)await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'snake',bet:snakeBet,survived_seconds:snakeScore});
+        if(!window._snakeTry)await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'snake',bet:1,survived_seconds:snakeScore});
         userData.balance=(userData.balance||0)+rup;userData.today_earned=(userData.today_earned||0)+rup;
         gameState.today_game_earned=(gameState.today_game_earned||0)+rup;gameState.totalPlays=(gameState.totalPlays||0)+1;
         if(snakeScore>=5)gameState.wins=(gameState.wins||0)+1;
@@ -4852,16 +4841,16 @@ function openChessGame(){
     document.getElementById('chessResult').style.display='none';
     openModal('chess');
 }
-function selChessBet(a,el){if(a>(userData.balance||0)){showToast('❌ Points kam hain!');return;}chessBet=a;document.querySelectorAll('#chessModal .bet-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+function selChessBet(a,el){} // bet removed — pass-only mode
 function selChessTime(t,el){chessTimeSetting=t;chessMult={60:2,30:4,15:8}[t]||2;document.querySelectorAll('#chessModal .runner-mode-btn').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
 
 async function startChess(tryFree){
     window._chessTry = tryFree || (userData.passes||0)<=0;
     if(!_chessTry){
-        if((userData.balance||0)<chessBet){showToast('❌ Points kam hain!');return;}
-        const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'chess',bet:chessBet});
+        if(!userData.passes||userData.passes<1){showNoPassPopup();return;}
+        const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'chess',bet:1,use_pass:true});
         if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
-        userData.passes=Math.max(0,(userData.passes||1)-1);userData.balance=Math.max(0,(userData.balance||0)-chessBet);updateUI();
+        userData.passes=Math.max(0,(userData.passes||1)-1);updateUI();
     } else { showToast('🎮 Try Mode — No Reward!'); }
     chessBoard=CHESS_INIT.map(row=>[...row]);chessSelected=null;chessTurn='white';chessActive=true;chessMoveCount=0;chessTimeLeft=chessTimeSetting;
     document.getElementById('chessSetup').style.display='none';document.getElementById('chessGame').style.display='block';document.getElementById('chessResult').style.display='none';
@@ -4930,13 +4919,13 @@ function chessClick(evt){
 
 async function finishChess(reason){
     clearInterval(chessInterval);chessActive=false;
-    const betPts=toPoints(chessBet);let pts=0,title='',emoji='♟️';
+    const betPts=10;let pts=0,title='',emoji='♟️'; // Fixed base reward
     if(reason==='checkmate'){pts=betPts*chessMult*2;title='CHECKMATE! 🏆';emoji='🏆';}
     else if(reason==='timeout'){pts=Math.floor(betPts*0.3);title='Time Out! ⏱️';emoji='⏱️';}
     else{pts=0;title='Haar Gaye!';emoji='😔';}
     const rup=fromPoints(pts);
     if(rup>0){
-        if(!window._chessTry)await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'chess',bet:chessBet,survived_seconds:chessMoveCount});
+        if(!window._chessTry)await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'chess',bet:1,survived_seconds:chessMoveCount});
         userData.balance=(userData.balance||0)+rup;userData.today_earned=(userData.today_earned||0)+rup;
         gameState.today_game_earned=(gameState.today_game_earned||0)+rup;gameState.totalPlays=(gameState.totalPlays||0)+1;
         if(reason==='checkmate')gameState.wins=(gameState.wins||0)+1;
@@ -5042,7 +5031,7 @@ function checkGameOver(){
 
 async function startBlockBlast(){
     if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
-    if((userData.balance||0)<blockBet){showToast('❌ Points kam hain!');return;}
+    if(!userData.passes||userData.passes<1){showNoPassPopup();return;}
     const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'blockblast',bet:blockBet});
     if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
     userData.passes=Math.max(0,(userData.passes||1)-1);
@@ -5308,7 +5297,7 @@ function processMatches(){
 
 async function startGemMatch(){
     if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
-    if((userData.balance||0)<gemBet){showToast('❌ Points kam hain!');return;}
+    if(!userData.passes||userData.passes<1){showNoPassPopup();return;}
     const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'gemmatch',bet:gemBet});
     if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
     userData.passes=Math.max(0,(userData.passes||1)-1);
@@ -6417,7 +6406,14 @@ async function showNativeAd(cardNum) {
 }
 
 // AdsGram init on load
-setTimeout(initAdsGram, 2000);
+// AdsGram init hoga user load ke baad
+let _adsgramInited = false;
+async function ensureAdsGram() {
+    if (_adsgramInited) return;
+    _adsgramInited = true;
+    await initAdsGram();
+}
+setTimeout(ensureAdsGram, 3000); // Fallback
 scheduleRandomPopupAd();
 
 </script>
@@ -6444,14 +6440,11 @@ scheduleRandomPopupAd();
                 4️⃣ Jab koi piece na fit ho → Game Over
             </div>
         </div>
-        <div style="font-weight:800;font-size:12px;color:var(--text2);margin-bottom:8px;">Bet select karo:</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
-            <button class="bet-chip sel" onclick="selBlockBet(1,this)">100 pts</button>
-            <button class="bet-chip" onclick="selBlockBet(2,this)">200 pts</button>
-            <button class="bet-chip" onclick="selBlockBet(5,this)">500 pts</button>
-            <button class="bet-chip" onclick="selBlockBet(10,this)">1000 pts</button>
+        <div style="background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.25);border-radius:12px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:13px;font-weight:900;color:var(--purple2);">🎟️ 1 Pass per Game</div>
+            <div style="font-size:11px;color:var(--text3);">Passes: <b id="blockPassDisp" style="color:var(--purple2);">0</b></div>
         </div>
-        <button onclick="startBlockBlast()" class="btn-gold btn-shine">🧱 Start (1 Pass)</button>
+        <button onclick="startBlockBlast()" class="btn-gold btn-shine" style="width:100%;">🧱 Start — 1 Pass</button>
     </div>
     <!-- GAME -->
     <div id="blockGameArea" style="display:none;">
@@ -6499,14 +6492,11 @@ scheduleRandomPopupAd();
                 4️⃣ Chain reaction = Multiplier bonus! 🔥
             </div>
         </div>
-        <div style="font-weight:800;font-size:12px;color:var(--text2);margin-bottom:8px;">Bet select karo:</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
-            <button class="bet-chip sel" onclick="selGemBet(1,this)">100 pts</button>
-            <button class="bet-chip" onclick="selGemBet(2,this)">200 pts</button>
-            <button class="bet-chip" onclick="selGemBet(5,this)">500 pts</button>
-            <button class="bet-chip" onclick="selGemBet(10,this)">1000 pts</button>
+        <div style="background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.25);border-radius:12px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:13px;font-weight:900;color:var(--purple2);">🎟️ 1 Pass per Game</div>
+            <div style="font-size:11px;color:var(--text3);">Passes: <b id="gemPassDisp" style="color:var(--purple2);">0</b></div>
         </div>
-        <button onclick="startGemMatch()" class="btn-gold btn-shine">💎 Start (1 Pass)</button>
+        <button onclick="startGemMatch()" class="btn-gold btn-shine" style="width:100%;">💎 Start — 1 Pass</button>
     </div>
     <!-- GAME -->
     <div id="gemGameArea" style="display:none;">
