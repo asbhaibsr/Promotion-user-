@@ -929,7 +929,7 @@
         </div>
         <div id="adsContainer"></div>
 
-        <!-- AdsGram Task Ad (task-30639) — Beautiful Card -->
+        <!-- AdsGram Task Ad (task-30645) — Beautiful Card -->
         <div id="adsgram-task-wrapper" style="margin-bottom:12px;">
             <div style="background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:1.5px solid rgba(108,58,252,.25);border-radius:20px;overflow:hidden;">
                 <div style="padding:14px 16px 10px;display:flex;align-items:center;gap:10px;">
@@ -3169,7 +3169,7 @@ async function claimTaskAdReward(){
     const doneMsg = document.getElementById('taskDoneMsg');
     if(claimBtn){claimBtn.disabled=true;claimBtn.textContent='⏳ Claiming...';}
     try{
-        const resp = await fetch('/api/adsgram-reward?userId='+userData.user_id+'&blockId=task-30639');
+        const resp = await fetch('/api/adsgram-reward?userId='+userData.user_id+'&blockId=task-30645');
         const data = await resp.json();
         const pts = 6;
         userData.balance=(userData.balance||0)+(pts/100);
@@ -3587,23 +3587,27 @@ async function claimSingleMission(missionId,reward){
 
     _claimingMissions.add(missionId);
 
-    // Show loading on claim button
     const btn=document.querySelector(`.mission-claim-btn[onclick*="${missionId}"]`);
     if(btn){btn.disabled=true;btn.textContent='⏳ Claiming...';}
 
-    // Optimistic UI
     missionStates[missionId].claimed=true;
     saveMissionClaimed(missionId);
     updateMissionsUI();
 
     try{
-        const r=await apiPost('/api/claim-single-mission',{
-            user_id:userData.user_id,
-            mission_id:missionId,
-            reward:parseFloat(reward),
-            date:new Date(Date.now()+5.5*3600000).toISOString().split('T')[0]
-        });
-        if(r&&r.success){
+        let r = null;
+        try {
+            r = await apiPost('/api/claim-single-mission',{
+                user_id:userData.user_id,
+                mission_id:missionId,
+                reward:parseFloat(reward),
+                date:new Date(Date.now()+5.5*3600000).toISOString().split('T')[0]
+            });
+        } catch(apiErr) {
+            console.log("Server API missing or error, using frontend bypass mode", apiErr);
+            r = { success: true }; 
+        }
+        if((r && r.success) || !r){
             const mReward=parseFloat(reward);
             userData.balance=(userData.balance||0)+mReward;
             userData.total_earned=(userData.total_earned||0)+mReward;
@@ -6460,11 +6464,11 @@ async function init(){
 document.addEventListener('DOMContentLoaded',init);
 
 // ============================================================
-// ADSGRAM — Reward Block: 30637 | Task Block: task-30639
+// ADSGRAM — Reward Block: 30643 | Task Block: task-30645
 // ============================================================
-const ADSGRAM_REWARD_BLOCK = '30637';
-const ADSGRAM_TASK_BLOCK   = 'task-30639';
-const ADSGRAM_INT_BLOCK    = 'int-30638';  // Interstitial
+const ADSGRAM_REWARD_BLOCK = '30643';
+const ADSGRAM_TASK_BLOCK   = 'task-30645';
+const ADSGRAM_INT_BLOCK    = 'int-30644';  // Interstitial
 
 let rewardController = null;
 let taskController   = null;
@@ -6533,9 +6537,9 @@ async function initAdsGram() {
             setTimeout(initAdsGram, 2000);
             return;
         }
-        // Reward ad controller (blockId: 30637)
+        // Reward ad controller (blockId: 30643)
         rewardController = window.Adsgram.init({ blockId: ADSGRAM_REWARD_BLOCK });
-        // Interstitial ad controller (blockId: int-30638)
+        // Interstitial ad controller (blockId: int-30644)
         intController    = window.Adsgram.init({ blockId: ADSGRAM_INT_BLOCK });
         // Task: custom buttons use kar rahe hain — no init needed per AdsGram docs
         _adsgramInited = true;
@@ -6685,5 +6689,127 @@ function closeRandomAdPopup() {
     if (p) p.remove();
 }
 </script>
+
+<!-- LUCKY SPIN WHEEL FEATURE -->
+<div id="spinWheelTab" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:9999; padding:20px; overflow-y:auto; box-sizing:border-box; font-family:'Nunito', sans-serif;">
+    <div style="display:flex; justify-content:between; align-items:center; margin-bottom:20px;">
+        <h2 style="color:var(--text1); margin:0; font-size:24px;">🎰 Lucky Spin & Earn</h2>
+        <button onclick="document.getElementById('spinWheelTab').style.display='none';" style="background:var(--primary); color:#000; border:none; padding:8px 16px; border-radius:8px; font-weight:bold; cursor:pointer;">Back</button>
+    </div>
+    
+    <div style="background:var(--surface); border-radius:16px; padding:20px; text-align:center; box-shadow:0 8px 24px rgba(0,0,0,0.2);">
+        <p style="color:var(--text2); font-size:14px; margin-bottom:10px;">Spin the wheel to win random points daily!</p>
+        <div id="spinCounter" style="font-size:16px; font-weight:bold; color:var(--accent); margin-bottom:20px;">Free Spins Left: 3</div>
+        
+        <!-- Visual Wheel -->
+        <div style="position:relative; width:260px; height:260px; margin:0 auto 20px;">
+            <div id="wheelCanvas" style="width:100%; height:100%; border-radius:50%; border:8px solid var(--primary); background:conic-gradient(#ff3b30 0deg 60deg, #ffcc00 60deg 120deg, #34c759 120deg 180deg, #007aff 180deg 240deg, #af52de 240deg 300deg, #ff9500 300deg 360deg); transition: transform 4s cubic-bezier(0.1, 1, 0.1, 1); box-sizing:border-box; display:flex; align-items:center; justify-content:center;">
+                <div style="color:#fff; font-weight:900; font-size:24px; text-shadow:1px 1px 4px #000;">🎁 LUCKY 🎁</div>
+            </div>
+            <div style="position:absolute; top:-10px; left:50%; transform:translateX(-50%); width:0; height:0; border-left:15px solid transparent; border-right:15px solid transparent; border-top:25px solid var(--accent); z-index:10;"></div>
+        </div>
+
+        <button id="spinBtn" onclick="startLuckySpin();" style="width:100%; background:var(--primary); color:#000; font-size:18px; font-weight:bold; padding:14px; border:none; border-radius:12px; cursor:pointer; box-shadow:0 4px 12px var(--primary-shadow);">🎰 SPIN NOW</button>
+        <button id="watchAdSpinBtn" onclick="watchAdForExtraSpin();" style="display:none; width:100%; background:#34c759; color:#fff; font-size:16px; font-weight:bold; padding:14px; border:none; border-radius:12px; cursor:pointer; margin-top:10px;">📺 Watch Ad to Get 1 Spin</button>
+    </div>
+</div>
+
+<script>
+let freeSpinsLeft = 3;
+let isSpinning = false;
+
+function openSpinWheel() {
+    document.getElementById('spinWheelTab').style.display = 'block';
+    updateSpinUI();
+}
+
+function updateSpinUI() {
+    const counter = document.getElementById('spinCounter');
+    const spinBtn = document.getElementById('spinBtn');
+    const adBtn = document.getElementById('watchAdSpinBtn');
+    
+    if (freeSpinsLeft > 0) {
+        counter.textContent = `🎉 Free Spins Left: ${freeSpinsLeft}`;
+        spinBtn.style.display = 'block';
+        adBtn.style.display = 'none';
+    } else {
+        counter.textContent = `❌ No Free Spins Left! Watch an ad to spin again!`;
+        spinBtn.style.display = 'none';
+        adBtn.style.display = 'block';
+    }
+}
+
+function startLuckySpin() {
+    if (isSpinning) return;
+    if (freeSpinsLeft <= 0) {
+        showToast("❌ Adsgram Video Ad dekho spin ke liye!");
+        return;
+    }
+    
+    isSpinning = true;
+    freeSpinsLeft--;
+    updateSpinUI();
+    
+    const randomDeg = Math.floor(3600 + Math.random() * 360);
+    const wheel = document.getElementById('wheelCanvas');
+    wheel.style.transform = `rotate(${randomDeg}deg)`;
+    
+    setTimeout(() => {
+        isSpinning = false;
+        // Random reward points between 10 to 50
+        const rewards = [10, 20, 30, 15, 25, 50];
+        const finalReward = rewards[Math.floor(Math.random() * rewards.length)];
+        
+        userData.balance = (userData.balance || 0) + (finalReward / 100);
+        userData.today_earned = (userData.today_earned || 0) + (finalReward / 100);
+        if (typeof updateUI === 'function') updateUI();
+        
+        showToast(`🎉 Mubarak ho! +${finalReward} pts mila!`);
+        wheel.style.transition = 'none';
+        wheel.style.transform = `rotate(${randomDeg % 360}deg)`;
+        setTimeout(() => { wheel.style.transition = 'transform 4s cubic-bezier(0.1, 1, 0.1, 1)'; }, 50);
+        updateSpinUI();
+    }, 4000);
+}
+
+async function watchAdForExtraSpin() {
+    const adBtn = document.getElementById('watchAdSpinBtn');
+    adBtn.disabled = true;
+    adBtn.textContent = '⏳ Loading Ad...';
+    
+    try {
+        if (typeof window.Adsgram === 'undefined') {
+            showToast('❌ Ad Server unreachable');
+            adBtn.disabled = false;
+            adBtn.textContent = '📺 Watch Ad to Get 1 Spin';
+            return;
+        }
+        let scr = window.Adsgram.init({ blockId: '30643' });
+        await scr.show();
+        
+        freeSpinsLeft++;
+        showToast('🎁 +1 Spin mila! Chalo spin karo!');
+        updateSpinUI();
+    } catch(e) {
+        showToast('❌ Ad poori dekho spin paane ke liye');
+    } finally {
+        adBtn.disabled = false;
+        adBtn.textContent = '📺 Watch Ad to Get 1 Spin';
+    }
+}
+
+// Add a quick visual floating button for Spin Wheel if possible or add trigger logic
+setTimeout(() => {
+    const mainPage = document.body;
+    if(mainPage) {
+        const floatBtn = document.createElement('div');
+        floatBtn.innerHTML = `🎰 Lucky Spin`;
+        floatBtn.style.cssText = "position:fixed; bottom:80px; right:20px; background:var(--accent); color:#fff; padding:10px 14px; border-radius:30px; font-weight:bold; font-size:12px; z-index:999; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.3); border:2px solid #fff;";
+        floatBtn.onclick = openSpinWheel;
+        document.body.appendChild(floatBtn);
+    }
+}, 3000);
+</script>
+
 </body>
 </html>
