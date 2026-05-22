@@ -1230,9 +1230,22 @@ class Database:
     def get_all_ads(self):
         try:
             ads = list(self.ads.find().sort('order', 1))
+            result = []
             for ad in ads:
                 ad['_id'] = str(ad['_id'])
-            return ads
+                # Ensure all required fields exist
+                ad.setdefault('icon', '💎')
+                ad.setdefault('title', 'Offer')
+                ad.setdefault('reward', 0.0)
+                ad.setdefault('link', '#')
+                ad.setdefault('meta', 'Sponsored Offer')
+                ad.setdefault('description', '')
+                ad.setdefault('timer_seconds', 20)
+                ad.setdefault('claim_code', None)
+                ad.setdefault('image_url', '')
+                ad.setdefault('expiry', '')
+                result.append(ad)
+            return result
         except Exception as e:
             logger.error(f"Error getting ads: {e}")
             return []
@@ -1994,10 +2007,9 @@ class Database:
     MAX_DAILY_GAME_EARN = 3.0
 
     def runner_start(self, user_id, mode, bet):
-        """Start runner game — deduct pass + bet."""
+        """Start runner/skill game — deduct 1 pass only (no balance deduction)."""
         try:
             user_id = int(user_id)
-            bet = float(bet)
             if mode not in self.RUNNER_MODES:
                 return {'success': False, 'message': 'Invalid mode'}
             user = self.get_user(user_id)
@@ -2005,22 +2017,18 @@ class Database:
                 return {'success': False, 'message': 'User not found'}
             if user.get('passes', 0) <= 0:
                 return {'success': False, 'message': 'Passes nahi hain!'}
-            if user.get('balance', 0) < bet:
-                return {'success': False, 'message': f'Balance kam hai! ₹{user.get("balance",0):.2f}'}
-            # Deduct pass + bet
+            # Deduct ONLY pass (no balance deduction — pass-only mode)
             if not self.deduct_pass(user_id):
                 return {'success': False, 'message': 'Pass deduct nahi hua'}
-            self.users.update_one({'user_id': user_id}, {'$inc': {'balance': -bet}})
-            self.add_transaction(user_id, 'game_bet', -bet, f"Runner game bet ₹{bet} ({mode})")
             self.user_cache.pop(f"user_{user_id}", None)
             mode_info = self.RUNNER_MODES[mode]
-            max_reward = round(bet + (mode_info['seconds'] * mode_info['reward_per_sec']), 2)
+            max_reward = mode_info.get('max_reward', round(mode_info['seconds'] * mode_info['reward_per_sec'], 2))
             return {
                 'success': True,
                 'mode': mode,
                 'seconds': mode_info['seconds'],
                 'reward_per_sec': mode_info['reward_per_sec'],
-                'bet': bet,
+                'bet': 0,
                 'max_reward': max_reward
             }
         except Exception as e:
