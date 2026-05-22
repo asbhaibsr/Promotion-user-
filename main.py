@@ -602,15 +602,15 @@ def get_settings_api():
     """Public settings — UPI ID for pass purchases"""
     try:
         if not db or not db.ensure_connection():
-            return jsonify({'upi_id': 'filmyfund@upi'})
+            return jsonify({'upi_id': 'arsadsaifi8272@ibl'})
         settings = db.get_settings() if hasattr(db, 'get_settings') else {}
         return jsonify({
-            'upi_id': settings.get('upi_id', 'filmyfund@upi'),
+            'upi_id': settings.get('upi_id', 'arsadsaifi8272@ibl'),
             'min_withdraw': settings.get('min_withdraw', 5000),
         })
     except Exception as e:
         logger.error(f"Settings error: {e}")
-        return jsonify({'upi_id': 'filmyfund@upi'})
+        return jsonify({'upi_id': 'arsadsaifi8272@ibl'})
 
 @app.route('/api/settings', methods=['POST'])
 def save_settings_api():
