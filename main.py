@@ -276,24 +276,47 @@ def get_month_refs_api(user_id):
 def leaderboard_api():
     try:
         if not db or not db.ensure_connection():
-            return jsonify([])
-        mode = request.args.get('mode', 'weekly')
-        leaderboard = db.get_leaderboard(20, mode=mode)
+            return jsonify({'users': [], 'mode': 'weekly'})
+        # Support both ?mode= and ?type= params
+        mode = request.args.get('mode') or request.args.get('type', 'weekly')
+        limit = int(request.args.get('limit', 20))
+        leaderboard = db.get_leaderboard(limit, mode=mode)
+        # Always return {users: [...]} format
+        if isinstance(leaderboard, list):
+            return jsonify({'users': leaderboard, 'mode': mode})
         return jsonify(leaderboard)
     except Exception as e:
         logger.error(f"Leaderboard error: {e}")
-        return jsonify([])
+        return jsonify({'users': [], 'mode': 'weekly'})
 
 @app.route('/api/live-activity')
 def live_activity_api():
     try:
         if not db or not db.ensure_connection():
             return jsonify([])
-        activities = db.get_live_activity(20)
+        activities = db.get_live_activity(25)
         return jsonify(activities)
     except Exception as e:
         logger.error(f"Live activity error: {e}")
         return jsonify([])
+
+@app.route('/api/live-activity/add', methods=['POST'])
+def add_live_activity_api():
+    """Frontend se direct activity add karo (for real-time feel)"""
+    try:
+        data = request.get_json()
+        if not db or not db.ensure_connection():
+            return jsonify({'success': False})
+        db.add_live_activity(
+            data.get('type', 'activity'),
+            data.get('user_id', 0),
+            data.get('amount', 0),
+            data.get('description', ''),
+        )
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Add live activity error: {e}")
+        return jsonify({'success': False})
 
 # ========== ADS APIs ==========
 
@@ -1350,18 +1373,25 @@ def adsgram_reward():
             return jsonify({'success': False, 'message': 'userId missing'}), 400
 
         user_id = int(user_id)
-        reward_pts = 0.06  # ₹0.06 = 6 pts per ad (60% user payout, 40% house profit)
+        # Determine reward amount
+        bonus_type = request.args.get('bonus', '')
+        if bonus_type == 'extra':
+            reward_pts = 0.03   # Extra 30% bonus ad reward
+        elif 'task' in block_id.lower():
+            reward_pts = 0.06   # Task ad reward
+        else:
+            reward_pts = 0.10   # Reward/Interstitial ad = 10pts
 
         if not db or not db.ensure_connection():
             return jsonify({'success': False, 'message': 'DB error'}), 503
 
         # Add balance to user
         db.add_balance(user_id, reward_pts, f'AdsGram reward ({block_id})')
-        db.add_live_activity('bonus', user_id, reward_pts, '📺 Ad dekhi! +10 pts')
+        db.add_live_activity('bonus', user_id, reward_pts, f'📺 Ad dekhi! +{int(reward_pts*100)} pts')
         db.user_cache.pop(f"user_{user_id}", None)
 
-        logger.info(f"✅ AdsGram reward: user={user_id} block={block_id} +₹{reward_pts}")
-        return jsonify({'success': True, 'message': 'Reward added', 'reward': reward_pts}), 200
+        logger.info(f"✅ AdsGram reward: user={user_id} block={block_id} bonus={bonus_type} +₹{reward_pts}")
+        return jsonify({'success': True, 'message': 'Reward added', 'reward': reward_pts, 'pts': int(reward_pts*100)}), 200
 
     except Exception as e:
         logger.error(f"AdsGram reward error: {e}")
