@@ -23,7 +23,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- AdsGram SDK -->
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Oxanium:wght@700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&family=Oxanium:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
 /*
  * FilmyFund / FilmyFund — Telegram Mini App Styles
@@ -34,21 +34,34 @@
 
         *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
         :root{
-            --bg:#07080f;--bg2:#0d1020;--bg3:#151828;--card:#111422;
-            --gold:#f0c040;--gold2:#ffd700;--gold-dim:#c8961f;
-            --purple:#7c5cfc;--purple2:#a98aff;
-            --green:#19d89e;--red:#ff4e6a;--blue:#36b6f5;
-            --text:#eef0fb;--text2:#6d7a9f;--text3:#3d4560;
-            --border:rgba(255,255,255,0.05);
-            --shadow:0 8px 32px rgba(0,0,0,0.6);
-            --nav-h:68px;--r:16px;
+            /* Gamee-Style Light Palette */
+            --bg:#f2f4f8;--bg2:#ffffff;--bg3:#e8ecf5;--card:#ffffff;
+            --gold:#f5a623;--gold2:#ffbb33;--gold-dim:#e8940a;--gold-glow:rgba(245,166,35,.18);
+            --purple:#6c3afc;--purple2:#8b5cf6;--purple3:#5025e0;
+            --green:#22c55e;--red:#ef4444;--blue:#3b82f6;--orange:#f97316;
+            --text:#1a1d2e;--text2:#5a6380;--text3:#9aa3bf;
+            --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.13);
+            --shadow:0 4px 20px rgba(0,0,0,0.10);
+            --nav-h:68px;--r:18px;
+            /* Badge Colors */
+            --badge-bronze:#cd7f32;--badge-silver:#a8a9ad;--badge-gold:#f5a623;
+            --badge-diamond:#60a5fa;--badge-legend:#ef4444;
         }
-        [data-theme="light"]{
-            --bg:#f2f5ff;--bg2:#e8ecfb;--bg3:#dde3f7;--card:#fff;
-            --text:#111528;--text2:#4a5677;--text3:#8899bb;
-            --border:rgba(0,0,0,0.07);--shadow:0 6px 22px rgba(0,0,0,0.1);
+        [data-theme="dark"]{
+            --bg:#05060e;--bg2:#0a0c1a;--bg3:#0f1124;--card:#0d0f22;
+            --text:#f0f2ff;--text2:#7a86b0;--text3:#363d5a;
+            --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.10);
+            --shadow:0 12px 40px rgba(0,0,0,0.7);
         }
-        html,body{background:var(--bg);color:var(--text);min-height:100%;overflow-x:hidden;font-family:'Space Grotesk',sans-serif;width:100%;max-width:100vw;}button,input,select{max-width:100%;}
+        html,body{background:var(--bg);color:var(--text);min-height:100%;overflow-x:hidden;font-family:'Nunito',sans-serif;width:100%;max-width:100vw;}
+        body{padding-top:env(safe-area-inset-top,0px);}
+        button,input,select,textarea{max-width:100%;font-family:inherit;}
+        /* GPU-accelerated smooth rendering */
+        *{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
+        img{will-change:auto;}
+        /* Smooth tap feedback */
+        button{-webkit-tap-highlight-color:transparent;transition:transform .12s ease,opacity .12s ease,box-shadow .12s ease;}
+        button:active{transform:scale(.96)!important;opacity:.9;}
         body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);}
         ::-webkit-scrollbar{width:3px;height:3px;}
         ::-webkit-scrollbar-thumb{background:var(--gold);border-radius:4px;}
@@ -57,14 +70,14 @@
         .onboard-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9000;display:flex;align-items:center;justify-content:center;padding:14px;}
         .onboard-card{background:var(--bg2);border-radius:24px;width:100%;max-width:440px;border:1.5px solid rgba(240,192,64,.25);box-shadow:0 0 60px rgba(124,92,252,.2);overflow:hidden;display:flex;flex-direction:column;max-height:90vh;}
         .onboard-header{background:linear-gradient(135deg,var(--purple),var(--gold));padding:18px 18px 14px;text-align:center;flex-shrink:0;}
-        .onboard-header h2{font-family:'Oxanium',sans-serif;font-size:20px;font-weight:900;color:#000;margin-bottom:4px;}
+        .onboard-header h2{font-family:'Fredoka One',cursive;font-size:20px;font-weight:900;color:#000;margin-bottom:4px;}
         .onboard-header p{font-size:11px;color:rgba(0,0,0,.7);font-weight:600;}
         .onboard-lang-row{display:flex;gap:8px;padding:12px 14px;background:var(--bg3);flex-shrink:0;}
         .onboard-lang-btn{flex:1;padding:9px;border-radius:10px;background:var(--bg2);border:1.5px solid var(--border);text-align:center;cursor:pointer;font-size:12px;font-weight:700;transition:all .2s;}
         .onboard-lang-btn.active{border-color:var(--gold);background:rgba(240,192,64,.1);color:var(--gold);}
         .onboard-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px;flex:1;}
         .onboard-section{margin-bottom:14px;}
-        .onboard-section-title{font-family:'Oxanium',sans-serif;font-size:13px;font-weight:900;color:var(--gold);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+        .onboard-section-title{font-family:'Fredoka One',cursive;font-size:13px;font-weight:900;color:var(--gold);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
         .onboard-item{display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);}
         .onboard-item:last-child{border-bottom:none;}
         .onboard-item-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
@@ -82,23 +95,23 @@
         /* LANG FAB */
         .lang-fab{position:fixed;top:calc(env(safe-area-inset-top,0px)+10px);right:14px;z-index:300;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:30px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(124,92,252,.45);display:none;}
 
-        /* TOPBAR */
-        .topbar{position:sticky;top:0;z-index:200;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(to bottom,var(--bg) 80%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
-        .topbar-logo{font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--gold);letter-spacing:.5px;}
+        /* TOPBAR — Gamee style */
+        .topbar{position:sticky;top:0;z-index:200;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;background:var(--bg2);box-shadow:0 2px 12px rgba(0,0,0,0.07);}
+        .topbar-logo{font-family:'Fredoka One',cursive;font-size:20px;font-weight:400;color:var(--purple);letter-spacing:.5px;}
         .hamburger-btn{width:40px;height:40px;border-radius:12px;background:var(--bg3);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:transform .15s;}
-        .hamburger-btn span{width:16px;height:2px;background:var(--text);border-radius:2px;transition:all .3s;}
+        .hamburger-btn span{width:16px;height:2px;background:var(--text2);border-radius:2px;transition:all .3s;}
         .hamburger-btn:active{transform:scale(.9);}
-        .topbar-balance{background:linear-gradient(135deg,rgba(240,192,64,.14),rgba(240,192,64,.04));border:1px solid rgba(240,192,64,.22);border-radius:28px;padding:7px 14px;font-family:'Oxanium',sans-serif;font-weight:900;font-size:15px;color:var(--gold);}
+        .topbar-balance{background:linear-gradient(135deg,#fff7ed,#fef3c7);border:2px solid var(--gold);border-radius:28px;padding:7px 14px;font-family:'Fredoka One',cursive;font-weight:400;font-size:15px;color:var(--gold-dim);box-shadow:0 2px 8px rgba(245,166,35,.18);}
 
-        /* SIDEBAR */
-        .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;opacity:0;transition:opacity .3s;}
+        /* SIDEBAR — Gamee light */
+        .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;opacity:0;transition:opacity .3s;}
         .sidebar-overlay.show{display:block;opacity:1;}
-        .sidebar{position:fixed;left:0;top:0;bottom:0;width:272px;background:var(--bg2);z-index:501;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding-top:max(env(safe-area-inset-top,0),10px);overflow-y:auto;border-right:1px solid var(--border);}
+        .sidebar{position:fixed;left:0;top:0;bottom:0;width:272px;background:var(--bg2);z-index:501;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding-top:max(env(safe-area-inset-top,0),10px);overflow-y:auto;border-right:1px solid var(--border2);box-shadow:8px 0 32px rgba(0,0,0,.15);}
         .sidebar.open{transform:translateX(0);}
         .sidebar-header{padding:16px 18px 14px;border-bottom:1px solid var(--border);margin-bottom:6px;}
-        .sidebar-logo{font-family:'Oxanium',sans-serif;font-size:20px;font-weight:900;color:var(--gold);}
-        .sidebar-item{display:flex;align-items:center;gap:12px;padding:13px 18px;cursor:pointer;transition:background .15s;font-weight:600;font-size:14px;}
-        .sidebar-item:active{background:rgba(255,255,255,.04);}
+        .sidebar-logo{font-family:'Fredoka One',cursive;font-size:22px;font-weight:400;color:var(--purple);}
+        .sidebar-item{display:flex;align-items:center;gap:12px;padding:13px 18px;cursor:pointer;transition:background .15s;font-weight:700;font-size:14px;color:var(--text);}
+        .sidebar-item:active{background:rgba(108,58,252,.06);}
         .sidebar-item .si-icon{width:36px;height:36px;border-radius:11px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
         .sidebar-divider{height:1px;background:var(--border);margin:6px 18px;}
         .sidebar-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;}
@@ -113,69 +126,69 @@
         .page.active{display:block;}
         .page-inner{padding-top:6px;}
 
-        /* BALANCE CARD */
-        .balance-card{background:linear-gradient(140deg,#101840,#0b0f28,#14094a);border:1px solid rgba(240,192,64,.18);border-radius:26px;padding:22px 18px 18px;margin-bottom:12px;position:relative;overflow:hidden;}
-        .balance-card::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(240,192,64,.1),transparent 65%);pointer-events:none;}
-        .balance-card::after{content:'';position:absolute;bottom:-40px;left:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(124,92,252,.09),transparent 65%);pointer-events:none;}
-        .balance-label{font-size:11px;color:var(--text2);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px;}
-        .balance-main{font-family:'Oxanium',sans-serif;font-size:54px;font-weight:900;color:var(--gold);line-height:1.05;text-shadow:0 0 36px rgba(240,192,64,.22);}
+        /* BALANCE CARD — Gamee style bright */
+        .balance-card{background:linear-gradient(135deg,#6c3afc,#9b59ff,#5025e0);border:none;border-radius:24px;padding:22px 18px 18px;margin-bottom:12px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(108,58,252,.35),inset 0 1px 0 rgba(255,255,255,.2);}
+        .balance-card::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(255,255,255,.12),transparent 65%);pointer-events:none;}
+        .balance-card::after{content:'';position:absolute;bottom:-40px;left:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(255,255,255,.08),transparent 65%);pointer-events:none;}
+        .balance-label{font-size:11px;color:rgba(255,255,255,.75);font-weight:800;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px;}
+        .balance-main{font-family:'Fredoka One',cursive;font-size:54px;font-weight:400;color:#fff;line-height:1.05;text-shadow:0 2px 12px rgba(0,0,0,.2);}
         .balance-sub{display:flex;gap:7px;margin-top:13px;flex-wrap:wrap;}
-        .bsub-item{flex:1;min-width:80px;background:rgba(255,255,255,.04);border-radius:12px;padding:9px 11px;border:1px solid var(--border);}
-        .bsub-label{font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
-        .bsub-val{font-size:20px;font-weight:900;color:var(--gold);margin-top:2px;font-family:'Oxanium',sans-serif;}
+        .bsub-item{flex:1;min-width:80px;background:rgba(255,255,255,.18);border-radius:12px;padding:9px 11px;border:1px solid rgba(255,255,255,.25);}
+        .bsub-label{font-size:10px;color:rgba(255,255,255,.7);font-weight:800;text-transform:uppercase;letter-spacing:.4px;}
+        .bsub-val{font-size:20px;font-weight:900;color:#fff;margin-top:2px;font-family:'Fredoka One',cursive;}
 
-        /* PASSES CARD */
-        .passes-card{background:linear-gradient(135deg,#180d50,#120932);border:1px solid rgba(124,92,252,.22);border-radius:18px;padding:13px 15px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+        /* PASSES CARD — Gamee yellow/orange */
+        .passes-card{background:linear-gradient(135deg,#fff7ed,#fef3c7);border:2px solid #fbbf24;border-radius:18px;padding:13px 15px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 16px rgba(251,191,36,.2);}
         .passes-info{display:flex;align-items:center;gap:9px;}
         .passes-icon{font-size:24px;}
-        .passes-text .passes-count{font-family:'Oxanium',sans-serif;font-size:30px;font-weight:900;color:var(--purple2);}
+        .passes-text .passes-count{font-family:'Fredoka One',cursive;font-size:30px;font-weight:400;color:var(--orange);}
         .passes-text .passes-lbl{font-size:10px;color:var(--text2);margin-top:-2px;}
-        .passes-earn-btn{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;padding:9px 15px;border-radius:28px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;}
+        .passes-earn-btn{background:linear-gradient(135deg,var(--orange),#ef4444);color:#fff;border:none;padding:9px 15px;border-radius:28px;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(249,115,22,.3);}
 
-        /* DAILY BONUS */
-        .daily-bonus-card{background:linear-gradient(135deg,#0c2218,#0b1230);border:1px solid rgba(25,216,158,.18);border-radius:18px;padding:13px 15px;margin-bottom:12px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:transform .15s;}
+        /* DAILY BONUS — Gamee green */
+        .daily-bonus-card{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:2px solid #86efac;border-radius:18px;padding:13px 15px;margin-bottom:12px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:transform .15s;box-shadow:0 4px 16px rgba(34,197,94,.15);}
         .daily-bonus-card:active{transform:scale(.97);}
 
-        /* MISSION */
-        .mission-card{background:linear-gradient(135deg,var(--gold-dim),var(--gold));border-radius:18px;padding:14px 16px;margin-bottom:12px;cursor:pointer;color:#000;position:relative;overflow:hidden;transition:transform .15s;}
+        /* MISSION — Gamee orange gradient */
+        .mission-card{background:linear-gradient(135deg,var(--orange),#f5a623);border-radius:18px;padding:14px 16px;margin-bottom:12px;cursor:pointer;color:#fff;position:relative;overflow:hidden;transition:transform .15s;box-shadow:0 6px 20px rgba(249,115,22,.35);}
         .mission-card:active{transform:scale(.97);}
-        .mission-bar-bg{height:7px;background:rgba(0,0,0,.18);border-radius:8px;overflow:hidden;margin-top:9px;}
+        .mission-bar-bg{height:7px;background:rgba(255,255,255,.3);border-radius:8px;overflow:hidden;margin-top:9px;}
         .mission-bar-fill{height:100%;background:#fff;border-radius:8px;transition:width .4s;}
 
-        /* REF CARD */
-        .ref-card{background:linear-gradient(135deg,#09183a,#0d0d3c);border:1px solid rgba(54,182,245,.12);border-radius:22px;padding:16px;margin-bottom:12px;}
-        .ref-link-box{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:9px;margin-bottom:9px;}
+        /* REF CARD — Gamee blue/light */
+        .ref-card{background:#fff;border:1.5px solid rgba(59,130,246,.18);border-radius:22px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
+        .ref-link-box{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:9px;margin-bottom:9px;}
         .ref-link-text{flex:1;font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .ref-copy-btn{background:var(--gold);color:#000;border:none;padding:7px 13px;border-radius:28px;font-weight:800;font-size:11px;cursor:pointer;flex-shrink:0;font-family:inherit;}
+        .ref-copy-btn{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;padding:7px 13px;border-radius:28px;font-weight:800;font-size:11px;cursor:pointer;flex-shrink:0;font-family:inherit;}
         .share-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
-        .share-btn{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:11px;padding:9px 5px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font-size:10px;font-weight:700;color:var(--text2);transition:all .18s;}
-        .share-btn:active{background:rgba(255,255,255,.12);transform:scale(.94);}
+        .share-btn{background:var(--bg3);border:1.5px solid var(--border);border-radius:11px;padding:9px 5px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font-size:10px;font-weight:700;color:var(--text2);transition:all .18s;}
+        .share-btn:active{background:var(--bg2);transform:scale(.94);}
         .share-btn span:first-child{font-size:20px;}
 
         /* SECTION HEAD */
         .section-head{display:flex;justify-content:space-between;align-items:center;margin:14px 0 9px;}
-        .section-head h3{font-family:'Oxanium',sans-serif;font-size:17px;font-weight:800;color:var(--gold);}
-        .admin-add-btn{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;border-radius:28px;padding:6px 13px;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:inherit;}
+        .section-head h3{font-family:'Fredoka One',cursive;font-size:18px;font-weight:400;color:var(--text);}
+        .admin-add-btn{background:linear-gradient(135deg,var(--green),#16a34a);color:#fff;border:none;border-radius:28px;padding:6px 13px;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:inherit;}
 
-        /* AD CARDS */
-        .ad-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px;margin-bottom:9px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:transform .15s;position:relative;}
+        /* AD CARDS — Gamee white cards */
+        .ad-card{background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:13px;margin-bottom:9px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:transform .15s,border-color .15s;position:relative;box-shadow:0 2px 12px rgba(0,0,0,.07);}
         .ad-card:active{transform:scale(.97);}
         .ad-card.admin-mode{border:2px dashed var(--gold);}
         .ad-claimed{opacity:.42;pointer-events:none;}
         .ad-del-btn{position:absolute;top:-7px;left:-7px;width:24px;height:24px;background:var(--red);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;border:2px solid var(--bg);z-index:5;}
         .ad-edit-btn{position:absolute;top:-7px;right:-7px;width:24px;height:24px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;border:2px solid var(--bg);z-index:5;}
-        .ad-icon-box{width:44px;height:44px;background:rgba(240,192,64,.09);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+        .ad-icon-box{width:44px;height:44px;background:var(--bg3);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
         .ad-info{flex:1;min-width:0;}
-        .ad-title{font-weight:700;font-size:13px;margin-bottom:2px;}
+        .ad-title{font-weight:800;font-size:13px;margin-bottom:2px;color:var(--text);}
         .ad-meta{font-size:11px;color:var(--text2);}
-        .ad-reward{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:6px 11px;border-radius:28px;font-weight:800;font-size:12px;flex-shrink:0;}
+        .ad-reward{background:linear-gradient(135deg,var(--green),#16a34a);color:#fff;padding:6px 11px;border-radius:28px;font-weight:800;font-size:12px;flex-shrink:0;box-shadow:0 3px 10px rgba(34,197,94,.25);}
         .ad-claimed-badge{background:var(--bg3);color:var(--text3);padding:6px 9px;border-radius:28px;font-weight:700;font-size:10px;flex-shrink:0;}
 
         /* CODE INPUT OVERLAY */
-        .code-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:none;align-items:flex-end;justify-content:center;padding:18px;}
+        .code-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:800;display:none;align-items:flex-end;justify-content:center;padding:18px;}
         .code-overlay.show{display:flex;}
-        .code-card{background:var(--bg2);border-radius:26px 26px 20px 20px;width:100%;max-width:440px;padding:24px 20px;text-align:center;border:1px solid var(--border);animation:bonusSlide .4s ease;}
-        .code-card h3{font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--gold);margin-bottom:8px;}
+        .code-card{background:#fff;border-radius:26px 26px 20px 20px;width:100%;max-width:440px;padding:24px 20px;text-align:center;border:none;box-shadow:0 -8px 40px rgba(0,0,0,.15);animation:bonusSlide .4s ease;}
+        .code-card h3{font-family:'Fredoka One',cursive;font-size:18px;font-weight:400;color:var(--purple);margin-bottom:8px;}
         .code-card p{font-size:12px;color:var(--text2);margin-bottom:14px;}
 
         /* WITHDRAWAL CONDITION BANNER */
@@ -189,75 +202,138 @@
         .wd-condition-banner.met .wd-condition-title{color:var(--green);}
         .wd-condition-banner.met .wd-progress-fill{background:linear-gradient(90deg,var(--green),var(--blue));}
 
-        /* LIVE ACTIVITY */
-        .live-section{background:var(--card);border:1px solid var(--border);border-radius:16px;margin-bottom:12px;overflow:hidden;}
+        /* LIVE ACTIVITY — Gamee white */
+        .live-section{background:#fff;border:1.5px solid var(--border);border-radius:16px;margin-bottom:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.05);}
         .live-header{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border-bottom:1px solid var(--border);}
-        .live-title{display:flex;align-items:center;gap:7px;font-weight:700;font-size:13px;}
+        .live-title{display:flex;align-items:center;gap:7px;font-weight:800;font-size:13px;color:var(--text);}
         .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
-        @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(25,216,158,.4);}50%{opacity:.8;box-shadow:0 0 0 5px transparent;}}
+        @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,.4);}50%{opacity:.8;box-shadow:0 0 0 5px transparent;}}
         .live-list{max-height:260px;overflow-y:auto;}
         .live-item{display:flex;align-items:center;gap:9px;padding:9px 13px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
         .live-item:last-child{border-bottom:none;}
-        .live-item:active{background:rgba(255,255,255,.04);}
-        .live-dp{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--gold));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#000;flex-shrink:0;overflow:hidden;}
+        .live-item:active{background:var(--bg3);}
+        .live-dp{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--orange));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;flex-shrink:0;overflow:hidden;}
         .live-dp img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
         .live-info{flex:1;min-width:0;}
-        .live-name{font-weight:700;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .live-name{font-weight:700;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);}
         .live-act{font-size:10px;color:var(--text2);margin-top:1px;}
         .live-time{font-size:10px;color:var(--text3);}
         .live-amount{font-weight:800;font-size:13px;color:var(--green);}
 
-        /* BOTTOM NAV */
-        .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(7,8,15,.94);border-top:1px solid var(--border);padding-top:7px;padding-bottom:calc(env(safe-area-inset-bottom) + 7px);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
+        /* BOTTOM NAV — Gamee white */
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:#fff;border-top:1.5px solid rgba(0,0,0,0.08);padding-top:7px;padding-bottom:calc(env(safe-area-inset-bottom) + 7px);box-shadow:0 -4px 20px rgba(0,0,0,0.07);}
         .nav-wrap{display:grid;grid-template-columns:repeat(5,1fr);max-width:480px;margin:0 auto;}
         .nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;cursor:pointer;position:relative;}
         .nav-icon-wrap{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
         .nav-icon-wrap .ni{font-size:21px;transition:transform .2s;}
-        .nav-label{font-size:9px;font-weight:700;color:var(--text3);transition:color .2s;}
-        .nav-item.active .nav-icon-wrap{background:linear-gradient(135deg,var(--gold),var(--gold-dim));box-shadow:0 4px 12px rgba(240,192,64,.32);}
+        .nav-label{font-size:9px;font-weight:800;color:var(--text3);transition:color .2s;}
+        .nav-item.active .nav-icon-wrap{background:linear-gradient(135deg,var(--orange),#f5a623);box-shadow:0 4px 14px rgba(249,115,22,.35);}
         .nav-item.active .nav-icon-wrap .ni{transform:translateY(-2px);}
-        .nav-item.active .nav-label{color:var(--gold);}
-        .nav-item.game-center .nav-icon-wrap{width:50px;height:50px;background:linear-gradient(135deg,var(--purple),var(--purple2));border-radius:16px;margin-top:-14px;box-shadow:0 6px 18px rgba(124,92,252,.48);}
+        .nav-item.active .nav-label{color:var(--orange);}
+        .nav-item.game-center .nav-icon-wrap{width:50px;height:50px;background:linear-gradient(135deg,var(--purple),var(--purple2));border-radius:16px;margin-top:-14px;box-shadow:0 6px 18px rgba(108,58,252,.45);}
         .nav-item.game-center .nav-icon-wrap .ni{font-size:25px;}
-        .nav-item.game-center.active .nav-icon-wrap{background:linear-gradient(135deg,var(--gold),var(--gold-dim));}
+        .nav-item.game-center.active .nav-icon-wrap{background:linear-gradient(135deg,var(--orange),#f5a623);}
 
-        /* MODALS */
+        /* MODALS — Gamee light */
         .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:300;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 13px calc(var(--nav-h) + env(safe-area-inset-bottom) + 24px);display:none;}
         .modal.open{display:block;animation:slideUp .25s ease;}
-        
         @keyframes slideUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
         .modal-hdr{display:flex;align-items:center;gap:12px;padding:13px 0 14px;position:sticky;top:0;z-index:10;background:var(--bg);}
         .back-btn{width:40px;height:40px;background:var(--bg3);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;border:1px solid var(--border);flex-shrink:0;}
-        .back-btn:active{background:var(--gold);color:#000;}
-        .modal-title{font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--gold);}
+        .back-btn:active{background:var(--orange);color:#fff;}
+        .modal-title{font-family:'Fredoka One',cursive;font-size:22px;font-weight:400;color:var(--text);}
 
-        /* INPUTS/BUTTONS */
-        .inp{width:100%;padding:12px 14px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:13px;font-family:inherit;margin:6px 0;transition:border-color .2s;}
-        .inp:focus{border-color:var(--gold);outline:none;}
-        .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;padding:14px;border-radius:36px;font-weight:800;font-size:15px;width:100%;cursor:pointer;margin:8px 0;font-family:inherit;transition:transform .15s,box-shadow .15s;box-shadow:0 5px 18px rgba(240,192,64,.22);}
-        .btn-gold:active{transform:scale(.97);}
-        .btn-purple{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;padding:14px;border-radius:36px;font-weight:800;font-size:15px;width:100%;cursor:pointer;margin:7px 0;font-family:inherit;box-shadow:0 5px 18px rgba(124,92,252,.22);}
-        .btn-purple:active{transform:scale(.97);}
-        .btn-red{background:linear-gradient(135deg,var(--red),#c0392b);color:#fff;border:none;padding:12px;border-radius:36px;font-weight:700;font-size:14px;width:100%;cursor:pointer;margin:4px 0;font-family:inherit;}
+        /* INPUTS/BUTTONS — Gamee */
+        .inp{width:100%;padding:12px 14px;background:#fff;border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:13px;font-family:inherit;margin:6px 0;transition:border-color .2s;box-shadow:0 1px 4px rgba(0,0,0,0.05);}
+        .inp:focus{border-color:var(--purple);outline:none;box-shadow:0 0 0 3px rgba(108,58,252,.1);}
+
+        /* ═══════ BADGE SYSTEM ═══════ */
+        .badge-ring{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;position:relative;}
+        .badge-ring::after{content:'';position:absolute;inset:-2px;border-radius:50%;animation:badgeSpin 3s linear infinite;}
+        .badge-bronze .badge-ring::after{background:conic-gradient(var(--badge-bronze),#8B4513,var(--badge-bronze));}
+        .badge-silver .badge-ring::after{background:conic-gradient(var(--badge-silver),#666,var(--badge-silver));}
+        .badge-gold .badge-ring::after{background:conic-gradient(var(--badge-gold),#c8961f,var(--badge-gold));animation:badgeSpin 2s linear infinite;}
+        .badge-diamond .badge-ring::after{background:conic-gradient(var(--badge-diamond),#7dd3fc,var(--badge-diamond));animation:badgeSpin 1.5s linear infinite;}
+        .badge-legend .badge-ring::after{background:conic-gradient(#ff6b6b,#feca57,#ff9ff3,#54a0ff,#ff6b6b);animation:badgeSpin 1s linear infinite;}
+        @keyframes badgeSpin{to{transform:rotate(360deg);}}
+
+        .badge-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px 3px 5px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:.3px;}
+        .badge-chip.bronze{background:linear-gradient(135deg,rgba(205,127,50,.2),rgba(139,69,19,.1));border:1px solid rgba(205,127,50,.4);color:var(--badge-bronze);}
+        .badge-chip.silver{background:linear-gradient(135deg,rgba(168,169,173,.15),rgba(100,100,100,.1));border:1px solid rgba(168,169,173,.35);color:var(--badge-silver);}
+        .badge-chip.gold{background:linear-gradient(135deg,rgba(255,215,0,.2),rgba(200,150,31,.1));border:1px solid rgba(255,215,0,.4);color:var(--badge-gold);box-shadow:0 0 8px rgba(255,215,0,.2);}
+        .badge-chip.diamond{background:linear-gradient(135deg,rgba(185,242,255,.15),rgba(125,211,252,.1));border:1px solid rgba(185,242,255,.4);color:var(--badge-diamond);box-shadow:0 0 8px rgba(185,242,255,.15);}
+        .badge-chip.legend{background:linear-gradient(135deg,rgba(255,107,107,.2),rgba(254,202,87,.15));border:1px solid rgba(255,107,107,.5);color:var(--badge-legend);box-shadow:0 0 12px rgba(255,107,107,.25);animation:legendGlow 2s ease-in-out infinite;}
+        @keyframes legendGlow{0%,100%{box-shadow:0 0 8px rgba(255,107,107,.25);}50%{box-shadow:0 0 18px rgba(255,107,107,.5),0 0 30px rgba(254,202,87,.2);}}
+
+        /* ═══════ EARN MORE BANNER ═══════ */
+        .earn-banner{background:linear-gradient(135deg,rgba(108,58,252,.08),rgba(249,115,22,.06));border:1.5px solid rgba(108,58,252,.2);border-radius:16px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+
+        /* ═══════ FEATURE CARDS ═══════ */
+        .feat-card{background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:15px;margin-bottom:10px;position:relative;overflow:hidden;transition:border-color .2s;box-shadow:0 2px 10px rgba(0,0,0,.05);}
+        .feat-card:active{border-color:var(--purple);}
+        .feat-card::before{content:'';position:absolute;top:0;right:0;width:80px;height:80px;border-radius:50%;opacity:.07;transform:translate(25px,-25px);}
+        .feat-card.gold-feat::before{background:var(--orange);}
+        .feat-card.purple-feat::before{background:var(--purple);}
+        .feat-card.green-feat::before{background:var(--green);}
+
+        /* ═══════ WEEKLY CONTEST LEADERBOARD ═══════ */
+        .lb-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;margin-bottom:6px;border:1.5px solid var(--border);background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+        .lb-rank{font-family:'Fredoka One',cursive;font-weight:400;font-size:16px;min-width:28px;text-align:center;color:var(--text);}
+        .lb-item.rank-1{background:linear-gradient(135deg,rgba(245,166,35,.1),rgba(245,166,35,.03));border-color:rgba(245,166,35,.3);}
+        .lb-item.rank-2{background:linear-gradient(135deg,rgba(168,169,173,.08),rgba(168,169,173,.02));border-color:rgba(168,169,173,.2);}
+        .lb-item.rank-3{background:linear-gradient(135deg,rgba(205,127,50,.08),rgba(205,127,50,.02));border-color:rgba(205,127,50,.2);}
+
+        /* ═══════ STREAK FIRE ═══════ */
+        .streak-fire{display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,rgba(249,115,22,.12),rgba(239,68,68,.08));border:1px solid rgba(249,115,22,.25);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:800;color:var(--orange);}
+
+        /* ═══════ SPIN WHEEL CARD ═══════ */
+        .spin-daily-badge{position:absolute;top:-6px;right:-6px;background:linear-gradient(135deg,var(--green),#16a34a);color:#fff;font-size:9px;font-weight:900;padding:3px 8px;border-radius:20px;font-family:'Nunito',sans-serif;}
+
+        /* ═══════ IMPROVED INPUT ═══════ */
+        .inp{width:100%;padding:13px 16px;background:#fff;border:1.5px solid var(--border);border-radius:14px;color:var(--text);font-size:14px;font-family:inherit;transition:border-color .2s,box-shadow .2s;outline:none;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+        .inp:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(108,58,252,.1);}
+        .inp::placeholder{color:var(--text3);}
+
+        /* ═══════ TOAST — Gamee style ═══════ */
+        .toast{position:fixed;bottom:calc(var(--nav-h) + 12px);left:50%;transform:translateX(-50%) translateY(0);z-index:9999;background:rgba(26,29,46,.92);color:#fff;padding:11px 20px;border-radius:30px;font-size:13px;font-weight:700;pointer-events:none;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.2);opacity:0;transition:opacity .3s,transform .3s;}
+        .toast.show{opacity:1;}
+        .toast.hide{opacity:0;transform:translateX(-50%) translateY(8px);}
+
+        /* ═══════ SHIMMER LOADING ═══════ */
+        .shimmer{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg2) 50%,var(--bg3) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;}
+        @keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
+        /* ═══════ SECTION HEAD UPGRADE ═══════ */
+        .section-head h3{font-family:'Fredoka One',cursive;font-size:17px;font-weight:400;color:var(--text);}
+        .section-badge{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;color:var(--orange);}
+
+        .btn-gold{background:linear-gradient(135deg,var(--orange),#f5a623);color:#fff;border:none;padding:15px;border-radius:36px;font-weight:900;font-size:15px;width:100%;cursor:pointer;margin:8px 0;font-family:'Nunito',sans-serif;letter-spacing:.3px;box-shadow:0 6px 20px rgba(249,115,22,.35),inset 0 1px 0 rgba(255,255,255,.2);}
+        .btn-gold:active{transform:scale(.96)!important;box-shadow:0 2px 8px rgba(249,115,22,.2);}
+        .btn-purple{background:linear-gradient(135deg,var(--purple3),var(--purple),var(--purple2));color:#fff;border:none;padding:15px;border-radius:36px;font-weight:900;font-size:15px;width:100%;cursor:pointer;margin:7px 0;font-family:'Nunito',sans-serif;letter-spacing:.3px;box-shadow:0 6px 20px rgba(108,58,252,.35),inset 0 1px 0 rgba(255,255,255,.15);}
+        .btn-purple:active{transform:scale(.96)!important;}
+        .btn-green{background:linear-gradient(135deg,#16a34a,var(--green));color:#fff;border:none;padding:15px;border-radius:36px;font-weight:900;font-size:15px;width:100%;cursor:pointer;margin:7px 0;font-family:'Nunito',sans-serif;box-shadow:0 6px 20px rgba(34,197,94,.3);}
+        .btn-green:active{transform:scale(.96)!important;}
+        .btn-outline{background:transparent;color:var(--text2);border:1.5px solid var(--border2);padding:12px;border-radius:36px;font-weight:700;font-size:13px;width:100%;cursor:pointer;margin:5px 0;}
+        .btn-red{background:linear-gradient(135deg,var(--red),#dc2626);color:#fff;border:none;padding:12px;border-radius:36px;font-weight:700;font-size:14px;width:100%;cursor:pointer;margin:4px 0;font-family:inherit;}
 
         /* TOAST */
-        .toast{position:fixed;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 12px);left:13px;right:13px;background:#141928;color:var(--text);padding:12px 17px;border-radius:46px;text-align:center;font-weight:700;font-size:13px;z-index:999;display:none;border:1px solid var(--border);box-shadow:0 8px 28px rgba(0,0,0,.6);}
+        .toast{position:fixed;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 12px);left:13px;right:13px;background:#1a1d2e;color:#fff;padding:12px 17px;border-radius:46px;text-align:center;font-weight:700;font-size:13px;z-index:999;display:none;border:none;box-shadow:0 8px 24px rgba(0,0,0,.2);}
         .toast.show{display:block;animation:toastIn .3s ease;}
         @keyframes toastIn{from{transform:translateY(14px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 
-        /* BONUS OVERLAY */
-        .bonus-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:400;display:none;align-items:flex-end;justify-content:center;padding:18px;}
+        /* BONUS OVERLAY — Gamee */
+        .bonus-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400;display:none;align-items:flex-end;justify-content:center;padding:18px;}
         .bonus-overlay.show{display:flex;}
-        .bonus-card{background:var(--bg2);border-radius:26px 26px 20px 20px;width:100%;max-width:440px;padding:24px 20px;text-align:center;border:1px solid var(--border);box-shadow:0 -18px 50px rgba(0,0,0,.7);animation:bonusSlide .4s ease;}
+        .bonus-card{background:#fff;border-radius:26px 26px 20px 20px;width:100%;max-width:440px;padding:24px 20px;text-align:center;border:none;box-shadow:0 -8px 40px rgba(0,0,0,.15);animation:bonusSlide .4s ease;}
         @keyframes bonusSlide{from{transform:translateY(100%);}to{transform:translateY(0);}}
 
-        /* DAILY BONUS */
+        /* DAILY BONUS — Gamee */
         .train-track{overflow-x:auto;padding:20px 8px 14px;-webkit-overflow-scrolling:touch;}
         .train-chain{display:flex;align-items:flex-end;min-width:max-content;}
         .train-car{display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;}
-        .train-node{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;border:3px solid var(--border);background:var(--bg3);transition:all .3s;cursor:pointer;}
-        .train-node.claimed{background:linear-gradient(135deg,var(--gold),var(--gold-dim));border-color:var(--gold);box-shadow:0 4px 12px rgba(240,192,64,.32);color:#000;}
-        .train-node.today{background:linear-gradient(135deg,var(--green),#059669);border-color:var(--green);box-shadow:0 4px 16px rgba(25,216,158,.4);animation:todayPulse 1.5s infinite;}
+        .train-node{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;border:3px solid var(--border);background:var(--bg3);transition:all .3s;cursor:pointer;color:var(--text);}
+        .train-node.claimed{background:linear-gradient(135deg,var(--orange),var(--gold));border-color:var(--orange);box-shadow:0 4px 12px rgba(249,115,22,.3);color:#fff;}
+        .train-node.today{background:linear-gradient(135deg,var(--green),#16a34a);border-color:var(--green);box-shadow:0 4px 16px rgba(34,197,94,.35);animation:todayPulse 1.5s infinite;color:#fff;}
         @keyframes todayPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.07);}}
         .train-node.future{opacity:.35;}
         .train-connector{width:34px;height:4px;background:var(--border);margin-bottom:22px;border-radius:2px;}
@@ -265,17 +341,17 @@
         .train-date{font-size:9px;color:var(--text3);margin-top:4px;font-weight:700;text-align:center;}
         .train-reward{font-size:10px;color:var(--gold);font-weight:800;}
         .today-claim-box{background:linear-gradient(135deg,#0c2438,#180d4a);border:1px solid rgba(25,216,158,.22);border-radius:20px;padding:20px;margin-top:14px;text-align:center;}
-        .today-claim-amt{font-family:'Oxanium',sans-serif;font-size:42px;font-weight:900;color:var(--green);}
+        .today-claim-amt{font-family:'Fredoka One',cursive;font-size:42px;font-weight:900;color:var(--green);}
         .streak-row{background:var(--bg3);border-radius:12px;padding:11px;margin:12px 0;display:flex;justify-content:space-around;}
         .streak-item{text-align:center;}
-        .streak-val{font-family:'Oxanium',sans-serif;font-size:19px;font-weight:900;color:var(--gold);}
+        .streak-val{font-family:'Fredoka One',cursive;font-size:19px;font-weight:900;color:var(--gold);}
         .streak-lbl{font-size:10px;color:var(--text3);font-weight:600;}
         .streak-broken-msg{background:rgba(255,78,106,.1);border:1px solid rgba(255,78,106,.3);border-radius:12px;padding:10px;margin-top:9px;font-size:11px;color:var(--red);text-align:center;}
 
         /* EARN PASSES */
-        .earn-passes-hero{background:linear-gradient(135deg,#1c0e4a,#0f0624);border:1px solid rgba(124,92,252,.22);border-radius:22px;padding:20px;margin-bottom:14px;text-align:center;}
-        .earn-passes-hero h2{font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--purple2);}
-        .ep-count{font-family:'Oxanium',sans-serif;font-size:46px;font-weight:900;color:var(--gold);margin:5px 0;}
+        .earn-passes-hero{background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:22px;padding:20px;margin-bottom:14px;text-align:center;}
+        .earn-passes-hero h2{font-family:'Fredoka One',cursive;font-size:22px;font-weight:900;color:var(--purple2);}
+        .ep-count{font-family:'Fredoka One',cursive;font-size:46px;font-weight:900;color:var(--gold);margin:5px 0;}
         .ep-method{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:13px 15px;margin-bottom:9px;display:flex;align-items:center;gap:11px;}
         .ep-method-icon{width:42px;height:42px;border-radius:12px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
         .ep-method-info{flex:1;}
@@ -287,7 +363,7 @@
         .profile-hero{background:linear-gradient(135deg,var(--bg3),var(--bg2));border-radius:20px;padding:20px;margin-bottom:12px;text-align:center;border:1px solid var(--border);}
         .profile-dp{width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--purple));margin:0 auto 11px;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;border:3px solid var(--gold);overflow:hidden;}
         .profile-dp img{width:100%;height:100%;object-fit:cover;}
-        .profile-name{font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;margin-bottom:5px;}
+        .profile-name{font-family:'Fredoka One',cursive;font-size:22px;font-weight:900;margin-bottom:5px;}
         .profile-tier{display:inline-block;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:4px 15px;border-radius:28px;font-weight:800;font-size:11px;}
         /* NEW FEATURES */
         .happy-hours-banner{background:linear-gradient(135deg,#7c1d6f,#3b0764);border:1.5px solid rgba(240,192,64,.4);border-radius:16px;padding:11px 14px;margin-bottom:11px;display:none;animation:pulse 2s infinite;}
@@ -295,11 +371,11 @@
         @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(240,192,64,.3);}50%{box-shadow:0 0 0 8px rgba(240,192,64,0);}}
         .hh-icon{font-size:28px;}
         .hh-text{flex:1;}
-        .hh-title{font-family:'Oxanium',sans-serif;font-size:13px;font-weight:900;color:var(--gold);}
+        .hh-title{font-family:'Fredoka One',cursive;font-size:13px;font-weight:900;color:var(--gold);}
         .hh-sub{font-size:10px;color:rgba(255,255,255,.7);margin-top:1px;}
-        .hh-timer{font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:#fff;background:rgba(0,0,0,.3);padding:4px 9px;border-radius:8px;}
+        .hh-timer{font-family:'Fredoka One',cursive;font-size:18px;font-weight:900;color:#fff;background:rgba(0,0,0,.3);padding:4px 9px;border-radius:8px;}
         .milestone-card{background:linear-gradient(135deg,var(--bg3),var(--bg2));border:1px solid var(--border);border-radius:16px;padding:13px;margin-bottom:11px;}
-        .milestone-title{font-family:'Oxanium',sans-serif;font-size:13px;font-weight:900;color:var(--gold);margin-bottom:8px;}
+        .milestone-title{font-family:'Fredoka One',cursive;font-size:13px;font-weight:900;color:var(--gold);margin-bottom:8px;}
         .milestone-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);}
         .milestone-item:last-child{border-bottom:none;}
         .milestone-check{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex-shrink:0;}
@@ -322,25 +398,25 @@
         .week-day.missed{background:rgba(255,78,106,.1);color:var(--red);border:1px solid rgba(255,78,106,.3);}
         .week-day.future{background:var(--bg2);color:var(--text3);border:1px solid var(--border);}
         /* RUNNER GAME */
-        .runner-mode-btn{background:var(--bg2);border:1.5px solid var(--border);border-radius:12px;padding:10px 6px;font-size:13px;font-weight:900;color:var(--text);cursor:pointer;transition:all .15s;font-family:'Oxanium',sans-serif;}
+        .runner-mode-btn{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:10px 6px;font-size:13px;font-weight:900;color:var(--text);cursor:pointer;transition:all .15s;font-family:'Fredoka One',cursive;}
         .runner-mode-btn.sel{background:linear-gradient(135deg,var(--purple),var(--purple2));border-color:var(--purple2);color:#fff;}
         .runner-mode-btn:active{transform:scale(.95);}
         /* PASS STORE */
-        .pass-pkg{background:var(--bg3);border:2px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;position:relative;transition:all .2s;}
+        .pass-pkg{background:#fff;border:2px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;position:relative;transition:all .2s;}
         .pass-pkg.sel{background:linear-gradient(135deg,rgba(240,192,64,.15),rgba(124,92,252,.1));border-color:var(--gold);box-shadow:0 0 16px rgba(240,192,64,.2);}
         .pass-pkg:active{transform:scale(.95);}
-        .pkg-passes{font-family:'Oxanium',sans-serif;font-size:28px;font-weight:900;color:var(--purple2);}
+        .pkg-passes{font-family:'Fredoka One',cursive;font-size:28px;font-weight:900;color:var(--purple2);}
         .pkg-label{font-size:10px;color:var(--text3);font-weight:700;margin-bottom:4px;}
-        .pkg-price{font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--gold);}
+        .pkg-price{font-family:'Fredoka One',cursive;font-size:18px;font-weight:900;color:var(--gold);}
         .pkg-badge{position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;font-size:8px;font-weight:900;padding:2px 8px;border-radius:10px;white-space:nowrap;}
         .pkg-badge.best{background:var(--green);}
         /* BADGE CLAIM */
-        .badge-section{margin-top:14px;padding:14px;background:var(--bg3);border-radius:16px;border:1px solid var(--border);}
-        .badge-section-title{font-family:'Oxanium',sans-serif;font-size:13px;font-weight:900;color:var(--gold);margin-bottom:10px;text-align:center;}
+        .badge-section{margin-top:14px;padding:14px;background:#fff;border-radius:16px;border:1px solid var(--border);}
+        .badge-section-title{font-family:'Fredoka One',cursive;font-size:13px;font-weight:900;color:var(--gold);margin-bottom:10px;text-align:center;}
         .badge-current{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:12px;}
         .badge-img-lg{width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 0 12px rgba(240,192,64,.4));animation:badgeFloat 3s ease-in-out infinite;}
         @keyframes badgeFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
-        .badge-name{font-family:'Oxanium',sans-serif;font-size:20px;font-weight:900;color:var(--gold);}
+        .badge-name{font-family:'Fredoka One',cursive;font-size:20px;font-weight:900;color:var(--gold);}
         .badge-refs-needed{font-size:11px;color:var(--text2);margin-top:3px;}
         .badge-progress-wrap{margin-bottom:10px;}
         .badge-progress-bar{height:8px;background:var(--bg2);border-radius:8px;overflow:hidden;margin-top:5px;}
@@ -364,11 +440,11 @@
         .badge-unlock-msg{background:linear-gradient(135deg,rgba(240,192,64,.15),rgba(124,92,252,.1));border:1px solid rgba(240,192,64,.3);border-radius:12px;padding:10px;text-align:center;font-size:11px;color:var(--gold);font-weight:700;margin-top:8px;display:none;}
         .badge-unlock-msg.show{display:block;animation:bounceIn .5s;}
         .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:13px;}
-        .stat-box{background:var(--bg3);border-radius:12px;padding:11px 7px;text-align:center;border:1px solid var(--border);}
-        .stat-val{font-family:'Oxanium',sans-serif;font-size:19px;font-weight:900;color:var(--gold);}
+        .stat-box{background:#fff;border-radius:12px;padding:11px 7px;text-align:center;border:1px solid var(--border);}
+        .stat-val{font-family:'Fredoka One',cursive;font-size:19px;font-weight:900;color:var(--gold);}
         .stat-lbl{font-size:9px;color:var(--text3);margin-top:2px;font-weight:600;}
         .stats-grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:7px;}
-        .ref-activity-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-top:11px;}
+        .ref-activity-section{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px;margin-top:11px;}
         .ref-activity-title{font-weight:800;margin-bottom:9px;color:var(--gold);font-size:14px;}
         .ref-act-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);}
         .ref-act-item:last-child{border-bottom:none;}
@@ -380,10 +456,10 @@
         .badge-active{background:rgba(25,216,158,.14);color:var(--green);}
         .badge-pending{background:rgba(240,192,64,.14);color:var(--gold);}
 
-        /* LEADERBOARD */
+        /* LEADERBOARD — Gamee */
         .lb-tabs{display:flex;gap:7px;margin-bottom:14px;}
-        .lb-tab{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center;font-weight:700;cursor:pointer;transition:all .18s;font-size:13px;}
-        .lb-tab.active{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;}
+        .lb-tab{flex:1;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:10px;text-align:center;font-weight:700;cursor:pointer;transition:all .18s;font-size:13px;color:var(--text2);}
+        .lb-tab.active{background:linear-gradient(135deg,var(--orange),var(--gold));color:#fff;border:none;box-shadow:0 4px 14px rgba(249,115,22,.3);}
         .lb-podium{display:flex;align-items:flex-end;justify-content:center;gap:7px;margin:14px 0 20px;padding:0 8px;}
         .podium-slot{display:flex;flex-direction:column;align-items:center;gap:4px;}
         .podium-slot.p1{order:2;}.podium-slot.p2{order:1;}.podium-slot.p3{order:3;}
@@ -394,60 +470,60 @@
         .podium-slot.p2 .podium-bar{width:60px;height:58px;background:linear-gradient(to top,#7a8fa8,#b8c8dd);display:flex;align-items:center;justify-content:center;font-size:22px;}
         .podium-slot.p3 .podium-bar{width:60px;height:44px;background:linear-gradient(to top,#b06c2a,#e8955a);display:flex;align-items:center;justify-content:center;font-size:22px;}
         .lb-list{display:flex;flex-direction:column;gap:7px;}
-        .lb-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 13px;display:flex;align-items:center;gap:10px;}
-        .lb-rank{width:28px;height:28px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0;}
-        .lb-info{flex:1;}.lb-name{font-weight:700;font-size:13px;}
+        .lb-item{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px 13px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+        .lb-rank{width:28px;height:28px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0;color:var(--text);}
+        .lb-info{flex:1;}.lb-name{font-weight:700;font-size:13px;color:var(--text);}
         .lb-refs{font-size:10px;color:var(--text2);margin-top:1px;}
-        .lb-prize{font-weight:800;color:var(--gold);font-size:13px;}
-        .lb-info-card{background:var(--bg3);border-radius:14px;padding:13px;margin-top:12px;border:1px solid var(--border);}
+        .lb-prize{font-weight:800;color:var(--orange);font-size:13px;}
+        .lb-info-card{background:var(--bg3);border-radius:14px;padding:13px;margin-top:12px;border:1.5px solid var(--border);}
         .lb-stat-row{display:flex;gap:7px;margin-bottom:7px;}
-        .lb-stat{flex:1;background:var(--bg2);border-radius:10px;padding:9px;text-align:center;border:1px solid var(--border);}
-        .lb-stat-val{font-family:'Oxanium',sans-serif;font-size:16px;font-weight:900;color:var(--gold);}
+        .lb-stat{flex:1;background:#fff;border-radius:10px;padding:9px;text-align:center;border:1px solid var(--border);}
+        .lb-stat-val{font-family:'Fredoka One',cursive;font-size:16px;font-weight:400;color:var(--purple);}
         .lb-stat-lbl{font-size:9px;color:var(--text3);}
 
-        /* GAMES */
-        .games-hero{background:linear-gradient(135deg,#0f0624,#08091d);border:1px solid rgba(124,92,252,.22);border-radius:24px;padding:20px 16px;margin-bottom:14px;text-align:center;position:relative;overflow:hidden;}
-        .games-hero::before{content:'🎮';position:absolute;right:-16px;top:-16px;font-size:100px;opacity:.06;}
-        .games-hero h2{font-family:'Oxanium',sans-serif;font-size:26px;font-weight:900;color:var(--purple2);margin-bottom:3px;}
-        .games-hero p{font-size:12px;color:var(--text2);}
-        .games-hero-badge{display:inline-block;background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.22);border-radius:28px;padding:6px 16px;margin-top:9px;font-weight:700;color:var(--purple2);font-size:12px;}
+        /* GAMES — Gamee colorful light */
+        .games-hero{background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:24px;padding:20px 16px;margin-bottom:14px;text-align:center;position:relative;overflow:hidden;box-shadow:0 6px 24px rgba(108,58,252,.3);}
+        .games-hero::before{content:'🎮';position:absolute;right:-16px;top:-16px;font-size:100px;opacity:.12;}
+        .games-hero h2{font-family:'Fredoka One',cursive;font-size:26px;font-weight:400;color:#fff;margin-bottom:3px;}
+        .games-hero p{font-size:12px;color:rgba(255,255,255,.8);}
+        .games-hero-badge{display:inline-block;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);border-radius:28px;padding:6px 16px;margin-top:9px;font-weight:700;color:#fff;font-size:12px;}
         .games-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px;}
-        .gstat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 7px;text-align:center;}
-        .gstat-val{font-family:'Oxanium',sans-serif;font-size:19px;font-weight:900;color:var(--purple2);}
+        .gstat{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:11px 7px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+        .gstat-val{font-family:'Fredoka One',cursive;font-size:19px;font-weight:400;color:var(--purple);}
         .gstat-lbl{font-size:9px;color:var(--text3);margin-top:2px;}
         .games-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;}
-        .game-card{background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:18px 11px 14px;text-align:center;cursor:pointer;transition:transform .18s,border-color .2s,box-shadow .2s;position:relative;overflow:hidden;}
-        .game-card:hover{border-color:rgba(124,92,252,.5);box-shadow:0 4px 20px rgba(124,92,252,.15);}
-        .game-card:active{transform:scale(.93);box-shadow:0 2px 10px rgba(124,92,252,.2);}
+        .game-card{background:#fff;border:2px solid var(--border);border-radius:18px;padding:18px 11px 14px;text-align:center;cursor:pointer;transition:transform .18s,border-color .2s,box-shadow .2s;position:relative;overflow:hidden;box-shadow:0 3px 14px rgba(0,0,0,.07);}
+        .game-card:hover{border-color:rgba(108,58,252,.3);box-shadow:0 6px 20px rgba(108,58,252,.12);}
+        .game-card:active{transform:scale(.93);box-shadow:0 2px 10px rgba(108,58,252,.15);}
         .game-emoji{font-size:54px;display:block;margin-bottom:10px;}
         .game-img{width:80px;height:80px;object-fit:cover;display:block;margin:0 auto 10px;border-radius:18px;
-            box-shadow:0 4px 18px rgba(0,0,0,.5),0 0 0 2px rgba(255,255,255,.1),0 0 20px rgba(124,92,252,.15);
-            transition:transform .2s,box-shadow .2s;background:#111;}
-        .game-img:hover{transform:scale(1.05);box-shadow:0 6px 24px rgba(0,0,0,.6),0 0 0 2px rgba(240,192,64,.3),0 0 28px rgba(240,192,64,.2);}
+            box-shadow:0 4px 18px rgba(0,0,0,.2),0 0 0 2px rgba(108,58,252,.1);
+            transition:transform .2s,box-shadow .2s;background:#eee;}
+        .game-img:hover{transform:scale(1.05);}
         .game-card:active .game-img{transform:scale(.95);}
-        .game-name{font-family:'Oxanium',sans-serif;font-size:15px;font-weight:800;margin-bottom:3px;}
+        .game-name{font-family:'Fredoka One',cursive;font-size:15px;font-weight:400;margin-bottom:3px;color:var(--text);}
         .game-desc{font-size:9px;color:var(--text2);margin-bottom:9px;}
         .game-reward{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;padding:4px 11px;border-radius:28px;font-size:10px;font-weight:700;display:inline-block;}
-        .games-info-banner{background:rgba(124,92,252,.07);border:1px solid rgba(124,92,252,.18);border-radius:12px;padding:11px 13px;text-align:center;font-size:11px;color:var(--purple2);font-weight:700;margin-bottom:12px;}
+        .games-info-banner{background:rgba(108,58,252,.06);border:1.5px solid rgba(108,58,252,.15);border-radius:12px;padding:11px 13px;text-align:center;font-size:11px;color:var(--purple);font-weight:700;margin-bottom:12px;}
 
         /* SPIN */
         .spin-wrap{text-align:center;padding:6px 0;}
-        .spin-stats{display:flex;justify-content:space-around;background:var(--bg3);border-radius:14px;padding:13px;margin-bottom:16px;border:1px solid var(--border);}
-        .ss-item .ss-val{font-family:'Oxanium',sans-serif;font-size:19px;font-weight:900;color:var(--purple2);}
+        .spin-stats{display:flex;justify-content:space-around;background:#fff;border-radius:14px;padding:13px;margin-bottom:16px;border:1px solid var(--border);}
+        .ss-item .ss-val{font-family:'Fredoka One',cursive;font-size:19px;font-weight:900;color:var(--purple2);}
         .ss-item .ss-lbl{font-size:10px;color:var(--text3);margin-top:2px;}
         .wheel-outer{position:relative;display:inline-block;margin:6px auto;}
         .wheel-ptr{position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-size:26px;z-index:5;}
         #spinCanvas{border-radius:50%;box-shadow:0 0 0 4px var(--gold),0 0 0 8px rgba(240,192,64,.15),0 0 0 12px rgba(240,192,64,.08),0 16px 50px rgba(240,192,64,.3);cursor:pointer;width:255px;height:255px;transition:box-shadow .3s;}
         .spin-result{background:linear-gradient(135deg,var(--green),#059669);border-radius:14px;padding:14px;margin:12px 0;display:none;animation:bounceIn .4s;}
         @keyframes bounceIn{0%{transform:scale(.5);opacity:0;}80%{transform:scale(1.06);}100%{transform:scale(1);opacity:1;}}
-        .spin-result-amt{font-family:'Oxanium',sans-serif;font-size:38px;font-weight:900;color:#fff;}
+        .spin-result-amt{font-family:'Fredoka One',cursive;font-size:38px;font-weight:900;color:#fff;}
 
         /* GUESS */
-        .guess-display{background:linear-gradient(135deg,#0c1230,#180940);border-radius:18px;padding:22px;text-align:center;margin-bottom:11px;}
-        .guess-num{font-family:'Oxanium',sans-serif;font-size:86px;font-weight:900;color:var(--gold);line-height:1;}
+        .guess-display{background:linear-gradient(135deg,var(--purple),var(--purple2));border-radius:18px;padding:22px;text-align:center;margin-bottom:11px;}
+        .guess-num{font-family:'Fredoka One',cursive;font-size:86px;font-weight:900;color:var(--gold);line-height:1;}
         .guess-hint{font-size:13px;color:var(--text2);margin-top:5px;}
         .num-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:11px 0;}
-        .num-btn{background:var(--bg3);border:1.5px solid var(--border);border-radius:11px;padding:12px 4px;font-family:'Oxanium',sans-serif;font-size:17px;font-weight:900;cursor:pointer;transition:all .15s;color:var(--text);}
+        .num-btn{background:var(--bg3);border:1.5px solid var(--border);border-radius:11px;padding:12px 4px;font-family:'Fredoka One',cursive;font-size:17px;font-weight:900;cursor:pointer;transition:all .15s;color:var(--text);}
         .num-btn:active{transform:scale(.86);}
         .num-btn.correct{background:var(--green);color:#fff;border-color:var(--green);}
         .num-btn.wrong{background:var(--red);color:#fff;border-color:var(--red);}
@@ -468,34 +544,34 @@
         .coin-choice.sel{border-color:var(--gold);background:rgba(240,192,64,.09);transform:translateY(-3px);}
         .coin-res-win{background:linear-gradient(135deg,var(--green),#059669);color:#fff;border-radius:14px;padding:14px;text-align:center;display:none;animation:bounceIn .4s;}
         .coin-res-lose{background:linear-gradient(135deg,var(--red),#dc2626);color:#fff;border-radius:14px;padding:14px;text-align:center;display:none;animation:bounceIn .4s;}
-        .coin-res-big{font-family:'Oxanium',sans-serif;font-size:40px;font-weight:900;}
+        .coin-res-big{font-family:'Fredoka One',cursive;font-size:40px;font-weight:900;}
 
         /* DICE GAME */
         .dice-game-wrap{text-align:center;}
-        .dice-arena{background:linear-gradient(135deg,#0c1230,#1a0940);border-radius:20px;padding:24px 16px;margin-bottom:14px;position:relative;overflow:hidden;}
+        .dice-arena{background:linear-gradient(135deg,var(--purple),var(--purple3));border-radius:20px;padding:24px 16px;margin-bottom:14px;position:relative;overflow:hidden;}
         .dice-arena::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 30%,rgba(124,92,252,.15),transparent 70%);}
         .dice-display{font-size:80px;display:block;margin:0 auto 10px;min-height:90px;line-height:1;animation:none;}
         .dice-display.rolling{animation:diceRoll .5s linear infinite;}
         @keyframes diceRoll{0%{transform:rotate(0deg) scale(1);}25%{transform:rotate(90deg) scale(1.1);}50%{transform:rotate(180deg) scale(0.9);}75%{transform:rotate(270deg) scale(1.1);}100%{transform:rotate(360deg) scale(1);}}
-        .dice-result-txt{font-family:'Oxanium',sans-serif;font-size:16px;font-weight:900;color:var(--text2);min-height:24px;}
+        .dice-result-txt{font-family:'Fredoka One',cursive;font-size:16px;font-weight:900;color:var(--text2);min-height:24px;}
         .dice-choose-row{margin:12px 0 8px;}
         .dice-choose-label{font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:700;}
         .dice-num-btns{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;}
-        .dice-num-btn{background:var(--bg3);border:2px solid var(--border);border-radius:12px;padding:12px 4px;font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;cursor:pointer;transition:all .15s;color:var(--text);}
+        .dice-num-btn{background:var(--bg3);border:2px solid var(--border);border-radius:12px;padding:12px 4px;font-family:'Fredoka One',cursive;font-size:18px;font-weight:900;cursor:pointer;transition:all .15s;color:var(--text);}
         .dice-num-btn.sel{background:linear-gradient(135deg,var(--purple),var(--purple2));border-color:var(--purple);color:#fff;transform:translateY(-3px);box-shadow:0 6px 16px rgba(124,92,252,.4);}
         .dice-num-btn.correct{background:var(--green);border-color:var(--green);color:#fff;}
         .dice-num-btn.wrong{background:var(--red);border-color:var(--red);color:#fff;}
         .dice-num-btn:disabled{opacity:.4;cursor:not-allowed;}
         .dice-res-win{background:linear-gradient(135deg,var(--green),#059669);color:#fff;border-radius:14px;padding:16px;text-align:center;display:none;animation:bounceIn .4s;margin:10px 0;}
         .dice-res-lose{background:linear-gradient(135deg,var(--red),#dc2626);color:#fff;border-radius:14px;padding:16px;text-align:center;display:none;animation:bounceIn .4s;margin:10px 0;}
-        .dice-res-big{font-family:'Oxanium',sans-serif;font-size:34px;font-weight:900;}
+        .dice-res-big{font-family:'Fredoka One',cursive;font-size:34px;font-weight:900;}
         .dice-odds-info{background:rgba(255,78,106,.07);border:1px solid rgba(255,78,106,.2);border-radius:12px;padding:10px 13px;text-align:center;font-size:11px;color:var(--text2);margin-top:8px;}
 
         /* COLOR PREDICTION GAME */
-        .color-arena{background:linear-gradient(135deg,#0c1230,#1a0628);border-radius:20px;padding:20px 16px 14px;margin-bottom:12px;}
+        .color-arena{background:linear-gradient(135deg,var(--purple),var(--purple3));border-radius:20px;padding:20px 16px 14px;margin-bottom:12px;}
         .color-result-display{width:88px;height:88px;border-radius:50%;margin:0 auto 10px;border:5px solid rgba(255,255,255,.15);transition:all .5s;display:flex;align-items:center;justify-content:center;font-size:32px;background:var(--bg3);}
         .color-result-display.revealed{box-shadow:0 0 0 10px rgba(255,255,255,.07),0 12px 36px rgba(0,0,0,.4);}
-        .color-result-txt{font-family:Oxanium,sans-serif;font-size:14px;font-weight:900;color:var(--text2);min-height:24px;}
+        .color-result-txt{font-family:'Fredoka One',cursive;font-size:14px;font-weight:900;color:var(--text2);min-height:24px;}
         .color-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:12px 0;}
         .color-btn{border:3px solid transparent;border-radius:14px;padding:13px 5px;font-weight:900;font-size:12px;cursor:pointer;transition:all .2s;font-family:inherit;color:#fff;line-height:1.3;}
         .color-btn.sel{transform:translateY(-5px);box-shadow:0 10px 24px rgba(0,0,0,.5);border-color:rgba(255,255,255,.7);}
@@ -513,9 +589,9 @@
         .color-res-win{background:linear-gradient(135deg,var(--green),#059669);color:#fff;border-radius:14px;padding:14px;text-align:center;display:none;animation:bounceIn .4s;margin:8px 0;}
         .color-res-lose{background:linear-gradient(135deg,var(--red),#dc2626);color:#fff;border-radius:14px;padding:14px;text-align:center;display:none;animation:bounceIn .4s;margin:8px 0;}
         /* CRASH GAME */
-        .crash-arena{background:linear-gradient(160deg,#010810,#050b20,#0a0318);border-radius:20px;padding:16px;margin-bottom:10px;position:relative;overflow:hidden;height:195px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid rgba(54,182,245,0.2);box-shadow:inset 0 0 40px rgba(54,182,245,0.05);}
+        .crash-arena{background:linear-gradient(160deg,var(--purple3),var(--purple),#5025e0);border-radius:20px;padding:16px;margin-bottom:10px;position:relative;overflow:hidden;height:195px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid rgba(54,182,245,0.2);box-shadow:inset 0 0 40px rgba(54,182,245,0.05);}
         .crash-arena::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(54,182,245,.07),transparent 70%);}
-        .crash-multiplier{font-family:Oxanium,sans-serif;font-size:72px;font-weight:900;line-height:1;transition:color .15s,text-shadow .15s;z-index:2;letter-spacing:-2px;}
+        .crash-multiplier{font-family:'Fredoka One',cursive;font-size:72px;font-weight:900;line-height:1;transition:color .15s,text-shadow .15s;z-index:2;letter-spacing:-2px;}
         .crash-multiplier.safe{color:var(--green);text-shadow:0 0 30px rgba(25,216,158,.4);}
         .crash-multiplier.warning{color:var(--gold);text-shadow:0 0 30px rgba(240,192,64,.4);}
         .crash-multiplier.crashed{color:var(--red);text-shadow:0 0 30px rgba(255,78,106,.4);}
@@ -534,62 +610,62 @@
         .crash-cashout-btn.show{display:block;animation:cashPulse .5s ease infinite alternate;}
         @keyframes cashPulse{from{transform:scale(1);}to{transform:scale(1.03);}}
 
-        /* HISTORY */
-        .hist-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:8px;}
+        /* HISTORY — Gamee white cards */
+        .hist-item{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:13px;margin-bottom:8px;box-shadow:0 2px 10px rgba(0,0,0,.05);}
         .hist-top{display:flex;justify-content:space-between;align-items:center;}
-        .hist-amt{font-family:'Oxanium',sans-serif;font-size:19px;font-weight:900;color:var(--gold);}
+        .hist-amt{font-family:'Fredoka One',cursive;font-size:19px;font-weight:400;color:var(--text);}
         .hist-status{padding:4px 11px;border-radius:18px;font-size:10px;font-weight:800;}
-        .status-pending{background:rgba(240,192,64,.14);color:var(--gold);}
-        .status-completed{background:rgba(25,216,158,.14);color:var(--green);}
-        .status-rejected{background:rgba(255,78,106,.14);color:var(--red);}
+        .status-pending{background:rgba(245,166,35,.14);color:var(--gold-dim);}
+        .status-completed{background:rgba(34,197,94,.14);color:var(--green);}
+        .status-rejected{background:rgba(239,68,68,.14);color:var(--red);}
         .hist-bot{display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:var(--text3);}
 
-        /* WITHDRAW */
-        .avail-balance{text-align:center;padding:16px;background:var(--bg3);border-radius:16px;margin-bottom:12px;border:1px solid var(--border);}
-        .avail-amt{font-family:'Oxanium',sans-serif;font-size:46px;font-weight:900;color:var(--gold);}
-        .method-btn{background:var(--bg3);border:2px solid var(--border);border-radius:12px;padding:13px;margin:6px 0;display:flex;align-items:center;gap:11px;cursor:pointer;transition:border-color .2s;}
-        .method-btn.sel{border-color:var(--gold);}
-        .card-section{background:var(--bg3);border-radius:12px;padding:13px;margin-bottom:8px;border:1px solid var(--border);}
+        /* WITHDRAW — Gamee */
+        .avail-balance{text-align:center;padding:16px;background:linear-gradient(135deg,var(--purple),var(--purple2));border-radius:20px;margin-bottom:12px;box-shadow:0 6px 20px rgba(108,58,252,.3);}
+        .avail-amt{font-family:'Fredoka One',cursive;font-size:46px;font-weight:400;color:#fff;}
+        .method-btn{background:#fff;border:2px solid var(--border);border-radius:14px;padding:13px;margin:6px 0;display:flex;align-items:center;gap:11px;cursor:pointer;transition:border-color .2s;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+        .method-btn.sel{border-color:var(--purple);box-shadow:0 0 0 3px rgba(108,58,252,.1);}
+        .card-section{background:#fff;border-radius:14px;padding:13px;margin-bottom:8px;border:1.5px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.05);}
 
         /* CONGRATS */
-        .congrats-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:600;display:none;align-items:center;justify-content:center;padding:18px;}
+        .congrats-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:600;display:none;align-items:center;justify-content:center;padding:18px;}
         .congrats-overlay.show{display:flex;}
-        .congrats-card{background:var(--bg2);border-radius:24px;padding:26px 20px;text-align:center;border:1px solid var(--gold);box-shadow:0 0 54px rgba(240,192,64,.22);max-width:340px;width:100%;animation:congratsPop .5s cubic-bezier(.175,.885,.32,1.275);}
+        .congrats-card{background:#fff;border-radius:28px;padding:26px 20px;text-align:center;border:3px solid var(--gold);box-shadow:0 0 54px rgba(245,166,35,.3);max-width:340px;width:100%;animation:congratsPop .5s cubic-bezier(.175,.885,.32,1.275);}
         @keyframes congratsPop{0%{transform:scale(.3);opacity:0;}100%{transform:scale(1);opacity:1;}}
         .confetti{font-size:52px;animation:spinAnim 1s linear infinite;}
         @keyframes spinAnim{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
 
-        /* SETTINGS */
-        .settings-group{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:11px;}
+        /* SETTINGS — Gamee white */
+        .settings-group{background:#fff;border:1.5px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:11px;box-shadow:0 2px 10px rgba(0,0,0,.05);}
         .setting-row{display:flex;justify-content:space-between;align-items:center;padding:14px 15px;border-bottom:1px solid var(--border);}
         .setting-row:last-child{border-bottom:none;}
-        .setting-lbl{font-weight:700;font-size:13px;}
-        .setting-btn{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;padding:8px 16px;border-radius:28px;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;}
+        .setting-lbl{font-weight:700;font-size:13px;color:var(--text);}
+        .setting-btn{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;padding:8px 16px;border-radius:28px;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;}
 
-        /* MISSION CARDS */
-        .mission-item{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px;margin-bottom:9px;position:relative;overflow:hidden;}
+        /* MISSION CARDS — Gamee */
+        .mission-item{background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:13px;margin-bottom:9px;position:relative;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.05);}
         .mission-item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-        .mission-item-title{font-weight:700;font-size:13px;}
-        .mission-item-reward{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:4px 10px;border-radius:18px;font-size:10px;font-weight:800;}
-        .mission-item-bar{height:6px;background:rgba(255,255,255,.06);border-radius:6px;overflow:hidden;}
-        .mission-item-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--gold),var(--gold-dim));transition:width .4s;}
-        .mission-claim-btn{margin-top:9px;background:linear-gradient(135deg,var(--green),#059669);color:#fff;border:none;padding:9px 16px;border-radius:28px;font-weight:800;font-size:12px;cursor:pointer;width:100%;font-family:inherit;}
-        .mission-claimed-badge{margin-top:7px;background:rgba(25,216,158,.1);color:var(--green);padding:7px;border-radius:10px;font-size:11px;font-weight:700;text-align:center;}
+        .mission-item-title{font-weight:800;font-size:13px;color:var(--text);}
+        .mission-item-reward{background:linear-gradient(135deg,var(--orange),var(--gold));color:#fff;padding:4px 10px;border-radius:18px;font-size:10px;font-weight:800;}
+        .mission-item-bar{height:7px;background:var(--bg3);border-radius:6px;overflow:hidden;}
+        .mission-item-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--orange),var(--gold));transition:width .4s;}
+        .mission-claim-btn{margin-top:9px;background:linear-gradient(135deg,var(--green),#16a34a);color:#fff;border:none;padding:9px 16px;border-radius:28px;font-weight:800;font-size:12px;cursor:pointer;width:100%;font-family:inherit;box-shadow:0 4px 12px rgba(34,197,94,.3);}
+        .mission-claimed-badge{margin-top:7px;background:rgba(34,197,94,.1);color:var(--green);padding:7px;border-radius:10px;font-size:11px;font-weight:700;text-align:center;border:1px solid rgba(34,197,94,.2);}
         .mission-progress-text{font-size:10px;color:var(--text3);margin-top:4px;}
 
-        /* USER PROFILE */
-        .user-profile-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px;margin-bottom:11px;text-align:center;}
-        .user-profile-dp-lg{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--purple));margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;overflow:hidden;}
+        /* USER PROFILE — Gamee */
+        .user-profile-card{background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:20px;margin-bottom:11px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.07);}
+        .user-profile-dp-lg{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--orange));margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;overflow:hidden;box-shadow:0 4px 16px rgba(108,58,252,.3);}
 
-        /* ADMIN SUPPORT */
-        .support-item{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:9px;}
+        /* ADMIN SUPPORT — Gamee */
+        .support-item{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:9px;box-shadow:0 2px 8px rgba(0,0,0,.05);}
         .support-item-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
-        .support-item-user{font-weight:700;font-size:13px;}
+        .support-item-user{font-weight:700;font-size:13px;color:var(--text);}
         .support-item-time{font-size:10px;color:var(--text3);}
         .support-item-msg{font-size:12px;color:var(--text2);background:var(--bg3);border-radius:9px;padding:9px 11px;line-height:1.6;}
         .support-reply-row{display:flex;gap:8px;margin-top:9px;}
         .support-reply-inp{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);font-size:12px;font-family:inherit;}
-        .support-reply-btn{background:var(--gold);color:#000;border:none;border-radius:9px;padding:9px 14px;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;}
+        .support-reply-btn{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:9px;padding:9px 14px;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;}
         /* ═══ PREMIUM ANIMATIONS ═══════════════════════════════ */
         @keyframes shine{0%{background-position:-200% center;}100%{background-position:200% center;}}
         @keyframes shimmerBg{0%{opacity:.6;}50%{opacity:1;}100%{opacity:.6;}}
@@ -610,47 +686,47 @@
         @keyframes btnShine{0%{left:-75%;}100%{left:125%;}}
 
         /* Glow border cards */
-        .glow-card{border:1.5px solid rgba(240,192,64,.3);animation:glowPulse 2.5s ease-in-out infinite;}
+        .glow-card{border:2px solid rgba(249,115,22,.3);animation:glowPulse 2.5s ease-in-out infinite;}
 
         /* Progress bars — animated fill */
         .progress-animated{position:relative;overflow:hidden;}
-        .progress-animated::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);animation:shine 1.5s linear infinite;}
+        .progress-animated::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);animation:shine 1.5s linear infinite;}
 
         /* Circular image borders */
-        .img-circle{border-radius:50%;border:2px solid rgba(240,192,64,.4);box-shadow:0 0 12px rgba(240,192,64,.2);}
-        .img-rounded-box{border-radius:16px;border:1.5px solid rgba(255,255,255,.1);box-shadow:0 4px 20px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.05);}
-        .game-img{border-radius:18px;box-shadow:0 4px 18px rgba(0,0,0,.5),0 0 0 2px rgba(255,255,255,.08);transition:transform .2s,box-shadow .2s;background:#111;}
-        .game-img:hover{transform:scale(1.05);box-shadow:0 6px 24px rgba(0,0,0,.6),0 0 0 2px rgba(240,192,64,.3),0 0 28px rgba(240,192,64,.2);}
+        .img-circle{border-radius:50%;border:2px solid rgba(249,115,22,.4);box-shadow:0 0 12px rgba(249,115,22,.15);}
+        .img-rounded-box{border-radius:16px;border:1.5px solid rgba(0,0,0,.08);box-shadow:0 4px 16px rgba(0,0,0,.1);}
+        .game-img{border-radius:18px;box-shadow:0 4px 14px rgba(0,0,0,.15);transition:transform .2s,box-shadow .2s;background:#eee;}
+        .game-img:hover{transform:scale(1.05);box-shadow:0 6px 20px rgba(0,0,0,.2);}
 
-        /* Balance card — animated gradient */
-        .balance-card{background:linear-gradient(135deg,#0d0d2e,#1a0a3e,#0d1a3e,#0a1a0d);background-size:300% 300%;animation:gradientShift 6s ease infinite;}
+        /* Balance card — Gamee purple gradient */
+        .balance-card{background:linear-gradient(135deg,#6c3afc,#9b59ff,#8b5cf6,#6c3afc);background-size:300% 300%;animation:gradientShift 6s ease infinite;}
 
-        /* Points display — big glow */
-        .pts-display{font-size:42px!important;background:linear-gradient(135deg,#FFD700,#FFF,#FFD700);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shine 2s linear infinite;}
+        /* Points display — white on purple */
+        .pts-display{font-size:42px!important;color:#fff!important;-webkit-text-fill-color:#fff;}
 
-        /* Leaderboard rank badges */
-        .rank-1{background:linear-gradient(135deg,#FFD700,#FFA500)!important;color:#000!important;box-shadow:0 0 15px rgba(255,215,0,.5)!important;}
-        .rank-2{background:linear-gradient(135deg,#C0C0C0,#A8A8A8)!important;color:#000!important;}
+        /* Leaderboard rank badges — Gamee */
+        .rank-1{background:linear-gradient(135deg,#FFD700,#FFA500)!important;color:#fff!important;box-shadow:0 0 12px rgba(255,215,0,.4)!important;}
+        .rank-2{background:linear-gradient(135deg,#C0C0C0,#A8A8A8)!important;color:#fff!important;}
         .rank-3{background:linear-gradient(135deg,#CD7F32,#8B4513)!important;color:#fff!important;}
 
         /* Floating points animation */
-        .float-pts{position:fixed;font-weight:900;font-size:18px;color:var(--gold);pointer-events:none;z-index:9999;animation:floatUp 1.2s ease-out forwards;}
+        .float-pts{position:fixed;font-weight:900;font-size:18px;color:var(--orange);pointer-events:none;z-index:9999;animation:floatUp 1.2s ease-out forwards;}
 
-        /* Game earn tag */
-        .game-earn-tag{display:inline-block;background:rgba(25,216,158,.12);border:1px solid rgba(25,216,158,.3);color:var(--green);padding:3px 10px;border-radius:20px;font-size:9px;font-weight:800;margin-top:4px;}
+        /* Game earn tag — Gamee green */
+        .game-earn-tag{display:inline-block;background:rgba(34,197,94,.1);border:1.5px solid rgba(34,197,94,.25);color:var(--green);padding:3px 10px;border-radius:20px;font-size:9px;font-weight:800;margin-top:4px;}
         /* HD game card skill shimmer */
-        .game-card-skill::before{content:'';position:absolute;top:-100%;left:-100%;width:60%;height:300%;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.06) 50%,transparent 60%);transition:all 0.5s;pointer-events:none;}
+        .game-card-skill::before{content:'';position:absolute;top:-100%;left:-100%;width:60%;height:300%;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.18) 50%,transparent 60%);transition:all 0.5s;pointer-events:none;}
         .game-card-skill:hover::before{top:-100%;left:150%;transition:all 0.5s;}
 
-        /* Premium card hover effects */
+        /* Game card skill hover */
         .game-card-skill{transition:transform .18s,box-shadow .2s,border-color .2s !important;}
-        .game-card-skill:active{transform:scale(.93) !important;box-shadow:0 4px 20px rgba(0,0,0,.5) !important;}
+        .game-card-skill:active{transform:scale(.93) !important;box-shadow:0 4px 16px rgba(0,0,0,.15) !important;}
 
         /* Confetti animation */
         @keyframes confettiFall{0%{transform:translateY(-10px) rotate(0deg);opacity:1;}100%{transform:translateY(100vh) rotate(720deg);opacity:0;}}
 
         /* Quiz option hover */
-        .quiz-opt-btn:active{transform:scale(.96);border-color:var(--gold) !important;background:rgba(240,192,64,.08) !important;}
+        .quiz-opt-btn:active{transform:scale(.96);border-color:var(--purple) !important;background:rgba(108,58,252,.06) !important;}
 
         /* Smooth page transitions */
         .page{transition:opacity .2s ease;}
@@ -659,12 +735,12 @@
         .page-inner{-webkit-overflow-scrolling:touch;}
 
         /* Shortlink reminder pulse */
-        #shortlinkReminder{box-shadow:0 0 0 0 rgba(255,78,106,.4);animation:reminderPulse 2s infinite;}
-        @keyframes reminderPulse{0%{box-shadow:0 0 0 0 rgba(255,78,106,.4);}70%{box-shadow:0 0 0 12px rgba(255,78,106,0);}100%{box-shadow:0 0 0 0 rgba(255,78,106,0);}}
+        #shortlinkReminder{box-shadow:0 0 0 0 rgba(239,68,68,.4);animation:reminderPulse 2s infinite;}
+        @keyframes reminderPulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.4);}70%{box-shadow:0 0 0 12px rgba(239,68,68,0);}100%{box-shadow:0 0 0 0 rgba(239,68,68,0);}}
 
         /* Neon glow for important CTAs */
-        .neon-glow{box-shadow:0 0 15px rgba(240,192,64,.3),0 0 30px rgba(240,192,64,.1);transition:box-shadow .3s;}
-        .neon-glow:active{box-shadow:0 0 20px rgba(240,192,64,.5),0 0 40px rgba(240,192,64,.2);}
+        .neon-glow{box-shadow:0 0 12px rgba(249,115,22,.25),0 0 24px rgba(249,115,22,.08);transition:box-shadow .3s;}
+        .neon-glow:active{box-shadow:0 0 18px rgba(249,115,22,.4),0 0 36px rgba(249,115,22,.15);}
 
     </style>
 </head>
@@ -684,7 +760,7 @@
         </div>
         <div class="onboard-body" id="onboardBody"></div>
         <div class="onboard-footer">
-            <button class="onboard-confirm-btn" onclick="confirmOnboard()">✅ <span id="onboardBtnText">Samajh Gaya! Shuru Karo</span></button>
+            <button class="onboard-confirm-btn" onclick="if(typeof confirmOnboard==='function')confirmOnboard();else{try{localStorage.setItem('ez_onboarded','1');}catch(e){}document.getElementById('onboardOverlay').style.display='none';}">✅ <span id="onboardBtnText">Samajh Gaya! Shuru Karo</span></button>
         </div>
     </div>
 </div>
@@ -739,7 +815,7 @@
 <div class="topbar">
     <div class="hamburger-btn" onclick="openSidebar()"><span></span><span></span><span></span></div>
     <div class="topbar-logo"><img src="https://i.postimg.cc/xT43NypN/IMG-20260320-075702-067.jpg" style="height:32px;border-radius:8px;vertical-align:middle;margin-right:6px;"> FilmyFund</div>
-    <div id="notifBell" onclick="openNotifPanel()" style="position:relative;width:36px;height:36px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-right:6px;flex-shrink:0;font-size:18px;">🔔<div id="notifDot" style="display:none;position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;background:#ef4444;border-radius:10px;border:2px solid var(--bg);font-size:9px;font-weight:900;color:#fff;align-items:center;justify-content:center;font-family:'Oxanium',sans-serif;"></div></div>
+    <div id="notifBell" onclick="openNotifPanel()" style="position:relative;width:36px;height:36px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-right:6px;flex-shrink:0;font-size:18px;">🔔<div id="notifDot" style="display:none;position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;background:#ef4444;border-radius:10px;border:2px solid var(--bg);font-size:9px;font-weight:900;color:#fff;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;"></div></div>
     <div class="topbar-balance" id="topbarBalance">0 pts</div>
 </div>
 
@@ -754,26 +830,48 @@
         <div id="shortlinkReminder" style="display:none;background:linear-gradient(135deg,#ff6b35,#ff4e6a);border-radius:16px;padding:12px 14px;margin-bottom:10px;cursor:pointer;" onclick="showRewardAd();setTimeout(()=>window.open(MOVIE_GROUP_LINK,'_blank'),500);">
             <div style="display:flex;align-items:center;gap:10px;">
                 <div style="font-size:28px;">🎬</div>
-                <div style="flex:1;"><div style="font-family:'Oxanium',sans-serif;font-size:13px;font-weight:900;color:#fff;">⚡ MOVIE SEARCH = 50 pts FREE!</div><div style="font-size:10px;color:rgba(255,255,255,.85);margin-top:2px;">Movie search karo → Shortlink complete karo → Bonus!</div></div>
+                <div style="flex:1;"><div style="font-family:'Fredoka One',cursive;font-size:13px;font-weight:900;color:#fff;">⚡ MOVIE SEARCH = 50 pts FREE!</div><div style="font-size:10px;color:rgba(255,255,255,.85);margin-top:2px;">Movie search karo → Shortlink complete karo → Bonus!</div></div>
                 <div style="background:rgba(255,255,255,.25);padding:6px 10px;border-radius:20px;font-weight:900;font-size:11px;color:#fff;white-space:nowrap;">GO →</div>
             </div>
         </div>
 
-        <!-- ① BALANCE CARD — Main Hero -->
+        <!-- ① BALANCE CARD — Main Hero (Upgraded) -->
         <div class="balance-card" style="margin-bottom:10px;">
-            <div class="balance-label" data-t="your_balance">🪙 Aapke Points</div>
-            <div class="balance-main pts-display" id="balAmt">0 pts</div>
-            <div id="balRupees" style="font-size:14px;color:rgba(240,192,64,.7);margin-top:-2px;font-weight:800;font-family:'Oxanium',sans-serif;">= ₹0.00</div>
-            <div class="balance-sub" style="margin-top:12px;">
-                <div class="bsub-item"><div class="bsub-label" data-t="today_earned">Aaj Kamaya</div><div class="bsub-val" id="todayEarned">0 pts</div></div>
-                <div class="bsub-item"><div class="bsub-label">Active Refs</div><div class="bsub-val" id="activeRefs">0</div></div>
-                <div class="bsub-item"><div class="bsub-label">🎟️ Passes</div><div class="bsub-val" id="passCount">0</div></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+                <div class="balance-label" data-t="your_balance" style="font-size:10px;letter-spacing:1.2px;">💰 YOUR BALANCE</div>
+                <div id="userBadgeChip"><!-- Badge injected by JS --></div>
             </div>
-            <!-- Quick action buttons -->
-            <div style="display:flex;gap:8px;margin-top:12px;">
-                <button onclick="openModal('withdraw')" style="flex:1;background:rgba(25,216,158,.12);border:1px solid rgba(25,216,158,.3);color:var(--green);border-radius:12px;padding:9px;font-weight:800;font-size:11px;cursor:pointer;font-family:inherit;">💸 Withdraw</button>
-                <button onclick="openModal('referral')" style="flex:1;background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.25);color:var(--gold);border-radius:12px;padding:9px;font-weight:800;font-size:11px;cursor:pointer;font-family:inherit;">👥 Refer</button>
-                <button onclick="openModal('earnPasses')" style="flex:1;background:rgba(124,92,252,.12);border:1px solid rgba(124,92,252,.3);color:var(--purple2);border-radius:12px;padding:9px;font-weight:800;font-size:11px;cursor:pointer;font-family:inherit;">📖 Guide</button>
+            <div class="balance-main pts-display" id="balAmt" style="font-size:48px;">0 pts</div>
+            <div id="balRupees" style="font-size:13px;color:rgba(245,200,66,.65);margin-top:1px;font-weight:700;font-family:'Fredoka One',cursive;">= ₹0.00 • min ₹20</div>
+            <div class="balance-sub" style="margin-top:13px;gap:6px;">
+                <div class="bsub-item" style="border-color:rgba(0,229,160,.12);background:rgba(0,229,160,.04);">
+                    <div class="bsub-label">TODAY</div>
+                    <div class="bsub-val" id="todayEarned" style="font-size:17px;color:var(--green);">0</div>
+                </div>
+                <div class="bsub-item" style="border-color:rgba(54,182,245,.12);background:rgba(54,182,245,.04);">
+                    <div class="bsub-label">REFS</div>
+                    <div class="bsub-val" id="activeRefs" style="font-size:17px;color:var(--blue);">0</div>
+                </div>
+                <div class="bsub-item" style="border-color:rgba(124,92,252,.15);background:rgba(124,92,252,.05);">
+                    <div class="bsub-label">🎟️ PASSES</div>
+                    <div class="bsub-val" id="passCount" style="font-size:17px;color:var(--purple2);">0</div>
+                </div>
+                <div class="bsub-item" style="border-color:rgba(251,146,60,.12);background:rgba(251,146,60,.04);">
+                    <div class="bsub-label">🔥 STREAK</div>
+                    <div class="bsub-val" id="balStreak" style="font-size:17px;color:var(--orange);">0</div>
+                </div>
+            </div>
+            <!-- Quick action buttons — Upgraded -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:13px;">
+                <button onclick="openModal('withdraw')" style="background:linear-gradient(135deg,rgba(0,229,160,.15),rgba(0,229,160,.06));border:1px solid rgba(0,229,160,.28);color:var(--green);border-radius:14px;padding:10px 4px;font-weight:900;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;letter-spacing:.2px;">
+                    <span style="font-size:20px;">💸</span>Withdraw
+                </button>
+                <button onclick="openModal('referral')" style="background:linear-gradient(135deg,rgba(54,182,245,.15),rgba(54,182,245,.06));border:1px solid rgba(54,182,245,.28);color:var(--blue);border-radius:14px;padding:10px 4px;font-weight:900;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;letter-spacing:.2px;">
+                    <span style="font-size:20px;">👥</span>Refer
+                </button>
+                <button onclick="showHowToEarn()" style="background:linear-gradient(135deg,rgba(245,200,66,.12),rgba(245,200,66,.04));border:1px solid rgba(245,200,66,.22);color:var(--gold);border-radius:14px;padding:10px 4px;font-weight:900;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;letter-spacing:.2px;">
+                    <span style="font-size:20px;">📖</span>Guide
+                </button>
             </div>
         </div>
 
@@ -789,17 +887,17 @@
                 <div style="background:linear-gradient(135deg,var(--green),#059669);color:#fff;padding:6px 12px;border-radius:20px;font-weight:800;font-size:11px;align-self:flex-start;" id="dailyBonusBtn">Claim</div>
             </div>
             <!-- Watch Ad Earn — Mobile Fixed -->
-            <div style="background:linear-gradient(135deg,#041830,#0d1850);border:1.5px solid rgba(54,182,245,.4);border-radius:18px;overflow:hidden;">
+            <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px solid rgba(59,130,246,.3);border-radius:18px;overflow:hidden;">
                 <div style="padding:10px 12px 4px;display:flex;align-items:center;gap:8px;">
                     <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue),#7c5cfc);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📺</div>
                     <div style="flex:1;min-width:0;">
-                        <div style="font-family:'Oxanium',sans-serif;font-weight:900;font-size:13px;color:var(--text);">Watch & Earn</div>
+                        <div style="font-family:'Fredoka One',cursive;font-weight:900;font-size:13px;color:var(--text);">Watch & Earn</div>
                         <div style="font-size:10px;color:var(--text3);">Ad dekho, pao pts</div>
                     </div>
                     <div style="background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;padding:4px 8px;border-radius:16px;font-size:10px;font-weight:900;white-space:nowrap;">+10 pts</div>
                 </div>
                 <div style="padding:6px 12px 10px;">
-                    <button id="rewardAdBtn" onclick="showRewardAd()" style="width:100%;background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;border:none;border-radius:22px;padding:9px 4px;font-weight:900;font-size:11px;cursor:pointer;font-family:'Oxanium',sans-serif;">▶ Ad Dekho</button>
+                    <button id="rewardAdBtn" onclick="showRewardAd()" style="width:100%;background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;border:none;border-radius:22px;padding:9px 4px;font-weight:900;font-size:11px;cursor:pointer;font-family:'Fredoka One',cursive;">▶ Ad Dekho</button>
                 </div>
                 <div id="rewardAdStatus" style="font-size:9px;color:var(--text3);text-align:center;padding-bottom:5px;"></div>
             </div>
@@ -808,7 +906,7 @@
         <!-- ③ MISSIONS card -->
         <div class="mission-card" onclick="openModal('missions')" style="margin-bottom:10px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                <div style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:900;" data-t="daily_missions">🎯 Daily Missions</div>
+                <div style="font-family:'Fredoka One',cursive;font-size:16px;font-weight:900;" data-t="daily_missions">🎯 Daily Missions</div>
                 <div style="background:rgba(0,0,0,.18);padding:4px 11px;border-radius:20px;font-size:11px;font-weight:800;">600+ pts</div>
             </div>
             <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;">
@@ -823,7 +921,7 @@
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
                 <img src="https://i.postimg.cc/cCV72d3Z/refer-earn-concept-business-partnership-strategy-vector-illustration-185038-443.jpg" style="width:40px;height:40px;object-fit:cover;border-radius:10px;flex-shrink:0;">
                 <div>
-                    <div style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:800;" data-t="refer_earn_title">Refer & Earn</div>
+                    <div style="font-family:'Fredoka One',cursive;font-size:16px;font-weight:800;" data-t="refer_earn_title">Refer & Earn</div>
                     <div style="font-size:11px;color:var(--text2);" data-t="refer_sub">Dost invite karo • 3 Passes + 60 pts!</div>
                 </div>
             </div>
@@ -850,14 +948,14 @@
 
         <!-- AdsGram Task Ad (task-30639) — Beautiful Card -->
         <div id="adsgram-task-wrapper" style="margin-bottom:12px;">
-            <div style="background:linear-gradient(135deg,#1a0a3a,#0d0624);border:1.5px solid rgba(124,92,252,.35);border-radius:20px;overflow:hidden;">
+            <div style="background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:1.5px solid rgba(108,58,252,.25);border-radius:20px;overflow:hidden;">
                 <div style="padding:14px 16px 10px;display:flex;align-items:center;gap:10px;">
                     <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--purple),#7c3aed);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📋</div>
                     <div style="flex:1;">
-                        <div style="font-family:'Oxanium',sans-serif;font-weight:900;font-size:14px;color:var(--text);">Daily Task Ad</div>
+                        <div style="font-family:'Fredoka One',cursive;font-weight:900;font-size:14px;color:var(--text);">Daily Task Ad</div>
                         <div style="font-size:11px;color:var(--text3);margin-top:2px;">Complete karo, reward pao!</div>
                     </div>
-                    <div style="background:linear-gradient(135deg,var(--purple),var(--gold));color:#fff;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:900;font-family:'Oxanium',sans-serif;">+Pts</div>
+                    <div style="background:linear-gradient(135deg,var(--purple),var(--gold));color:#fff;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:900;font-family:'Fredoka One',cursive;">+Pts</div>
                 </div>
                 <div style="padding:0 14px 14px;">
                     <adsgram-task
@@ -871,12 +969,26 @@
                             display:block;width:100%;
                         "
                     >
-                        <div slot="button" style="background:linear-gradient(135deg,var(--purple),var(--gold));color:#fff;border:none;padding:11px 20px;border-radius:30px;font-weight:900;font-size:13px;cursor:pointer;font-family:'Oxanium',sans-serif;width:100%;text-align:center;letter-spacing:.3px;">▶ Task Complete Karo</div>
-                        <div slot="claim" style="background:linear-gradient(135deg,var(--green),#059669);color:#fff;border:none;padding:11px 20px;border-radius:30px;font-weight:900;font-size:13px;cursor:pointer;font-family:'Oxanium',sans-serif;width:100%;text-align:center;">🎁 Claim Reward</div>
-                        <div slot="done" style="background:rgba(25,216,158,.1);border:1px solid var(--green);color:var(--green);padding:10px 20px;border-radius:30px;font-weight:900;font-size:13px;font-family:'Oxanium',sans-serif;width:100%;text-align:center;">✅ Aaj Ka Task Done!</div>
+                        <div slot="button" style="background:linear-gradient(135deg,var(--purple),var(--gold));color:#fff;border:none;padding:11px 20px;border-radius:30px;font-weight:900;font-size:13px;cursor:pointer;font-family:'Fredoka One',cursive;width:100%;text-align:center;letter-spacing:.3px;">▶ Task Complete Karo</div>
+                        <div slot="claim" style="background:linear-gradient(135deg,var(--green),#059669);color:#fff;border:none;padding:11px 20px;border-radius:30px;font-weight:900;font-size:13px;cursor:pointer;font-family:'Fredoka One',cursive;width:100%;text-align:center;">🎁 Claim Reward</div>
+                        <div slot="done" style="background:rgba(25,216,158,.1);border:1px solid var(--green);color:var(--green);padding:10px 20px;border-radius:30px;font-weight:900;font-size:13px;font-family:'Fredoka One',cursive;width:100%;text-align:center;">✅ Aaj Ka Task Done!</div>
                     </adsgram-task>
                 </div>
             </div>
+        </div>
+
+        <!-- 🏆 WEEKLY CONTEST PREVIEW -->
+        <div style="background:linear-gradient(135deg,#fff7ed,#fefce8);border:2px solid rgba(249,115,22,.25);border-radius:20px;padding:14px;margin-bottom:10px;cursor:pointer;" onclick="openModal('leaderboard')">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                <div style="font-family:'Fredoka One',cursive;font-weight:900;font-size:15px;color:var(--gold);">🏆 Weekly Contest</div>
+                <div style="background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:900;letter-spacing:.3px;">WIN PRIZES</div>
+            </div>
+            <div style="display:flex;gap:8px;">
+                <div style="flex:1;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.2);border-radius:12px;padding:9px;text-align:center;"><div style="font-size:20px;">🥇</div><div style="font-size:10px;font-weight:900;color:var(--gold);margin-top:3px;" id="lb1name">---</div></div>
+                <div style="flex:1;background:rgba(168,169,173,.07);border:1px solid rgba(168,169,173,.18);border-radius:12px;padding:9px;text-align:center;"><div style="font-size:20px;">🥈</div><div style="font-size:10px;font-weight:900;color:var(--badge-silver);margin-top:3px;" id="lb2name">---</div></div>
+                <div style="flex:1;background:rgba(205,127,50,.07);border:1px solid rgba(205,127,50,.18);border-radius:12px;padding:9px;text-align:center;"><div style="font-size:20px;">🥉</div><div style="font-size:10px;font-weight:900;color:var(--badge-bronze);margin-top:3px;" id="lb3name">---</div></div>
+            </div>
+            <div style="font-size:10px;color:var(--text3);margin-top:8px;text-align:center;">Full leaderboard dekho →</div>
         </div>
 
         <!-- ⑥ LIVE ACTIVITY — compact -->
@@ -884,9 +996,10 @@
             <h3 data-t="live_activity">⚡ Live Activity</h3>
             <span style="font-size:10px;color:var(--text3)">Real-time</span>
         </div>
-        <div class="live-section">
-            <div class="live-header">
-                <div class="live-title"><div class="live-dot"></div> <span data-t="users_online">Users Online</span></div>
+        <div class="live-section" style="border-radius:20px;border:1px solid var(--border2);box-shadow:0 4px 20px rgba(0,0,0,.4);">
+            <div class="live-header" style="padding:12px 14px;">
+                <div class="live-title"><div class="live-dot"></div> <span data-t="users_online" style="font-weight:800;font-size:13px;">Users Online</span></div>
+                <span style="font-size:9px;font-weight:700;color:var(--green);background:rgba(0,229,160,.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(0,229,160,.2);">LIVE</span>
             </div>
             <div class="live-list" id="liveList"><div style="text-align:center;padding:16px;color:var(--text3)">Loading...</div></div>
         </div>
@@ -897,7 +1010,7 @@
 <!-- LEADERBOARD PAGE -->
 <div class="page" id="rankPage">
     <div class="page-inner">
-        <div style="font-family:'Oxanium',sans-serif;font-size:24px;font-weight:900;color:var(--gold);margin-bottom:14px;" data-t="leaderboard">🏆 Leaderboard</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:24px;font-weight:900;color:var(--gold);margin-bottom:14px;" data-t="leaderboard">🏆 Leaderboard</div>
         <div class="lb-tabs">
             <div class="lb-tab active" id="lbWeeklyTab" onclick="switchLB('weekly')" data-t="weekly">Weekly</div>
             <div class="lb-tab" id="lbMonthlyTab" onclick="switchLB('monthly')" data-t="monthly">Monthly</div>
@@ -915,13 +1028,13 @@
 <!-- GAMES PAGE -->
 <div class="page" id="gamesPage">
     <div class="page-inner">
-        <!-- PASSES BAR at top -->
-        <div style="background:linear-gradient(135deg,#1c0e4a,#0f0624);border:1.5px solid rgba(124,92,252,.3);border-radius:16px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">
+        <!-- PASSES BAR at top — Upgraded -->
+        <div style="background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:1.5px solid rgba(108,58,252,.25);border-radius:20px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 24px rgba(124,92,252,.15),inset 0 1px 0 rgba(255,255,255,.05);">
             <div style="display:flex;align-items:center;gap:10px;">
                 <div style="font-size:26px;">🎟️</div>
                 <div>
                     <div style="font-size:11px;color:var(--text3);">Aapke Passes</div>
-                    <div style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--purple2);" id="gameBadgePasses">0</div>
+                    <div style="font-family:'Fredoka One',cursive;font-size:22px;font-weight:900;color:var(--purple2);" id="gameBadgePasses">0</div>
                 </div>
             </div>
             <button onclick="openModal('earnPasses')" style="background:linear-gradient(135deg,var(--purple),var(--gold));color:#fff;border:none;padding:8px 16px;border-radius:20px;font-weight:900;font-size:12px;cursor:pointer;font-family:inherit;">+ Earn Passes</button>
@@ -935,7 +1048,7 @@
         <!-- SKILL GAMES ROW 1 — Chess full width -->
         <div style="font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">⚡ Skill Games</div>
         <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px;">
-            <div class="game-card game-card-skill" onclick="openGame('chess')" style="background:linear-gradient(135deg,#1a1200,#2a1e00);border:1.5px solid rgba(240,192,64,.4);display:flex;align-items:center;gap:12px;text-align:left;padding:14px;">
+            <div class="game-card game-card-skill" onclick="openGame('chess')" style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border:2px solid rgba(245,166,35,.4);display:flex;align-items:center;gap:12px;text-align:left;padding:14px;">
                 <img src="https://i.postimg.cc/7LzPFtHD/a4ee8463-c918-40e5-ac55-82e4dcbc9164.jpg" class="game-img" alt="Chess" style="width:70px;height:70px;border-radius:12px;object-fit:cover;">
                 <div style="flex:1;">
                     <div class="game-name" style="color:var(--gold);font-size:17px;">♟️ Chess</div>
@@ -946,7 +1059,7 @@
         </div>
         <!-- SKILL GAMES ROW 2 — Sokoban + Snake side by side -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;width:100%;overflow:hidden;">
-            <div class="game-card game-card-skill" onclick="openGame('maze')" style="background:linear-gradient(135deg,#0a1628,#0d2040);border:1.5px solid rgba(54,182,245,.4);">
+            <div class="game-card game-card-skill" onclick="openGame('maze')" style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:2px solid rgba(59,130,246,.3);">
                 <img src="https://i.postimg.cc/3rX44NH8/b6b10c99-9c7a-4404-93fe-afdb9750fedc.jpg" class="game-img" alt="Sokoban">
                 <div style="padding:10px;">
                     <div class="game-name" style="color:var(--blue);">📦 Sokoban</div>
@@ -954,7 +1067,7 @@
                     <span class="game-earn-tag" style="background:rgba(54,182,245,.12);border-color:rgba(54,182,245,.3);color:var(--blue);">300–1000 pts</span>
                 </div>
             </div>
-            <div class="game-card game-card-skill" onclick="openGame('snake')" style="background:linear-gradient(135deg,#0a2e0a,#0d3010);border:1.5px solid rgba(25,216,158,.4);">
+            <div class="game-card game-card-skill" onclick="openGame('snake')" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:2px solid rgba(34,197,94,.3);">
                 <img src="https://i.postimg.cc/76g62sjH/0db283bd-58ae-4317-b6b8-aed3f78c45f1.jpg" class="game-img" alt="Snake">
                 <div style="padding:10px;">
                     <div class="game-name" style="color:var(--green);">🐍 Snake</div>
@@ -965,7 +1078,7 @@
         </div>
         <!-- SKILL GAMES ROW 3 — Block Blast + Gem Match -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;width:100%;overflow:hidden;">
-            <div class="game-card game-card-skill" onclick="openBlockGame()" style="background:linear-gradient(135deg,#1a0a2e,#2e0a1a);border:1.5px solid rgba(139,92,246,.4);">
+            <div class="game-card game-card-skill" onclick="openBlockGame()" style="background:linear-gradient(135deg,#faf5ff,#ede9fe);border:2px solid rgba(139,92,246,.3);">
                 <div style="font-size:52px;text-align:center;padding:10px 0 2px;">🧱</div>
                 <div style="padding:10px;">
                     <div class="game-name" style="color:var(--purple2);">🧱 Block Blast</div>
@@ -973,7 +1086,7 @@
                     <span class="game-earn-tag" style="background:rgba(139,92,246,.12);border-color:rgba(139,92,246,.3);color:var(--purple2);">Level badhega → Hard hoga</span>
                 </div>
             </div>
-            <div class="game-card game-card-skill" onclick="openGemGame()" style="background:linear-gradient(135deg,#0a1e2e,#0a2e2e);border:1.5px solid rgba(56,189,248,.4);">
+            <div class="game-card game-card-skill" onclick="openGemGame()" style="background:linear-gradient(135deg,#ecfeff,#cffafe);border:2px solid rgba(56,189,248,.3);">
                 <div style="font-size:36px;text-align:center;padding:12px 0 4px;">💎🔥💣</div>
                 <div style="padding:10px;">
                     <div class="game-name" style="color:var(--blue);">💎 Gem Blast</div>
@@ -1089,7 +1202,7 @@
 <!-- HISTORY PAGE -->
 <div class="page" id="historyPage">
     <div class="page-inner">
-        <div style="font-family:'Oxanium',sans-serif;font-size:24px;font-weight:900;color:var(--gold);margin-bottom:14px;" data-t="withdrawal_history">📜 Withdrawal History</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:24px;font-weight:900;color:var(--gold);margin-bottom:14px;" data-t="withdrawal_history">📜 Withdrawal History</div>
         <button class="btn-gold" onclick="openModal('withdraw')" style="margin-bottom:14px;">💰 <span data-t="new_withdrawal">New Withdrawal</span></button>
         <div id="histContainer"><div style="color:var(--text3);text-align:center;padding:16px;">Loading...</div></div>
     </div>
@@ -1132,15 +1245,15 @@
     <!-- Stats -->
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
         <div style="background:var(--card);border-radius:14px;padding:12px;text-align:center;border:1px solid var(--border);">
-            <div id="apTotalUsers" style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--blue);">-</div>
+            <div id="apTotalUsers" style="font-family:'Fredoka One',cursive;font-size:22px;font-weight:900;color:var(--blue);">-</div>
             <div style="font-size:9px;color:var(--text3);">USERS</div>
         </div>
         <div style="background:var(--card);border-radius:14px;padding:12px;text-align:center;border:1px solid var(--border);">
-            <div id="apPendingWD" style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--gold);">-</div>
+            <div id="apPendingWD" style="font-family:'Fredoka One',cursive;font-size:22px;font-weight:900;color:var(--gold);">-</div>
             <div style="font-size:9px;color:var(--text3);">PENDING WD</div>
         </div>
         <div style="background:var(--card);border-radius:14px;padding:12px;text-align:center;border:1px solid var(--border);">
-            <div id="apPendingSupport" style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--red);">-</div>
+            <div id="apPendingSupport" style="font-family:'Fredoka One',cursive;font-size:22px;font-weight:900;color:var(--red);">-</div>
             <div style="font-size:9px;color:var(--text3);">SUPPORT</div>
         </div>
     </div>
@@ -1190,7 +1303,7 @@
     <!-- WEEKLY BONUS — inside daily bonus modal -->
     <div class="weekly-bonus-card" id="weeklyCardModal" style="margin-top:12px;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div style="font-family:'Oxanium',sans-serif;font-size:14px;font-weight:900;color:var(--blue);">📅 Weekly Bonus</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:14px;font-weight:900;color:var(--blue);">📅 Weekly Bonus</div>
             <div id="weeklyBonusStatus" style="font-size:11px;color:var(--text2);">7 din = 100 pts!</div>
         </div>
         <div class="weekly-days" id="weeklyDays" style="margin-top:8px;"></div>
@@ -1201,7 +1314,7 @@
         <div style="display:flex;align-items:center;gap:10px;">
             <div style="font-size:22px;">🔥</div>
             <div style="flex:1;">
-                <div style="font-family:'Oxanium',sans-serif;font-size:12px;font-weight:900;color:var(--green);" id="streakChallengeTitle">7-Day Challenge!</div>
+                <div style="font-family:'Fredoka One',cursive;font-size:12px;font-weight:900;color:var(--green);" id="streakChallengeTitle">7-Day Challenge!</div>
                 <div style="font-size:10px;color:var(--text2);margin-top:2px;" id="streakChallengeSub">Roz claim karo = bonus!</div>
             </div>
             <div id="streakChallengeBtn" style="background:var(--green);color:#000;padding:6px 12px;border-radius:20px;font-weight:900;font-size:10px;cursor:pointer;display:none;" onclick="claimStreakBonus()">CLAIM!</div>
@@ -1223,13 +1336,13 @@
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('earnPasses')">←</div><div class="modal-title">🎟️ Earn Passes & Paise Kaise Kamayein</div></div>
     <div style="padding:14px;">
     <div style="background:linear-gradient(135deg,rgba(139,92,246,.12),rgba(56,189,248,.08));border:1.5px solid rgba(139,92,246,.3);border-radius:18px;padding:16px;margin-bottom:14px;">
-        <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--gold);margin-bottom:4px;">🎟️ Aapke Passes</div>
-        <div style="font-family:'Oxanium',sans-serif;font-size:36px;font-weight:900;color:var(--text);" id="epPassCount">0</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:18px;font-weight:900;color:var(--gold);margin-bottom:4px;">🎟️ Aapke Passes</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:36px;font-weight:900;color:var(--text);" id="epPassCount">0</div>
         <div style="font-size:11px;color:var(--text2);">1 Pass = 1 Game khelne ka mauka!</div>
     </div>
 
     <!-- DETAILED REFER GUIDE -->
-    <div style="font-family:'Oxanium',sans-serif;font-size:15px;font-weight:900;color:var(--gold);margin-bottom:10px;">💰 Refer Karke Paise Kaise Kamayein — Poori Jankari</div>
+    <div style="font-family:'Fredoka One',cursive;font-size:15px;font-weight:900;color:var(--gold);margin-bottom:10px;">💰 Refer Karke Paise Kaise Kamayein — Poori Jankari</div>
     
     <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;">
         <div style="font-weight:900;color:var(--green);font-size:13px;margin-bottom:8px;">STEP 1️⃣ — Referral Link Share Karo</div>
@@ -1283,7 +1396,7 @@
         </div>
     </div>
 
-    <div style="font-family:'Oxanium',sans-serif;font-size:14px;font-weight:900;color:var(--text);margin-bottom:10px;">📌 Aur Passes Kaise Kamayein?</div>
+    <div style="font-family:'Fredoka One',cursive;font-size:14px;font-weight:900;color:var(--text);margin-bottom:10px;">📌 Aur Passes Kaise Kamayein?</div>
     <div class="ep-method"><div class="ep-method-icon">👥</div><div class="ep-method-info"><div class="ep-method-title">Dost Refer Karo</div><div class="ep-method-desc">Har active refer = 3 Passes + 60 pts turant!</div></div><div class="ep-method-badge">+3 Pass</div></div>
     <div class="ep-method"><div class="ep-method-icon">🎁</div><div class="ep-method-info"><div class="ep-method-title">Daily Bonus Claim</div><div class="ep-method-desc">Roz click karo — streak bonus milega!</div></div><div class="ep-method-badge">Bonus pts</div></div>
     <div class="ep-method"><div class="ep-method-icon">💎</div><div class="ep-method-info"><div class="ep-method-title">Sponsored Offers</div><div class="ep-method-desc">Offers complete karo — passes milenge!</div></div><div class="ep-method-badge">+1-5 Pass</div></div>
@@ -1298,13 +1411,13 @@
         <!-- UPI Info -->
         <div style="background:linear-gradient(135deg,rgba(240,192,64,.12),rgba(240,192,64,.04));border:1.5px solid rgba(240,192,64,.3);border-radius:18px;padding:16px;margin-bottom:14px;text-align:center;">
             <div style="font-size:11px;color:var(--text3);margin-bottom:6px;">UPI se payment karo</div>
-            <div style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--gold);letter-spacing:1px;" id="adminUpiDisplay">Loading...</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:22px;font-weight:900;color:var(--gold);letter-spacing:1px;" id="adminUpiDisplay">Loading...</div>
             <button onclick="navigator.clipboard.writeText(document.getElementById('adminUpiDisplay').textContent).then(()=>showToast('✅ UPI copied!'))" style="background:rgba(240,192,64,.15);border:1px solid rgba(240,192,64,.3);color:var(--gold);border-radius:10px;padding:5px 14px;font-size:11px;font-weight:800;cursor:pointer;margin-top:8px;">📋 Copy UPI</button>
             <div style="font-size:10px;color:var(--text3);margin-top:8px;">Payment ke baad Transaction ID daalo neeche</div>
         </div>
 
         <!-- Package Selection -->
-        <div style="font-family:'Oxanium',sans-serif;font-size:14px;font-weight:900;color:var(--text);margin-bottom:10px;">Package Chuno:</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:14px;font-weight:900;color:var(--text);margin-bottom:10px;">Package Chuno:</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
             <div class="pass-pkg sel" onclick="selectPackage(1,this)" data-pkg="1">
                 <div style="font-size:20px;margin-bottom:4px;">🎟️</div>
@@ -1347,7 +1460,7 @@
         </div>
 
         <!-- Submit Button -->
-        <button onclick="submitPassPurchase()" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;padding:14px;border-radius:36px;font-weight:900;font-size:15px;cursor:pointer;font-family:'Oxanium',sans-serif;letter-spacing:.3px;box-shadow:0 4px 16px rgba(240,192,64,.3);">💳 Request Submit Karo</button>
+        <button onclick="submitPassPurchase()" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;padding:14px;border-radius:36px;font-weight:900;font-size:15px;cursor:pointer;font-family:'Fredoka One',cursive;letter-spacing:.3px;box-shadow:0 4px 16px rgba(240,192,64,.3);">💳 Request Submit Karo</button>
 
         <div style="font-size:10px;color:var(--text3);text-align:center;margin-top:10px;line-height:1.6;">Admin verify karega. 5-30 min mein passes add ho jayenge.<br>Support: <span style="color:var(--blue);">@FilmyFundSupport</span></div>
     </div>
@@ -1356,7 +1469,7 @@
 <!-- MISSIONS -->
 <div class="modal" id="missionsModal">
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('missions')">←</div><div class="modal-title">🎯 <span data-t="missions">Missions</span></div></div>
-    <div style="background:linear-gradient(135deg,#0a1628,#0d0d3c);border:1px solid rgba(240,192,64,.18);border-radius:16px;padding:14px;margin-bottom:10px;text-align:center;">
+    <div style="background:linear-gradient(135deg,#fefce8,#fef3c7);border:1.5px solid rgba(245,166,35,.3);border-radius:16px;padding:14px;margin-bottom:10px;text-align:center;">
         <div style="font-size:11px;color:var(--text2);">Har mission alag claim karo • 24 ghante mein expire</div>
         <div style="margin-top:4px;font-size:10px;color:var(--text3);">Mission reward game/bonus se bilkul alag hai!</div>
     </div>
@@ -1406,8 +1519,8 @@
     <div style="background:linear-gradient(135deg,#081530,#0a0a30);border-radius:20px;padding:16px;margin-bottom:12px;">
         <div style="text-align:center;margin-bottom:12px;">
             <div style="margin-bottom:5px;"><img src="https://i.postimg.cc/cCV72d3Z/refer-earn-concept-business-partnership-strategy-vector-illustration-185038-443.jpg" style="width:60px;height:60px;object-fit:cover;border-radius:14px;"></div>
-            <div style="font-family:'Oxanium',sans-serif;font-size:19px;font-weight:900;color:var(--gold);">Har Referral Pe</div>
-            <div style="font-family:'Oxanium',sans-serif;font-size:30px;font-weight:900;color:var(--green);">3 Passes + 60 pts!</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:19px;font-weight:900;color:var(--gold);">Har Referral Pe</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:30px;font-weight:900;color:var(--green);">3 Passes + 60 pts!</div>
         </div>
         <div class="ref-link-box"><span class="ref-link-text" id="refLinkText2">Loading...</span><button class="ref-copy-btn" onclick="copyRef()">Copy</button></div>
         <div class="share-grid" style="margin-top:8px;">
@@ -1541,7 +1654,7 @@
             <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:18px;">🎟️</span><span style="font-weight:900;font-size:13px;color:var(--purple2);">1 Pass per Play</span></div>
             <span style="font-size:11px;color:var(--text2);">Jeeto: <b style="color:var(--green);">+50 pts</b></span>
         </div>
-        <div class="coin-res-win" id="coinResWin"><div class="coin-res-big">🎉 JEETE!</div><div id="coinWinAmt" style="font-family:'Oxanium',sans-serif;font-size:30px;font-weight:900;margin-top:4px;">+0 pts</div></div>
+        <div class="coin-res-win" id="coinResWin"><div class="coin-res-big">🎉 JEETE!</div><div id="coinWinAmt" style="font-family:'Fredoka One',cursive;font-size:30px;font-weight:900;margin-top:4px;">+0 pts</div></div>
         <div class="coin-res-lose" id="coinResLose"><div class="coin-res-big">😢 HARE!</div><div id="coinLoseAmt" style="font-size:18px;margin-top:4px;">Better luck next time!</div></div>
         <button class="btn-gold" id="flipBtn" onclick="doFlip()">🪙 FLIP!</button>
         <div style="background:rgba(54,182,245,.07);border:1px solid rgba(54,182,245,.2);border-radius:11px;padding:9px 13px;text-align:center;font-size:11px;color:var(--text2);margin-top:7px;">
@@ -1573,7 +1686,7 @@
                 <button class="dice-num-btn" onclick="chooseDice(6,this)">6</button>
             </div>
         </div>
-        <div class="dice-res-win" id="diceResWin"><div class="dice-res-big">🎉 SAHI!</div><div id="diceWinAmt" style="font-family:'Oxanium',sans-serif;font-size:28px;font-weight:900;margin-top:4px;">+0 pts</div></div>
+        <div class="dice-res-win" id="diceResWin"><div class="dice-res-big">🎉 SAHI!</div><div id="diceWinAmt" style="font-family:'Fredoka One',cursive;font-size:28px;font-weight:900;margin-top:4px;">+0 pts</div></div>
         <div class="dice-res-lose" id="diceResLose"><div class="dice-res-big">😢 GALAT!</div><div id="diceLoseNum" style="font-size:15px;margin-top:4px;">Number tha: ?</div></div>
         <button class="btn-purple" id="diceRollBtn" onclick="doDiceRoll()">🎲 ROLL (1 Pass)</button>
         <div class="dice-odds-info">⚠️ Win chance: ~17% (1 in 6) • Win = 50 pts (5x Pass value) • House edge lagu hota hai</div>
@@ -1610,8 +1723,8 @@
     <div class="bet-row">
         <div style="background:rgba(124,92,252,.08);border:1px solid rgba(124,92,252,.2);border-radius:12px;padding:8px 12px;text-align:center;font-weight:900;font-size:13px;color:var(--purple2);">🎟️ 1 Pass per Play — Jeeto: +80 pts</div>
     </div>
-    <div class="color-res-win" id="colorResWin"><div style="font-family:Oxanium,sans-serif;font-size:36px;font-weight:900;">🎉 JEETE!</div><div id="colorWinAmt" style="font-family:Oxanium,sans-serif;font-size:28px;font-weight:900;margin-top:4px;">+0 pts</div></div>
-    <div class="color-res-lose" id="colorResLose"><div style="font-family:Oxanium,sans-serif;font-size:36px;font-weight:900;">😢 HARE!</div><div id="colorLoseInfo" style="font-size:14px;margin-top:4px;">Try again!</div></div>
+    <div class="color-res-win" id="colorResWin"><div style="font-family:'Fredoka One',cursive;font-size:36px;font-weight:900;">🎉 JEETE!</div><div id="colorWinAmt" style="font-family:'Fredoka One',cursive;font-size:28px;font-weight:900;margin-top:4px;">+0 pts</div></div>
+    <div class="color-res-lose" id="colorResLose"><div style="font-family:'Fredoka One',cursive;font-size:36px;font-weight:900;">😢 HARE!</div><div id="colorLoseInfo" style="font-size:14px;margin-top:4px;">Try again!</div></div>
     <button class="btn-purple" id="colorPlayBtn" onclick="doColorPredict()">🎨 PREDICT (1 Pass)</button>
     <div style="background:rgba(255,78,106,.07);border:1px solid rgba(255,78,106,.2);border-radius:11px;padding:10px 13px;font-size:11px;color:var(--text2);margin-top:7px;">
         🎯 <b style="color:var(--text);">Win Chances:</b><br>
@@ -1668,13 +1781,13 @@
         <div style="position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;background:radial-gradient(circle,rgba(124,92,252,.12),transparent);border-radius:50%;"></div>
         <!-- Avatar -->
         <div id="upDp" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--purple));margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;border:3px solid rgba(240,192,64,.4);box-shadow:0 0 20px rgba(240,192,64,.2);">👤</div>
-        <div style="font-family:'Oxanium',sans-serif;font-size:20px;font-weight:900;" id="upName">User</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:20px;font-weight:900;" id="upName">User</div>
         <div style="color:var(--text3);font-size:10px;margin-top:2px;" id="upId">ID: -</div>
         <!-- Badge pill -->
         <div id="upBadgeWrap" style="margin-top:12px;display:inline-flex;align-items:center;gap:8px;background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.3);border-radius:20px;padding:6px 14px;">
             <img id="upBadgeImg" src="" style="width:28px;height:28px;object-fit:contain;" alt="badge">
             <div style="text-align:left;">
-                <div id="upBadgeName" style="font-family:'Oxanium',sans-serif;font-size:12px;font-weight:900;color:var(--gold);"></div>
+                <div id="upBadgeName" style="font-family:'Fredoka One',cursive;font-size:12px;font-weight:900;color:var(--gold);"></div>
                 <div id="upBadgeDesc" style="font-size:9px;color:var(--text2);max-width:140px;"></div>
             </div>
         </div>
@@ -1682,15 +1795,15 @@
     <!-- Stats -->
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
         <div style="background:var(--bg3);border-radius:14px;padding:12px;text-align:center;border:1px solid var(--border);">
-            <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--gold);" id="upBal">0 pts</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:18px;font-weight:900;color:var(--gold);" id="upBal">0 pts</div>
             <div style="font-size:9px;color:var(--text3);margin-top:2px;">Balance</div>
         </div>
         <div style="background:var(--bg3);border-radius:14px;padding:12px;text-align:center;border:1px solid var(--border);">
-            <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--purple2);" id="upRefs">0</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:18px;font-weight:900;color:var(--purple2);" id="upRefs">0</div>
             <div style="font-size:9px;color:var(--text3);margin-top:2px;">Total Refs</div>
         </div>
         <div style="background:var(--bg3);border-radius:14px;padding:12px;text-align:center;border:1px solid var(--border);">
-            <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--green);" id="upActiveRefs">0</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:18px;font-weight:900;color:var(--green);" id="upActiveRefs">0</div>
             <div style="font-size:9px;color:var(--text3);margin-top:2px;">Active</div>
         </div>
     </div>
@@ -1705,7 +1818,7 @@
 <div class="modal" id="badgeShowcaseModal" style="padding:0;overflow:hidden;">
     <div style="padding:12px 14px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
         <div class="back-btn" onclick="closeModal('badgeShowcase')">←</div>
-        <div style="font-family:'Oxanium',sans-serif;font-weight:900;font-size:15px;">🏅 My Badges</div>
+        <div style="font-family:'Fredoka One',cursive;font-weight:900;font-size:15px;">🏅 My Badges</div>
         <div style="font-size:10px;color:var(--text3);" id="bsUnlockCount">0/10</div>
     </div>
     <div style="overflow-y:auto;height:calc(100% - 50px);padding:12px;">
@@ -1713,7 +1826,7 @@
         <div id="bsCurrentBadge" style="background:linear-gradient(135deg,#0d0d2e,#1a0a3e);border-radius:20px;padding:20px;text-align:center;margin-bottom:16px;border:1.5px solid rgba(240,192,64,.3);position:relative;overflow:hidden;">
             <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(240,192,64,.08),transparent 70%);pointer-events:none;"></div>
             <img id="bsCurrentImg" src="" style="width:90px;height:90px;object-fit:contain;filter:drop-shadow(0 0 20px rgba(240,192,64,.5));animation:badgeFloat 3s ease-in-out infinite;margin-bottom:10px;">
-            <div id="bsCurrentName" style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--gold);"></div>
+            <div id="bsCurrentName" style="font-family:'Fredoka One',cursive;font-size:22px;font-weight:900;color:var(--gold);"></div>
             <div id="bsCurrentDesc" style="font-size:11px;color:var(--text2);margin:6px 0 12px;"></div>
             <div id="bsCurrentReward" style="background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.3);border-radius:12px;padding:10px;display:inline-block;">
                 <div style="font-size:9px;color:var(--text3);">🎁 Reward:</div>
@@ -1739,9 +1852,9 @@
 <div class="modal" id="mazeModal">
     <div class="modal-hdr"><div class="back-btn" onclick="exitMaze()">←</div><div class="modal-title">📦 Sokoban Escape</div><div id="mazeBal" style="font-size:11px;color:var(--gold);font-weight:800;">0 pts</div></div>
     <div id="mazeSetup" style="padding:14px;">
-        <div style="background:linear-gradient(135deg,#0a1628,#1a0a2e);border-radius:16px;padding:14px;margin-bottom:12px;text-align:center;">
+        <div style="background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-radius:16px;padding:14px;margin-bottom:12px;text-align:center;">
             <div style="font-size:32px;margin-bottom:6px;">🗺️</div>
-            <div style="font-family:'Oxanium',sans-serif;font-weight:900;color:var(--gold);font-size:16px;">MAZE ESCAPE</div>
+            <div style="font-family:'Fredoka One',cursive;font-weight:900;color:var(--gold);font-size:16px;">MAZE ESCAPE</div>
             <div style="font-size:11px;color:var(--text2);margin-top:4px;">Bhulbhulaiya se niklo 🚩 jhande tak!</div>
         </div>
         <div style="background:var(--bg3);border-radius:14px;padding:12px;margin-bottom:10px;font-size:10px;color:var(--text2);">
@@ -1768,7 +1881,7 @@
     </div>
     <div id="mazeGame" style="display:none;padding:10px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <div id="mazeTimer" style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--red);">0:60</div>
+            <div id="mazeTimer" style="font-family:'Fredoka One',cursive;font-size:18px;font-weight:900;color:var(--red);">0:60</div>
             <div style="font-size:11px;color:var(--gold);font-weight:800;" id="mazeEarning">0 pts</div>
             <div style="font-size:10px;color:var(--text2);" id="mazeMoves">Moves: 0</div>
         </div>
@@ -1784,11 +1897,11 @@
     </div>
     <div id="mazeResult" style="display:none;padding:20px;text-align:center;">
         <div id="mazeResultEmoji" style="font-size:60px;margin-bottom:10px;">🏆</div>
-        <div id="mazeResultTitle" style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--gold);margin-bottom:6px;"></div>
+        <div id="mazeResultTitle" style="font-family:'Fredoka One',cursive;font-size:22px;font-weight:900;color:var(--gold);margin-bottom:6px;"></div>
         <div id="mazeResultSub" style="font-size:12px;color:var(--text2);margin-bottom:14px;"></div>
         <div style="background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:14px;">
             <div style="font-size:11px;color:var(--text2);">Reward:</div>
-            <div id="mazeResultReward" style="font-family:'Oxanium',sans-serif;font-size:32px;font-weight:900;color:var(--gold);margin-top:4px;"></div>
+            <div id="mazeResultReward" style="font-family:'Fredoka One',cursive;font-size:32px;font-weight:900;color:var(--gold);margin-top:4px;"></div>
         </div>
         <button class="btn-purple" onclick="resetMaze()" style="width:100%;margin-bottom:8px;">🔄 Again</button>
         <button onclick="exitMaze()" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:11px;font-weight:800;cursor:pointer;">← Back</button>
@@ -1799,9 +1912,9 @@
 <div class="modal" id="snakeModal">
     <div class="modal-hdr"><div class="back-btn" onclick="exitSnake()">←</div><div class="modal-title">🐍 Snake Game</div><div id="snakeBal" style="font-size:11px;color:var(--gold);font-weight:800;">0 pts</div></div>
     <div id="snakeSetup" style="padding:14px;">
-        <div style="background:linear-gradient(135deg,#0a2e0a,#0a1e0a);border-radius:16px;padding:14px;margin-bottom:12px;text-align:center;">
+        <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:16px;padding:14px;margin-bottom:12px;text-align:center;">
             <div style="font-size:32px;margin-bottom:6px;">🐍</div>
-            <div style="font-family:'Oxanium',sans-serif;font-weight:900;color:var(--green);font-size:16px;">SNAKE GAME</div>
+            <div style="font-family:'Fredoka One',cursive;font-weight:900;color:var(--green);font-size:16px;">SNAKE GAME</div>
             <div style="font-size:11px;color:var(--text2);margin-top:4px;">Dot khao, paise kamao! Khud se mat takrao!</div>
         </div>
         <div style="background:var(--bg3);border-radius:14px;padding:12px;margin-bottom:10px;font-size:10px;color:var(--text2);">
@@ -1819,7 +1932,7 @@
     <div id="snakeGame" style="display:none;padding:8px;">
         <div id="snakeTargetInfo" style="font-size:9px;color:var(--purple2);text-align:center;margin-bottom:4px;font-weight:700;background:rgba(124,92,252,.08);border-radius:8px;padding:4px;"></div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <div id="snakeScore" style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:900;color:var(--green);">🍎 0</div>
+            <div id="snakeScore" style="font-family:'Fredoka One',cursive;font-size:16px;font-weight:900;color:var(--green);">🍎 0</div>
             <div id="snakeTimer" style="font-size:14px;font-weight:800;color:var(--red);">60s</div>
             <div id="snakeEarning" style="font-size:11px;color:var(--gold);font-weight:800;">0 pts</div>
         </div>
@@ -1835,10 +1948,10 @@
     </div>
     <div id="snakeResult" style="display:none;padding:20px;text-align:center;">
         <div id="snakeResultEmoji" style="font-size:60px;margin-bottom:10px;">🐍</div>
-        <div id="snakeResultTitle" style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--green);margin-bottom:6px;"></div>
+        <div id="snakeResultTitle" style="font-family:'Fredoka One',cursive;font-size:22px;font-weight:900;color:var(--green);margin-bottom:6px;"></div>
         <div style="background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:14px;">
             <div style="font-size:11px;color:var(--text2);">🍎 Score: <span id="snakeFinalScore">0</span> dots | Reward:</div>
-            <div id="snakeResultReward" style="font-family:'Oxanium',sans-serif;font-size:32px;font-weight:900;color:var(--gold);"></div>
+            <div id="snakeResultReward" style="font-family:'Fredoka One',cursive;font-size:32px;font-weight:900;color:var(--gold);"></div>
         </div>
         <button class="btn-purple" onclick="resetSnake()" style="width:100%;margin-bottom:8px;">🔄 Again</button>
         <button onclick="exitSnake()" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:11px;font-weight:800;cursor:pointer;">← Back</button>
@@ -1851,7 +1964,7 @@
     <div id="chessSetup" style="padding:14px;">
         <div style="background:linear-gradient(135deg,#1a1200,#2a1a00);border-radius:16px;padding:14px;margin-bottom:12px;text-align:center;">
             <div style="font-size:32px;margin-bottom:6px;">♟️</div>
-            <div style="font-family:'Oxanium',sans-serif;font-weight:900;color:var(--gold);font-size:16px;">CHESS TIMER CHALLENGE</div>
+            <div style="font-family:'Fredoka One',cursive;font-weight:900;color:var(--gold);font-size:16px;">CHESS TIMER CHALLENGE</div>
             <div style="font-size:11px;color:var(--text2);margin-top:4px;">AI se chess khelo — samay ke saath jeeto!</div>
         </div>
         <div style="background:var(--bg3);border-radius:14px;padding:12px;margin-bottom:10px;font-size:10px;color:var(--text2);">
@@ -1875,9 +1988,9 @@
     </div>
     <div id="chessGame" style="display:none;padding:8px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <div id="chessPlayerTimer" style="font-family:'Oxanium',sans-serif;font-size:20px;font-weight:900;color:var(--green);background:rgba(25,216,158,.1);border-radius:8px;padding:4px 10px;">60s</div>
+            <div id="chessPlayerTimer" style="font-family:'Fredoka One',cursive;font-size:20px;font-weight:900;color:var(--green);background:rgba(25,216,158,.1);border-radius:8px;padding:4px 10px;">60s</div>
             <div style="font-size:10px;color:var(--text2);" id="chessTurn">Your Turn</div>
-            <div id="chessAiTimer" style="font-family:'Oxanium',sans-serif;font-size:20px;font-weight:900;color:var(--red);background:rgba(255,78,106,.1);border-radius:8px;padding:4px 10px;">60s</div>
+            <div id="chessAiTimer" style="font-family:'Fredoka One',cursive;font-size:20px;font-weight:900;color:var(--red);background:rgba(255,78,106,.1);border-radius:8px;padding:4px 10px;">60s</div>
         </div>
         <canvas id="chessCanvas" style="width:100%;border-radius:10px;display:block;cursor:pointer;" onclick="chessClick(event)"></canvas>
         <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--text2);">
@@ -1888,10 +2001,10 @@
     </div>
     <div id="chessResult" style="display:none;padding:20px;text-align:center;">
         <div id="chessResultEmoji" style="font-size:60px;margin-bottom:10px;">♟️</div>
-        <div id="chessResultTitle" style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--gold);margin-bottom:6px;"></div>
+        <div id="chessResultTitle" style="font-family:'Fredoka One',cursive;font-size:22px;font-weight:900;color:var(--gold);margin-bottom:6px;"></div>
         <div id="chessResultSub" style="font-size:12px;color:var(--text2);margin-bottom:14px;"></div>
         <div style="background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:14px;">
-            <div id="chessResultReward" style="font-family:'Oxanium',sans-serif;font-size:32px;font-weight:900;color:var(--gold);"></div>
+            <div id="chessResultReward" style="font-family:'Fredoka One',cursive;font-size:32px;font-weight:900;color:var(--gold);"></div>
         </div>
         <button class="btn-purple" onclick="resetChess()" style="width:100%;margin-bottom:8px;">🔄 Again</button>
         <button onclick="exitChess()" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:11px;font-weight:800;cursor:pointer;">← Back</button>
@@ -1923,13 +2036,34 @@
 <div class="congrats-overlay" id="congratsOverlay">
     <div class="congrats-card">
         <div class="confetti">🎊</div>
-        <div style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:var(--gold);margin:9px 0 4px;">Congratulations!</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:22px;font-weight:900;color:var(--gold);margin:9px 0 4px;">Congratulations!</div>
         <div id="congratsMsg" style="font-size:12px;color:var(--text2);margin-bottom:16px;">Naya referral aaya!</div>
         <button class="btn-gold" onclick="document.getElementById('congratsOverlay').classList.remove('show')">🎉 Awesome!</button>
     </div>
 </div>
 
 <script charset="utf-8">
+// ══ Global stubs — prevent ReferenceError before full JS loads ══
+window.confirmOnboard=function(){
+    try{localStorage.setItem('ez_onboarded','1');}catch(e){}
+    const ov=document.getElementById('onboardOverlay');
+    if(ov)ov.style.display='none';
+};
+window.closeHowToEarn=function(){
+    const el=document.getElementById('howToEarnModal');
+    if(el)el.classList.remove('open');
+};
+window.setLang=function(l){};  // stub — real fn loads later
+// ══ Global error suppressor — hide non-critical errors from console ══
+window.addEventListener('unhandledrejection',function(e){
+    const msg=e&&e.reason&&e.reason.message||'';
+    // Suppress known non-critical errors
+    if(msg.includes('AdController')||msg.includes('No fill')||msg.includes('network')||
+       msg.includes('timeout')||msg.includes('fetch')){
+        e.preventDefault();
+        console.warn('Non-critical promise rejection suppressed:',msg);
+    }
+});
 function setEl(id,val){const e=document.getElementById(id);if(e)e.textContent=val;}
 function setHtml(id,val){const e=document.getElementById(id);if(e)e.innerHTML=val;}
 
@@ -2043,7 +2177,7 @@ const BOT_USERNAME='LinkProviderRobot';
 let userData={user_id:null,first_name:'Guest',username:'',balance:0,total_earned:0,tier:1,total_refs:0,active_refs:0,pending_refs:0,daily_streak:0,today_earned:0,is_admin:false,games_won:0,passes:0,photo_url:null,month_active_refs:0};
 let gameState={today_game_earned:0,wins:0,win_streak:0,totalPlays:0};
 let claimedDates=[],userStreak=0,adminAds=[],adminEditMode=false,selectedMethod=null;
-let soundOn=true,currentTheme='dark',lbMode='weekly';
+let soundOn=true,currentTheme='light',lbMode='weekly';
 let spinAngle=0,isSpinning=false;
 let guessBet=1,guessActive=false,guessAttempts=0,guessMaxAttempts=2;
 let coinChoice=null,coinBet=1,coinFlipping=false;
@@ -2088,7 +2222,7 @@ async function apiGet(url,retries=1){
             const r=await Promise.race([fetch(url),new Promise((_,rj)=>setTimeout(()=>rj(new Error('timeout')),6000))]);
             if(!r.ok){if(r.status===404){console.warn('404:',url);return null;}throw new Error('HTTP '+r.status);}
             return await r.json();
-        }catch(e){if(i<retries){await new Promise(r=>setTimeout(r,800));continue;}console.error('apiGet:',url,e.message);return null;}
+        }catch(e){if(i<retries){await new Promise(r=>setTimeout(r,800));continue;}console.warn('apiGet failed (non-critical):',url);return null;}
     }return null;
 }
 async function apiPost(url,body,retries=1){
@@ -2098,7 +2232,7 @@ async function apiPost(url,body,retries=1){
             const r=await Promise.race([fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),new Promise((_,rj)=>setTimeout(()=>rj(new Error('timeout')),ms))]);
             if(!r.ok){if(r.status===404){console.warn('404:',url);return{success:false,message:'API not found'};}throw new Error('HTTP '+r.status);}
             return await r.json();
-        }catch(e){if(i<retries){await new Promise(r=>setTimeout(r,800));continue;}console.error('apiPost:',url,e.message);return{success:false,message:e.message==='timeout'?'⏳ Server slow — retry karo':'Network error'};}
+        }catch(e){if(i<retries){await new Promise(r=>setTimeout(r,800));continue;}console.warn('apiPost failed:',url);return{success:false,message:e.message==='timeout'?'⏳ Server slow — retry karo':'Network error'};}
     }return{success:false,message:'Failed'};
 }
 
@@ -2132,8 +2266,7 @@ async function loadUser(){
         updateWithdrawCondition();
         // Show movie group message for newly referred users
         checkReferralWelcome();
-        // Init AdsGram after user data is ready
-        if(typeof ensureAdsGram==='function') ensureAdsGram();
+        // AdsGram init handled by ensureAdsGram timeout
     }
 }
 async function loadGameState(){
@@ -2260,7 +2393,16 @@ async function loadWithdrawalHistory(){
     const d=await apiGet(`/api/user/${userData.user_id}/withdrawals`);
     renderHistory(d||[]);
 }
-async function loadLeaderboard(){const d=await apiGet('/api/leaderboard?mode='+lbMode);renderLeaderboard(d||[]);}
+async function loadLeaderboard(){
+    // Update weekly preview cards too
+    try{
+        const d=await apiGet('/api/leaderboard?type=weekly&limit=3');
+        const top=d&&d.users?d.users:[];
+        ['lb1name','lb2name','lb3name'].forEach((id,i)=>{
+            const el=document.getElementById(id);
+            if(el&&top[i]) el.textContent=(top[i].first_name||'User').slice(0,10);
+        });
+    }catch(e){}const d=await apiGet('/api/leaderboard?mode='+lbMode);renderLeaderboard(d||[]);}
 let _refPage=0;
 let _allRefs=[];
 async function loadRefActivity(reset=true){
@@ -2282,9 +2424,31 @@ async function loadRefActivity(reset=true){
 // ============================================================
 // UI UPDATE
 // ============================================================
+
+// ═══ BADGE SYSTEM — User ki pehchan ═══
+function getUserBadge(data){
+    const refs = data.total_refs || data.active_refs || 0;
+    const bal  = data.total_earned || 0;
+    const pts  = Math.round((bal||0)*100);
+    if(pts>=500000||refs>=100) return {level:'legend',  emoji:'👑', label:'LEGEND',   cls:'legend'};
+    if(pts>=100000||refs>=50)  return {level:'diamond', emoji:'💎', label:'DIAMOND',  cls:'diamond'};
+    if(pts>=20000 ||refs>=25)  return {level:'gold',    emoji:'🥇', label:'GOLD',     cls:'gold'};
+    if(pts>=5000  ||refs>=10)  return {level:'silver',  emoji:'🥈', label:'SILVER',   cls:'silver'};
+    return                            {level:'bronze',  emoji:'🥉', label:'BRONZE',   cls:'bronze'};
+}
+function renderBadgeChip(data){
+    if(!data||!data.user_id) return;  // skip if no user loaded
+    const b = getUserBadge(data);
+    const el = document.getElementById('userBadgeChip');
+    if(el) el.innerHTML = '<span class="badge-chip '+b.cls+'">'+b.emoji+' '+b.label+'</span>';
+}
+
 function updateUI(){try{
     const bal=userData.balance||0;
     const pts=toPoints(bal);
+    renderBadgeChip(userData);
+    const _streak=userStreak||0;
+    const _sEl=document.getElementById('balStreak');if(_sEl)_sEl.textContent=_streak;
     const balDisplay=fmtPts(pts);
     // Today earned
     const totalTodayEarned=userData.today_earned||0;
@@ -2821,7 +2985,7 @@ function showBadgeInfo(idx){
     overlay.innerHTML=`
         <div style="background:var(--card);border:1px solid var(--border);border-radius:22px;padding:24px 20px;max-width:300px;width:90%;text-align:center;animation:bounceIn .3s;">
             <img src="${b.img}" style="width:80px;height:80px;object-fit:contain;margin-bottom:10px;filter:${unlocked?'drop-shadow(0 0 14px rgba(240,192,64,.6))':'grayscale(1) brightness(0.4)'};">
-            <div style="font-family:'Oxanium',sans-serif;font-size:22px;font-weight:900;color:${unlocked?'var(--gold)':'var(--text3)'};">${b.name}</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:22px;font-weight:900;color:${unlocked?'var(--gold)':'var(--text3)'};">${b.name}</div>
             <div style="font-size:11px;color:var(--text2);margin:6px 0 10px;">${b.desc}</div>
             <div style="background:var(--bg3);border-radius:10px;padding:8px;margin-bottom:12px;font-size:11px;">
                 ${unlocked
@@ -2926,14 +3090,71 @@ async function claimBonus(){
     if(r&&r.success){
         userData.balance=(userData.balance||0)+r.bonus;
         userData.today_earned=(userData.today_earned||0)+r.bonus;
-        // UPDATED: Pass nahi milta daily bonus mein — sirf pts
-        // userData.passes=(userData.passes||0)+(r.passes_added||0);
         userStreak=r.streak;claimedDates.push(today);
         if(missionStates['m_daily']){missionStates['m_daily'].progress=1;missionStates['m_daily'].completed=true;}
         updateUI();updateDailyBonusCard();updateMissionsUI();
-        playSound('levelup');showToast('🎉 +'+toPoints(r.bonus)+' pts! Streak: '+userStreak+'🔥');
-        setTimeout(()=>closeModal('dailyBonus'),1600);
+        playSound('levelup');
+        closeModal('dailyBonus');
+        // Show reward ad bonus popup — video dekho extra pts pao
+        showDailyBonusAdPopup(r.bonus, userStreak);
     }else showToast('❌ '+(r?.message||'Failed'));
+}
+
+// Daily bonus ke baad — video ad popup
+function showDailyBonusAdPopup(bonusAmt, streak){
+    const basePts = toPoints(bonusAmt);
+    const extraPts = Math.round(basePts * 0.5); // 50% extra
+    const existing = document.getElementById('dailyAdBonusPopup');
+    if(existing) existing.remove();
+    const popup = document.createElement('div');
+    popup.id = 'dailyAdBonusPopup';
+    popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9500;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .3s ease;';
+    popup.innerHTML = `
+        <div style="background:#fff;border-radius:24px;width:100%;max-width:360px;overflow:hidden;border:2px solid rgba(240,192,64,.4);box-shadow:0 0 40px rgba(240,192,64,.15);">
+            <!-- Header -->
+            <div style="background:linear-gradient(135deg,rgba(240,192,64,.2),rgba(124,92,252,.15));padding:20px;text-align:center;border-bottom:1px solid rgba(240,192,64,.15);">
+                <div style="font-size:48px;margin-bottom:8px;">🎁</div>
+                <div style="font-family:'Fredoka One',cursive;font-size:20px;font-weight:900;color:var(--gold);">Daily Bonus Claim Hua!</div>
+                <div style="font-size:13px;color:var(--text2);margin-top:4px;">Streak: ${streak}🔥 • +${basePts} pts mila</div>
+            </div>
+            <!-- Extra offer -->
+            <div style="padding:20px;">
+                <div style="background:rgba(240,192,64,.08);border:1.5px solid rgba(240,192,64,.25);border-radius:16px;padding:16px;margin-bottom:16px;text-align:center;">
+                    <div style="font-size:28px;margin-bottom:6px;">📺</div>
+                    <div style="font-family:'Fredoka One',cursive;font-size:16px;font-weight:900;color:var(--text);margin-bottom:4px;">Extra Reward!</div>
+                    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Sirf ek video dekho aur <b style="color:var(--gold);">+${extraPts} pts</b> aur pao!</div>
+                    <button id="dailyAdWatchBtn" onclick="closeDailyAdPopup();showRewardAdBonus(${extraPts});" style="width:100%;background:linear-gradient(135deg,var(--gold),#d97706);color:#000;border:none;padding:13px;border-radius:30px;font-weight:900;font-size:14px;cursor:pointer;font-family:'Fredoka One',cursive;box-shadow:0 4px 16px rgba(240,192,64,.3);">▶ Video Dekho — +${extraPts} pts</button>
+                </div>
+                <button onclick="closeDailyAdPopup();" style="width:100%;background:transparent;border:1px solid rgba(255,255,255,.1);color:var(--text3);padding:11px;border-radius:30px;font-size:13px;cursor:pointer;">Nahi Chahiye — Skip</button>
+            </div>
+        </div>`;
+    document.body.appendChild(popup);
+    // Auto-close after 15s
+    setTimeout(() => closeDailyAdPopup(), 15000);
+}
+function closeDailyAdPopup(){const p=document.getElementById('dailyAdBonusPopup');if(p)p.remove();}
+
+// Watch reward ad, give bonus pts
+async function showRewardAdBonus(extraPts){
+    try{
+        if(typeof window.Adsgram==='undefined'){showToast('📺 Ad load ho raha hai...');return;}
+        if(!rewardController) rewardController=window.Adsgram.init({blockId:ADSGRAM_REWARD_BLOCK});
+        showToast('⏳ Ad load ho rahi hai...');
+        await rewardController.show();
+        // Give extra pts
+        const resp=await fetch('/api/adsgram-reward?userId='+userData.user_id+'&blockId='+ADSGRAM_REWARD_BLOCK+'&bonus=extra');
+        const data=await resp.json();
+        if(data.success||true){
+            userData.balance=(userData.balance||0)+(extraPts/100);
+            userData.today_earned=(userData.today_earned||0)+(extraPts/100);
+            updateUI();
+            showToast('🎉 +'+extraPts+' Extra pts mila! Ad bonus!');
+            playSound('earn');
+        }
+    }catch(e){
+        showToast('❌ Ad puri dekho reward ke liye!');
+        console.log('Reward ad bonus error:', e);
+    }
 }
 
 // ============================================================
@@ -3330,7 +3551,8 @@ async function claimSingleMission(missionId,reward){
             updateUI();
             playSound('mission');
             showToast('🎯 Mission! +'+toPoints(mReward)+' pts mila!');
-            setTimeout(showAutoInterstitialAd, 1200);
+            // Show earn-more popup after mission claim
+            setTimeout(()=>showEarnMorePopup(toPoints(mReward)), 1500);
         }else if(r?.message==='Already claimed'){
             // Backend also says claimed — keep our local claimed=true, dont revert
             // silently accept
@@ -3387,10 +3609,10 @@ function openAdPopup(adId){
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
                 <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--purple),var(--gold));display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">${ad.icon||'📢'}</div>
                 <div>
-                    <div style="font-family:'Oxanium',sans-serif;font-size:17px;font-weight:900;color:var(--text);">${ad.title}</div>
+                    <div style="font-family:'Fredoka One',cursive;font-size:17px;font-weight:900;color:var(--text);">${ad.title}</div>
                     <div style="font-size:11px;color:var(--text3);margin-top:2px;">${ad.meta||''}</div>
                 </div>
-                <div style="margin-left:auto;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:7px 14px;border-radius:20px;font-weight:900;font-size:14px;font-family:'Oxanium',sans-serif;">+${toPoints(ad.reward)} pts</div>
+                <div style="margin-left:auto;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;padding:7px 14px;border-radius:20px;font-weight:900;font-size:14px;font-family:'Fredoka One',cursive;">+${toPoints(ad.reward)} pts</div>
             </div>
             ${ad.description?`<div style="background:var(--bg3);border-radius:12px;padding:12px;margin-bottom:14px;font-size:13px;color:var(--text2);line-height:1.6;">${ad.description}</div>`:''}
             ${ad.claim_code?`<div style="background:rgba(56,182,245,.08);border:1px solid rgba(56,182,245,.2);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--blue);">🔑 Claim code required — complete karne ke baad code milega</div>`:''}
@@ -3427,9 +3649,9 @@ function showAdCountdownPopup(ad, seconds){
     popup.innerHTML=`
         <div style="background:var(--bg2);border-radius:22px;width:100%;max-width:360px;padding:28px 20px;text-align:center;border:1.5px solid var(--gold);">
             <div style="font-size:40px;margin-bottom:10px;">⏳</div>
-            <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;margin-bottom:6px;color:var(--gold);">Link dekho, reward pao!</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:18px;font-weight:900;margin-bottom:6px;color:var(--gold);">Link dekho, reward pao!</div>
             <div style="font-size:12px;color:var(--text2);margin-bottom:20px;">Thoda ruko, reward aa raha hai 🎁</div>
-            <div id="adTimerCircle" style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--gold));margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;font-family:'Oxanium',sans-serif;color:#fff;box-shadow:0 0 20px rgba(240,192,64,.3);">${seconds}</div>
+            <div id="adTimerCircle" style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--gold));margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;font-family:'Fredoka One',cursive;color:#fff;box-shadow:0 0 20px rgba(240,192,64,.3);">${seconds}</div>
             <div id="adCountdownClaimDiv" style="display:none;">
                 <button onclick="closeAdCountdown();handleAdClaimFinal(${ad.id});" style="width:100%;background:linear-gradient(135deg,var(--green),#059669);color:#fff;border:none;padding:15px;border-radius:36px;font-weight:900;font-size:15px;cursor:pointer;font-family:inherit;animation:pulse 1s infinite;">🎉 Claim +${toPoints(ad.reward)} pts!</button>
             </div>
@@ -3481,7 +3703,6 @@ async function doClaimAd(ad){
         updateUI();updateMissionsUI();playSound('earn');
         // Show 1.3x reward bonus popup
         showClaimBoostPopup(ad.reward);
-        setTimeout(showAutoInterstitialAd,1500);
         await loadAds();
     }else showToast('❌ '+(r?.message||'Already claimed'));
 }
@@ -3719,7 +3940,7 @@ async function doWithdraw(){
         userData.balance-=amt;updateUI();closeModal('withdraw');showToast('✅ Withdrawal requested!');playSound('earn');
         if(missionStates['m_withdraw']){missionStates['m_withdraw'].progress=1;missionStates['m_withdraw'].completed=true;}
         updateMissionsUI();
-        setTimeout(showAutoInterstitialAd,1500);
+        setTimeout(()=>showEarnMorePopup(50), 1500);
     }else showToast('❌ '+(r?.message||'Failed'));
 }
 async function sendSupport(){
@@ -4363,7 +4584,7 @@ function showNoPassPopup(){
     popup.innerHTML=`
         <div style="background:var(--bg2);border-radius:22px;width:100%;max-width:340px;padding:26px 20px;text-align:center;border:1.5px solid var(--purple);">
             <div style="font-size:42px;margin-bottom:10px;">🎟️</div>
-            <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;margin-bottom:6px;color:var(--text);">Pass Chahiye!</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:18px;font-weight:900;margin-bottom:6px;color:var(--text);">Pass Chahiye!</div>
             <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">Games khelne ke liye <b>Pass</b> zaroori hai.</div>
             <div style="font-size:11px;color:var(--text3);margin-bottom:20px;">Passes kaise milenge:</div>
             <div style="background:var(--bg3);border-radius:14px;padding:12px;margin-bottom:16px;text-align:left;font-size:12px;color:var(--text2);line-height:1.8;">
@@ -5032,7 +5253,7 @@ function checkGameOver(){
 async function startBlockBlast(){
     if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
     if(!userData.passes||userData.passes<1){showNoPassPopup();return;}
-    const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'blockblast',bet:blockBet});
+    const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'blockblast',bet:0,use_pass:true});
     if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
     userData.passes=Math.max(0,(userData.passes||1)-1);
     userData.balance=Math.max(0,(userData.balance||0)-blockBet);
@@ -5184,7 +5405,7 @@ async function finishBlockBlast(){
     blockActive=false;
     const pts=blockScore;const rup=fromPoints(pts);
     if(rup>0){
-        await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'blockblast',bet:blockBet,survived_seconds:blockScore});
+        await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'blockblast',bet:0,survived_seconds:blockScore});
         userData.balance=(userData.balance||0)+rup;
         userData.today_earned=(userData.today_earned||0)+rup;
         updateUI();showFloatingPts(pts);triggerConfetti();
@@ -5298,7 +5519,7 @@ function processMatches(){
 async function startGemMatch(){
     if((userData.passes||0)<=0){showToast('❌ Passes nahi hain!');return;}
     if(!userData.passes||userData.passes<1){showNoPassPopup();return;}
-    const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'gemmatch',bet:gemBet});
+    const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'gemmatch',bet:0,use_pass:true});
     if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
     userData.passes=Math.max(0,(userData.passes||1)-1);
     userData.balance=Math.max(0,(userData.balance||0)-gemBet);
@@ -5389,7 +5610,7 @@ async function finishGemMatch(){
     gemActive=false;
     const pts=gemScore;const rup=fromPoints(pts);
     if(rup>0){
-        await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'gemmatch',bet:gemBet,survived_seconds:gemScore});
+        await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'gemmatch',bet:0,survived_seconds:gemScore});
         userData.balance=(userData.balance||0)+rup;
         userData.today_earned=(userData.today_earned||0)+rup;
         updateUI();showFloatingPts(pts);
@@ -5437,12 +5658,12 @@ function switchTab(idx){
 // Small interstitial ad when opening games
 async function showTabAd(){
     try{
-        if(typeof AdController==='undefined')return;
-        if(!rewardController)rewardController=await AdController.init({blockId:ADSGRAM_REWARD_BLOCK});
+        if(typeof window.Adsgram==='undefined')return;
+        if(!rewardController)rewardController=window.Adsgram.init({blockId:ADSGRAM_REWARD_BLOCK});
         // Show reward ad silently (user has to interact)
         // Just show a small banner prompt instead
         const banner=document.createElement('div');
-        banner.style.cssText='position:fixed;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 55px);left:13px;right:13px;background:linear-gradient(135deg,rgba(10,26,48,.97),rgba(13,18,64,.97));border:1px solid rgba(54,182,245,.3);border-radius:14px;padding:10px 14px;z-index:150;display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:toastIn .3s ease;';
+        banner.style.cssText='position:fixed;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 55px);left:13px;right:13px;background:linear-gradient(135deg,#1e40af,#2563eb);border:none;border-radius:14px;padding:10px 14px;z-index:150;display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:toastIn .3s ease;';
         const watchBtn=document.createElement('button');
         watchBtn.textContent='\u25B6\uFE0F +10 pts';
         watchBtn.style.cssText='background:linear-gradient(135deg,#36b6f5,#7c5cfc);color:#fff;border:none;border-radius:20px;padding:6px 12px;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap;';
@@ -5493,8 +5714,8 @@ function closeModal(id){
 // ============================================================
 function toggleTheme(){
     const html=document.documentElement;
-    if(currentTheme==='dark'){html.setAttribute('data-theme','light');currentTheme='light';['themeToggleEl','themeToggleEl2'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('on');});}
-    else{html.removeAttribute('data-theme');currentTheme='dark';['themeToggleEl','themeToggleEl2'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('on');});}
+    if(currentTheme==='light'){html.setAttribute('data-theme','dark');currentTheme='dark';['themeToggleEl','themeToggleEl2'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('on');});}
+    else{html.removeAttribute('data-theme');currentTheme='light';['themeToggleEl','themeToggleEl2'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('on');});}
     playSound('tap');
 }
 function toggleSound(){soundOn=!soundOn;['soundToggleEl','soundToggleEl2'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',soundOn);});if(soundOn)playSound('tap');}
@@ -5621,7 +5842,7 @@ function showMovieGroupPopup(){
     popup.innerHTML=`
         <div style="background:linear-gradient(135deg,#0e1220,#1a0a2e);border:1.5px solid rgba(139,92,246,.4);border-radius:22px;padding:24px;width:100%;max-width:340px;text-align:center;">
             <div style="font-size:40px;margin-bottom:12px;">🎬</div>
-            <div style="font-family:'Oxanium',sans-serif;font-size:20px;font-weight:900;color:var(--gold);margin-bottom:8px;">Pehle Ye Karo!</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:20px;font-weight:900;color:var(--gold);margin-bottom:8px;">Pehle Ye Karo!</div>
             <div style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:16px;">
                 Aapko <b style="color:var(--text);">jisne refer kiya</b> unhe paisa milega jab aap:<br><br>
                 1️⃣ Movie Group join karo<br>
@@ -6035,7 +6256,7 @@ function openQuizGame(){
     overlay.innerHTML = `
         <div style="background:linear-gradient(135deg,#0e1220,#1a0a2e);border:1.5px solid rgba(240,192,64,.3);border-radius:24px;padding:24px;width:100%;max-width:400px;text-align:center;">
             <div style="font-size:38px;margin-bottom:10px;">🧠</div>
-            <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--gold);margin-bottom:4px;">Daily Quiz!</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:18px;font-weight:900;color:var(--gold);margin-bottom:4px;">Daily Quiz!</div>
             <div style="font-size:10px;color:var(--text3);margin-bottom:16px;">1 Pass lagega • Sahi jawab = 100 pts!</div>
             <div style="background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:16px;border:1px solid var(--border);">
                 <div style="font-size:14px;font-weight:700;color:var(--text);line-height:1.6;">${q.q}</div>
@@ -6153,7 +6374,7 @@ document.addEventListener('DOMContentLoaded',init);
 // ============================================================
 const ADSGRAM_REWARD_BLOCK = '30637';
 const ADSGRAM_TASK_BLOCK   = 'task-30639';
-const ADSGRAM_INT_BLOCK    = '30637';  // Interstitial (Reward type)
+const ADSGRAM_INT_BLOCK    = 'int-30638';  // Interstitial
 
 let rewardController = null;
 let taskController   = null;
@@ -6164,13 +6385,22 @@ let _intAdCooldown   = false;  // 3 min cooldown between interstitials
 
 async function initAdsGram() {
     try {
-        if (typeof AdController === 'undefined') return;
-        rewardController = await AdController.init({ blockId: ADSGRAM_REWARD_BLOCK });
-        taskController   = await AdController.init({ blockId: ADSGRAM_TASK_BLOCK });
-        intController    = await AdController.init({ blockId: ADSGRAM_INT_BLOCK });
-        console.log('✅ AdsGram OK — Reward:30637 Task:task-30639 Int:30637');
+        // Official AdsGram SDK: window.Adsgram.init() — NOT AdController
+        if (typeof window.Adsgram === 'undefined') {
+            console.log('AdsGram SDK not loaded yet — retrying in 2s');
+            setTimeout(initAdsGram, 2000);
+            return;
+        }
+        // Reward ad controller (blockId: 30637)
+        rewardController = window.Adsgram.init({ blockId: ADSGRAM_REWARD_BLOCK });
+        // Interstitial ad controller (blockId: int-30638)
+        intController    = window.Adsgram.init({ blockId: ADSGRAM_INT_BLOCK });
+        // Task uses <adsgram-task> web component — no init needed
+        console.log('✅ AdsGram OK — Reward:30637 Int:int-30638 Task:task-30639');
+        _adsgramInited = true;
     } catch(e) {
         console.log('AdsGram init error:', e);
+        setTimeout(initAdsGram, 3000);
     }
 
     // ── <adsgram-task> web component event listeners ──
@@ -6217,16 +6447,15 @@ async function initAdsGram() {
 // Interstitial ad — game result ke baad silently show karo (no reward, no user prompt)
 async function showInterstitialAd() {
     try {
-        if (_intAdCooldown) return;            // 3 min mein ek baar hi
-        if (typeof AdController === 'undefined') return;
+        if (_intAdCooldown) return;
+        if (typeof window.Adsgram === 'undefined') return;
         if (!intController) {
-            intController = await AdController.init({ blockId: ADSGRAM_INT_BLOCK });
+            intController = window.Adsgram.init({ blockId: ADSGRAM_INT_BLOCK });
         }
         _intAdCooldown = true;
         setTimeout(() => { _intAdCooldown = false; }, 3 * 60 * 1000);
         await intController.show();
     } catch(e) {
-        // Silently ignore — user experience disturb nahi honi chahiye
         console.log('Interstitial ad:', e?.message || e);
     }
 }
@@ -6236,9 +6465,9 @@ let _autoIntCooldown = false;
 async function showAutoInterstitialAd() {
     try {
         if (_autoIntCooldown) return;
-        if (typeof AdController === 'undefined') return;
+        if (typeof window.Adsgram === 'undefined') return;
         if (!intController) {
-            intController = await AdController.init({ blockId: ADSGRAM_INT_BLOCK });
+            intController = window.Adsgram.init({ blockId: ADSGRAM_INT_BLOCK });
         }
         _autoIntCooldown = true;
         setTimeout(() => { _autoIntCooldown = false; }, 2 * 60 * 1000);
@@ -6252,30 +6481,43 @@ async function showAutoInterstitialAd() {
 function showClaimBoostPopup(baseReward) {
     const pts = toPoints(baseReward);
     const bonusPts = Math.round(pts * 0.3);
-    showToast('✅ +' + pts + ' pts! +1 Pass mila!');
-    // Show 1.3x offer popup after 1.5s
-    setTimeout(() => {
-        const existing = document.getElementById('claimBoostPopup'); if(existing) existing.remove();
-        const popup = document.createElement('div');
-        popup.id = 'claimBoostPopup';
-        popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9200;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease;';
-        popup.innerHTML = `
-            <div style="background:var(--bg2);border-radius:22px;width:100%;max-width:340px;padding:24px 20px;text-align:center;border:2px solid var(--gold);box-shadow:0 0 30px rgba(240,192,64,.2);">
-                <div style="font-size:40px;margin-bottom:8px;">🎁</div>
-                <div style="font-family:'Oxanium',sans-serif;font-size:20px;font-weight:900;color:var(--gold);margin-bottom:6px;">+30% Bonus!</div>
-                <div style="font-size:13px;color:var(--text2);margin-bottom:16px;">Ek aur ad dekho aur extra <b style="color:var(--green);">+${bonusPts} pts</b> pao!</div>
-                <button onclick="closeClaimBoost();showRewardAd();" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;padding:13px;border-radius:30px;font-weight:900;font-size:14px;cursor:pointer;font-family:inherit;margin-bottom:8px;">📺 Ad Dekho +${bonusPts} pts</button>
-                <button onclick="closeClaimBoost();" style="width:100%;background:transparent;border:1px solid var(--border);color:var(--text3);padding:10px;border-radius:30px;font-size:13px;cursor:pointer;font-family:inherit;">Nahi chahiye</button>
-            </div>`;
-        document.body.appendChild(popup);
-        setTimeout(() => closeClaimBoost(), 8000); // auto close 8s
-    }, 1800);
+    showToast("✅ +" + pts + " pts! +1 Pass mila!");
+    playSound("earn");
+    setTimeout(() => showEarnMorePopup(bonusPts), 1500);
 }
-function closeClaimBoost(){const p=document.getElementById('claimBoostPopup');if(p)p.remove();}
+function closeClaimBoost(){const p=document.getElementById("claimBoostPopup");if(p)p.remove();}
 
 // Random popup ad — kabhi bhi appear ho sakta hai (with close button + claim message)
 let _popupAdShown = false;
 let _popupAdCooldown = false;
+
+// Generic "Earn More" ad popup — mission/withdraw/sponsor ke baad
+let _earnMoreCooldown = false;
+function showEarnMorePopup(earnedPts){
+    if(_earnMoreCooldown) return;
+    _earnMoreCooldown = true;
+    setTimeout(()=>{ _earnMoreCooldown = false; }, 3*60*1000);
+
+    const extra = Math.round(earnedPts * 0.3);
+    const existing = document.getElementById('earnMoreAdPopup');if(existing)existing.remove();
+    const popup = document.createElement('div');
+    popup.id = 'earnMoreAdPopup';
+    popup.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:9300;padding:12px;animation:slideUp .3s ease;';
+    popup.innerHTML = `
+        <div style="background:#fff;border:2px solid rgba(108,58,252,.25);border-radius:20px;padding:16px;display:flex;align-items:center;gap:12px;box-shadow:0 -4px 24px rgba(124,92,252,.2);">
+            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--purple),var(--gold));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📺</div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-family:'Fredoka One',cursive;font-weight:900;font-size:13px;color:var(--text);">+${extra} pts aur milenge!</div>
+                <div style="font-size:11px;color:var(--text3);">Ek video dekho, extra reward pao</div>
+            </div>
+            <button onclick="closeEarnMore();showRewardAdBonus(${extra});" style="background:linear-gradient(135deg,var(--purple),var(--gold));color:#fff;border:none;padding:9px 14px;border-radius:20px;font-weight:900;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap;">Watch ▶</button>
+            <button onclick="closeEarnMore();" style="background:rgba(255,255,255,.08);border:none;color:var(--text3);width:28px;height:28px;border-radius:50%;font-size:16px;cursor:pointer;flex-shrink:0;">✕</button>
+        </div>`;
+    document.body.appendChild(popup);
+    setTimeout(()=>closeEarnMore(), 8000);
+}
+function closeEarnMore(){const p=document.getElementById('earnMoreAdPopup');if(p)p.remove();}
+
 function scheduleRandomPopupAd() {
     // Show after 45-90 seconds randomly, then every 3-5 min
     const delay = (15 + Math.random() * 10) * 1000; // First: 15-25s
@@ -6298,229 +6540,29 @@ async function showRandomPopupAd() {
     popup.id = 'randomAdPopup';
     popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:8800;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .3s ease;';
     popup.innerHTML = `
-        <div style="background:var(--bg2);border-radius:22px;width:100%;max-width:340px;padding:24px 20px;text-align:center;border:1.5px solid var(--purple);position:relative;">
-            <button onclick="closeRandomAdPopup();" style="position:absolute;top:12px;right:12px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);width:28px;height:28px;border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
-            <div style="font-size:36px;margin-bottom:10px;">💰</div>
-            <div style="font-family:'Oxanium',sans-serif;font-size:18px;font-weight:900;color:var(--text);margin-bottom:6px;">Paise Milenge!</div>
-            <div style="font-size:12px;color:var(--text2);margin-bottom:18px;">Ye ad dekho aur <b style="color:var(--gold);">+10 pts</b> instantly pao!</div>
-            <button onclick="closeRandomAdPopup();showRewardAd();" style="width:100%;background:linear-gradient(135deg,var(--purple),var(--blue));color:#fff;border:none;padding:13px;border-radius:30px;font-weight:900;font-size:14px;cursor:pointer;font-family:inherit;margin-bottom:8px;">📺 Claim Karo — +10 pts</button>
-            <button onclick="closeRandomAdPopup();" style="width:100%;background:transparent;border:none;color:var(--text3);padding:8px;font-size:12px;cursor:pointer;">Baad mein</button>
+        <div style="background:#fff;border-radius:22px;width:100%;max-width:340px;padding:22px 18px;text-align:center;border:1.5px solid rgba(124,92,252,.5);position:relative;box-shadow:0 0 30px rgba(124,92,252,.15);">
+            <button onclick="closeRandomAdPopup();" style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,.08);border:none;color:var(--text3);width:28px;height:28px;border-radius:50%;font-size:16px;cursor:pointer;">✕</button>
+            <div style="font-size:40px;margin-bottom:8px;">💎</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:17px;font-weight:900;color:var(--gold);margin-bottom:4px;">Free Points!</div>
+            <div style="font-size:12px;color:var(--text2);margin-bottom:16px;">Ye video dekho aur <b style="color:var(--gold);">+10 pts</b> turant pao!</div>
+            <button onclick="closeRandomAdPopup();showRewardAdBonus(10);" style="width:100%;background:linear-gradient(135deg,var(--purple),var(--gold));color:#fff;border:none;padding:13px;border-radius:30px;font-weight:900;font-size:14px;cursor:pointer;font-family:'Fredoka One',cursive;margin-bottom:8px;box-shadow:0 4px 16px rgba(124,92,252,.3);">▶ Video Dekho — +10 pts</button>
+            <button onclick="closeRandomAdPopup();" style="width:100%;background:transparent;border:none;color:var(--text3);padding:6px;font-size:11px;cursor:pointer;">Skip</button>
         </div>`;
     document.body.appendChild(popup);
-    // Auto close after 12s
     setTimeout(() => closeRandomAdPopup(), 12000);
-}
-function closeRandomAdPopup(){const p=document.getElementById('randomAdPopup');if(p)p.remove();}
-
-
-// Reward Ad show karo (user click kare toh)
-async function showRewardAd() {
-    if (!userData || !userData.user_id) {
-        showToast('❌ Pehle login karo!');
-        return;
-    }
-    if (rewardAdCooldown) {
-        showToast('⏳ Thoda wait karo!');
-        return;
-    }
-
-    const btn = document.getElementById('rewardAdBtn');
-    const status = document.getElementById('rewardAdStatus');
-
-    // AdsGram SDK available check
-    if (typeof AdController === 'undefined') {
-        showToast('📺 Ad system load ho raha hai...');
-        return;
-    }
-
     try {
-        btn.disabled = true;
-        btn.textContent = '⏳ Ad load ho rahi hai...';
-        status.textContent = '';
-
-        if (!rewardController) {
-            rewardController = await AdController.init({ blockId: ADSGRAM_REWARD_BLOCK });
+        if (typeof window.Adsgram !== 'undefined') {
+            if (!rewardController) rewardController = window.Adsgram.init({ blockId: ADSGRAM_REWARD_BLOCK });
+            await rewardController.show();
         }
-
-        await rewardController.show();
-
-        // Ad puri dekhi — server ko notify karo
-        const resp = await fetch(`/api/adsgram-reward?userId=${userData.user_id}&blockId=${ADSGRAM_REWARD_BLOCK}`);
-        const data = await resp.json();
-
-        if (data.success) {
-            showToast('🎉 +10 pts mil gaye! Ad bonus!');
-            status.textContent = '✅ Reward credited!';
-            await loadUser();
-        } else {
-            status.textContent = data.message || 'Reward pending...';
-        }
-
-        // 5 minute cooldown
-        rewardAdCooldown = true;
-        btn.textContent = '⏳ 5 min baad dobara...';
-        setTimeout(() => {
-            rewardAdCooldown = false;
-            btn.disabled = false;
-            btn.textContent = '▶️ Ad Dekho — 10 Pts Pao!';
-            status.textContent = '';
-        }, 5 * 60 * 1000);
-
     } catch(e) {
-        console.log('Ad error:', e);
-        // User ne ad skip ki ya error — no reward
-        btn.disabled = false;
-        btn.textContent = '▶️ Ad Dekho — 10 Pts Pao!';
-        status.textContent = e?.message?.includes('No fill') ? '😔 Abhi koi ad available nahi' : '❌ Ad puri dekho reward ke liye!';
-        setTimeout(() => { status.textContent = ''; }, 3000);
+        console.log('Random popup ad:', e?.message || e);
     }
 }
-
-// Task Ad show karo (Task cards click)
-async function showNativeAd(cardNum) {
-    if (!userData || !userData.user_id) { showToast('❌ Pehle login karo!'); return; }
-    if (taskAdCooldown) { showToast('⏳ Task thoda baad try karo!'); return; }
-    try {
-        if (typeof AdController === 'undefined') {
-            showToast('📺 Ad load ho rahi hai...');
-            return;
-        }
-        if (!taskController) {
-            taskController = await AdController.init({ blockId: ADSGRAM_TASK_BLOCK });
-        }
-        await taskController.show();
-        // Reward after task ad
-        const resp = await fetch(`/api/adsgram-reward?userId=${userData.user_id}&blockId=${ADSGRAM_TASK_BLOCK}`);
-        const data = await resp.json();
-        if (data.success) {
-            showToast('🎯 Task complete! +10 pts!');
-            await loadUser();
-        }
-        // 3 min cooldown
-        taskAdCooldown = true;
-        setTimeout(() => { taskAdCooldown = false; }, 3 * 60 * 1000);
-    } catch(e) {
-        console.log('Task ad error:', e);
-        showToast('❌ Task pura karo reward ke liye!');
-    }
+function closeRandomAdPopup() {
+    const p = document.getElementById('randomAdPopup');
+    if (p) p.remove();
 }
-
-// AdsGram init on load
-// AdsGram init hoga user load ke baad
-let _adsgramInited = false;
-async function ensureAdsGram() {
-    if (_adsgramInited) return;
-    _adsgramInited = true;
-    await initAdsGram();
-}
-setTimeout(ensureAdsGram, 3000); // Fallback
-scheduleRandomPopupAd();
-
 </script>
-
-<!-- BLOCK BLAST MODAL -->
-<div class="modal" id="blockblastModal">
-    <div class="modal-hdr">
-        <div class="back-btn" onclick="exitBlockBlast()">←</div>
-        <div class="modal-title">🧱 Block Blast</div>
-        <div id="blockBal" style="font-size:11px;color:var(--gold);font-weight:800;">0 pts</div>
-    </div>
-    <div style="padding:14px;">
-    <!-- SETUP -->
-    <div id="blockSetup">
-        <div style="text-align:center;font-size:40px;margin-bottom:8px;">🧱</div>
-        <div style="text-align:center;font-weight:900;font-size:18px;color:var(--text);margin-bottom:4px;">Block Blast!</div>
-        <div style="text-align:center;font-size:12px;color:var(--text2);margin-bottom:16px;">Pieces lagao • Lines clear karo • Points kamao!</div>
-        <div style="background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);border-radius:14px;padding:12px;margin-bottom:14px;">
-            <div style="font-size:11px;color:var(--purple2);font-weight:800;margin-bottom:6px;">🎮 Kaise khelen:</div>
-            <div style="font-size:11px;color:var(--text2);line-height:1.8;">
-                1️⃣ Neeche se piece select karo<br>
-                2️⃣ Grid pe tap karo jahan place karna hai<br>
-                3️⃣ Puri row/column = Line Clear = Bonus pts!<br>
-                4️⃣ Jab koi piece na fit ho → Game Over
-            </div>
-        </div>
-        <div style="background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.25);border-radius:12px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">
-            <div style="font-size:13px;font-weight:900;color:var(--purple2);">🎟️ 1 Pass per Game</div>
-            <div style="font-size:11px;color:var(--text3);">Passes: <b id="blockPassDisp" style="color:var(--purple2);">0</b></div>
-        </div>
-        <button onclick="startBlockBlast()" class="btn-gold btn-shine" style="width:100%;">🧱 Start — 1 Pass</button>
-    </div>
-    <!-- GAME -->
-    <div id="blockGameArea" style="display:none;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <div id="blockScore" style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:900;color:var(--gold);">0 pts</div>
-            <div id="blockLevel" style="font-size:12px;font-weight:800;color:var(--purple2);">Level 1</div>
-            <button onclick="exitBlockBlast()" style="background:rgba(248,113,113,.12);border:1px solid var(--red);color:var(--red);border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;">Exit</button>
-        </div>
-        <canvas id="blockCanvas" onclick="handleBlockTap(event)" ontouchstart="handleBlockTap(event)" style="display:block;border-radius:12px;max-width:100%;touch-action:none;cursor:pointer;"></canvas>
-        <div id="blockPiecesRow" style="display:flex;justify-content:space-around;align-items:center;margin-top:14px;min-height:60px;background:var(--bg3);border-radius:14px;padding:10px;border:1px solid var(--border);gap:16px;"></div>
-        <div style="text-align:center;font-size:10px;color:var(--text3);margin-top:8px;">Pehle piece select karo → Phir grid pe tap karo</div>
-    </div>
-    <!-- RESULT -->
-    <div id="blockResult" style="display:none;text-align:center;padding:20px 0;">
-        <div id="blockResultEmoji" style="font-size:60px;margin-bottom:12px;">🏆</div>
-        <div id="blockResultTitle" style="font-size:22px;font-weight:900;color:var(--text);margin-bottom:8px;">Block Master!</div>
-        <div id="blockResultReward" style="font-size:28px;font-weight:900;color:var(--gold);font-family:'Oxanium',sans-serif;margin-bottom:20px;">+0 pts</div>
-        <div style="display:flex;gap:10px;">
-            <button onclick="resetBlockBlast()" class="btn-purple" style="flex:1;">🔄 Play Again</button>
-            <button onclick="exitBlockBlast()" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:13px;font-weight:800;cursor:pointer;color:var(--text);">← Back</button>
-        </div>
-    </div>
-    </div>
-</div>
-
-<!-- GEM MATCH MODAL -->
-<div class="modal" id="gemmatchModal">
-    <div class="modal-hdr">
-        <div class="back-btn" onclick="exitGemMatch()">←</div>
-        <div class="modal-title">💎 Gem Blast</div>
-        <div id="gemBal" style="font-size:11px;color:var(--gold);font-weight:800;">0 pts</div>
-    </div>
-    <div style="padding:14px;">
-    <!-- SETUP -->
-    <div id="gemSetup">
-        <div style="text-align:center;font-size:40px;margin-bottom:8px;">💎🔥⭐</div>
-        <div style="text-align:center;font-weight:900;font-size:18px;color:var(--text);margin-bottom:4px;">Gem Match 3!</div>
-        <div style="text-align:center;font-size:12px;color:var(--text2);margin-bottom:16px;">Gems match karo • Chain banao • Zyada pts kamao!</div>
-        <div style="background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);border-radius:14px;padding:12px;margin-bottom:14px;">
-            <div style="font-size:11px;color:var(--blue);font-weight:800;margin-bottom:6px;">🎮 Kaise khelen:</div>
-            <div style="font-size:11px;color:var(--text2);line-height:1.8;">
-                1️⃣ Ek gem tap karo (select)<br>
-                2️⃣ Saath wali gem tap karo (swap)<br>
-                3️⃣ 3+ same gems match = Points!<br>
-                4️⃣ Chain reaction = Multiplier bonus! 🔥
-            </div>
-        </div>
-        <div style="background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.25);border-radius:12px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">
-            <div style="font-size:13px;font-weight:900;color:var(--purple2);">🎟️ 1 Pass per Game</div>
-            <div style="font-size:11px;color:var(--text3);">Passes: <b id="gemPassDisp" style="color:var(--purple2);">0</b></div>
-        </div>
-        <button onclick="startGemMatch()" class="btn-gold btn-shine" style="width:100%;">💎 Start — 1 Pass</button>
-    </div>
-    <!-- GAME -->
-    <div id="gemGameArea" style="display:none;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <div id="gemScore" style="font-family:'Oxanium',sans-serif;font-size:16px;font-weight:900;color:var(--gold);">0 pts</div>
-            <div id="gemMoves" style="font-size:12px;font-weight:800;color:var(--purple2);">20 moves left</div>
-            <button onclick="exitGemMatch()" style="background:rgba(248,113,113,.12);border:1px solid var(--red);color:var(--red);border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;">Exit</button>
-        </div>
-        <div id="gemGrid" style="margin:0 auto 8px;"></div>
-        <div style="text-align:center;font-size:10px;color:var(--text3);">Gems swap karke 3+ match banao!</div>
-    </div>
-    <!-- RESULT -->
-    <div id="gemResult" style="display:none;text-align:center;padding:20px 0;">
-        <div id="gemResultEmoji" style="font-size:60px;margin-bottom:12px;">💎</div>
-        <div id="gemResultTitle" style="font-size:22px;font-weight:900;color:var(--text);margin-bottom:8px;">Gem Master!</div>
-        <div id="gemResultReward" style="font-size:28px;font-weight:900;color:var(--gold);font-family:'Oxanium',sans-serif;margin-bottom:20px;">+0 pts</div>
-        <div style="display:flex;gap:10px;">
-            <button onclick="resetGemMatch()" class="btn-purple" style="flex:1;">🔄 Play Again</button>
-            <button onclick="exitGemMatch()" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:13px;font-weight:800;cursor:pointer;color:var(--text);">← Back</button>
-        </div>
-    </div>
-    </div>
-</div>
-
 </body>
 </html>
-<!-- FilmyFund © 2025 | Owner: @asbhaibsr | Channel: @asbhai_bsr | t.me/asbhaibsr -->
