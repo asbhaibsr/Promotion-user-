@@ -1043,17 +1043,25 @@ class Database:
     # ========== MISSIONS ==========
 
     MISSIONS_DEF = [
-        {'id': 'm_refer5',      'total': 5,  'reward': 2.0,  'track': 'active_refs'},
-        {'id': 'm_search5',     'total': 5,  'reward': 1.0,  'track': 'daily_search'},
-        {'id': 'm_self_search', 'total': 1,  'reward': 0.50, 'track': 'self_search'},
-        {'id': 'm_shortlink',   'total': 1,  'reward': 1.0,  'track': 'shortlink'},
-        {'id': 'm_game',        'total': 10, 'reward': 1.0,  'track': 'game_plays'},
-        {'id': 'm_game5win',    'total': 5,  'reward': 1.5,  'track': 'game_wins'},
-        {'id': 'm_passes',      'total': 1,  'reward': 1.0,  'track': 'pass_purchase'},
-        {'id': 'm_daily',       'total': 1,  'reward': 0.10, 'track': 'daily_bonus'},
-        {'id': 'm_streak3',     'total': 3,  'reward': 1.0,  'track': 'streak'},
-        {'id': 'm_withdraw',    'total': 1,  'reward': 1.0,  'track': 'withdraw'},
+        {'id': 'm_refer5',      'total': 5,  'reward': 2.0,  'track': 'active_refs',   'long_term': True},
+        {'id': 'm_search5',     'total': 5,  'reward': 1.0,  'track': 'daily_search',  'long_term': False},
+        {'id': 'm_self_search', 'total': 1,  'reward': 0.50, 'track': 'self_search',   'long_term': False},
+        {'id': 'm_shortlink',   'total': 1,  'reward': 1.0,  'track': 'shortlink',     'long_term': True},
+        {'id': 'm_game',        'total': 10, 'reward': 1.0,  'track': 'game_plays',    'long_term': False},
+        {'id': 'm_game5win',    'total': 5,  'reward': 1.5,  'track': 'game_wins',     'long_term': False},
+        {'id': 'm_passes',      'total': 1,  'reward': 1.0,  'track': 'pass_purchase', 'long_term': False},
+        {'id': 'm_daily',       'total': 1,  'reward': 0.10, 'track': 'daily_bonus',   'long_term': False},
+        {'id': 'm_streak3',     'total': 3,  'reward': 1.0,  'track': 'streak',        'long_term': True},
+        {'id': 'm_withdraw',    'total': 1,  'reward': 1.0,  'track': 'withdraw',      'long_term': False},
     ]
+
+    # Long-term missions use 'lt_' prefix key (no date) — daily use date key
+    def _mission_key(self, mdef, user_id):
+        if mdef.get('long_term'):
+            return {'user_id': user_id, 'mission_id': mdef['id'], 'long_term': True}
+        else:
+            today = datetime.now().date().isoformat()
+            return {'user_id': user_id, 'date': today, 'mission_id': mdef['id']}
 
     def get_user_missions(self, user_id):
         try:
@@ -1064,33 +1072,41 @@ class Database:
 
             for mdef in self.MISSIONS_DEF:
                 mid = mdef['id']
-                doc = self.missions.find_one({'user_id': user_id, 'date': today, 'mission_id': mid})
+                is_lt = mdef.get('long_term', False)
+                query = self._mission_key(mdef, user_id)
+                doc = self.missions.find_one(query)
+
                 if not doc:
                     progress = 0
                     if mid == 'm_refer5' and user:
                         progress = min(user.get('active_refs', 0), mdef['total'])
+                    elif mid == 'm_streak3' and user:
+                        progress = min(user.get('daily_streak', 0), mdef['total'])
                     elif mid == 'm_daily':
                         bonus_today = self.daily_bonus.find_one({'user_id': user_id, 'date': today})
                         progress = 1 if bonus_today else 0
 
-                    doc = {
-                        'user_id': user_id,
-                        'date': today,
-                        'mission_id': mid,
-                        'progress': progress,
-                        'completed': progress >= mdef['total'],
-                        'claimed': False
-                    }
+                    doc = {**query, 'progress': progress, 'completed': progress >= mdef['total'], 'claimed': False}
                     try:
                         self.missions.insert_one(doc)
                     except:
                         pass
 
+                # For long-term: refresh progress from live data each time
+                if is_lt and not doc.get('claimed'):
+                    if mid == 'm_refer5' and user:
+                        doc['progress'] = min(user.get('active_refs', 0), mdef['total'])
+                        doc['completed'] = user.get('active_refs', 0) >= mdef['total']
+                    elif mid == 'm_streak3' and user:
+                        doc['progress'] = min(user.get('daily_streak', 0), mdef['total'])
+                        doc['completed'] = user.get('daily_streak', 0) >= mdef['total']
+
                 result[mid] = {
                     'progress': doc.get('progress', 0),
                     'completed': doc.get('completed', False),
                     'claimed': doc.get('claimed', False),
-                    'claimed_date': doc.get('claimed_date', '')  # frontend uses this to verify TODAY
+                    'claimed_date': doc.get('claimed_date', ''),
+                    'long_term': is_lt
                 }
             return result
         except Exception as e:
@@ -1104,10 +1120,10 @@ class Database:
             mdef = next((m for m in self.MISSIONS_DEF if m['id'] == mission_id), None)
             if not mdef:
                 return
-
-            doc = self.missions.find_one({'user_id': user_id, 'date': today, 'mission_id': mission_id})
+            query = self._mission_key(mdef, user_id)
+            doc = self.missions.find_one(query)
             if not doc:
-                doc = {'user_id': user_id, 'date': today, 'mission_id': mission_id, 'progress': 0, 'completed': False, 'claimed': False}
+                doc = {**query, 'progress': 0, 'completed': False, 'claimed': False}
 
             if doc.get('claimed'):
                 return
@@ -1116,7 +1132,7 @@ class Database:
             completed = new_progress >= mdef['total']
 
             self.missions.update_one(
-                {'user_id': user_id, 'date': today, 'mission_id': mission_id},
+                query,
                 {'$set': {'progress': new_progress, 'completed': completed}},
                 upsert=True
             )
@@ -1136,14 +1152,15 @@ class Database:
             if not mdef:
                 return {'success': False, 'message': 'Mission not found'}
 
-            # ── STEP 1: Check already claimed (fast exit) ──────────────
-            doc = self.missions.find_one({
-                'user_id': user_id, 'date': today, 'mission_id': mission_id
-            })
+            is_lt = mdef.get('long_term', False)
+            query = self._mission_key(mdef, user_id)
+
+            # ── STEP 1: Check already claimed ──────────────
+            doc = self.missions.find_one(query)
             if doc and doc.get('claimed'):
                 return {'success': False, 'message': 'Already claimed'}
 
-            # ── STEP 2: Verify mission is actually completed ────────────
+            # ── STEP 2: Verify mission is actually completed ──
             completed = doc.get('completed', False) if doc else False
             progress  = doc.get('progress', 0)      if doc else 0
 
@@ -1168,6 +1185,10 @@ class Database:
                     streak    = user.get('daily_streak', 0)
                     progress  = min(streak, mdef['total'])
                     completed = streak >= mdef['total']
+                elif mission_id == 'm_shortlink':
+                    # Check if any referred user completed shortlink
+                    ref = self.referrals.find_one({'referrer_id': user_id, 'is_active': True})
+                    completed = bool(ref); progress = 1 if ref else 0
                 elif mission_id == 'm_game5win' and user:
                     wins      = user.get('games_won', 0)
                     progress  = min(wins, mdef['total'])
@@ -1184,30 +1205,16 @@ class Database:
             if not completed:
                 return {'success': False, 'message': 'Mission abhi puri nahi hui — pehle complete karo!'}
 
-            # ── STEP 3: Safe upsert using update_one (no unique conflict) ─
+            # ── STEP 3: Mark claimed ──────────────────────────────────
             update_result = self.missions.update_one(
-                {
-                    'user_id':    user_id,
-                    'date':       today,
-                    'mission_id': mission_id,
-                    'claimed':    {'$ne': True}  # only update if NOT already claimed
-                },
-                {
-                    '$set': {
-                        'claimed':      True,
-                        'completed':    True,
-                        'progress':     progress,
-                        'reward_given': float(reward),
-                        'claimed_date': today,
-                        'user_id':      user_id,
-                        'date':         today,
-                        'mission_id':   mission_id,
-                    }
-                },
+                {**query, 'claimed': {'$ne': True}},
+                {'$set': {
+                    'claimed': True, 'completed': True, 'progress': progress,
+                    'reward_given': float(reward), 'claimed_date': today,
+                }},
                 upsert=True
             )
 
-            # If matched_count==0 and upserted_id==None → already claimed by race condition
             if update_result.matched_count == 0 and update_result.upserted_id is None:
                 return {'success': False, 'message': 'Already claimed'}
 
@@ -1215,9 +1222,17 @@ class Database:
             self.add_balance(user_id, float(reward), f"Mission {mission_id} reward")
             self.add_live_activity('mission', user_id, reward, f"Mission complete! +{int(float(reward)*100)} pts")
             logger.info(f"✅ Mission claimed: user={user_id} {mission_id} +₹{reward}")
+
+            # ── STEP 5: Long-term missions RESET after claim ──────────
+            if is_lt:
+                self.missions.delete_one(query)
+                logger.info(f"♻️ Long-term mission {mission_id} reset for user {user_id}")
+
             return {'success': True, 'reward': float(reward)}
 
         except Exception as e:
+            logger.error(f"Error claiming mission: {e}")
+            return {'success': False, 'message': 'Server error'}
             err = str(e)
             if 'duplicate' in err.lower() or 'E11000' in err:
                 # Race condition — already claimed by another request, silently accept
