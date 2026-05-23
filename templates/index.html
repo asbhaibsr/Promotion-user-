@@ -258,13 +258,6 @@
         @keyframes badgeSpin{to{transform:rotate(360deg);}}
 
         .badge-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px 4px 6px;border-radius:20px;font-size:11px;font-weight:900;letter-spacing:.3px;border:1.5px solid;cursor:pointer;transition:all .2s;}
-        .badge-chip.newcomer{background:rgba(0,0,0,.2);border-color:rgba(255,255,255,.4);color:#fff;}
-        .badge-chip.explorer{background:rgba(146,64,14,.3);border-color:#cd7f32;color:#fde68a;box-shadow:0 0 8px rgba(146,64,14,.3);}
-        .badge-chip.bronze{background:rgba(205,127,50,.25);border-color:#cd7f32;color:#fde68a;box-shadow:0 0 8px rgba(205,127,50,.35);}
-        .badge-chip.silver{background:rgba(168,169,173,.2);border-color:#c0c0c0;color:#fff;box-shadow:0 0 8px rgba(168,169,173,.3);}
-        .badge-chip.gold{background:rgba(245,158,11,.25);border-color:#f59e0b;color:#fde68a;box-shadow:0 0 10px rgba(245,158,11,.4);}
-        .badge-chip.diamond{background:rgba(56,189,248,.2);border-color:#38bdf8;color:#e0f2fe;box-shadow:0 0 10px rgba(56,189,248,.35);}
-        .badge-chip.legend{background:rgba(255,107,107,.25);border-color:#ff6b6b;color:#fff;box-shadow:0 0 14px rgba(255,107,107,.5);animation:legendGlow 2s ease-in-out infinite;}
         @keyframes legendGlow{0%,100%{box-shadow:0 0 8px rgba(255,107,107,.25);}50%{box-shadow:0 0 18px rgba(255,107,107,.5),0 0 30px rgba(254,202,87,.2);}}
 
         /* ═══════ EARN MORE BANNER ═══════ */
@@ -840,10 +833,10 @@
             <!-- Top row: label + badge -->
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
                 <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:1.5px;text-transform:uppercase;">💰 Your Balance</div>
-                <!-- Badge — ALWAYS visible, updated by JS -->
-                <div id="userBadgeChip" onclick="showBadgeProfile()" style="cursor:pointer;display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.28);border:2px solid rgba(255,255,255,.55);border-radius:20px;padding:5px 10px;">
-                    <span id="badgeEmoji" style="font-size:16px;">🌱</span>
-                    <span id="badgeLabel" style="font-size:11px;font-weight:800;color:#fff;letter-spacing:.4px;">NEWCOMER</span>
+                <!-- Referral Shield Badge — click pe profile -->
+                <div id="userBadgeChip" onclick="switchTab(3)" style="cursor:pointer;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.28);border:2px solid rgba(255,255,255,.4);border-radius:20px;padding:4px 10px 4px 4px;">
+                    <img id="badgeImg" src="https://i.postimg.cc/prJbHJvn/4946de51-23b6-473f-8192-764e1ca09041.jpg" style="width:28px;height:28px;border-radius:8px;object-fit:cover;flex-shrink:0;">
+                    <span id="badgeLabel" style="font-size:11px;font-weight:900;color:#fff;letter-spacing:.3px;">Starter</span>
                 </div>
             </div>
 
@@ -2425,162 +2418,28 @@ async function loadRefActivity(reset=true){
 // BADGE SYSTEM — FilmyFund Ki Pehchan
 // Multi-criteria: pts + refs + streak + missions + games
 // ============================================================
-const BADGE_LEVELS = [
-    {
-        level:'newcomer', emoji:'🌱', label:'NEWCOMER', cls:'newcomer',
-        color:'#6b7280', glow:'rgba(107,114,128,.3)',
-        desc:'FilmyFund mein swagat hai! Apna safar shuru karo.',
-        perks:['App access','Daily bonus','Basic missions'],
-        req:'Koi bhi naya user'
-    },
-    {
-        level:'explorer', emoji:'🎬', label:'EXPLORER', cls:'explorer',
-        color:'#92400e', glow:'rgba(146,64,14,.35)',
-        desc:'Tum explore karne lage ho! Aage badho.',
-        perks:['Daily missions unlock','Refer system access','500+ pts'],
-        req:'500 pts earn karo'
-    },
-    {
-        level:'bronze', emoji:'🥉', label:'BRONZE', cls:'bronze',
-        color:'#cd7f32', glow:'rgba(205,127,50,.4)',
-        desc:'Shuruaat acchi hai! Aur mehnat karo.',
-        perks:['Sponsored offers access','2x daily bonus streak','5000+ pts'],
-        req:'5000 pts + 3 active refs + 5 missions'
-    },
-    {
-        level:'silver', emoji:'🥈', label:'SILVER', cls:'silver',
-        color:'#a8a9ad', glow:'rgba(168,169,173,.4)',
-        desc:'Chandi ki chamak! Tumhara commitment dikh raha hai.',
-        perks:['Weekly contest entry','Early offer access','25000+ pts'],
-        req:'25000 pts + 10 active refs + 3-day streak + 15 missions'
-    },
-    {
-        level:'gold', emoji:'🥇', label:'GOLD', cls:'gold',
-        color:'#f59e0b', glow:'rgba(245,158,11,.5)',
-        desc:'Sona ban gaye ho! Real FilmyFund member.',
-        perks:['Priority withdrawal','Gold badge profile frame','75000+ pts'],
-        req:'75000 pts + 25 active refs + 7-day streak + 30 missions'
-    },
-    {
-        level:'diamond', emoji:'💎', label:'DIAMOND', cls:'diamond',
-        color:'#38bdf8', glow:'rgba(56,189,248,.5)',
-        desc:'Heera! Bohot kum log yahan pahunchte hain.',
-        perks:['Monthly contest priority','Diamond profile ring','200000+ pts'],
-        req:'200000 pts + 50 active refs + 14-day streak + 60 missions'
-    },
-    {
-        level:'legend', emoji:'👑', label:'LEGEND', cls:'legend',
-        color:'#ff6b6b', glow:'rgba(255,107,107,.6)',
-        desc:'Tum FilmyFund ke LEGEND ho! Ek alag hi level.',
-        perks:['Exclusive Legend rewards','Special monthly prize','500000+ pts'],
-        req:'500000 pts + 100 active refs + 30-day streak + 100 missions'
-    }
-];
-
-function getUserBadge(data){
-    const refs    = data.active_refs || data.total_refs || 0;
-    const bal     = data.total_earned || 0;
-    const pts     = Math.round((bal||0)*100);
-    const streak  = data.daily_streak || 0;
-    const missions= data.missions_claimed || 0;
-
-    if(pts>=500000 && refs>=100 && streak>=30 && missions>=100)
-        return BADGE_LEVELS[6]; // LEGEND
-    if(pts>=200000 && refs>=50  && streak>=14 && missions>=60)
-        return BADGE_LEVELS[5]; // DIAMOND
-    if(pts>=75000  && refs>=25  && streak>=7  && missions>=30)
-        return BADGE_LEVELS[4]; // GOLD
-    if(pts>=25000  && refs>=10  && streak>=3  && missions>=15)
-        return BADGE_LEVELS[3]; // SILVER
-    if(pts>=5000   && refs>=3   && missions>=5)
-        return BADGE_LEVELS[2]; // BRONZE
-    if(pts>=500)
-        return BADGE_LEVELS[1]; // EXPLORER
-    return BADGE_LEVELS[0];     // NEWCOMER
-}
-
+// ── Badge chip update (BADGES array se — yahi ek system hai) ──
 function renderBadgeChip(data){
-    // Badge always updates — even with partial data
-    const b = (data && data.user_id) ? getUserBadge(data) : BADGE_LEVELS[0];
-    const chip = document.getElementById('userBadgeChip');
-    const emoji = document.getElementById('badgeEmoji');
+    const refs = (data&&data.active_refs)||(data&&data.total_refs)||0;
+    let badge = BADGES[0];
+    for(let i=BADGES.length-1;i>=0;i--){
+        if(refs>=BADGES[i].req){badge=BADGES[i];break;}
+    }
+    const img   = document.getElementById('badgeImg');
     const label = document.getElementById('badgeLabel');
-    if(emoji) emoji.textContent = b.emoji;
-    if(label) label.textContent = b.label;
+    const chip  = document.getElementById('userBadgeChip');
+    if(img&&badge.img) img.src=badge.img;
+    if(label) label.textContent=badge.name.replace(/^[\W]+/,'').trim();
     if(chip){
-        chip.style.borderColor = b.color;
-        chip.style.boxShadow = `0 0 10px ${b.glow}`;
+        const bc=refs>=1000?'#ff6b6b':refs>=500?'#a855f7':refs>=100?'#38bdf8':refs>=50?'#f59e0b':refs>=10?'#c0c0c0':'rgba(255,255,255,.4)';
+        chip.style.borderColor=bc;
+        chip.style.boxShadow=refs>=10?`0 0 10px ${bc}55`:'none';
     }
 }
 
+// Badge click → profile tab (wahan poora badge system hai)
 function showBadgeProfile(){
-    const b  = getUserBadge(userData);
-    const cur= BADGE_LEVELS.indexOf(b);
-    const next= BADGE_LEVELS[cur+1];
-    const refs    = userData.active_refs||0;
-    const pts     = toPoints(userData.total_earned||0);
-    const streak  = userData.daily_streak||0;
-    const missions= userData.missions_claimed||0;
-
-    // Progress to next badge
-    let nextHtml='';
-    if(next){
-        const nextPts  = parseInt(next.req.match(/(\d[\d,]*) pts/)?.[1]?.replace(/,/g,'')||'0');
-        const nextRefs = parseInt(next.req.match(/(\d+) active refs/)?.[1]||'0');
-        const nextMiss = parseInt(next.req.match(/(\d+) missions/)?.[1]||'0');
-        const nextStrk = parseInt(next.req.match(/(\d+)-day streak/)?.[1]||'0');
-        nextHtml=`
-        <div style="background:rgba(0,0,0,.04);border-radius:14px;padding:12px;margin-top:10px;">
-            <div style="font-size:11px;font-weight:900;color:var(--text2);margin-bottom:8px;">⬆️ ${next.emoji} ${next.label} ke liye chahiye:</div>
-            ${nextPts ? `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:11px;"><span>🏆 Points</span><span style="font-weight:900;color:${pts>=nextPts?'var(--green)':'var(--text)'}">${pts.toLocaleString()} / ${nextPts.toLocaleString()}</span></div>` : ''}
-            ${nextRefs ? `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:11px;"><span>👥 Active Refs</span><span style="font-weight:900;color:${refs>=nextRefs?'var(--green)':'var(--text)'}">${refs} / ${nextRefs}</span></div>` : ''}
-            ${nextStrk ? `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:11px;"><span>🔥 Streak</span><span style="font-weight:900;color:${streak>=nextStrk?'var(--green)':'var(--text)'}">${streak} / ${nextStrk} days</span></div>` : ''}
-            ${nextMiss ? `<div style="display:flex;justify-content:space-between;font-size:11px;"><span>🎯 Missions</span><span style="font-weight:900;color:${missions>=nextMiss?'var(--green)':'var(--text)'}">${missions} / ${nextMiss}</span></div>` : ''}
-        </div>`;
-    }else{
-        nextHtml=`<div style="text-align:center;padding:10px;font-size:13px;color:var(--gold);font-weight:900;">👑 Tum sabse upar ho! LEGEND level!</div>`;
-    }
-
-    const allBadgesHtml = BADGE_LEVELS.map((bl,i)=>{
-        const isActive = i===cur;
-        const isDone   = i<cur;
-        return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;margin-bottom:4px;background:${isActive?`linear-gradient(135deg,${bl.color}22,${bl.color}11)`:'transparent'};border:${isActive?`1.5px solid ${bl.color}`:'1px solid transparent'};">
-            <span style="font-size:22px;${isDone?'opacity:.5':''};">${bl.emoji}</span>
-            <div style="flex:1;">
-                <div style="font-size:12px;font-weight:900;color:${isActive?bl.color:isDone?'var(--text3)':'var(--text2)'};">${bl.label} ${isActive?'← TUM HO':isDone?'✅':''}</div>
-                <div style="font-size:10px;color:var(--text3);">${bl.req}</div>
-            </div>
-        </div>`;
-    }).join('');
-
-    const popup = document.createElement('div');
-    popup.id='badgeProfilePopup';
-    popup.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9200;display:flex;align-items:flex-end;justify-content:center;padding:0;animation:fadeIn .25s ease;';
-    popup.innerHTML=`
-    <div style="background:var(--bg);border-radius:28px 28px 0 0;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:20px 16px 32px;">
-        <div style="width:40px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 16px;"></div>
-        <!-- Badge Header -->
-        <div style="background:linear-gradient(135deg,${b.color}33,${b.color}11);border:2px solid ${b.color};border-radius:20px;padding:18px;text-align:center;margin-bottom:14px;position:relative;overflow:hidden;">
-            <div style="font-size:56px;margin-bottom:6px;filter:drop-shadow(0 0 12px ${b.glow});">${b.emoji}</div>
-            <div style="font-family:'Fredoka One',cursive;font-size:22px;font-weight:900;color:${b.color};">${b.label}</div>
-            <div style="font-size:12px;color:var(--text2);margin-top:4px;">${b.desc}</div>
-        </div>
-        <!-- Perks -->
-        <div style="margin-bottom:12px;">
-            <div style="font-size:12px;font-weight:900;color:var(--text2);margin-bottom:6px;">🎁 Is Badge Ke Fayde:</div>
-            ${b.perks.map(p=>`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;font-size:12px;"><span style="color:${b.color};">✓</span> ${p}</div>`).join('')}
-        </div>
-        <!-- Next badge progress -->
-        ${nextHtml}
-        <!-- All badges road -->
-        <div style="margin-top:14px;">
-            <div style="font-size:12px;font-weight:900;color:var(--text2);margin-bottom:6px;">🏆 Badge Journey:</div>
-            ${allBadgesHtml}
-        </div>
-        <button onclick="document.getElementById('badgeProfilePopup').remove();" style="width:100%;margin-top:16px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:12px;border-radius:16px;font-size:13px;font-weight:700;cursor:pointer;">Bandh Karo</button>
-    </div>`;
-    document.body.appendChild(popup);
-    popup.onclick=e=>{if(e.target===popup)popup.remove();};
+    switchTab(3);
 }
 
 function updateUI(){try{
@@ -6642,8 +6501,8 @@ async function sendBulkNudge(){
 
 async function init(){
     try{const sv=localStorage.getItem('ez_lang');if(sv)lang=sv;}catch(e){}
-    // Show default badge immediately on load
-    renderBadgeChip({});
+    // Show starter badge immediately on load
+    renderBadgeChip({active_refs:0});
     checkOnboard();
     if(tg?.initDataUnsafe?.user){userData.first_name=tg.initDataUnsafe.user.first_name||'User';userData.user_id=tg.initDataUnsafe.user.id;userData.photo_url=tg.initDataUnsafe.user.photo_url||null;}
     else{const uid=new URLSearchParams(location.search).get('user_id');if(uid)userData.user_id=parseInt(uid);}
@@ -6668,9 +6527,9 @@ document.addEventListener('DOMContentLoaded',init);
 // ============================================================
 // ADSGRAM — Reward Block: 30637 | Task Block: task-30639
 // ============================================================
-const ADSGRAM_REWARD_BLOCK = '31421';
-const ADSGRAM_TASK_BLOCK   = 'task-31423';
-const ADSGRAM_INT_BLOCK    = 'int-31422';  // Interstitial
+const ADSGRAM_REWARD_BLOCK = '31501';
+const ADSGRAM_TASK_BLOCK   = 'task-31503';
+const ADSGRAM_INT_BLOCK    = 'int-31502';  // Interstitial
 
 let rewardController = null;
 let taskController   = null;
