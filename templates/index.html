@@ -127,15 +127,15 @@
         .page-inner{padding-top:6px;}
 
         /* BALANCE CARD — Gamee style bright */
-        .balance-card{background:linear-gradient(135deg,#6c3afc,#9b59ff,#5025e0);border:none;border-radius:24px;padding:22px 18px 18px;margin-bottom:12px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(108,58,252,.35),inset 0 1px 0 rgba(255,255,255,.2);}
-        .balance-card::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(255,255,255,.12),transparent 65%);pointer-events:none;}
-        .balance-card::after{content:'';position:absolute;bottom:-40px;left:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(255,255,255,.08),transparent 65%);pointer-events:none;}
-        .balance-label{font-size:11px;color:rgba(255,255,255,.75);font-weight:800;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px;}
-        .balance-main{font-family:'Fredoka One',cursive;font-size:54px;font-weight:400;color:#fff;line-height:1.05;text-shadow:0 2px 12px rgba(0,0,0,.2);}
+        .balance-card{background:linear-gradient(135deg,#b45309,#d97706,#f59e0b,#ea580c);border:none;border-radius:24px;padding:22px 18px 18px;margin-bottom:12px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(234,88,12,.45),inset 0 1px 0 rgba(255,255,255,.25);}
+        .balance-card::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 65%);pointer-events:none;}
+        .balance-card::after{content:'';position:absolute;bottom:-40px;left:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(255,255,255,.1),transparent 65%);pointer-events:none;}
+        .balance-label{font-size:11px;color:rgba(255,255,255,.9);font-weight:800;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px;}
+        .balance-main{font-family:'Fredoka One',cursive;font-size:54px;font-weight:400;color:#fff;line-height:1.05;text-shadow:0 2px 16px rgba(0,0,0,.3);}
         .balance-sub{display:flex;gap:7px;margin-top:13px;flex-wrap:wrap;}
-        .bsub-item{flex:1;min-width:80px;background:rgba(255,255,255,.18);border-radius:12px;padding:9px 11px;border:1px solid rgba(255,255,255,.25);}
-        .bsub-label{font-size:10px;color:rgba(255,255,255,.7);font-weight:800;text-transform:uppercase;letter-spacing:.4px;}
-        .bsub-val{font-size:20px;font-weight:900;color:#fff;margin-top:2px;font-family:'Fredoka One',cursive;}
+        .bsub-item{flex:1;min-width:80px;background:rgba(0,0,0,.2);border-radius:14px;padding:10px 11px;border:1.5px solid rgba(255,255,255,.3);backdrop-filter:blur(4px);}
+        .bsub-label{font-size:10px;color:rgba(255,255,255,.85);font-weight:800;text-transform:uppercase;letter-spacing:.4px;}
+        .bsub-val{font-size:20px;font-weight:900;color:#fff;margin-top:2px;font-family:'Fredoka One',cursive;text-shadow:0 1px 6px rgba(0,0,0,.2);}
 
         /* PASSES CARD — Gamee yellow/orange */
         .passes-card{background:linear-gradient(135deg,#fff7ed,#fef3c7);border:2px solid #fbbf24;border-radius:18px;padding:13px 15px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 16px rgba(251,191,36,.2);}
@@ -257,12 +257,14 @@
         .badge-legend .badge-ring::after{background:conic-gradient(#ff6b6b,#feca57,#ff9ff3,#54a0ff,#ff6b6b);animation:badgeSpin 1s linear infinite;}
         @keyframes badgeSpin{to{transform:rotate(360deg);}}
 
-        .badge-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px 3px 5px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:.3px;}
-        .badge-chip.bronze{background:linear-gradient(135deg,rgba(205,127,50,.2),rgba(139,69,19,.1));border:1px solid rgba(205,127,50,.4);color:var(--badge-bronze);}
-        .badge-chip.silver{background:linear-gradient(135deg,rgba(168,169,173,.15),rgba(100,100,100,.1));border:1px solid rgba(168,169,173,.35);color:var(--badge-silver);}
-        .badge-chip.gold{background:linear-gradient(135deg,rgba(255,215,0,.2),rgba(200,150,31,.1));border:1px solid rgba(255,215,0,.4);color:var(--badge-gold);box-shadow:0 0 8px rgba(255,215,0,.2);}
-        .badge-chip.diamond{background:linear-gradient(135deg,rgba(185,242,255,.15),rgba(125,211,252,.1));border:1px solid rgba(185,242,255,.4);color:var(--badge-diamond);box-shadow:0 0 8px rgba(185,242,255,.15);}
-        .badge-chip.legend{background:linear-gradient(135deg,rgba(255,107,107,.2),rgba(254,202,87,.15));border:1px solid rgba(255,107,107,.5);color:var(--badge-legend);box-shadow:0 0 12px rgba(255,107,107,.25);animation:legendGlow 2s ease-in-out infinite;}
+        .badge-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px 4px 6px;border-radius:20px;font-size:11px;font-weight:900;letter-spacing:.3px;border:1.5px solid;cursor:pointer;transition:all .2s;}
+        .badge-chip.newcomer{background:rgba(0,0,0,.2);border-color:rgba(255,255,255,.4);color:#fff;}
+        .badge-chip.explorer{background:rgba(146,64,14,.3);border-color:#cd7f32;color:#fde68a;box-shadow:0 0 8px rgba(146,64,14,.3);}
+        .badge-chip.bronze{background:rgba(205,127,50,.25);border-color:#cd7f32;color:#fde68a;box-shadow:0 0 8px rgba(205,127,50,.35);}
+        .badge-chip.silver{background:rgba(168,169,173,.2);border-color:#c0c0c0;color:#fff;box-shadow:0 0 8px rgba(168,169,173,.3);}
+        .badge-chip.gold{background:rgba(245,158,11,.25);border-color:#f59e0b;color:#fde68a;box-shadow:0 0 10px rgba(245,158,11,.4);}
+        .badge-chip.diamond{background:rgba(56,189,248,.2);border-color:#38bdf8;color:#e0f2fe;box-shadow:0 0 10px rgba(56,189,248,.35);}
+        .badge-chip.legend{background:rgba(255,107,107,.25);border-color:#ff6b6b;color:#fff;box-shadow:0 0 14px rgba(255,107,107,.5);animation:legendGlow 2s ease-in-out infinite;}
         @keyframes legendGlow{0%,100%{box-shadow:0 0 8px rgba(255,107,107,.25);}50%{box-shadow:0 0 18px rgba(255,107,107,.5),0 0 30px rgba(254,202,87,.2);}}
 
         /* ═══════ EARN MORE BANNER ═══════ */
@@ -697,7 +699,7 @@
         .game-img:hover{transform:scale(1.05);box-shadow:0 6px 20px rgba(0,0,0,.2);}
 
         /* Balance card — Gamee purple gradient */
-        .balance-card{background:linear-gradient(135deg,#6c3afc,#9b59ff,#8b5cf6,#6c3afc);background-size:300% 300%;animation:gradientShift 6s ease infinite;}
+        .balance-card{background:linear-gradient(135deg,#b45309,#ea580c,#f59e0b,#b45309);background-size:300% 300%;animation:gradientShift 6s ease infinite;}
 
         /* Points display — white on purple */
         .pts-display{font-size:42px!important;color:#fff!important;-webkit-text-fill-color:#fff;}
@@ -833,41 +835,51 @@
             </div>
         </div>
 
-        <!-- ① BALANCE CARD — Main Hero (Upgraded) -->
+        <!-- ① BALANCE CARD — Main Hero -->
         <div class="balance-card" style="margin-bottom:10px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
-                <div class="balance-label" data-t="your_balance" style="font-size:10px;letter-spacing:1.2px;">💰 YOUR BALANCE</div>
-                <div id="userBadgeChip"><!-- Badge injected by JS --></div>
-            </div>
-            <div class="balance-main pts-display" id="balAmt" style="font-size:48px;">0 pts</div>
-            <div id="balRupees" style="font-size:13px;color:rgba(245,200,66,.65);margin-top:1px;font-weight:700;font-family:'Fredoka One',cursive;">= ₹0.00 • min ₹20</div>
-            <div class="balance-sub" style="margin-top:13px;gap:6px;">
-                <div class="bsub-item">
-                    <div class="bsub-label">TODAY</div>
-                    <div class="bsub-val" id="todayEarned" style="font-size:17px;color:#a3f7d8;">0</div>
-                </div>
-                <div class="bsub-item">
-                    <div class="bsub-label">REFS</div>
-                    <div class="bsub-val" id="activeRefs" style="font-size:17px;color:#93c5fd;">0</div>
-                </div>
-                <div class="bsub-item">
-                    <div class="bsub-label">🎟️ PASSES</div>
-                    <div class="bsub-val" id="passCount" style="font-size:17px;color:#e9d5ff;">0</div>
-                </div>
-                <div class="bsub-item">
-                    <div class="bsub-label">🔥 STREAK</div>
-                    <div class="bsub-val" id="balStreak" style="font-size:17px;color:#fdba74;">0</div>
+            <!-- Top row: label + badge -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:1.5px;text-transform:uppercase;">💰 Your Balance</div>
+                <!-- Badge — ALWAYS visible, updated by JS -->
+                <div id="userBadgeChip" onclick="showBadgeProfile()" style="cursor:pointer;display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.28);border:2px solid rgba(255,255,255,.55);border-radius:20px;padding:5px 10px;">
+                    <span id="badgeEmoji" style="font-size:16px;">🌱</span>
+                    <span id="badgeLabel" style="font-size:11px;font-weight:800;color:#fff;letter-spacing:.4px;">NEWCOMER</span>
                 </div>
             </div>
-            <!-- Quick action buttons — Upgraded -->
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:13px;">
-                <button onclick="openModal('withdraw')" style="background:linear-gradient(135deg,rgba(0,229,160,.15),rgba(0,229,160,.06));border:1px solid rgba(0,229,160,.28);color:var(--green);border-radius:14px;padding:10px 4px;font-weight:900;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;letter-spacing:.2px;">
+
+            <!-- Points -->
+            <div style="font-size:46px;font-weight:900;color:#fff;font-family:'Fredoka One',cursive;line-height:1.05;text-shadow:0 2px 16px rgba(0,0,0,.25);" id="balAmt">0 pts</div>
+            <div id="balRupees" style="font-size:12px;color:rgba(255,235,100,.8);margin-top:2px;font-weight:600;">= ₹0.00 &nbsp;•&nbsp; ₹20 min withdrawal</div>
+
+            <!-- Stats — 4 equal boxes in a row -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;margin-top:12px;">
+                <div style="background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:8px 4px;text-align:center;">
+                    <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.75);letter-spacing:.5px;text-transform:uppercase;">Today</div>
+                    <div style="font-size:15px;font-weight:900;color:#fff;font-family:'Fredoka One',cursive;margin-top:2px;" id="todayEarned">0</div>
+                </div>
+                <div style="background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:8px 4px;text-align:center;">
+                    <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.75);letter-spacing:.5px;text-transform:uppercase;">Refs</div>
+                    <div style="font-size:15px;font-weight:900;color:#fff;font-family:'Fredoka One',cursive;margin-top:2px;" id="activeRefs">0</div>
+                </div>
+                <div style="background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:8px 4px;text-align:center;">
+                    <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.75);letter-spacing:.5px;text-transform:uppercase;">Passes</div>
+                    <div style="font-size:15px;font-weight:900;color:#fff;font-family:'Fredoka One',cursive;margin-top:2px;" id="passCount">0</div>
+                </div>
+                <div style="background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:8px 4px;text-align:center;">
+                    <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.75);letter-spacing:.5px;text-transform:uppercase;">🔥 Streak</div>
+                    <div style="font-size:15px;font-weight:900;color:#fff;font-family:'Fredoka One',cursive;margin-top:2px;" id="balStreak">0</div>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:12px;">
+                <button onclick="openModal('withdraw')" style="background:rgba(0,0,0,.22);border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:14px;padding:10px 4px;font-weight:800;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">
                     <span style="font-size:20px;">💸</span>Withdraw
                 </button>
-                <button onclick="openModal('referral')" style="background:linear-gradient(135deg,rgba(54,182,245,.15),rgba(54,182,245,.06));border:1px solid rgba(54,182,245,.28);color:var(--blue);border-radius:14px;padding:10px 4px;font-weight:900;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;letter-spacing:.2px;">
+                <button onclick="openModal('referral')" style="background:rgba(0,0,0,.22);border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:14px;padding:10px 4px;font-weight:800;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">
                     <span style="font-size:20px;">👥</span>Refer
                 </button>
-                <button onclick="showHowToEarn()" style="background:linear-gradient(135deg,rgba(245,200,66,.12),rgba(245,200,66,.04));border:1px solid rgba(245,200,66,.22);color:var(--gold);border-radius:14px;padding:10px 4px;font-weight:900;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;letter-spacing:.2px;">
+                <button onclick="showHowToEarn()" style="background:rgba(0,0,0,.22);border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:14px;padding:10px 4px;font-weight:800;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">
                     <span style="font-size:20px;">📖</span>Guide
                 </button>
             </div>
@@ -929,7 +941,7 @@
         </div>
         <div id="adsContainer"></div>
 
-        <!-- AdsGram Task Ad (task-30645) — Beautiful Card -->
+        <!-- AdsGram Task Ad (task-30639) — Beautiful Card -->
         <div id="adsgram-task-wrapper" style="margin-bottom:12px;">
             <div style="background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:1.5px solid rgba(108,58,252,.25);border-radius:20px;overflow:hidden;">
                 <div style="padding:14px 16px 10px;display:flex;align-items:center;gap:10px;">
@@ -2260,84 +2272,73 @@ async function loadBonusDays(){
 async function loadMissions(){
     if(!userData.user_id)return;
     const d=await apiGet(`/api/user/${userData.user_id}/missions`);
-    const today=new Date().toISOString().split('T')[0];
+    const today=new Date(Date.now()+5.5*3600000).toISOString().split('T')[0];
 
-    // Load claimed states from sessionStorage (date-keyed — auto resets each day)
+    // Long-term mission IDs — no date expiry
+    const LONG_TERM_IDS=new Set(['m_refer5','m_streak3','m_shortlink']);
+
+    // Session claimed (date-keyed) — auto resets each day for daily missions
     let sessionClaimed={};
     try{
         const sc=sessionStorage.getItem(`ez_m_${userData.user_id}_${today}`);
         if(sc)sessionClaimed=JSON.parse(sc);
-        // Clean ALL old day keys
         for(let k of Object.keys(sessionStorage)){
-            if(k.startsWith(`ez_m_${userData.user_id}_`)&&!k.endsWith(today)){
-                sessionStorage.removeItem(k);
-            }
-            // Also clean old format keys
-            if(k.startsWith(`ez_claimed_${userData.user_id}_`)&&!k.endsWith(today)){
-                sessionStorage.removeItem(k);
-            }
+            if(k.startsWith(`ez_m_${userData.user_id}_`)&&!k.endsWith(today)) sessionStorage.removeItem(k);
+            if(k.startsWith(`ez_claimed_${userData.user_id}_`)&&!k.endsWith(today)) sessionStorage.removeItem(k);
         }
     }catch(e){}
 
     MISSIONS_DEF.forEach(m=>{
         const sv=d?d[m.id]:null;
-        const localClaimed=sessionClaimed[m.id]||false;
-        // Server claimed valid ONLY if server says claimed_date===today
-        const serverClaimedToday=sv?.claimed&&sv?.claimed_date===today;
-        const finalClaimed=localClaimed||serverClaimedToday;
-
+        const isLT=LONG_TERM_IDS.has(m.id);
+        let finalClaimed;
+        if(isLT){
+            // Long-term: trust server directly — if server says claimed, show tick
+            // but if server reset it (delete_one after claim), sv.claimed will be false
+            finalClaimed=sv?.claimed||false;
+        }else{
+            // Daily: only claimed if BOTH today's date matches AND (session or server)
+            const serverClaimedToday=sv?.claimed&&sv?.claimed_date===today;
+            finalClaimed=sessionClaimed[m.id]||serverClaimedToday;
+        }
         missionStates[m.id]={
             progress:sv?.progress||0,
             completed:sv?.completed||false,
-            claimed:finalClaimed
+            claimed:finalClaimed,
+            long_term:isLT
         };
     });
 
-    // Auto-fill m_refer5
+    // Live overrides — always refresh from real data
     const activeRefs=userData.active_refs||0;
-    missionStates['m_refer5']={
-        progress:Math.min(activeRefs,5),
-        completed:activeRefs>=5,
-        claimed:missionStates['m_refer5']?.claimed||false
-    };
+    if(!missionStates['m_refer5']) missionStates['m_refer5']={progress:0,completed:false,claimed:false,long_term:true};
+    if(!missionStates['m_refer5'].claimed){
+        missionStates['m_refer5'].progress=Math.min(activeRefs,5);
+        missionStates['m_refer5'].completed=activeRefs>=5;
+    }
 
-    // Auto-fill m_daily — ONLY if user claimed bonus today AND mission not already claimed
     const dailyClaimedToday=claimedDates.includes(today);
-    if(!missionStates['m_daily'])missionStates['m_daily']={progress:0,completed:false,claimed:false};
-    if(dailyClaimedToday){
-        // Set progress/completed only — do NOT auto-set claimed
+    if(dailyClaimedToday&&!missionStates['m_daily'].claimed){
         missionStates['m_daily'].progress=1;
         missionStates['m_daily'].completed=true;
-        // claimed stays as-is from sessionStorage/server
     }
 
-    // Auto-fill m_game from today's game plays/wins
     const gamePlays=gameState.totalPlays||gameState.wins||0;
     const gameWins=gameState.wins||0;
-    if(!missionStates['m_game'])missionStates['m_game']={progress:0,completed:false,claimed:false};
-    if(!missionStates['m_game5win'])missionStates['m_game5win']={progress:0,completed:false,claimed:false};
-    if(gamePlays>0&&!missionStates['m_game'].claimed){
-        missionStates['m_game'].progress=Math.min(gamePlays,10);
-        missionStates['m_game'].completed=gamePlays>=10;
+    if(gamePlays>0&&!missionStates['m_game']?.claimed){
+        missionStates['m_game']={...missionStates['m_game'],progress:Math.min(gamePlays,10),completed:gamePlays>=10};
     }
-    if(gameWins>0&&!missionStates['m_game5win'].claimed){
-        missionStates['m_game5win'].progress=Math.min(gameWins,5);
-        missionStates['m_game5win'].completed=gameWins>=5;
+    if(gameWins>0&&!missionStates['m_game5win']?.claimed){
+        missionStates['m_game5win']={...missionStates['m_game5win'],progress:Math.min(gameWins,5),completed:gameWins>=5};
     }
 
-    // Auto-fill m_streak3 from daily streak
     const streak=userData.daily_streak||0;
-    if(!missionStates['m_streak3'])missionStates['m_streak3']={progress:0,completed:false,claimed:false};
-    if(!missionStates['m_streak3'].claimed){
-        missionStates['m_streak3'].progress=Math.min(streak,3);
-        missionStates['m_streak3'].completed=streak>=3;
+    if(!missionStates['m_streak3']?.claimed){
+        missionStates['m_streak3']={...missionStates['m_streak3'],progress:Math.min(streak,3),completed:streak>=3,long_term:true};
     }
-
-    // Auto-fill m_self_search from server data
-    // (server returns progress if user has done self-search today)
 
     updateMissionsUI();
-    loadSelfSearchStatus(); // check 48hr timer
+    loadSelfSearchStatus();
 }
 
 // Save claimed state to sessionStorage (date-keyed — auto resets next day)
@@ -2396,16 +2397,19 @@ async function loadLeaderboardPreview(){
 }
 let _refPage=0;
 let _allRefs=[];
+const REF_TOP_N=5;
 async function loadRefActivity(reset=true){
     if(!userData.user_id)return;
     if(reset){_refPage=0;_allRefs=[];}
     const el=document.getElementById('refActivityList');
     if(el&&reset)el.innerHTML='<div style="color:var(--text3);font-size:12px;text-align:center;padding:12px;">Loading...</div>';
     try{
-        const d=await apiGet('/api/user/'+userData.user_id+'/ref-activity?page='+_refPage+'&limit=10');
+        // Sirf top 5 pehle fetch karo (sorted by last activity)
+        const limit = reset ? REF_TOP_N : 10;
+        const d=await apiGet('/api/user/'+userData.user_id+'/ref-activity?page='+_refPage+'&limit='+limit+'&sort=activity');
         const newRefs=d||[];
         _allRefs=[..._allRefs,...newRefs];
-        renderRefActivity(_allRefs, newRefs.length>=10);
+        renderRefActivity(_allRefs, newRefs.length>=limit);
         if(newRefs.length>0) _refPage++;
     }catch(e){
         if(el)el.innerHTML='<div style="color:var(--text3);font-size:11px;text-align:center;padding:12px;">Load failed. Tap to retry.</div>';
@@ -2417,21 +2421,166 @@ async function loadRefActivity(reset=true){
 // ============================================================
 
 // ═══ BADGE SYSTEM — User ki pehchan ═══
+// ============================================================
+// BADGE SYSTEM — FilmyFund Ki Pehchan
+// Multi-criteria: pts + refs + streak + missions + games
+// ============================================================
+const BADGE_LEVELS = [
+    {
+        level:'newcomer', emoji:'🌱', label:'NEWCOMER', cls:'newcomer',
+        color:'#6b7280', glow:'rgba(107,114,128,.3)',
+        desc:'FilmyFund mein swagat hai! Apna safar shuru karo.',
+        perks:['App access','Daily bonus','Basic missions'],
+        req:'Koi bhi naya user'
+    },
+    {
+        level:'explorer', emoji:'🎬', label:'EXPLORER', cls:'explorer',
+        color:'#92400e', glow:'rgba(146,64,14,.35)',
+        desc:'Tum explore karne lage ho! Aage badho.',
+        perks:['Daily missions unlock','Refer system access','500+ pts'],
+        req:'500 pts earn karo'
+    },
+    {
+        level:'bronze', emoji:'🥉', label:'BRONZE', cls:'bronze',
+        color:'#cd7f32', glow:'rgba(205,127,50,.4)',
+        desc:'Shuruaat acchi hai! Aur mehnat karo.',
+        perks:['Sponsored offers access','2x daily bonus streak','5000+ pts'],
+        req:'5000 pts + 3 active refs + 5 missions'
+    },
+    {
+        level:'silver', emoji:'🥈', label:'SILVER', cls:'silver',
+        color:'#a8a9ad', glow:'rgba(168,169,173,.4)',
+        desc:'Chandi ki chamak! Tumhara commitment dikh raha hai.',
+        perks:['Weekly contest entry','Early offer access','25000+ pts'],
+        req:'25000 pts + 10 active refs + 3-day streak + 15 missions'
+    },
+    {
+        level:'gold', emoji:'🥇', label:'GOLD', cls:'gold',
+        color:'#f59e0b', glow:'rgba(245,158,11,.5)',
+        desc:'Sona ban gaye ho! Real FilmyFund member.',
+        perks:['Priority withdrawal','Gold badge profile frame','75000+ pts'],
+        req:'75000 pts + 25 active refs + 7-day streak + 30 missions'
+    },
+    {
+        level:'diamond', emoji:'💎', label:'DIAMOND', cls:'diamond',
+        color:'#38bdf8', glow:'rgba(56,189,248,.5)',
+        desc:'Heera! Bohot kum log yahan pahunchte hain.',
+        perks:['Monthly contest priority','Diamond profile ring','200000+ pts'],
+        req:'200000 pts + 50 active refs + 14-day streak + 60 missions'
+    },
+    {
+        level:'legend', emoji:'👑', label:'LEGEND', cls:'legend',
+        color:'#ff6b6b', glow:'rgba(255,107,107,.6)',
+        desc:'Tum FilmyFund ke LEGEND ho! Ek alag hi level.',
+        perks:['Exclusive Legend rewards','Special monthly prize','500000+ pts'],
+        req:'500000 pts + 100 active refs + 30-day streak + 100 missions'
+    }
+];
+
 function getUserBadge(data){
-    const refs = data.total_refs || data.active_refs || 0;
-    const bal  = data.total_earned || 0;
-    const pts  = Math.round((bal||0)*100);
-    if(pts>=500000||refs>=100) return {level:'legend',  emoji:'👑', label:'LEGEND',   cls:'legend'};
-    if(pts>=100000||refs>=50)  return {level:'diamond', emoji:'💎', label:'DIAMOND',  cls:'diamond'};
-    if(pts>=20000 ||refs>=25)  return {level:'gold',    emoji:'🥇', label:'GOLD',     cls:'gold'};
-    if(pts>=5000  ||refs>=10)  return {level:'silver',  emoji:'🥈', label:'SILVER',   cls:'silver'};
-    return                            {level:'bronze',  emoji:'🥉', label:'BRONZE',   cls:'bronze'};
+    const refs    = data.active_refs || data.total_refs || 0;
+    const bal     = data.total_earned || 0;
+    const pts     = Math.round((bal||0)*100);
+    const streak  = data.daily_streak || 0;
+    const missions= data.missions_claimed || 0;
+
+    if(pts>=500000 && refs>=100 && streak>=30 && missions>=100)
+        return BADGE_LEVELS[6]; // LEGEND
+    if(pts>=200000 && refs>=50  && streak>=14 && missions>=60)
+        return BADGE_LEVELS[5]; // DIAMOND
+    if(pts>=75000  && refs>=25  && streak>=7  && missions>=30)
+        return BADGE_LEVELS[4]; // GOLD
+    if(pts>=25000  && refs>=10  && streak>=3  && missions>=15)
+        return BADGE_LEVELS[3]; // SILVER
+    if(pts>=5000   && refs>=3   && missions>=5)
+        return BADGE_LEVELS[2]; // BRONZE
+    if(pts>=500)
+        return BADGE_LEVELS[1]; // EXPLORER
+    return BADGE_LEVELS[0];     // NEWCOMER
 }
+
 function renderBadgeChip(data){
-    if(!data||!data.user_id) return;  // skip if no user loaded
-    const b = getUserBadge(data);
-    const el = document.getElementById('userBadgeChip');
-    if(el) el.innerHTML = '<span class="badge-chip '+b.cls+'">'+b.emoji+' '+b.label+'</span>';
+    // Badge always updates — even with partial data
+    const b = (data && data.user_id) ? getUserBadge(data) : BADGE_LEVELS[0];
+    const chip = document.getElementById('userBadgeChip');
+    const emoji = document.getElementById('badgeEmoji');
+    const label = document.getElementById('badgeLabel');
+    if(emoji) emoji.textContent = b.emoji;
+    if(label) label.textContent = b.label;
+    if(chip){
+        chip.style.borderColor = b.color;
+        chip.style.boxShadow = `0 0 10px ${b.glow}`;
+    }
+}
+
+function showBadgeProfile(){
+    const b  = getUserBadge(userData);
+    const cur= BADGE_LEVELS.indexOf(b);
+    const next= BADGE_LEVELS[cur+1];
+    const refs    = userData.active_refs||0;
+    const pts     = toPoints(userData.total_earned||0);
+    const streak  = userData.daily_streak||0;
+    const missions= userData.missions_claimed||0;
+
+    // Progress to next badge
+    let nextHtml='';
+    if(next){
+        const nextPts  = parseInt(next.req.match(/(\d[\d,]*) pts/)?.[1]?.replace(/,/g,'')||'0');
+        const nextRefs = parseInt(next.req.match(/(\d+) active refs/)?.[1]||'0');
+        const nextMiss = parseInt(next.req.match(/(\d+) missions/)?.[1]||'0');
+        const nextStrk = parseInt(next.req.match(/(\d+)-day streak/)?.[1]||'0');
+        nextHtml=`
+        <div style="background:rgba(0,0,0,.04);border-radius:14px;padding:12px;margin-top:10px;">
+            <div style="font-size:11px;font-weight:900;color:var(--text2);margin-bottom:8px;">⬆️ ${next.emoji} ${next.label} ke liye chahiye:</div>
+            ${nextPts ? `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:11px;"><span>🏆 Points</span><span style="font-weight:900;color:${pts>=nextPts?'var(--green)':'var(--text)'}">${pts.toLocaleString()} / ${nextPts.toLocaleString()}</span></div>` : ''}
+            ${nextRefs ? `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:11px;"><span>👥 Active Refs</span><span style="font-weight:900;color:${refs>=nextRefs?'var(--green)':'var(--text)'}">${refs} / ${nextRefs}</span></div>` : ''}
+            ${nextStrk ? `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:11px;"><span>🔥 Streak</span><span style="font-weight:900;color:${streak>=nextStrk?'var(--green)':'var(--text)'}">${streak} / ${nextStrk} days</span></div>` : ''}
+            ${nextMiss ? `<div style="display:flex;justify-content:space-between;font-size:11px;"><span>🎯 Missions</span><span style="font-weight:900;color:${missions>=nextMiss?'var(--green)':'var(--text)'}">${missions} / ${nextMiss}</span></div>` : ''}
+        </div>`;
+    }else{
+        nextHtml=`<div style="text-align:center;padding:10px;font-size:13px;color:var(--gold);font-weight:900;">👑 Tum sabse upar ho! LEGEND level!</div>`;
+    }
+
+    const allBadgesHtml = BADGE_LEVELS.map((bl,i)=>{
+        const isActive = i===cur;
+        const isDone   = i<cur;
+        return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;margin-bottom:4px;background:${isActive?`linear-gradient(135deg,${bl.color}22,${bl.color}11)`:'transparent'};border:${isActive?`1.5px solid ${bl.color}`:'1px solid transparent'};">
+            <span style="font-size:22px;${isDone?'opacity:.5':''};">${bl.emoji}</span>
+            <div style="flex:1;">
+                <div style="font-size:12px;font-weight:900;color:${isActive?bl.color:isDone?'var(--text3)':'var(--text2)'};">${bl.label} ${isActive?'← TUM HO':isDone?'✅':''}</div>
+                <div style="font-size:10px;color:var(--text3);">${bl.req}</div>
+            </div>
+        </div>`;
+    }).join('');
+
+    const popup = document.createElement('div');
+    popup.id='badgeProfilePopup';
+    popup.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9200;display:flex;align-items:flex-end;justify-content:center;padding:0;animation:fadeIn .25s ease;';
+    popup.innerHTML=`
+    <div style="background:var(--bg);border-radius:28px 28px 0 0;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:20px 16px 32px;">
+        <div style="width:40px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 16px;"></div>
+        <!-- Badge Header -->
+        <div style="background:linear-gradient(135deg,${b.color}33,${b.color}11);border:2px solid ${b.color};border-radius:20px;padding:18px;text-align:center;margin-bottom:14px;position:relative;overflow:hidden;">
+            <div style="font-size:56px;margin-bottom:6px;filter:drop-shadow(0 0 12px ${b.glow});">${b.emoji}</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:22px;font-weight:900;color:${b.color};">${b.label}</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:4px;">${b.desc}</div>
+        </div>
+        <!-- Perks -->
+        <div style="margin-bottom:12px;">
+            <div style="font-size:12px;font-weight:900;color:var(--text2);margin-bottom:6px;">🎁 Is Badge Ke Fayde:</div>
+            ${b.perks.map(p=>`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;font-size:12px;"><span style="color:${b.color};">✓</span> ${p}</div>`).join('')}
+        </div>
+        <!-- Next badge progress -->
+        ${nextHtml}
+        <!-- All badges road -->
+        <div style="margin-top:14px;">
+            <div style="font-size:12px;font-weight:900;color:var(--text2);margin-bottom:6px;">🏆 Badge Journey:</div>
+            ${allBadgesHtml}
+        </div>
+        <button onclick="document.getElementById('badgeProfilePopup').remove();" style="width:100%;margin-top:16px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:12px;border-radius:16px;font-size:13px;font-weight:700;cursor:pointer;">Bandh Karo</button>
+    </div>`;
+    document.body.appendChild(popup);
+    popup.onclick=e=>{if(e.target===popup)popup.remove();};
 }
 
 function updateUI(){try{
@@ -3133,57 +3282,82 @@ function startTaskAd(){
     const timerText = document.getElementById('taskTimerText');
     const timerFill = document.getElementById('taskTimerFill');
     const claimBtn = document.getElementById('taskClaimBtn');
+    const taskArea = document.getElementById('taskAdButtonArea');
 
     if(startBtn) startBtn.style.display='none';
-    if(timerBar) timerBar.style.display='block';
 
-    // AdsGram Task: user ne button dabaya — ab task ad dikhao per docs
-    try{
-        if(typeof window.Adsgram!=='undefined'){
-            // Task blockId must be 'task-xxx' format
-            const taskCtrl = window.Adsgram.init({ blockId: ADSGRAM_TASK_BLOCK });
-            taskCtrl.show().catch(()=>{});
+    // AdsGram Task format: <adsgram-task> web component inject karo (per docs)
+    // Reward/Interstitial ke liye init().show() use hota hai, Task ke liye nahi
+    if(taskArea){
+        const existing = taskArea.querySelector('adsgram-task');
+        if(!existing){
+            const taskEl = document.createElement('adsgram-task');
+            taskEl.setAttribute('data-block-id', ADSGRAM_TASK_BLOCK);
+            taskEl.style.cssText='display:block;width:100%;margin-bottom:8px;';
+            // Reward callback
+            taskEl.addEventListener('reward', async()=>{
+                _taskAdDone = true;
+                clearInterval(_taskTimerInterval);
+                if(timerBar) timerBar.style.display='none';
+                // Direct claim on reward event
+                await _doTaskClaim();
+            });
+            taskEl.addEventListener('onBannerNotFound', ()=>{
+                // No task available — still run 15s timer
+                if(timerBar) timerBar.style.display='block';
+                _runTaskTimer(timerBar, timerText, timerFill, claimBtn);
+            });
+            taskArea.insertBefore(taskEl, timerBar);
         }
-    }catch(e){ console.log('Task ad:', e?.message||e); }
+    }
 
+    // Always run 15s timer alongside (anti-cheat)
+    if(timerBar) timerBar.style.display='block';
+    _runTaskTimer(timerBar, timerText, timerFill, claimBtn);
+}
+
+function _runTaskTimer(timerBar, timerText, timerFill, claimBtn){
     let secs = 15;
     if(timerFill) timerFill.style.width='0%';
     if(_taskTimerInterval) clearInterval(_taskTimerInterval);
     _taskTimerInterval = setInterval(()=>{
         secs--;
-        const pct = ((15 - secs) / 15) * 100;
-        if(timerFill) timerFill.style.width = pct+'%';
-        if(timerText) timerText.textContent = '⏳ '+secs+' seconds ruko...';
-        if(secs <= 0){
+        const pct = ((15-secs)/15)*100;
+        if(timerFill) timerFill.style.width=pct+'%';
+        if(timerText) timerText.textContent='⏳ '+secs+' seconds ruko...';
+        if(secs<=0){
             clearInterval(_taskTimerInterval);
             if(timerBar) timerBar.style.display='none';
             if(claimBtn) claimBtn.style.display='block';
         }
-    }, 1000);
+    },1000);
 }
 
-async function claimTaskAdReward(){
-    if(_taskAdDone) return;
-    _taskAdDone = true;
+async function _doTaskClaim(){
     const claimBtn = document.getElementById('taskClaimBtn');
-    const doneMsg = document.getElementById('taskDoneMsg');
-    if(claimBtn){claimBtn.disabled=true;claimBtn.textContent='⏳ Claiming...';}
+    const doneMsg  = document.getElementById('taskDoneMsg');
+    if(claimBtn) claimBtn.style.display='none';
     try{
-        const resp = await fetch('/api/adsgram-reward?userId='+userData.user_id+'&blockId=task-30645');
+        const resp = await fetch('/api/adsgram-reward?userId='+userData.user_id+'&blockId='+ADSGRAM_TASK_BLOCK);
         const data = await resp.json();
-        const pts = 6;
+        const pts = data.pts||6;
         userData.balance=(userData.balance||0)+(pts/100);
         userData.today_earned=(userData.today_earned||0)+(pts/100);
         updateUI();
         showToast('🎯 Task complete! +'+pts+' pts!');
         playSound('earn');
-        if(claimBtn) claimBtn.style.display='none';
         if(doneMsg) doneMsg.style.display='block';
     }catch(e){
-        _taskAdDone = false;
-        if(claimBtn){claimBtn.disabled=false;claimBtn.textContent='🎁 Claim Reward';}
+        _taskAdDone=false;
+        if(claimBtn){claimBtn.style.display='block';claimBtn.disabled=false;}
         showToast('❌ Claim failed, dobara try karo');
     }
+}
+
+async function claimTaskAdReward(){
+    if(_taskAdDone) return;
+    _taskAdDone = true;
+    await _doTaskClaim();
 }
 
 // Watch reward ad, give bonus pts
@@ -3395,10 +3569,56 @@ async function doClaimBadgeByIdx(idx){
 let refActData=[], refActPage=0;
 const REF_PAGE_SIZE=5;
 
-function renderRefActivity(acts){
-    refActData=acts||[];
-    refActPage=0;
-    renderRefPage();
+function renderRefActivity(acts, hasMore=false){
+    const el=document.getElementById('refActivityList');
+    if(!el) return;
+    if(!acts||!acts.length){
+        el.innerHTML=`<div style="color:var(--text3);font-size:11px;text-align:center;padding:16px;">${lang==='en'?'No referred users yet':'Koi referred user nahi abhi'}</div>`;
+        return;
+    }
+    // Show top N, sorted by last_activity desc (most recent first)
+    const sorted=[...acts].sort((a,b)=>{
+        const ta=a.last_activity_ts||0;
+        const tb=b.last_activity_ts||0;
+        return tb-ta;
+    });
+    const rows=sorted.map((u,i)=>{
+        const nm=u.first_name||'User';
+        const initial=nm[0].toUpperCase();
+        const [c1,c2]=nameColor(nm);
+        const isActive=u.is_active;
+        const today=new Date().toISOString().split('T')[0];
+        const lastDate=(u.last_activity||'').split('T')[0]||'';
+        let statusEl;
+        if(u.today_searched){
+            statusEl='<span style="color:var(--green);font-weight:800;font-size:10px;">✅ Aaj active</span>';
+        }else if(isActive){
+            const daysAgo=lastDate?Math.round((Date.now()-new Date(lastDate).getTime())/(86400000)):null;
+            statusEl=`<span style="color:var(--text3);font-size:10px;">${daysAgo!==null?daysAgo+'d pehle active':'Active'}</span>`;
+        }else{
+            statusEl='<span style="color:var(--gold);font-size:10px;">⏳ Pending verify</span>';
+        }
+        // Message button — for all referred users
+        const safeName = nm.replace(/'/g,'').replace(/"/g,'');
+        const msgBtn=`<button onclick="sendRefNudge(${u.user_id},'${safeName}',this)" 
+            style="background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);color:var(--blue);border-radius:8px;padding:3px 8px;font-size:9px;font-weight:800;cursor:pointer;margin-top:3px;white-space:nowrap;">
+            📩 Message</button>`;
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg2);border-radius:14px;margin-bottom:6px;border:1px solid var(--border);">
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,${c1},${c2});color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;flex-shrink:0;">${initial}</div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:12px;font-weight:900;color:var(--text);">${i<REF_TOP_N?'<span style="font-size:9px;color:var(--gold);margin-right:3px;">#'+(i+1)+'</span>':''}${nm}${u.username?'<span style="color:var(--blue);font-size:9px;margin-left:3px;">@'+u.username+'</span>':''}</div>
+                <div style="margin-top:2px;">${statusEl}</div>
+                ${msgBtn}
+            </div>
+            <span style="padding:3px 8px;border-radius:20px;font-size:9px;font-weight:900;background:${isActive?'rgba(25,216,158,.12)':'rgba(245,158,11,.12)'};color:${isActive?'var(--green)':'var(--gold)'};">${isActive?'Active':'Pending'}</span>
+        </div>`;
+    }).join('');
+
+    const loadMoreBtn = hasMore
+        ? `<button onclick="loadRefActivity(false)" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:10px;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer;margin-top:6px;">Load More Users ↓</button>`
+        : '';
+
+    el.innerHTML = rows + loadMoreBtn;
 }
 
 function renderRefPage(){
@@ -3587,27 +3807,23 @@ async function claimSingleMission(missionId,reward){
 
     _claimingMissions.add(missionId);
 
+    // Show loading on claim button
     const btn=document.querySelector(`.mission-claim-btn[onclick*="${missionId}"]`);
     if(btn){btn.disabled=true;btn.textContent='⏳ Claiming...';}
 
+    // Optimistic UI
     missionStates[missionId].claimed=true;
     saveMissionClaimed(missionId);
     updateMissionsUI();
 
     try{
-        let r = null;
-        try {
-            r = await apiPost('/api/claim-single-mission',{
-                user_id:userData.user_id,
-                mission_id:missionId,
-                reward:parseFloat(reward),
-                date:new Date(Date.now()+5.5*3600000).toISOString().split('T')[0]
-            });
-        } catch(apiErr) {
-            console.log("Server API missing or error, using frontend bypass mode", apiErr);
-            r = { success: true }; 
-        }
-        if((r && r.success) || !r){
+        const r=await apiPost('/api/claim-single-mission',{
+            user_id:userData.user_id,
+            mission_id:missionId,
+            reward:parseFloat(reward),
+            date:new Date(Date.now()+5.5*3600000).toISOString().split('T')[0]
+        });
+        if(r&&r.success){
             const mReward=parseFloat(reward);
             userData.balance=(userData.balance||0)+mReward;
             userData.total_earned=(userData.total_earned||0)+mReward;
@@ -5948,39 +6164,24 @@ async function sendRefNudge(refUserId, refName){
     }catch(e){showToast('❌ Network error');}
 }
 
-function renderRefActivity(refs, hasMore=false){
-    const el=document.getElementById('refActivity');
-    if(!el)return;
-    if(!refs||!refs.length){el.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px;font-size:12px;">Koi refer nahi abhi • Share karo!</div>';return;}
-    el.innerHTML=refs.map(r=>{
-        const isActive=r.is_active;
-        const isBlocked=r.bot_blocked;
-        const name=r.first_name||'User';
-        const pts=r.today_search?'+30pts aaj':'';
-        return `<div class="ref-act-item">
-            <div class="ref-act-dp" style="background:${isActive?'rgba(25,216,158,.15)':'rgba(251,191,36,.1)'};">
-                ${isBlocked?'🚫':isActive?'✅':'⏳'}
-            </div>
-            <div class="ref-act-info">
-                <div class="ref-act-name">${name}</div>
-                <div class="ref-act-detail">${isBlocked?'Bot block kar diya — message nahi ja sakta':isActive?'Active ✅ '+pts:'Movie search nahi ki abhi'}</div>
-            </div>
-            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-                <span class="ref-act-badge ${isActive?'badge-active':'badge-pending'}">${isActive?'ACTIVE':'PENDING'}</span>
-                ${!isBlocked&&!isActive?`<button onclick="sendRefNudge(${r.user_id},'${name}')" style="background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);color:var(--blue);border-radius:8px;padding:3px 8px;font-size:9px;font-weight:800;cursor:pointer;">📩 Nudge</button>`:''}
-            </div>
-        </div>`;
-    }).join('');
-    // Load More button
-    const existing=document.getElementById('refLoadMoreBtn');
-    if(existing)existing.remove();
-    if(hasMore){
-        const btn=document.createElement('button');
-        btn.id='refLoadMoreBtn';
-        btn.textContent='📋 Load More Referrals';
-        btn.style.cssText='width:100%;margin-top:10px;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text2);font-weight:800;font-size:12px;cursor:pointer;';
-        btn.onclick=()=>loadRefActivity(false);
-        el.after(btn);
+async function sendRefNudge(refUserId, refName, btn){
+    if(btn){btn.disabled=true;btn.textContent='📤 Sending...';}
+    try{
+        const r=await apiPost('/api/send-ref-nudge',{
+            sender_id:userData.user_id,
+            ref_user_id:refUserId,
+            sender_name:userData.first_name||'Your Referrer'
+        });
+        if(r&&r.success){
+            showToast('✅ Message bhej diya '+refName+' ko!');
+            if(btn){btn.textContent='✅ Sent!';btn.style.color='var(--green)';}
+        }else{
+            showToast('❌ '+(r?.message||'Bot block hai'));
+            if(btn){btn.disabled=false;btn.textContent='📩 Message';}
+        }
+    }catch(e){
+        showToast('❌ Network error');
+        if(btn){btn.disabled=false;btn.textContent='📩 Message';}
     }
 }
 // ═══════ NOTIFICATION SYSTEM (FULLY UPDATED) ═══════
@@ -6441,7 +6642,8 @@ async function sendBulkNudge(){
 
 async function init(){
     try{const sv=localStorage.getItem('ez_lang');if(sv)lang=sv;}catch(e){}
-    // langFab removed
+    // Show default badge immediately on load
+    renderBadgeChip({});
     checkOnboard();
     if(tg?.initDataUnsafe?.user){userData.first_name=tg.initDataUnsafe.user.first_name||'User';userData.user_id=tg.initDataUnsafe.user.id;userData.photo_url=tg.initDataUnsafe.user.photo_url||null;}
     else{const uid=new URLSearchParams(location.search).get('user_id');if(uid)userData.user_id=parseInt(uid);}
@@ -6464,11 +6666,11 @@ async function init(){
 document.addEventListener('DOMContentLoaded',init);
 
 // ============================================================
-// ADSGRAM — Reward Block: 30643 | Task Block: task-30645
+// ADSGRAM — Reward Block: 30637 | Task Block: task-30639
 // ============================================================
-const ADSGRAM_REWARD_BLOCK = '30643';
-const ADSGRAM_TASK_BLOCK   = 'task-30645';
-const ADSGRAM_INT_BLOCK    = 'int-30644';  // Interstitial
+const ADSGRAM_REWARD_BLOCK = '31421';
+const ADSGRAM_TASK_BLOCK   = 'task-31423';
+const ADSGRAM_INT_BLOCK    = 'int-31422';  // Interstitial
 
 let rewardController = null;
 let taskController   = null;
@@ -6537,9 +6739,9 @@ async function initAdsGram() {
             setTimeout(initAdsGram, 2000);
             return;
         }
-        // Reward ad controller (blockId: 30643)
+        // Reward ad controller (blockId: 30637)
         rewardController = window.Adsgram.init({ blockId: ADSGRAM_REWARD_BLOCK });
-        // Interstitial ad controller (blockId: int-30644)
+        // Interstitial ad controller (blockId: int-30638)
         intController    = window.Adsgram.init({ blockId: ADSGRAM_INT_BLOCK });
         // Task: custom buttons use kar rahe hain — no init needed per AdsGram docs
         _adsgramInited = true;
@@ -6689,127 +6891,5 @@ function closeRandomAdPopup() {
     if (p) p.remove();
 }
 </script>
-
-<!-- LUCKY SPIN WHEEL FEATURE -->
-<div id="spinWheelTab" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:9999; padding:20px; overflow-y:auto; box-sizing:border-box; font-family:'Nunito', sans-serif;">
-    <div style="display:flex; justify-content:between; align-items:center; margin-bottom:20px;">
-        <h2 style="color:var(--text1); margin:0; font-size:24px;">🎰 Lucky Spin & Earn</h2>
-        <button onclick="document.getElementById('spinWheelTab').style.display='none';" style="background:var(--primary); color:#000; border:none; padding:8px 16px; border-radius:8px; font-weight:bold; cursor:pointer;">Back</button>
-    </div>
-    
-    <div style="background:var(--surface); border-radius:16px; padding:20px; text-align:center; box-shadow:0 8px 24px rgba(0,0,0,0.2);">
-        <p style="color:var(--text2); font-size:14px; margin-bottom:10px;">Spin the wheel to win random points daily!</p>
-        <div id="spinCounter" style="font-size:16px; font-weight:bold; color:var(--accent); margin-bottom:20px;">Free Spins Left: 3</div>
-        
-        <!-- Visual Wheel -->
-        <div style="position:relative; width:260px; height:260px; margin:0 auto 20px;">
-            <div id="wheelCanvas" style="width:100%; height:100%; border-radius:50%; border:8px solid var(--primary); background:conic-gradient(#ff3b30 0deg 60deg, #ffcc00 60deg 120deg, #34c759 120deg 180deg, #007aff 180deg 240deg, #af52de 240deg 300deg, #ff9500 300deg 360deg); transition: transform 4s cubic-bezier(0.1, 1, 0.1, 1); box-sizing:border-box; display:flex; align-items:center; justify-content:center;">
-                <div style="color:#fff; font-weight:900; font-size:24px; text-shadow:1px 1px 4px #000;">🎁 LUCKY 🎁</div>
-            </div>
-            <div style="position:absolute; top:-10px; left:50%; transform:translateX(-50%); width:0; height:0; border-left:15px solid transparent; border-right:15px solid transparent; border-top:25px solid var(--accent); z-index:10;"></div>
-        </div>
-
-        <button id="spinBtn" onclick="startLuckySpin();" style="width:100%; background:var(--primary); color:#000; font-size:18px; font-weight:bold; padding:14px; border:none; border-radius:12px; cursor:pointer; box-shadow:0 4px 12px var(--primary-shadow);">🎰 SPIN NOW</button>
-        <button id="watchAdSpinBtn" onclick="watchAdForExtraSpin();" style="display:none; width:100%; background:#34c759; color:#fff; font-size:16px; font-weight:bold; padding:14px; border:none; border-radius:12px; cursor:pointer; margin-top:10px;">📺 Watch Ad to Get 1 Spin</button>
-    </div>
-</div>
-
-<script>
-let freeSpinsLeft = 3;
-let isSpinning = false;
-
-function openSpinWheel() {
-    document.getElementById('spinWheelTab').style.display = 'block';
-    updateSpinUI();
-}
-
-function updateSpinUI() {
-    const counter = document.getElementById('spinCounter');
-    const spinBtn = document.getElementById('spinBtn');
-    const adBtn = document.getElementById('watchAdSpinBtn');
-    
-    if (freeSpinsLeft > 0) {
-        counter.textContent = `🎉 Free Spins Left: ${freeSpinsLeft}`;
-        spinBtn.style.display = 'block';
-        adBtn.style.display = 'none';
-    } else {
-        counter.textContent = `❌ No Free Spins Left! Watch an ad to spin again!`;
-        spinBtn.style.display = 'none';
-        adBtn.style.display = 'block';
-    }
-}
-
-function startLuckySpin() {
-    if (isSpinning) return;
-    if (freeSpinsLeft <= 0) {
-        showToast("❌ Adsgram Video Ad dekho spin ke liye!");
-        return;
-    }
-    
-    isSpinning = true;
-    freeSpinsLeft--;
-    updateSpinUI();
-    
-    const randomDeg = Math.floor(3600 + Math.random() * 360);
-    const wheel = document.getElementById('wheelCanvas');
-    wheel.style.transform = `rotate(${randomDeg}deg)`;
-    
-    setTimeout(() => {
-        isSpinning = false;
-        // Random reward points between 10 to 50
-        const rewards = [10, 20, 30, 15, 25, 50];
-        const finalReward = rewards[Math.floor(Math.random() * rewards.length)];
-        
-        userData.balance = (userData.balance || 0) + (finalReward / 100);
-        userData.today_earned = (userData.today_earned || 0) + (finalReward / 100);
-        if (typeof updateUI === 'function') updateUI();
-        
-        showToast(`🎉 Mubarak ho! +${finalReward} pts mila!`);
-        wheel.style.transition = 'none';
-        wheel.style.transform = `rotate(${randomDeg % 360}deg)`;
-        setTimeout(() => { wheel.style.transition = 'transform 4s cubic-bezier(0.1, 1, 0.1, 1)'; }, 50);
-        updateSpinUI();
-    }, 4000);
-}
-
-async function watchAdForExtraSpin() {
-    const adBtn = document.getElementById('watchAdSpinBtn');
-    adBtn.disabled = true;
-    adBtn.textContent = '⏳ Loading Ad...';
-    
-    try {
-        if (typeof window.Adsgram === 'undefined') {
-            showToast('❌ Ad Server unreachable');
-            adBtn.disabled = false;
-            adBtn.textContent = '📺 Watch Ad to Get 1 Spin';
-            return;
-        }
-        let scr = window.Adsgram.init({ blockId: '30643' });
-        await scr.show();
-        
-        freeSpinsLeft++;
-        showToast('🎁 +1 Spin mila! Chalo spin karo!');
-        updateSpinUI();
-    } catch(e) {
-        showToast('❌ Ad poori dekho spin paane ke liye');
-    } finally {
-        adBtn.disabled = false;
-        adBtn.textContent = '📺 Watch Ad to Get 1 Spin';
-    }
-}
-
-// Add a quick visual floating button for Spin Wheel if possible or add trigger logic
-setTimeout(() => {
-    const mainPage = document.body;
-    if(mainPage) {
-        const floatBtn = document.createElement('div');
-        floatBtn.innerHTML = `🎰 Lucky Spin`;
-        floatBtn.style.cssText = "position:fixed; bottom:80px; right:20px; background:var(--accent); color:#fff; padding:10px 14px; border-radius:30px; font-weight:bold; font-size:12px; z-index:999; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.3); border:2px solid #fff;";
-        floatBtn.onclick = openSpinWheel;
-        document.body.appendChild(floatBtn);
-    }
-}, 3000);
-</script>
-
 </body>
 </html>
