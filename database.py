@@ -1173,11 +1173,15 @@ class Database:
 
             if not completed or progress < mdef['total']:
                 user = self.get_user(user_id)
-                if mission_id == 'm_refer5' and user:
-                    completed = user.get('active_refs', 0) >= mdef['total']
-                    progress  = min(user.get('active_refs', 0), mdef['total'])
+                if mission_id in ('m_refer5', 'm_refer10') and user:
+                    refs = user.get('active_refs', 0)
+                    completed = refs >= mdef['total']
+                    progress  = min(refs, mdef['total'])
                 elif mission_id == 'm_daily':
-                    bonus_today = self.daily_bonus.find_one({'user_id': user_id, 'date': today})
+                    # Check both UTC and IST dates (timezone mismatch fix)
+                    bonus_utc = self.daily_bonus.find_one({'user_id': user_id, 'date': server_today})
+                    bonus_ist = self.daily_bonus.find_one({'user_id': user_id, 'date': ist_today})
+                    bonus_today = bonus_utc or bonus_ist
                     completed   = bool(bonus_today)
                     progress    = 1 if bonus_today else 0
                 elif mission_id == 'm_game':
@@ -1185,18 +1189,21 @@ class Database:
                     plays     = (state.get('wins', 0) if state else 0) + (state.get('plays', 0) if state else 0)
                     progress  = min(plays, mdef['total'])
                     completed = progress >= mdef['total']
+                elif mission_id == 'm_game50' and user:
+                    total_plays = user.get('total_game_plays', 0)
+                    progress    = min(total_plays, mdef['total'])
+                    completed   = total_plays >= mdef['total']
                 elif mission_id == 'm_self_search':
                     completed = bool(user and user.get('last_self_search', '')[:10] == today)
                     progress  = 1 if completed else 0
-                elif mission_id == 'm_streak3' and user:
+                elif mission_id in ('m_streak3', 'm_streak7') and user:
                     streak    = user.get('daily_streak', 0)
                     progress  = min(streak, mdef['total'])
                     completed = streak >= mdef['total']
                 elif mission_id == 'm_shortlink':
-                    # Check if any referred user completed shortlink
                     ref = self.referrals.find_one({'referrer_id': user_id, 'is_active': True})
                     completed = bool(ref); progress = 1 if ref else 0
-                elif mission_id == 'm_game5win' and user:
+                elif mission_id in ('m_game5win',) and user:
                     wins      = user.get('games_won', 0)
                     progress  = min(wins, mdef['total'])
                     completed = wins >= mdef['total']
@@ -1204,8 +1211,22 @@ class Database:
                     wd        = self.withdrawals.find_one({'user_id': user_id, 'request_date': {'$gte': today}})
                     completed = bool(wd); progress = 1 if wd else 0
                 elif mission_id == 'm_passes':
-                    cl        = self.daily_claims.find_one({'user_id': user_id, 'claimed_at': {'$gte': today}})
+                    cl = self.daily_claims.find_one({'user_id': user_id, 'claimed_at': {'$gte': today}})
                     completed = bool(cl); progress = 1 if cl else 0
+                elif mission_id == 'm_search5':
+                    # Check if 5 referred users searched today
+                    refs_list = list(self.referrals.find({'referrer_id': user_id}))
+                    searched = sum(1 for r in refs_list if r.get('last_search_date','')[:10]==today)
+                    progress  = min(searched, mdef['total'])
+                    completed = searched >= mdef['total']
+                elif mission_id in ('m_invite1',):
+                    # Check if invited anyone today (any new referral today)
+                    new_ref = self.referrals.find_one({'referrer_id': user_id, 'created_at': {'$gte': today}})
+                    completed = bool(new_ref); progress = 1 if new_ref else 0
+                elif mission_id == 'm_watchad':
+                    # Check watch_ad_today field on user
+                    completed = bool(user and user.get('watch_ad_today','')[:10]==today)
+                    progress  = 1 if completed else 0
                 else:
                     completed = progress >= mdef['total']
 
@@ -1238,13 +1259,8 @@ class Database:
             return {'success': True, 'reward': float(reward)}
 
         except Exception as e:
-            logger.error(f"Error claiming mission: {e}")
+            logger.error(f"Error claiming mission {mission_id} for user {user_id}: {e}")
             return {'success': False, 'message': 'Server error'}
-            err = str(e)
-            if 'duplicate' in err.lower() or 'E11000' in err:
-                # Race condition — already claimed by another request, silently accept
-                return {'success': False, 'message': 'Already claimed'}
-            logger.error(f"Mission claim error {mission_id}: {e}")
             return {'success': False, 'message': 'Try again'}
 
     # ========== ADS — UPDATED: timer_seconds field ==========
