@@ -916,7 +916,7 @@
                         <div style="font-family:'Fredoka One',cursive;font-weight:900;font-size:13px;color:var(--text);line-height:1.2;">Watch &amp; Earn</div>
                         <div style="font-size:10px;color:var(--text3);">Ad dekho, pao pts</div>
                     </div>
-                    <div style="background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;padding:4px 8px;border-radius:16px;font-size:10px;font-weight:900;white-space:nowrap;flex-shrink:0;">+10 pts</div>
+                    <div style="background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;padding:4px 8px;border-radius:16px;font-size:10px;font-weight:900;white-space:nowrap;flex-shrink:0;">+5 pts</div>
                 </div>
                 <button id="rewardAdBtn" onclick="showRewardAd()" style="width:100%;background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;border:none;border-radius:22px;padding:9px 4px;font-weight:900;font-size:11px;cursor:pointer;font-family:'Fredoka One',cursive;">▶ Ad Dekho</button>
                 <div id="rewardAdStatus" style="font-size:9px;color:var(--text3);text-align:center;min-height:12px;"></div>
@@ -4988,7 +4988,7 @@ async function watchAdForPass(){
 let mazeBet=1,mazeDiff='easy',mazeTimer=0,mazeInterval=null;
 let mazeActive=false,mazeMoveCount=0;
 let mazeGrid=[],mazePlayer={x:1,y:1},mazeBoxes=[],mazeTargets=[];
-const MAZE_DIFFS={easy:{time:120,pts:300,boxes:2,sz:7},medium:{time:90,pts:600,boxes:3,sz:9},hard:{time:60,pts:1000,boxes:4,sz:11}};
+const MAZE_DIFFS={easy:{time:120,pts:5,boxes:2,sz:7},medium:{time:90,pts:8,boxes:3,sz:9},hard:{time:60,pts:10,boxes:4,sz:11}};
 
 // Premade Sokoban levels (guaranteed solvable)
 const SOKOBAN_LEVELS={
@@ -5163,13 +5163,14 @@ async function finishMaze(won){
     const betPts=toPoints(mazeBet);
     let pts=0;
     if(won){
+        // cfg.pts already capped at 5/8/10
         const tBonus=mazeTimer/cfg.time;
-        const mBonus=Math.max(0,1-mazeMoveCount/(mazeBoxes.length*30));
-        pts=Math.floor(betPts*(cfg.pts/100)*(0.6+tBonus*0.25+mBonus*0.15)+betPts*0.5);
+        pts=Math.min(Math.floor(cfg.pts*(0.7+tBonus*0.3)), cfg.pts);
     }else{
         const done=mazeBoxes.filter(b=>mazeTargets.some(t=>t.x===b.x&&t.y===b.y)).length;
-        pts=Math.floor(betPts*(done/Math.max(mazeBoxes.length,1))*(cfg.pts/400));
+        pts=done>0?1:0; // partial = 1pt only
     }
+    pts=Math.min(pts,10); // hard cap
     const rup=fromPoints(pts);
     if(rup>0){
         if(!window._mazeTry)await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'maze',bet:mazeBet,survived_seconds:cfg.time-mazeTimer});
@@ -5200,7 +5201,8 @@ let snakeBet=1,snakeActive=false,snakeTimer=60,snakeInterval=null,snakeFrameId=n
 let snake=[],snakeDirV={x:1,y:0},snakeNextDir={x:1,y:0};
 let snakeFood={x:5,y:5},snakeScore=0,snakeCS=20,snakeCvs=null,snakeCTX=null,snakeLastMove=0;
 const SN=16;
-const SN_TARGETS=[{dots:5,secs:60,bonus:50,txt:'5 dots=+50'},{dots:10,secs:45,bonus:150,txt:'10 dots=+150'},{dots:15,secs:30,bonus:400,txt:'15 dots=+400'}];
+// Snake targets — realistic, max ~10pts total
+const SN_TARGETS=[{dots:5,secs:60,bonus:2,txt:'5 dots=+2'},{dots:10,secs:45,bonus:3,txt:'10 dots=+3'},{dots:15,secs:30,bonus:5,txt:'15 dots=+5'}];
 
 function openSnakeGame(){
     document.getElementById('snakeBal').textContent=fmtPts(toPoints(userData.balance||0));
@@ -5254,7 +5256,7 @@ async function startSnake(tryFree){
         if(head.x===snakeFood.x&&head.y===snakeFood.y){snakeScore++;placeFood();playSound('tap');}else snake.pop();
         drawSnake();
         document.getElementById('snakeScore').textContent='🍎 '+snakeScore;
-        document.getElementById('snakeEarning').textContent=(snakeScore*15)+' pts';
+        document.getElementById('snakeEarning').textContent=Math.min(Math.floor(snakeScore*0.5),10)+' pts';
     }
     snakeFrameId=requestAnimationFrame(loop);
     snakeInterval=setInterval(()=>{if(!snakeActive){clearInterval(snakeInterval);return;}snakeTimer--;document.getElementById('snakeTimer').textContent=snakeTimer+'s';if(snakeTimer<=0){snakeActive=false;clearInterval(snakeInterval);cancelAnimationFrame(snakeFrameId);finishSnake();}},1000);
@@ -5305,9 +5307,10 @@ async function finishSnake(){
     if(snakeInterval)clearInterval(snakeInterval);if(snakeFrameId)cancelAnimationFrame(snakeFrameId);
     snakeActive=false;document.onkeydown=null;
     const betPts=toPoints(snakeBet);
-    let pts=snakeScore*betPts*15;
-    const elapsed=60-snakeTimer;
+    // Max 10 pts per game — 0.5pt per dot, capped
+    let pts=Math.min(Math.floor(snakeScore*0.5), 8);
     SN_TARGETS.forEach(t=>{if(snakeScore>=t.dots&&elapsed<=t.secs){pts+=t.bonus;showToast('🎯 Target! +'+t.bonus+' pts!');}});
+    pts=Math.min(pts,10); // hard cap 10pts
     const rup=fromPoints(pts);
     if(rup>0){
         if(!window._snakeTry)await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'snake',bet:1,survived_seconds:snakeScore});
@@ -5658,11 +5661,10 @@ async function startBlockBlast(){
 function drawBlockGame(){
     const canvas=document.getElementById('blockCanvas');
     if(!canvas)return;
-    const parent = canvas.parentElement;
-    const parentW = parent ? parent.offsetWidth : 0;
-    const W = parentW > 10 ? parentW - 4 : 320;
+    // Use window width as reliable fallback
+    const W = Math.min(window.innerWidth - 32, 340);
     const cs=Math.floor(W/BB_COLS);
-    if(cs <= 0) return;
+    if(cs <= 0){ setTimeout(()=>drawBlockGame(),150); return; }
     canvas.width=cs*BB_COLS;canvas.height=cs*BB_ROWS;
     // Add event listeners once
     if(!canvas._bbEventsAdded){
@@ -5791,18 +5793,17 @@ function handleBlockTap(evt){
     if(!placed){showToast('❌ Yahan fit nahi hoga! Dusri jagah try karo');playSound('click');return;}
     const cleared=clearLines();
     if(cleared>0){
-        const bonus=cleared*cleared*50*blockLevel;
+        const bonus=cleared; // 1pt per line cleared (max ~8-10 lines in a game)
         blockScore+=bonus;
         showToast('🔥 '+cleared+' Line Clear! +'+bonus+' pts');
         playSound('earn'); triggerConfetti();
-        if(blockScore>blockLevel*blockLevel*300){blockLevel++;showToast('⬆️ Level '+blockLevel+' Unlocked! Getting harder!');playSound('levelup');
-            // Add some pre-filled blocks to make it harder at higher levels
+        if(blockScore>blockLevel*5){blockLevel++;showToast('⬆️ Level '+blockLevel+'! Getting harder!');playSound('levelup');
             if(blockLevel>2){ const filledCells=blockLevel-1;
                 for(let f=0;f<filledCells;f++){ const fr=Math.floor(Math.random()*3)+BB_ROWS-4; const fc=Math.floor(Math.random()*BB_COLS); if(!blockGrid[fr][fc]) blockGrid[fr][fc]=BB_COLORS[Math.floor(Math.random()*BB_COLORS.length)]; }
             }
         }
     }else{
-        blockScore+=piece.shape.flat().filter(Boolean).length*5;
+        // piece place — no pts (only line clears give pts)
         playSound('tap');
     }
     drawBlockGame();
@@ -5817,9 +5818,10 @@ function handleBlockTap(evt){
 
 async function finishBlockBlast(){
     blockActive=false;
-    const pts=blockScore;const rup=fromPoints(pts);
+    const pts=Math.min(blockScore, 10); // max 10pts
+    const rup=fromPoints(pts);
     if(rup>0){
-        await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'blockblast',bet:0,survived_seconds:blockScore});
+        await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'blockblast',bet:0,survived_seconds:pts});
         userData.balance=(userData.balance||0)+rup;
         userData.today_earned=(userData.today_earned||0)+rup;
         updateUI();showFloatingPts(pts);triggerConfetti();
@@ -5961,11 +5963,14 @@ async function startGemMatch(){
 function drawGemGrid(){
     const container=document.getElementById('gemGrid');
     if(!container)return;
-    const parent = container.parentElement;
-    const parentW = parent ? parent.offsetWidth : 0;
-    const W = parentW > 10 ? parentW - 8 : 320;
+    // Get width from modal-inner or screen width
+    const modalInner = container.closest('.modal-inner') || container.closest('.modal');
+    const W = Math.min(
+        modalInner ? modalInner.offsetWidth - 20 : window.innerWidth - 32,
+        320
+    );
     const cs=Math.floor(W/GM_COLS);
-    if(cs <= 0) return;
+    if(cs <= 0){ setTimeout(()=>drawGemGrid(),100); return; }
     container.style.width=cs*GM_COLS+'px';
     container.style.display='grid';
     container.style.gridTemplateColumns=`repeat(${GM_COLS},${cs}px)`;
@@ -6869,24 +6874,42 @@ async function sendBulkNudge(){
 
 async function init(){
     try{const sv=localStorage.getItem('ez_lang');if(sv)lang=sv;}catch(e){}
-    // Show starter badge immediately on load
+    // Show starter badge immediately
     renderBadgeChip({active_refs:0});
     checkOnboard();
-    if(tg?.initDataUnsafe?.user){userData.first_name=tg.initDataUnsafe.user.first_name||'User';userData.user_id=tg.initDataUnsafe.user.id;userData.photo_url=tg.initDataUnsafe.user.photo_url||null;}
-    else{const uid=new URLSearchParams(location.search).get('user_id');if(uid)userData.user_id=parseInt(uid);}
-    // FIXED: Critical data first, non-critical staggered
-    await Promise.all([loadUser(),loadBonusDays(),loadMissions()]);
+
+    // Step 1: Get user_id from Telegram or URL
+    if(tg?.initDataUnsafe?.user){
+        userData.user_id = tg.initDataUnsafe.user.id;
+        userData.first_name = tg.initDataUnsafe.user.first_name||'User';
+        userData.photo_url = tg.initDataUnsafe.user.photo_url||null;
+    } else {
+        const uid = new URLSearchParams(location.search).get('user_id');
+        if(uid) userData.user_id = parseInt(uid);
+    }
+
+    // Step 2: Load user FIRST — must complete before missions/bonus
+    await loadUser();
+
+    // Step 3: Now user_id is set — load dependent data
+    if(userData.user_id){
+        await Promise.all([loadBonusDays(), loadMissions()]);
+    }
+
     checkHappyHours();
-    drawWheel(0);updateUI();updateMissionsUI();
+    drawWheel(0);
+    updateUI();
+    updateMissionsUI();
     setLang(lang);
     showToast('✅ FilmyFund Ready!');
-    // Non-critical — staggered to keep UI smooth
-    setTimeout(()=>{loadGameState();loadAds();},400);
+
+    // Non-critical staggered
+    setTimeout(()=>{loadGameState();loadAds();initAdsGram();},400);
     setTimeout(()=>{loadLiveActivity();checkShortlinkReminder();checkStreakChallenge();},800);
-    setTimeout(()=>{loadNotifications();checkBroadcastNotifications();loadLeaderboardPreview();},1200);
-    setInterval(loadLiveActivity,30000);
+    setTimeout(()=>{loadNotifications();checkBroadcastNotifications();loadLeaderboardPreview();scheduleRandomPopupAd();},1200);
+    setInterval(loadLiveActivity, 30000);
     setInterval(checkBroadcastNotifications, 60000);
-    setInterval(async()=>{await loadUser();await loadGameState();checkShortlinkReminder();checkStreakChallenge();},60000);
+    setInterval(async()=>{await loadUser();await loadGameState();checkShortlinkReminder();checkStreakChallenge();}, 60000);
 }
 
 
