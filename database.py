@@ -709,7 +709,7 @@ class Database:
                 return {'success': False, 'message': 'Already claimed or not eligible'}
 
             self.add_balance(user_id, reward, f"Milestone bonus: {refs_required} refs")
-            self.add_live_activity('milestone', user_id, reward, f"Milestone {refs_required} refs → +₹{reward}")
+            self.add_live_activity('milestone', user_id, reward, f"Milestone {refs_required} refs → +{int(float(reward)*100)} pts")
             logger.info(f"✅ Milestone claimed: user={user_id} refs={refs_required} reward=₹{reward}")
             return {'success': True, 'reward': reward}
 
@@ -965,7 +965,7 @@ class Database:
             self.add_balance(user_id, self.config.CHANNEL_JOIN_BONUS, "Channel join bonus")
             self.users.update_one({'user_id': user_id}, {'$set': {'channel_joined': True}})
             self.user_cache.pop(f"user_{user_id}", None)
-            self.add_live_activity('bonus', user_id, self.config.CHANNEL_JOIN_BONUS, f"joined channel +₹{self.config.CHANNEL_JOIN_BONUS}")
+            self.add_live_activity('bonus', user_id, self.config.CHANNEL_JOIN_BONUS, f"joined channel +{int(float(self.config.CHANNEL_JOIN_BONUS)*100)} pts")
             return True
         except Exception as e:
             logger.error(f"Error marking channel join: {e}")
@@ -1043,16 +1043,23 @@ class Database:
     # ========== MISSIONS ==========
 
     MISSIONS_DEF = [
-        {'id': 'm_refer5',      'total': 5,  'reward': 2.0,  'track': 'active_refs',   'long_term': True},
-        {'id': 'm_search5',     'total': 5,  'reward': 1.0,  'track': 'daily_search',  'long_term': False},
+        # Daily missions
+        {'id': 'm_daily',       'total': 1,  'reward': 0.10, 'track': 'daily_bonus',   'long_term': False},
         {'id': 'm_self_search', 'total': 1,  'reward': 0.50, 'track': 'self_search',   'long_term': False},
-        {'id': 'm_shortlink',   'total': 1,  'reward': 1.0,  'track': 'shortlink',     'long_term': True},
+        {'id': 'm_search5',     'total': 5,  'reward': 1.0,  'track': 'daily_search',  'long_term': False},
         {'id': 'm_game',        'total': 10, 'reward': 1.0,  'track': 'game_plays',    'long_term': False},
         {'id': 'm_game5win',    'total': 5,  'reward': 1.5,  'track': 'game_wins',     'long_term': False},
         {'id': 'm_passes',      'total': 1,  'reward': 1.0,  'track': 'pass_purchase', 'long_term': False},
-        {'id': 'm_daily',       'total': 1,  'reward': 0.10, 'track': 'daily_bonus',   'long_term': False},
-        {'id': 'm_streak3',     'total': 3,  'reward': 1.0,  'track': 'streak',        'long_term': True},
         {'id': 'm_withdraw',    'total': 1,  'reward': 1.0,  'track': 'withdraw',      'long_term': False},
+        {'id': 'm_invite1',     'total': 1,  'reward': 0.50, 'track': 'invite_daily',  'long_term': False},
+        {'id': 'm_watchad',     'total': 1,  'reward': 0.10, 'track': 'watch_ad',      'long_term': False},
+        # Long-term missions
+        {'id': 'm_refer5',      'total': 5,  'reward': 2.0,  'track': 'active_refs',   'long_term': True},
+        {'id': 'm_shortlink',   'total': 1,  'reward': 1.0,  'track': 'shortlink',     'long_term': True},
+        {'id': 'm_streak3',     'total': 3,  'reward': 1.0,  'track': 'streak',        'long_term': True},
+        {'id': 'm_refer10',     'total': 10, 'reward': 5.0,  'track': 'active_refs',   'long_term': True},
+        {'id': 'm_streak7',     'total': 7,  'reward': 3.0,  'track': 'streak',        'long_term': True},
+        {'id': 'm_game50',      'total': 50, 'reward': 5.0,  'track': 'total_plays',   'long_term': True},
     ]
 
     # Long-term missions use 'lt_' prefix key (no date) — daily use date key
