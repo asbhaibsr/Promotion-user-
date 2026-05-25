@@ -626,7 +626,7 @@ class Handlers:
             except Exception as e:
                 logger.error(f"Notify user {user_id} FAILED: {e}")
 
-                else:
+        else:
             # ── Already active — daily search record karo ──
             reason = result.get('reason', 'unknown') if result else 'no_result'
             logger.info(f"Referral already active for {user_id} (reason={reason}) — recording daily search")
