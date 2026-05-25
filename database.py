@@ -983,9 +983,14 @@ class Database:
                 claim_date = datetime.fromisoformat(date_str).date()
             except:
                 return None
-            today = datetime.now().date()
-            if claim_date != today:
+            # Use IST date (India +5:30) — accept both UTC and IST dates
+            from datetime import timezone, timedelta as _td_bonus
+            ist_today = (datetime.now(timezone.utc) + _td_bonus(hours=5, minutes=30)).date()
+            utc_today = datetime.now().date()
+            if claim_date not in (ist_today, utc_today):
                 return None
+            # Use IST date string as canonical
+            today = ist_today
             existing = self.daily_bonus.find_one({'user_id': user_id, 'date': date_str})
             if existing:
                 return None
@@ -1065,7 +1070,8 @@ class Database:
     # Long-term missions use 'lt_' prefix key (no date) — daily use date key
     def _mission_key(self, mdef, user_id):
         if mdef.get('long_term'):
-            return {'user_id': user_id, 'mission_id': mdef['id'], 'long_term': True}
+            # Long-term: query by user_id + mission_id only (no date, no long_term field req)
+            return {'user_id': user_id, 'mission_id': mdef['id']}
         else:
             # Always use IST date (India +5:30) to avoid UTC midnight mismatch
             from datetime import timezone, timedelta as _td_mk
@@ -1169,7 +1175,27 @@ class Database:
             # ── STEP 1: Check already claimed ──────────────
             doc = self.missions.find_one(query)
             if doc and doc.get('claimed'):
-                return {'success': False, 'message': 'Already claimed'}
+                if is_lt:
+                    # Long-term: verify if user still meets the requirement
+                    # If yes, they might be claiming again after a reset that failed to delete
+                    # Delete the stale doc and let them re-claim
+                    user_check = self.get_user(user_id)
+                    meets = False
+                    if mission_id in ('m_refer5','m_refer10') and user_check:
+                        meets = user_check.get('active_refs',0) >= mdef['total']
+                    elif mission_id in ('m_streak3','m_streak7') and user_check:
+                        meets = user_check.get('daily_streak',0) >= mdef['total']
+                    elif mission_id == 'm_shortlink':
+                        meets = bool(self.referrals.find_one({'referrer_id': user_id, 'is_active': True}))
+                    if meets:
+                        # Delete stale claimed doc so they can claim fresh
+                        self.missions.delete_one(query)
+                        doc = None
+                        logger.info(f"♻️ Stale claimed doc deleted for {mission_id} user={user_id}")
+                    else:
+                        return {'success': False, 'message': 'Already claimed'}
+                else:
+                    return {'success': False, 'message': 'Already claimed'}
 
             # ── STEP 2: Verify mission is actually completed ──
             # Always re-verify from live data — don't trust only DB doc
@@ -1416,8 +1442,9 @@ class Database:
             amount = float(amount)
             if amount <= 0:
                 return False
-            today = datetime.now().date().isoformat()
-            # Reset today_earned if it's a new day
+            from datetime import timezone as _tz_ab, timedelta as _td_ab
+            today = (datetime.now(_tz_ab.utc) + _td_ab(hours=5, minutes=30)).date().isoformat()
+            # Reset today_earned if it's a new day (IST)
             user = self.users.find_one({'user_id': user_id}, {'today_date': 1, 'today_earned': 1})
             if user and user.get('today_date') != today:
                 # New day — reset today_earned
