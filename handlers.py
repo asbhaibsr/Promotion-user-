@@ -189,7 +189,7 @@ class Handlers:
 
             # Welcome message
             ref_link = f"https://t.me/{self.config.BOT_USERNAME}?start=ref_{user.id}"
-            movie_group = getattr(self.config, 'MOVIE_GROUP_LINK', 'https://t.me/asfilter_group')
+            movie_group = getattr(self.config, 'MOVIE_GROUP_LINK', 'https://t.me/all_movies_webseries_is_here')
 
             if referrer_id and is_new:
                 welcome_text = (
@@ -564,9 +564,11 @@ class Handlers:
 
             logger.info(f"✅ REFERRAL ACTIVATED: user={user_id} ({name}) → referrer={referrer_id}")
 
-            # Referrer ko khushkhabri
+            # Referrer ko khushkhabri (improved message)
             if referrer_id:
                 try:
+                    ref_pts = int(float(self.config.REFERRAL_BONUS) * 100)
+                    daily_pts = int(float(self.config.DAILY_REFERRAL_EARNING) * 100)
                     await context.bot.send_message(
                         chat_id=referrer_id,
                         text=(
@@ -574,9 +576,10 @@ class Handlers:
                             f"👤 User: *{name}*\n"
                             f"✅ Shortlink complete kar li!\n\n"
                             f"🎟️ *+3 Passes* add ho gaye!\n"
-                            f"💰 *+₹{self.config.REFERRAL_BONUS}* balance mein add!\n\n"
-                            f"💡 Ab jab bhi ye user movie search karega,\n"
-                            f"aapko *₹{self.config.DAILY_REFERRAL_EARNING} daily* milega!"
+                            f"💰 *+{ref_pts} pts* balance mein add!\n\n"
+                            f"🔁 Ab jab bhi ye user movie search karega,\n"
+                            f"aapko *{daily_pts} pts daily* milega!\n\n"
+                            f"📱 Mini App pe jaake apna balance check karo!"
                         ),
                         parse_mode=ParseMode.MARKDOWN
                     )
@@ -584,20 +587,31 @@ class Handlers:
                 except Exception as e:
                     logger.error(f"Notify referrer {referrer_id} FAILED: {e}")
 
-            # Referred user ko bhi batao
+            # Referred user ko bhi batao (improved with movie group button)
             try:
-                keyboard = [[InlineKeyboardButton(
-                    "💰 Start Earning",
-                    web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user_id}")
-                )]]
+                movie_link = getattr(self.config, 'MOVIE_GROUP_LINK', 'https://t.me/all_movies_webseries_is_here')
+                keyboard = [
+                    [InlineKeyboardButton(
+                        "💰 Earning Shuru Karo!",
+                        web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user_id}")
+                    )],
+                    [InlineKeyboardButton("🎬 Movie Group Join Karo", url=movie_link)]
+                ]
                 await context.bot.send_message(
                     chat_id=user_id,
                     text=(
-                        f"✅ *Aap Verify Ho Gaye!*\n\n"
-                        f"Shortlink complete ho gayi!\n"
-                        f"Aapke referrer *{referrer_name}* ko bonus mil gaya. 🎁\n\n"
-                        f"📱 Mini App kholo aur daily earning shuru karo!\n"
-                        f"Roz movie search karo = *30 pts daily!*"
+                        f"🎊 *Verification Complete!*\n\n"
+                        f"Badhai ho! Aap successfully verify ho gaye!\n\n"
+                        f"🎟️ *{referrer_name}* ke referral se:\n"
+                        f"   ✅ +3 Passes mil gaye\n"
+                        f"   ✅ Earning shuru ho gayi!\n\n"
+                        f"💡 *Roz kya karna hai:*\n"
+                        f"   🎬 Movie Group pe movie search karo\n"
+                        f"   🔗 Shortlink complete karo → *30 pts!*\n"
+                        f"   🎁 Daily Bonus claim karo\n"
+                        f"   🎯 Missions complete karo\n"
+                        f"   📺 Ads dekho → aur pts pao!\n\n"
+                        f"📱 Neeche button se Mini App kholo!"
                     ),
                     reply_markup=InlineKeyboardMarkup(keyboard),
                     parse_mode=ParseMode.MARKDOWN
@@ -612,7 +626,7 @@ class Handlers:
             except Exception as e:
                 logger.error(f"Notify user {user_id} FAILED: {e}")
 
-        else:
+                else:
             # ── Already active — daily search record karo ──
             reason = result.get('reason', 'unknown') if result else 'no_result'
             logger.info(f"Referral already active for {user_id} (reason={reason}) — recording daily search")
