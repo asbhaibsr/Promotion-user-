@@ -189,7 +189,7 @@ class Handlers:
 
             # Welcome message
             ref_link = f"https://t.me/{self.config.BOT_USERNAME}?start=ref_{user.id}"
-            movie_group = getattr(self.config, 'MOVIE_GROUP_LINK', 'https://t.me/all_movies_webseries_is_here')
+            movie_group = getattr(self.config, 'MOVIE_GROUP_LINK', 'https://t.me/asfilter_group')
 
             if referrer_id and is_new:
                 welcome_text = (
