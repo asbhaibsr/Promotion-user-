@@ -908,17 +908,18 @@
                 </div>
                 <div style="background:linear-gradient(135deg,var(--green),#059669);color:#fff;padding:6px 12px;border-radius:20px;font-weight:800;font-size:11px;align-self:flex-start;" id="dailyBonusBtn">Claim</div>
             </div>
-            <!-- Watch & Earn — click pe modal -->
-            <div onclick="openModal('watchEarn')" style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px solid rgba(59,130,246,.3);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:8px;cursor:pointer;">
+            <!-- Watch Ad Earn — Opens full Watch Earn Modal -->
+            <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px solid rgba(59,130,246,.3);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:8px;cursor:pointer;" onclick="openModal('watchEarn')">
                 <div style="display:flex;align-items:center;gap:8px;">
                     <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue),#7c5cfc);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📺</div>
                     <div style="flex:1;">
                         <div style="font-family:'Fredoka One',cursive;font-weight:900;font-size:13px;color:var(--text);line-height:1.2;">Watch &amp; Earn</div>
-                        <div style="font-size:10px;color:var(--text3);">Ads dekho, pts pao</div>
+                        <div style="font-size:10px;color:var(--text3);">Ads dekho, paise kamao!</div>
                     </div>
-                    <div style="background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;padding:4px 8px;border-radius:16px;font-size:10px;font-weight:900;white-space:nowrap;flex-shrink:0;">+5 pts</div>
+                    <div style="background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;padding:4px 8px;border-radius:16px;font-size:10px;font-weight:900;white-space:nowrap;flex-shrink:0;">+10 pts</div>
                 </div>
-                <div style="width:100%;background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;border:none;border-radius:22px;padding:9px 4px;font-weight:900;font-size:11px;font-family:'Fredoka One',cursive;text-align:center;">▶ Watch &amp; Earn →</div>
+                <button id="rewardAdBtn" onclick="event.stopPropagation();openModal('watchEarn')" style="width:100%;background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;border:none;border-radius:22px;padding:9px 4px;font-weight:900;font-size:11px;cursor:pointer;font-family:'Fredoka One',cursive;">📺 Watch Ads & Earn →</button>
+                <div id="rewardAdStatus" style="font-size:9px;color:var(--text3);text-align:center;min-height:12px;"></div>
             </div>
         </div>
 
@@ -1626,6 +1627,65 @@
         </div>
     </div>
     <div id="missionsContainer"></div>
+</div>
+
+
+<!-- WATCH ADS & EARN MODAL -->
+<div class="modal" id="watchEarnModal">
+    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('watchEarn')">←</div><div class="modal-title">📺 Watch Ads & Earn</div></div>
+    <div style="padding:0 2px 20px;">
+        <!-- Info banner -->
+        <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px solid rgba(59,130,246,.3);border-radius:16px;padding:12px 14px;margin-bottom:12px;text-align:center;">
+            <div style="font-size:22px;margin-bottom:4px;">📺</div>
+            <div style="font-weight:900;font-size:14px;color:var(--blue);">Ads Dekho, Paise Kamao!</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:3px;">Har ad pe click karo aur pura dekho → Points milenge</div>
+        </div>
+
+        <!-- Reward Ad (Manual Watch) -->
+        <div style="background:#fff;border:2px solid rgba(59,130,246,.3);border-radius:18px;padding:14px;margin-bottom:10px;box-shadow:0 2px 12px rgba(59,130,246,.1);">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                <div style="width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,var(--blue),#7c5cfc);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📺</div>
+                <div style="flex:1;">
+                    <div style="font-weight:900;font-size:14px;color:var(--text);">Watch & Earn</div>
+                    <div style="font-size:11px;color:var(--text3);">Ad dekho aur +10 pts pao</div>
+                </div>
+                <div style="background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;padding:5px 12px;border-radius:16px;font-size:12px;font-weight:900;">+10 pts</div>
+            </div>
+            <button id="watchModalAdBtn" onclick="showRewardAdFromModal()" style="width:100%;background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;border:none;border-radius:22px;padding:12px;font-weight:900;font-size:14px;cursor:pointer;font-family:inherit;">▶ Ad Dekho — +10 pts Pao!</button>
+            <div id="watchModalAdStatus" style="font-size:10px;color:var(--text3);text-align:center;min-height:14px;margin-top:5px;"></div>
+        </div>
+
+        <!-- Task Ad (AdsGram Task Block) -->
+        <div style="background:#fff;border:2px solid rgba(108,58,252,.2);border-radius:18px;padding:14px;margin-bottom:10px;box-shadow:0 2px 12px rgba(108,58,252,.08);">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                <div style="width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,var(--purple),#7c3aed);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📋</div>
+                <div style="flex:1;">
+                    <div style="font-weight:900;font-size:14px;color:var(--text);">Daily Task Ad</div>
+                    <div style="font-size:11px;color:var(--text3);">Task complete karo, reward pao!</div>
+                </div>
+                <div style="background:linear-gradient(135deg,var(--purple),var(--gold));color:#fff;padding:5px 10px;border-radius:16px;font-size:11px;font-weight:900;">+Pts</div>
+            </div>
+            <div style="padding:0 2px;">
+                <adsgram-task
+                    data-block-id="task-31503"
+                    style="--adsgram-task-font-size:13px;--adsgram-task-icon-size:36px;--adsgram-task-button-width:100%;--adsgram-task-icon-border-radius:10px;display:block;width:100%;">
+                    <div slot="button" style="background:linear-gradient(135deg,var(--purple),var(--gold));color:#fff;border:none;padding:12px 20px;border-radius:30px;font-weight:900;font-size:13px;cursor:pointer;font-family:inherit;width:100%;text-align:center;">▶ Task Complete Karo</div>
+                    <div slot="claim" style="background:linear-gradient(135deg,var(--green),#059669);color:#fff;border:none;padding:12px 20px;border-radius:30px;font-weight:900;font-size:13px;cursor:pointer;font-family:inherit;width:100%;text-align:center;">🎁 Claim Reward</div>
+                    <div slot="done" style="background:rgba(34,197,94,.1);border:1px solid var(--green);color:var(--green);padding:10px 20px;border-radius:30px;font-weight:900;font-size:13px;font-family:inherit;width:100%;text-align:center;">✅ Aaj Ka Task Done!</div>
+                </adsgram-task>
+            </div>
+        </div>
+
+        <!-- Tip box -->
+        <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1.5px solid rgba(34,197,94,.3);border-radius:14px;padding:11px 13px;margin-top:4px;">
+            <div style="font-weight:800;font-size:12px;color:var(--green);margin-bottom:5px;">💡 Tips:</div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.6;">
+                ✅ Har Watch & Earn ke baad 5 min wait karo<br>
+                ✅ Task ad daily ek baar karo<br>
+                ✅ Watch karne ke baad Mission bhi claim karo!
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- SETTINGS -->
@@ -2427,7 +2487,7 @@ async function loadBonusDays(){
 async function loadMissions(){
     if(!userData.user_id)return;
     const d=await apiGet(`/api/user/${userData.user_id}/missions`);
-    const today=new Date(Date.now()+5.5*3600000).toISOString().split('T')[0];
+    const today=getISTDate();
 
     // Long-term mission IDs — no date expiry
     const LONG_TERM_IDS=new Set(['m_refer5','m_streak3','m_shortlink']);
@@ -2497,9 +2557,12 @@ async function loadMissions(){
 }
 
 // Save claimed state to sessionStorage (date-keyed — auto resets next day)
+// IST date helper (India +5:30)
+function getISTDate(){return new Date(Date.now()+5.5*3600000).toISOString().split('T')[0];}
+
 function saveMissionClaimed(missionId){
     if(!userData.user_id)return;
-    const today=new Date().toISOString().split('T')[0];
+    const today=getISTDate();
     try{
         const key=`ez_m_${userData.user_id}_${today}`;
         let sc={};
@@ -2511,7 +2574,7 @@ function saveMissionClaimed(missionId){
 }
 function clearMissionClaimed(missionId){
     if(!userData.user_id)return;
-    const today=new Date().toISOString().split('T')[0];
+    const today=getISTDate();
     try{
         const key=`ez_m_${userData.user_id}_${today}`;
         const existing=sessionStorage.getItem(key);
@@ -3178,7 +3241,9 @@ function showBadgeInfo(idx){
     overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
     playSound('tap');
 }
-function getRefLink(){return`https://t.me/${BOT_USERNAME}?start=ref_${userData.user_id||'xxx'}`;}
+function getRefLink(){
+    if(!userData.user_id) return 'Loading...';
+    return `https://t.me/${BOT_USERNAME}?start=ref_${userData.user_id}`;}
 
 // ============================================================
 // WITHDRAWAL CONDITION — 20 active refs this month
@@ -3823,7 +3888,7 @@ async function doSelfSearch(){
     // If can search → first send to movie group, then claim
     if(selfSearchStatus.can_search){
         // Open movie group link
-        const groupLink = MOVIE_GROUP_LINK || 'https://t.me/asfilter_group';
+        const groupLink = MOVIE_GROUP_LINK || 'https://t.me/all_movies_webseries_is_here';
         window.open(groupLink, '_blank');
         if(btn)btn.disabled=true;
         const r=await apiPost('/api/self-search',{user_id:userData.user_id});
@@ -3863,91 +3928,76 @@ async function doSelfSearch(){
 // Track which missions are currently being claimed (anti-spam)
 const _claimingMissions=new Set();
 
-async function claimSingleMission(missionId, reward){
-    // Temp ID system — prevent double claim
-    if(_claimingMissions.has(missionId)) return;
-    if(!missionStates[missionId]) missionStates[missionId]={progress:0,completed:true,claimed:false};
-    if(missionStates[missionId].claimed) return;
+async function claimSingleMission(missionId,reward){
+    if(_claimingMissions.has(missionId))return;
+    if(!missionStates[missionId])missionStates[missionId]={progress:0,completed:true,claimed:false};
+    if(missionStates[missionId].claimed)return;
+    if(!userData.user_id){showToast('❌ Pehle login karo!');return;}
 
     _claimingMissions.add(missionId);
 
-    // Show loading on button
-    const btnId = 'claimBtn_'+missionId;
-    const btn   = document.getElementById(btnId);
-    const btnTxt= document.getElementById(btnId+'_txt');
+    // Show loading on claim button
+    const btnId='claimBtn_'+missionId;
+    const btnTxt=document.getElementById(btnId+'_txt');
     const btnSpin=document.getElementById(btnId+'_spin');
-    if(btn){ btn.disabled=true; btn.style.opacity='.7'; }
-    if(btnTxt) btnTxt.style.display='none';
-    if(btnSpin) btnSpin.style.display='inline';
-
-    // Temp claim ID — prevents spam
-    const tempId = `tmp_${userData.user_id}_${missionId}_${Date.now()}`;
-    try{ sessionStorage.setItem(tempId,'pending'); }catch(e){}
+    const btn=document.getElementById(btnId);
+    if(btn){btn.disabled=true;btn.style.opacity='.7';}
+    if(btnTxt)btnTxt.style.display='none';
+    if(btnSpin)btnSpin.style.display='inline';
 
     try{
-        const today = new Date(Date.now()+5.5*3600000).toISOString().split('T')[0]; // IST
-        const r = await apiPost('/api/claim-single-mission', {
-            user_id:    userData.user_id,
-            mission_id: missionId,
-            reward:     parseFloat(reward),
-            date:       today,
-            temp_id:    tempId
+        const r=await apiPost('/api/claim-single-mission',{
+            user_id:userData.user_id,
+            mission_id:missionId,
+            reward:parseFloat(reward),
+            date:getISTDate()
         });
-
-        if(r && r.success){
-            // Remove temp ID
-            try{ sessionStorage.removeItem(tempId); }catch(e){}
-            // Credit balance
-            const mReward = parseFloat(reward);
-            userData.balance     = (userData.balance||0) + mReward;
-            userData.total_earned= (userData.total_earned||0) + mReward;
-            userData.today_earned= (userData.today_earned||0) + mReward;
+        if(r&&r.success){
+            // Confirmed by backend — now update UI
+            missionStates[missionId].claimed=true;
+            saveMissionClaimed(missionId);
+            const mReward=parseFloat(reward);
+            userData.balance=(userData.balance||0)+mReward;
+            userData.total_earned=(userData.total_earned||0)+mReward;
+            userData.today_earned=(userData.today_earned||0)+mReward;
             updateUI();
             playSound('mission');
-            showToast('🎯 +'+toPoints(mReward)+' pts mila!');
-            // Mark claimed
-            missionStates[missionId].claimed = true;
-            saveMissionClaimed(missionId);
-            // Long-term reset after 2.5s
-            const isLT=['m_refer5','m_streak3','m_shortlink','m_refer10','m_streak7','m_game50'].includes(missionId);
+            showToast('🎯 Mission Complete! +'+toPoints(mReward)+' pts mila! 🎉');
+            const isLT=['m_refer5','m_shortlink','m_streak3','m_refer10','m_streak7','m_game50'].includes(missionId);
             if(isLT){
                 setTimeout(()=>{
-                    missionStates[missionId]={progress:0,completed:false,claimed:false};
+                    missionStates[missionId]={progress:0,completed:false,claimed:false,long_term:true};
                     clearMissionClaimed(missionId);
                     updateMissionsUI();
-                    showToast('♻️ Mission reset! Dobara shuru karo!');
-                }, 2500);
-            } else {
+                    showToast('♻️ Long-term mission reset! Dobara shuru karo!');
+                },2500);
+            }else{
                 updateMissionsUI();
             }
-            setTimeout(()=>showEarnMorePopup(toPoints(mReward)), 1500);
-        } else {
-            // Failed — remove temp, show error
-            try{ sessionStorage.removeItem(tempId); }catch(e){}
-            const msg = r?.message||'Failed';
-            if(msg !== 'Already claimed'){
-                showToast('❌ '+msg);
-            } else {
-                // Server says already claimed — mark it
-                missionStates[missionId].claimed = true;
-                saveMissionClaimed(missionId);
-                updateMissionsUI();
-            }
-            if(btn){ btn.disabled=false; btn.style.opacity='1'; }
-            if(btnTxt) btnTxt.style.display='inline';
-            if(btnSpin) btnSpin.style.display='none';
+            setTimeout(()=>showEarnMorePopup(toPoints(mReward)),1500);
+        }else if(r?.message==='Already claimed'){
+            // Server says already claimed — update local state
+            missionStates[missionId].claimed=true;
+            saveMissionClaimed(missionId);
+            updateMissionsUI();
+            showToast('✅ Ye mission already claim ho chuka hai!');
+        }else{
+            // Failed — show reason clearly
+            if(btn){btn.disabled=false;btn.style.opacity='1';}
+            if(btnTxt)btnTxt.style.display='inline';
+            if(btnSpin)btnSpin.style.display='none';
+            const msg=r?.message||'Server error — dobara try karo';
+            showToast('❌ '+msg);
         }
-    } catch(e){
-        try{ sessionStorage.removeItem(tempId); }catch(e2){}
-        showToast('❌ Network error — dobara try karo');
-        if(btn){ btn.disabled=false; btn.style.opacity='1'; }
-        if(btnTxt) btnTxt.style.display='inline';
-        if(btnSpin) btnSpin.style.display='none';
-    } finally {
+    }catch(e){
+        if(btn){btn.disabled=false;btn.style.opacity='1';}
+        if(btnTxt)btnTxt.style.display='inline';
+        if(btnSpin)btnSpin.style.display='none';
+        showToast('❌ Network error — internet check karo');
+    }finally{
         _claimingMissions.delete(missionId);
     }
 }
-
 
 
 // ============================================================
@@ -4176,7 +4226,12 @@ async function replySupport(msgId,userId){
 // ============================================================
 // SHARE
 // ============================================================
-function copyRef(){navigator.clipboard.writeText(getRefLink()).then(()=>showToast('✅ Link copied!'));playSound('tap');setTimeout(showAutoInterstitialAd,800);}
+function copyRef(){
+    const link=getRefLink();
+    if(link==='Loading...'){showToast('⏳ Pehle login karo!');return;}
+    navigator.clipboard.writeText(link).then(()=>showToast('✅ Referral link copied! Share karo!'));
+    playSound('tap');
+}
 function shareOn(platform){
     const link=getRefLink();
     const text=lang==='hi'?`💰 FilmyFund se points kamao!\nMere referral link se join karo aur daily earning shuru karo:\n${link}`:`💰 Earn money with FilmyFund!\nJoin using my referral link:\n${link}`;
@@ -6151,6 +6206,12 @@ function openModal(id){
         document.getElementById('gemResult').style.display='none';
         gemActive=false;
     }
+    if(id==='watchEarn'){
+        const mb=document.getElementById('watchModalAdBtn');
+        const ms=document.getElementById('watchModalAdStatus');
+        if(mb&&!rewardAdCooldown){mb.disabled=false;mb.textContent='▶ Ad Dekho — +10 pts Pao!';}
+        if(ms)ms.textContent='';
+    }
 }
 
 async function loadAdminUpi(){
@@ -6314,7 +6375,7 @@ function showMovieGroupPopup(){
                 3️⃣ Bot ka shortlink complete karo<br><br>
                 <span style="color:var(--green);font-weight:800;">✅ Aapko bhi milenge 30 pts/day!</span>
             </div>
-            <a href="https://t.me/asfilter_group" target="_blank"
+            <a href="{{ movie_group_link }}" target="_blank"
                style="display:block;background:linear-gradient(135deg,#4ECDC4,#26A69A);color:#000;border-radius:14px;padding:13px;font-weight:900;font-size:14px;text-decoration:none;margin-bottom:10px;">
                 🎬 Movie Group Join Karo
             </a>
@@ -7002,14 +7063,29 @@ async function showRewardAd(){
         }
         if(!rewardController) rewardController=window.Adsgram.init({blockId:ADSGRAM_REWARD_BLOCK});
         await rewardController.show();
-        const pts=5;
+
+        // Backend ko notify — watch_ad_today bhi set hoga (mission ke liye)
+        let pts=10;
+        try{
+            const resp=await fetch('/api/adsgram-reward?userId='+userData.user_id+'&blockId='+ADSGRAM_REWARD_BLOCK);
+            const rdata=await resp.json();
+            if(rdata.pts) pts=rdata.pts;
+        }catch(fe){ console.log('adsgram backend notify fail',fe); }
+
         userData.balance=(userData.balance||0)+(pts/100);
         userData.today_earned=(userData.today_earned||0)+(pts/100);
+
+        // m_watchad mission ko complete mark karo
+        if(!missionStates['m_watchad']) missionStates['m_watchad']={progress:0,completed:false,claimed:false};
+        missionStates['m_watchad'].progress=1;
+        missionStates['m_watchad'].completed=true;
+
         updateUI();
-        showToast('📺 +'+pts+' pts mila!');
+        updateMissionsUI();
+        showToast('📺 +'+pts+' pts mila! Mission ready to claim! 🎯');
         playSound('earn');
         adMarkShown('watch_earn');
-        if(btn){btn.disabled=true;btn.textContent='✅ Done!';}
+        if(btn){btn.disabled=true;btn.textContent='✅ Done! (+'+pts+' pts)';}
         if(status) status.textContent='✅ '+adTimeLeft('watch_earn')+' min baad phir milega';
         setTimeout(()=>{
             rewardAdCooldown=false;
@@ -7020,6 +7096,58 @@ async function showRewardAd(){
         showToast('❌ Ad puri dekho reward ke liye');
         rewardAdCooldown=false;
         if(btn){btn.disabled=false;btn.textContent='▶ Ad Dekho';}
+    }
+}
+
+// Watch Earn from modal — same logic, updates modal buttons
+async function showRewardAdFromModal(){
+    const btn = document.getElementById('watchModalAdBtn');
+    const status = document.getElementById('watchModalAdStatus');
+    if(!adCanShow('watch_earn')){
+        const m = adTimeLeft('watch_earn');
+        showToast('⏳ '+m+' min baad dobara dekh sakte ho!');
+        if(status) status.textContent='⏳ '+m+' min mein milega';
+        return;
+    }
+    if(rewardAdCooldown) return;
+    rewardAdCooldown = true;
+    if(btn){btn.disabled=true;btn.textContent='⏳ Loading...';}
+    try{
+        if(typeof window.Adsgram==='undefined'){
+            showToast('📺 Ad load nahi hua, dobara try karo');
+            rewardAdCooldown=false;
+            if(btn){btn.disabled=false;btn.textContent='▶ Ad Dekho — +10 pts Pao!';}
+            return;
+        }
+        if(!rewardController) rewardController=window.Adsgram.init({blockId:ADSGRAM_REWARD_BLOCK});
+        await rewardController.show();
+        let pts=10;
+        try{
+            const resp=await fetch('/api/adsgram-reward?userId='+userData.user_id+'&blockId='+ADSGRAM_REWARD_BLOCK);
+            const rdata=await resp.json();
+            if(rdata.pts) pts=rdata.pts;
+        }catch(fe){}
+        userData.balance=(userData.balance||0)+(pts/100);
+        userData.today_earned=(userData.today_earned||0)+(pts/100);
+        if(!missionStates['m_watchad']) missionStates['m_watchad']={progress:0,completed:false,claimed:false};
+        missionStates['m_watchad'].progress=1;
+        missionStates['m_watchad'].completed=true;
+        updateUI();
+        updateMissionsUI();
+        showToast('📺 +'+pts+' pts mila! Mission ready! 🎯');
+        playSound('earn');
+        adMarkShown('watch_earn');
+        if(btn){btn.disabled=true;btn.textContent='✅ Done! (+'+pts+' pts)';}
+        if(status) status.textContent='✅ '+adTimeLeft('watch_earn')+' min baad phir milega';
+        setTimeout(()=>{
+            rewardAdCooldown=false;
+            if(btn){btn.disabled=false;btn.textContent='▶ Ad Dekho — +10 pts Pao!';}
+            if(status) status.textContent='';
+        }, AD_COOLDOWNS.watch_earn);
+    }catch(e){
+        showToast('❌ Ad puri dekho reward ke liye');
+        rewardAdCooldown=false;
+        if(btn){btn.disabled=false;btn.textContent='▶ Ad Dekho — +10 pts Pao!';}
     }
 }
 let taskAdCooldown   = false;
