@@ -2369,7 +2369,8 @@ function closeHowToEarn(){document.getElementById('howToEarnOverlay').classList.
 // TELEGRAM & STATE
 // ============================================================
 const tg=window.Telegram?.WebApp;
-if(tg){tg.expand();tg.ready();}
+// Call expand immediately but defer ready() to after init reads data
+if(tg){tg.expand();}
 const BOT_USERNAME='LinkProviderRobot';
 
 let userData={user_id:null,first_name:'Guest',username:'',balance:0,total_earned:0,tier:1,total_refs:0,active_refs:0,pending_refs:0,daily_streak:0,today_earned:0,is_admin:false,games_won:0,passes:0,photo_url:null,month_active_refs:0};
@@ -2445,15 +2446,19 @@ async function apiPost(url,body,retries=1){
 // LOAD DATA
 // ============================================================
 async function loadUser(){
-    const uid=tg?.initDataUnsafe?.user?.id||new URLSearchParams(location.search).get('user_id');
-    if(!uid)return;
+    // Use already-resolved user_id from init() — don't re-resolve here
+    const uid = userData.user_id || new URLSearchParams(location.search).get('user_id');
+    if(!uid){ console.warn('loadUser: no user_id'); return; }
+    userData.user_id = uid; // ensure set
     const d=await apiGet(`/api/user/${uid}`);
     if(d&&!d.error){
         const oldRefs=userData.active_refs||0;
         userData={...userData,...d,
             user_id:uid,
-            first_name:tg?.initDataUnsafe?.user?.first_name||d.first_name||'User',
-            photo_url:tg?.initDataUnsafe?.user?.photo_url||null,
+            first_name:userData.first_name!=='Guest'&&userData.first_name!=='User'
+                       ? userData.first_name
+                       : (d.first_name||userData.first_name||'User'),
+            photo_url:userData.photo_url||d.photo_url||null,
             // month_active_refs now comes directly from user API
             month_active_refs:d.month_active_refs||0,
             // today_earned comes from backend (resets each day)
@@ -6375,7 +6380,7 @@ function showMovieGroupPopup(){
                 3️⃣ Bot ka shortlink complete karo<br><br>
                 <span style="color:var(--green);font-weight:800;">✅ Aapko bhi milenge 30 pts/day!</span>
             </div>
-            <a href="{{ movie_group_link }}" target="_blank"
+            <a href="https://t.me/all_movies_webseries_is_here" target="_blank"
                style="display:block;background:linear-gradient(135deg,#4ECDC4,#26A69A);color:#000;border-radius:14px;padding:13px;font-weight:900;font-size:14px;text-decoration:none;margin-bottom:10px;">
                 🎬 Movie Group Join Karo
             </a>
@@ -6777,7 +6782,7 @@ function showToast(msg){const t2=document.getElementById('toast');t2.textContent
 // INIT
 // ============================================================
 // ═══════ SHORTLINK REMINDER + STREAK CHALLENGE ═══════
-const MOVIE_GROUP_LINK = '{{ movie_group_link }}';
+const MOVIE_GROUP_LINK = 'https://t.me/all_movies_webseries_is_here';
 
 function checkShortlinkReminder(){
     const el = document.getElementById('shortlinkReminder');
@@ -6955,21 +6960,51 @@ async function sendBulkNudge(){
 
 async function init(){
     try{const sv=localStorage.getItem('ez_lang');if(sv)lang=sv;}catch(e){}
-    // Show starter badge immediately
     renderBadgeChip({active_refs:0});
     checkOnboard();
 
-    // Step 1: Get user_id from Telegram or URL
-    if(tg?.initDataUnsafe?.user){
-        userData.user_id = tg.initDataUnsafe.user.id;
-        userData.first_name = tg.initDataUnsafe.user.first_name||'User';
-        userData.photo_url = tg.initDataUnsafe.user.photo_url||null;
-    } else {
-        const uid = new URLSearchParams(location.search).get('user_id');
-        if(uid) userData.user_id = parseInt(uid);
+    // Step 1: Get user_id — try multiple sources
+    let resolvedUid = null;
+    let resolvedName = 'User';
+    let resolvedPhoto = null;
+
+    // Source A: URL param ?user_id= (most reliable — bot always passes this)
+    const urlUid = new URLSearchParams(location.search).get('user_id');
+    if(urlUid && !isNaN(parseInt(urlUid))){
+        resolvedUid = parseInt(urlUid);
     }
 
-    // Step 2: Load user FIRST — must complete before missions/bonus
+    // Source B: tg.initDataUnsafe (Telegram WebApp context)
+    if(!resolvedUid && tg?.initDataUnsafe?.user?.id){
+        resolvedUid   = tg.initDataUnsafe.user.id;
+        resolvedName  = tg.initDataUnsafe.user.first_name || 'User';
+        resolvedPhoto = tg.initDataUnsafe.user.photo_url  || null;
+    }
+
+    // Source C: parse tg.initData string
+    if(!resolvedUid && tg?.initData && tg.initData.length > 0){
+        try{
+            const params = new URLSearchParams(tg.initData);
+            const userStr = params.get('user');
+            if(userStr){
+                const u = JSON.parse(decodeURIComponent(userStr));
+                if(u?.id){ resolvedUid = u.id; resolvedName = u.first_name||'User'; }
+            }
+        }catch(pe){}
+    }
+
+    console.log('[FF] user_id resolved:', resolvedUid, '| tg:', !!tg);
+
+    if(resolvedUid){
+        userData.user_id   = resolvedUid;
+        userData.first_name= resolvedName;
+        userData.photo_url = resolvedPhoto;
+    }
+
+    // Step 2: Signal Telegram we are ready (AFTER reading initData)
+    if(tg){ try{ tg.ready(); }catch(e){} }
+
+    // Step 3: Load user from backend
     await loadUser();
 
     // Step 3: Now user_id is set — load dependent data
