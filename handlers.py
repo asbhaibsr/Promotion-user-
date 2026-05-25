@@ -572,13 +572,13 @@ class Handlers:
                     await context.bot.send_message(
                         chat_id=referrer_id,
                         text=(
-                            f"🎉 *Referral Active Ho Gaya!*\n\n"
-                            f"👤 User: *{name}*\n"
-                            f"✅ Shortlink complete kar li!\n\n"
-                            f"🎟️ *+3 Passes* add ho gaye!\n"
-                            f"💰 *+{ref_pts} pts* balance mein add!\n\n"
-                            f"🔁 Ab jab bhi ye user movie search karega,\n"
-                            f"aapko *{daily_pts} pts daily* milega!\n\n"
+                            f"🎉 Referral Active Ho Gaya!\n\n"
+                            f"User: {name}\n"
+                            f"Shortlink complete kar li!\n\n"
+                            f"🎟 +3 Passes add ho gaye!\n"
+                            f"💰 +{ref_pts} pts balance mein add!\n\n"
+                            f"Ab jab bhi ye user movie search karega,\n"
+                            f"aapko {daily_pts} pts daily milega!\n\n"
                             f"📱 Mini App pe jaake apna balance check karo!"
                         ),
                         parse_mode=ParseMode.MARKDOWN
@@ -600,18 +600,18 @@ class Handlers:
                 await context.bot.send_message(
                     chat_id=user_id,
                     text=(
-                        f"🎊 *Verification Complete!*\n\n"
+                        f"🎊 Verification Complete!\n\n"
                         f"Badhai ho! Aap successfully verify ho gaye!\n\n"
-                        f"🎟️ *{referrer_name}* ke referral se:\n"
-                        f"   ✅ +3 Passes mil gaye\n"
-                        f"   ✅ Earning shuru ho gayi!\n\n"
-                        f"💡 *Roz kya karna hai:*\n"
-                        f"   🎬 Movie Group pe movie search karo\n"
-                        f"   🔗 Shortlink complete karo → *30 pts!*\n"
-                        f"   🎁 Daily Bonus claim karo\n"
-                        f"   🎯 Missions complete karo\n"
-                        f"   📺 Ads dekho → aur pts pao!\n\n"
-                        f"📱 Neeche button se Mini App kholo!"
+                        f"{referrer_name} ke referral se:\n"
+                        f"   +3 Passes mil gaye\n"
+                        f"   Earning shuru ho gayi!\n\n"
+                        f"Roz kya karna hai:\n"
+                        f"   Movie Group pe movie search karo\n"
+                        f"   Shortlink complete karo - 30 pts!\n"
+                        f"   Daily Bonus claim karo\n"
+                        f"   Missions complete karo\n"
+                        f"   Ads dekho - aur pts pao!\n\n"
+                        f"Neeche button se Mini App kholo!"
                     ),
                     reply_markup=InlineKeyboardMarkup(keyboard),
                     parse_mode=ParseMode.MARKDOWN
