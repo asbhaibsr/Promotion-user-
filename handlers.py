@@ -852,7 +852,7 @@ class Handlers:
                             f"⏰ {name}, aaj ka kaam baaki hai!\n\n"
                             f"🎁 Daily Bonus claim karo!\n"
                             f"🎬 Movie search karo = 30 pts!\n"
-                            f"⚡ _Streak toot jayegi!_"
+                            f"⚡ Streak toot jayegi!"
                         ),
                         reply_markup=InlineKeyboardMarkup(kb),
                         parse_mode=ParseMode.MARKDOWN
