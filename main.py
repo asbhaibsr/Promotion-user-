@@ -1413,6 +1413,30 @@ def adsgram_reward():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
+@app.route('/api/debug-claim', methods=['POST'])
+def debug_claim():
+    """Debug endpoint — shows exactly what claim_single_mission returns"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        mission_id = data.get('mission_id')
+        reward = data.get('reward', 1.0)
+        if not db or not db.ensure_connection():
+            return jsonify({'error': 'DB not connected'})
+        user = db.get_user(int(user_id)) if user_id else None
+        mission_doc = db.missions.find_one({'user_id': int(user_id), 'mission_id': mission_id}) if user_id else None
+        result = db.claim_single_mission(user_id, mission_id, reward)
+        return jsonify({
+            'claim_result': result,
+            'user_streak': user.get('daily_streak',0) if user else None,
+            'user_refs': user.get('active_refs',0) if user else None,
+            'mission_doc': {k:v for k,v in mission_doc.items() if k!='_id'} if mission_doc else None
+        })
+    except Exception as e:
+        import traceback
+        return jsonify({'error': str(e), 'trace': traceback.format_exc()})
+
+
 @app.route('/health')
 def health():
     status = {'status': 'ok', 'time': datetime.now().isoformat(), 'db_connected': db.connected if db else False}
