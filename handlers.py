@@ -90,14 +90,14 @@ class Handlers:
                         await context.bot.send_message(
                             chat_id=referrer_id,
                             text=(
-                                f"⚠️ *Ye user pehle se bot pe hai!*\n\n"
+                                f"⚠️ Ye user pehle se bot pe hai!\n\n"
                                 f"👤 Name: {info.get('first_name', 'User')}\n"
                                 f"🔗 Username: {uname_txt}\n"
                                 f"📅 Joined: {info.get('join_date', 'Unknown')}\n"
                                 f"👥 Active refs: {info.get('active_refs', 0)}\n"
                                 f"💰 Balance: ₹{info.get('balance', 0):.2f}"
                                 f"{orig_txt}\n\n"
-                                f"❌ Ye user aapke referral se count *nahi* hoga.\n"
+                                f"❌ Ye user aapke referral se count nahi hoga.\n"
                                 f"💡 Naye users share karo!"
                             ),
                             parse_mode=ParseMode.MARKDOWN
@@ -136,7 +136,7 @@ class Handlers:
                         await context.bot.send_message(
                             chat_id=self.config.LOG_CHANNEL_ID,
                             text=(
-                                f"👤 *NEW USER JOINED*\n\n"
+                                f"👤 NEW USER JOINED\n\n"
                                 f"Name: {user.first_name}\n"
                                 f"ID: `{user.id}`\n"
                                 f"Username: @{user.username if user.username else 'N/A'}\n"
@@ -155,7 +155,7 @@ class Handlers:
                         await context.bot.send_message(
                             chat_id=admin_id,
                             text=(
-                                f"👤 *New User!*\nName: {user.first_name}\n"
+                                f"👤 New User! {user.first_name}\n"
                                 f"ID: `{user.id}`\nRef by: {referrer_id or 'Direct'}"
                             ),
                             reply_markup=InlineKeyboardMarkup(kb),
@@ -172,15 +172,15 @@ class Handlers:
                             await context.bot.send_message(
                                 chat_id=referrer_id,
                                 text=(
-                                    f"🎉 *Naya Referral!*\n\n"
-                                    f"*{user.first_name}* aapke link se join kar liya!\n\n"
-                                    f"📋 *Ab kya karna hai:*\n"
+                                    f"🎉 Naya Referral!\n\n"
+                                    f"{user.first_name} aapke link se join kar liya!\n\n"
+                                    f"📋 Ab kya karna hai:\n"
                                     f"1️⃣ Inhe Movie Group pe jaane kaho\n"
                                     f"2️⃣ Koi bhi movie search kare\n"
                                     f"3️⃣ Movie bot ka shortlink complete kare\n\n"
-                                    f"✅ Shortlink complete = *Referral Active!*\n"
-                                    f"🎁 Aapko milega: *3 Passes + ₹{self.config.REFERRAL_BONUS}*\n\n"
-                                    f"⏳ Status: *Pending*"
+                                    f"✅ Shortlink complete = Referral Active!\n"
+                                    f"🎁 Aapko milega: 3 Passes + ₹{self.config.REFERRAL_BONUS}\n\n"
+                                    f"⏳ Status: Pending"
                                 ),
                                 parse_mode=ParseMode.MARKDOWN
                             )
@@ -224,7 +224,7 @@ class Handlers:
                                 await context.bot.send_message(
                                     chat_id=user.id,
                                     text=(
-                                        f"⏰ *{user.first_name}, shortlink abhi baaki hai!*\n\n"
+                                        f"⏰ {user.first_name}, shortlink abhi baaki hai!\n\n"
                                         f"🎁 50 pts bonus abhi bhi available!\n"
                                         f"Bas ek movie search karo aur shortlink complete karo."
                                     ),
@@ -318,10 +318,10 @@ class Handlers:
                             await context.bot.send_message(
                                 chat_id=referrer_id,
                                 text=(
-                                    f"📢 *{user.first_name} Group Pe Aa Gaye!*\n\n"
+                                    f"📢 {user.first_name} Group Pe Aa Gaye!\n\n"
                                     f"✅ Movie search kar di!\n\n"
                                     f"⏳ Abhi shortlink complete baki hai...\n"
-                                    f"Jaise hi shortlink puri hogi — referral *auto active* ho jayega! 🎉"
+                                    f"Jaise hi shortlink puri hogi — referral auto active ho jayega! 🎉"
                                 ),
                                 parse_mode=ParseMode.MARKDOWN
                             )
@@ -651,9 +651,9 @@ class Handlers:
                         await context.bot.send_message(
                             chat_id=referrer_id,
                             text=(
-                                f"💰 *Daily Earning!*\n\n"
-                                f"👤 *{name}* ne aaj movie search ki!\n"
-                                f"✅ *+₹{earning}* aapke account mein add ho gaya!"
+                                f"💰 Daily Earning!\n\n"
+                                f"👤 {name} ne aaj movie search ki!\n"
+                                f"✅ +₹{earning} aapke account mein add ho gaya!"
                             ),
                             parse_mode=ParseMode.MARKDOWN
                         )
@@ -849,7 +849,7 @@ class Handlers:
                     await context.bot.send_message(
                         chat_id=uid,
                         text=(
-                            f"⏰ *{name}, aaj ka kaam baaki hai!*\n\n"
+                            f"⏰ {name}, aaj ka kaam baaki hai!\n\n"
                             f"🎁 Daily Bonus claim karo!\n"
                             f"🎬 Movie search karo = 30 pts!\n"
                             f"⚡ _Streak toot jayegi!_"
