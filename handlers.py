@@ -85,7 +85,7 @@ class Handlers:
                         orig_ref_user = self.db.get_user(orig_ref_id)
                         if orig_ref_user:
                             orig_name = orig_ref_user.get('first_name', 'Someone')
-                            orig_txt = f"\n⚠️ Inhe pehle se *{orig_name}* ne refer kiya hua hai."
+                            orig_txt = f"\n⚠️ Inhe pehle se {orig_name} ne refer kiya hua hai."
                     try:
                         await context.bot.send_message(
                             chat_id=referrer_id,
@@ -112,7 +112,7 @@ class Handlers:
                     [InlineKeyboardButton("📢 All Groups & Channels", url="https://t.me/addlist/tN-IEpLgpUQzMGY1")]
                 ]
                 await update.message.reply_text(
-                    f"👋 Welcome back *{user.first_name}!*\n\nMini App kholo:",
+                    f"👋 Welcome back {user.first_name}!\n\nMini App kholo:",
                     reply_markup=InlineKeyboardMarkup(keyboard),
                     parse_mode=ParseMode.MARKDOWN
                 )
@@ -138,7 +138,7 @@ class Handlers:
                             text=(
                                 f"👤 NEW USER JOINED\n\n"
                                 f"Name: {user.first_name}\n"
-                                f"ID: `{user.id}`\n"
+                                f"ID: {user.id}\n"
                                 f"Username: @{user.username if user.username else 'N/A'}\n"
                                 f"Referred by: {referrer_name}\n"
                                 f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
@@ -156,7 +156,7 @@ class Handlers:
                             chat_id=admin_id,
                             text=(
                                 f"👤 New User! {user.first_name}\n"
-                                f"ID: `{user.id}`\nRef by: {referrer_id or 'Direct'}"
+                                f"ID: {user.id}\nRef by: {referrer_id or 'Direct'}"
                             ),
                             reply_markup=InlineKeyboardMarkup(kb),
                             parse_mode=ParseMode.MARKDOWN
@@ -193,13 +193,13 @@ class Handlers:
 
             if referrer_id and is_new:
                 welcome_text = (
-                    f"🎬 *FilmyFund mein Swagat Hai, {user.first_name}!*\n\n"
+                    f"🎬 FilmyFund mein Swagat Hai, {user.first_name}!\n\n"
                     f"✅ Aap referral se aaye hain!\n\n"
-                    f"📌 *3 Steps mein Earning:*\n\n"
-                    f"*Step 1️⃣* → 🎬 MOVIE GROUP join karo\n"
-                    f"*Step 2️⃣* → Koi bhi movie search karo (jaise: Pushpa 2)\n"
-                    f"*Step 3️⃣* → Movie bot jo link bheje — kholo aur 10 sec wait karo\n\n"
-                    f"✅ *Reward:*\n"
+                    f"📌 3 Steps mein Earning:\n\n"
+                    f"Step 1️⃣ → 🎬 MOVIE GROUP join karo\n"
+                    f"Step 2️⃣ → Koi bhi movie search karo (jaise: Pushpa 2)\n"
+                    f"Step 3️⃣ → Movie bot jo link bheje — kholo aur 10 sec wait karo\n\n"
+                    f"✅ Reward:\n"
                     f"• 50 pts turant! 🎁\n"
                     f"• Roz search = 30 pts daily 💰\n"
                     f"• Games = aur zyada! 🎮"
@@ -244,7 +244,7 @@ class Handlers:
                     [InlineKeyboardButton("📢 All Groups & Channels", url="https://t.me/addlist/tN-IEpLgpUQzMGY1")]
                 ]
                 await update.message.reply_text(
-                    f"🎬 *FilmyFund mein Swagat Hai, {user.first_name}!*\n\n"
+                    f"🎬 FilmyFund mein Swagat Hai, {user.first_name}!\n\n"
                     f"🎯 Refer karo • Movie search karo • Paise kamao!\n\n"
                     f"👇 Mini App kholo:",
                     reply_markup=InlineKeyboardMarkup(keyboard),
@@ -253,7 +253,7 @@ class Handlers:
 
             if is_new:
                 await update.message.reply_text(
-                    f"🔗 *Aapka Referral Link:*\n`{ref_link}`\n\n"
+                    f"🔗 Aapka Referral Link:\n{ref_link}\n\n"
                     f"📢 Share karo:\n• Active refer = 3 Passes + ₹{self.config.REFERRAL_BONUS}\n"
                     f"• Roz search = 30 pts/day!",
                     parse_mode=ParseMode.MARKDOWN
@@ -687,15 +687,15 @@ class Handlers:
             if user:
                 daily_potential = user.get('active_refs', 0) * self.config.DAILY_REFERRAL_EARNING
                 text = (
-                    f"💰 *Aapka Balance*\n\n"
+                    f"💰 Aapka Balance\n\n"
                     f"Available: ₹{user.get('balance', 0):.2f}\n"
                     f"Total Earned: ₹{user.get('total_earned', 0):.2f}\n"
                     f"Aaj Kamaya: ₹{user.get('today_earned', 0):.2f}\n\n"
-                    f"👥 *Referrals*\n"
+                    f"👥 Referrals\n"
                     f"Active: {user.get('active_refs', 0)}\n"
                     f"Pending: {user.get('pending_refs', 0)}\n"
                     f"Daily Potential: ₹{daily_potential:.2f}\n\n"
-                    f"🏆 *Tier:* {self.config.get_tier_name(user.get('tier', 1))}"
+                    f"🏆 Tier: {self.config.get_tier_name(user.get('tier', 1))}"
                 )
             else:
                 text = "Pehle /start use karo"
@@ -711,12 +711,12 @@ class Handlers:
                 ref_link = f"https://t.me/{self.config.BOT_USERNAME}?start=ref_{user_id}"
                 daily_earning = user.get('active_refs', 0) * self.config.DAILY_REFERRAL_EARNING
                 text = (
-                    f"👥 *Aapke Referrals*\n\n"
+                    f"👥 Aapke Referrals\n\n"
                     f"Total: {user.get('total_refs', 0)}\n"
                     f"Active: {user.get('active_refs', 0)}\n"
                     f"Pending: {user.get('pending_refs', 0)}\n\n"
-                    f"💰 *Daily Earnings:* ₹{daily_earning:.2f}\n\n"
-                    f"🔗 *Aapka Link:*\n`{ref_link}`"
+                    f"💰 Daily Earnings: ₹{daily_earning:.2f}\n\n"
+                    f"🔗 Aapka Link:\n{ref_link}"
                 )
             else:
                 text = "Pehle /start use karo"
@@ -771,7 +771,7 @@ class Handlers:
                 "• Shortlink puri hone ke baad hi active hoga\n"
                 "• 1 user = 1 search per day\n"
                 "• Fake activity = withdrawal band\n\n"
-                f"*Support:* {self.config.SUPPORT_USERNAME}"
+                f"Support: {self.config.SUPPORT_USERNAME}"
             )
             await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
         except Exception as e:
@@ -821,7 +821,7 @@ class Handlers:
                             kb = [[InlineKeyboardButton("📩 VIEW", callback_data=f"view_support_{msg_id}")]]
                             await context.bot.send_message(
                                 chat_id=admin_id,
-                                text=f"📩 *New Support*\n\nUser: `{user_id}`\nMsg: {message[:100]}",
+                                text=f"📩 New Support\n\nUser: {user_id}\nMsg: {message[:100]}",
                                 reply_markup=InlineKeyboardMarkup(kb),
                                 parse_mode=ParseMode.MARKDOWN
                             )
