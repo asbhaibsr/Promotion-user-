@@ -1505,6 +1505,9 @@
 <!-- MISSIONS -->
 <div class="modal" id="missionsModal">
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('missions')">←</div><div class="modal-title">🎯 Daily Missions</div></div>
+    <div id="missionsContainer" style="padding:0 2px 20px;"></div>
+</div>
+
 <div class="modal" id="blockblastModal">
     <div class="modal-hdr">
         <div class="back-btn" onclick="exitBlockBlast()">←</div>
@@ -1626,7 +1629,6 @@
             </div>
         </div>
     </div>
-    <div id="missionsContainer"></div>
 </div>
 
 
@@ -2496,7 +2498,7 @@ async function loadMissions(){
     const today=getISTDate();
 
     // Long-term mission IDs — no date expiry
-    const LONG_TERM_IDS=new Set(['m_refer5','m_streak3','m_shortlink']);
+    const LONG_TERM_IDS=new Set(['m_refer5','m_refer10','m_streak3','m_streak7','m_shortlink','m_game50']);
 
     // Session claimed (date-keyed) — auto resets each day for daily missions
     let sessionClaimed={};
@@ -2556,6 +2558,13 @@ async function loadMissions(){
     const streak=userData.daily_streak||0;
     if(!missionStates['m_streak3']?.claimed){
         missionStates['m_streak3']={...missionStates['m_streak3'],progress:Math.min(streak,3),completed:streak>=3,long_term:true};
+    }
+    if(!missionStates['m_streak7']?.claimed){
+        missionStates['m_streak7']={...missionStates['m_streak7'],progress:Math.min(streak,7),completed:streak>=7,long_term:true};
+    }
+    const totalRefs=userData.active_refs||0;
+    if(!missionStates['m_refer10']?.claimed){
+        missionStates['m_refer10']={...missionStates['m_refer10'],progress:Math.min(totalRefs,10),completed:totalRefs>=10,long_term:true};
     }
 
     updateMissionsUI();
@@ -3943,24 +3952,36 @@ async function claimSingleMission(missionId,reward){
 
     _claimingMissions.add(missionId);
 
-    // Show loading on claim button
     const btnId='claimBtn_'+missionId;
     const btnTxt=document.getElementById(btnId+'_txt');
     const btnSpin=document.getElementById(btnId+'_spin');
     const btn=document.getElementById(btnId);
-    if(btn){btn.disabled=true;btn.style.opacity='.7';}
-    if(btnTxt)btnTxt.style.display='none';
-    if(btnSpin)btnSpin.style.display='inline';
+
+    // STEP 1: Loading
+    if(btn){btn.disabled=true;btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)';}
+    if(btnTxt) btnTxt.style.display='none';
+    if(btnSpin){btnSpin.style.display='inline';btnSpin.textContent='⏳ Loading...';}
 
     try{
+        // STEP 2: Show interstitial ad (non-blocking)
+        try{
+            if(typeof window.Adsgram!=='undefined'){
+                if(!intController) intController=window.Adsgram.init({blockId:ADSGRAM_INT_BLOCK});
+                if(btnSpin) btnSpin.textContent='📺 Ad dekho...';
+                await intController.show();
+            }
+        }catch(adErr){ console.log('Ad skipped, continuing claim'); }
+
+        // STEP 3: Backend claim
+        if(btnSpin) btnSpin.textContent='🎯 Claiming...';
         const r=await apiPost('/api/claim-single-mission',{
             user_id:userData.user_id,
             mission_id:missionId,
             reward:parseFloat(reward),
             date:getISTDate()
         });
+
         if(r&&r.success){
-            // Confirmed by backend — now update UI
             missionStates[missionId].claimed=true;
             saveMissionClaimed(missionId);
             const mReward=parseFloat(reward);
@@ -3969,38 +3990,34 @@ async function claimSingleMission(missionId,reward){
             userData.today_earned=(userData.today_earned||0)+mReward;
             updateUI();
             playSound('mission');
-            showToast('🎯 Mission Complete! +'+toPoints(mReward)+' pts mila! 🎉');
-            const isLT=['m_refer5','m_shortlink','m_streak3','m_refer10','m_streak7','m_game50'].includes(missionId);
-            if(isLT){
-                setTimeout(()=>{
+            if(btn) btn.style.background='linear-gradient(135deg,#10b981,#059669)';
+            if(btnSpin) btnSpin.textContent='✅ +'+toPoints(parseFloat(reward))+' pts Mila!';
+            showToast('🎯 Mission Complete! +'+toPoints(mReward)+' pts! 🎉');
+            const isLT=['m_refer5','m_refer10','m_shortlink','m_streak3','m_streak7','m_game50'].includes(missionId);
+            setTimeout(()=>{
+                if(isLT){
                     missionStates[missionId]={progress:0,completed:false,claimed:false,long_term:true};
                     clearMissionClaimed(missionId);
-                    updateMissionsUI();
-                    showToast('♻️ Long-term mission reset! Dobara shuru karo!');
-                },2500);
-            }else{
+                }
                 updateMissionsUI();
-            }
-            setTimeout(()=>showEarnMorePopup(toPoints(mReward)),1500);
+            },1800);
+            setTimeout(()=>showEarnMorePopup(toPoints(mReward)),800);
         }else if(r?.message==='Already claimed'){
-            // Server says already claimed — update local state
             missionStates[missionId].claimed=true;
             saveMissionClaimed(missionId);
             updateMissionsUI();
-            showToast('✅ Ye mission already claim ho chuka hai!');
+            showToast('✅ Already claimed!');
         }else{
-            // Failed — show reason clearly
-            if(btn){btn.disabled=false;btn.style.opacity='1';}
-            if(btnTxt)btnTxt.style.display='inline';
-            if(btnSpin)btnSpin.style.display='none';
-            const msg=r?.message||'Server error — dobara try karo';
-            showToast('❌ '+msg);
+            if(btn){btn.disabled=false;btn.style.background='linear-gradient(135deg,var(--green),#16a34a)';}
+            if(btnTxt){btnTxt.style.display='inline';}
+            if(btnSpin){btnSpin.style.display='none';}
+            showToast('❌ '+(r?.message||'Dobara try karo'));
         }
     }catch(e){
-        if(btn){btn.disabled=false;btn.style.opacity='1';}
-        if(btnTxt)btnTxt.style.display='inline';
-        if(btnSpin)btnSpin.style.display='none';
-        showToast('❌ Network error — internet check karo');
+        if(btn){btn.disabled=false;btn.style.background='linear-gradient(135deg,var(--green),#16a34a)';}
+        if(btnTxt){btnTxt.style.display='inline';}
+        if(btnSpin){btnSpin.style.display='none';}
+        showToast('❌ Network error');
     }finally{
         _claimingMissions.delete(missionId);
     }
