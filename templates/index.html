@@ -908,18 +908,17 @@
                 </div>
                 <div style="background:linear-gradient(135deg,var(--green),#059669);color:#fff;padding:6px 12px;border-radius:20px;font-weight:800;font-size:11px;align-self:flex-start;" id="dailyBonusBtn">Claim</div>
             </div>
-            <!-- Watch Ad Earn — Fixed Design -->
-            <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px solid rgba(59,130,246,.3);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:8px;">
+            <!-- Watch & Earn — click pe modal -->
+            <div onclick="openModal('watchEarn')" style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px solid rgba(59,130,246,.3);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:8px;cursor:pointer;">
                 <div style="display:flex;align-items:center;gap:8px;">
                     <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue),#7c5cfc);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📺</div>
                     <div style="flex:1;">
                         <div style="font-family:'Fredoka One',cursive;font-weight:900;font-size:13px;color:var(--text);line-height:1.2;">Watch &amp; Earn</div>
-                        <div style="font-size:10px;color:var(--text3);">Ad dekho, pao pts</div>
+                        <div style="font-size:10px;color:var(--text3);">Ads dekho, pts pao</div>
                     </div>
                     <div style="background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;padding:4px 8px;border-radius:16px;font-size:10px;font-weight:900;white-space:nowrap;flex-shrink:0;">+5 pts</div>
                 </div>
-                <button id="rewardAdBtn" onclick="showRewardAd()" style="width:100%;background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;border:none;border-radius:22px;padding:9px 4px;font-weight:900;font-size:11px;cursor:pointer;font-family:'Fredoka One',cursive;">▶ Ad Dekho</button>
-                <div id="rewardAdStatus" style="font-size:9px;color:var(--text3);text-align:center;min-height:12px;"></div>
+                <div style="width:100%;background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;border:none;border-radius:22px;padding:9px 4px;font-weight:900;font-size:11px;font-family:'Fredoka One',cursive;text-align:center;">▶ Watch &amp; Earn →</div>
             </div>
         </div>
 
@@ -3824,7 +3823,7 @@ async function doSelfSearch(){
     // If can search → first send to movie group, then claim
     if(selfSearchStatus.can_search){
         // Open movie group link
-        const groupLink = 'https://t.me/asfilter_group';
+        const groupLink = MOVIE_GROUP_LINK || 'https://t.me/asfilter_group';
         window.open(groupLink, '_blank');
         if(btn)btn.disabled=true;
         const r=await apiPost('/api/self-search',{user_id:userData.user_id});
@@ -3864,70 +3863,91 @@ async function doSelfSearch(){
 // Track which missions are currently being claimed (anti-spam)
 const _claimingMissions=new Set();
 
-async function claimSingleMission(missionId,reward){
-    if(_claimingMissions.has(missionId))return;
-    if(!missionStates[missionId])missionStates[missionId]={progress:0,completed:true,claimed:false};
-    if(missionStates[missionId].claimed)return;
+async function claimSingleMission(missionId, reward){
+    // Temp ID system — prevent double claim
+    if(_claimingMissions.has(missionId)) return;
+    if(!missionStates[missionId]) missionStates[missionId]={progress:0,completed:true,claimed:false};
+    if(missionStates[missionId].claimed) return;
 
     _claimingMissions.add(missionId);
 
-    // Show loading on claim button
-    const btnId='claimBtn_'+missionId;
-    const btnTxt=document.getElementById(btnId+'_txt');
+    // Show loading on button
+    const btnId = 'claimBtn_'+missionId;
+    const btn   = document.getElementById(btnId);
+    const btnTxt= document.getElementById(btnId+'_txt');
     const btnSpin=document.getElementById(btnId+'_spin');
-    const btn=document.getElementById(btnId);
-    if(btn){btn.disabled=true;btn.style.opacity='.7';}
-    if(btnTxt)btnTxt.style.display='none';
-    if(btnSpin)btnSpin.style.display='inline';
+    if(btn){ btn.disabled=true; btn.style.opacity='.7'; }
+    if(btnTxt) btnTxt.style.display='none';
+    if(btnSpin) btnSpin.style.display='inline';
 
-    // Optimistic UI
-    missionStates[missionId].claimed=true;
-    saveMissionClaimed(missionId);
+    // Temp claim ID — prevents spam
+    const tempId = `tmp_${userData.user_id}_${missionId}_${Date.now()}`;
+    try{ sessionStorage.setItem(tempId,'pending'); }catch(e){}
 
     try{
-        const r=await apiPost('/api/claim-single-mission',{
-            user_id:userData.user_id,
-            mission_id:missionId,
-            reward:parseFloat(reward),
-            date:new Date(Date.now()+5.5*3600000).toISOString().split('T')[0]
+        const today = new Date(Date.now()+5.5*3600000).toISOString().split('T')[0]; // IST
+        const r = await apiPost('/api/claim-single-mission', {
+            user_id:    userData.user_id,
+            mission_id: missionId,
+            reward:     parseFloat(reward),
+            date:       today,
+            temp_id:    tempId
         });
-        if(r&&r.success){
-            const mReward=parseFloat(reward);
-            userData.balance=(userData.balance||0)+mReward;
-            userData.total_earned=(userData.total_earned||0)+mReward;
-            userData.today_earned=(userData.today_earned||0)+mReward;
+
+        if(r && r.success){
+            // Remove temp ID
+            try{ sessionStorage.removeItem(tempId); }catch(e){}
+            // Credit balance
+            const mReward = parseFloat(reward);
+            userData.balance     = (userData.balance||0) + mReward;
+            userData.total_earned= (userData.total_earned||0) + mReward;
+            userData.today_earned= (userData.today_earned||0) + mReward;
             updateUI();
             playSound('mission');
             showToast('🎯 +'+toPoints(mReward)+' pts mila!');
-            const isLT=['m_refer5','m_shortlink','m_streak3','m_refer10','m_streak7','m_game50'].includes(missionId);
+            // Mark claimed
+            missionStates[missionId].claimed = true;
+            saveMissionClaimed(missionId);
+            // Long-term reset after 2.5s
+            const isLT=['m_refer5','m_streak3','m_shortlink','m_refer10','m_streak7','m_game50'].includes(missionId);
             if(isLT){
                 setTimeout(()=>{
-                    missionStates[missionId]={progress:0,completed:false,claimed:false,long_term:true};
+                    missionStates[missionId]={progress:0,completed:false,claimed:false};
                     clearMissionClaimed(missionId);
                     updateMissionsUI();
-                    showToast('♻️ Long-term mission reset! Dobara shuru karo!');
-                },2500);
-            }else{
+                    showToast('♻️ Mission reset! Dobara shuru karo!');
+                }, 2500);
+            } else {
                 updateMissionsUI();
             }
-            setTimeout(()=>showEarnMorePopup(toPoints(mReward)),1500);
-        }else if(r?.message==='Already claimed'){
-            // keep claimed
-        }else{
-            missionStates[missionId].claimed=false;
-            clearMissionClaimed(missionId);
-            updateMissionsUI();
-            showToast('❌ '+(r?.message||'Failed — dobara try karo'));
+            setTimeout(()=>showEarnMorePopup(toPoints(mReward)), 1500);
+        } else {
+            // Failed — remove temp, show error
+            try{ sessionStorage.removeItem(tempId); }catch(e){}
+            const msg = r?.message||'Failed';
+            if(msg !== 'Already claimed'){
+                showToast('❌ '+msg);
+            } else {
+                // Server says already claimed — mark it
+                missionStates[missionId].claimed = true;
+                saveMissionClaimed(missionId);
+                updateMissionsUI();
+            }
+            if(btn){ btn.disabled=false; btn.style.opacity='1'; }
+            if(btnTxt) btnTxt.style.display='inline';
+            if(btnSpin) btnSpin.style.display='none';
         }
-    }catch(e){
-        missionStates[missionId].claimed=false;
-        clearMissionClaimed(missionId);
-        updateMissionsUI();
-        showToast('❌ Network error');
-    }finally{
+    } catch(e){
+        try{ sessionStorage.removeItem(tempId); }catch(e2){}
+        showToast('❌ Network error — dobara try karo');
+        if(btn){ btn.disabled=false; btn.style.opacity='1'; }
+        if(btnTxt) btnTxt.style.display='inline';
+        if(btnSpin) btnSpin.style.display='none';
+    } finally {
         _claimingMissions.delete(missionId);
     }
 }
+
 
 
 // ============================================================
@@ -6294,7 +6314,7 @@ function showMovieGroupPopup(){
                 3️⃣ Bot ka shortlink complete karo<br><br>
                 <span style="color:var(--green);font-weight:800;">✅ Aapko bhi milenge 30 pts/day!</span>
             </div>
-            <a href="https://t.me/all_movies_webseries_is_here" target="_blank"
+            <a href="https://t.me/asfilter_group" target="_blank"
                style="display:block;background:linear-gradient(135deg,#4ECDC4,#26A69A);color:#000;border-radius:14px;padding:13px;font-weight:900;font-size:14px;text-decoration:none;margin-bottom:10px;">
                 🎬 Movie Group Join Karo
             </a>
