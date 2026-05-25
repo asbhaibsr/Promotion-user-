@@ -166,8 +166,9 @@ def get_user_api(user_id):
         if user_data:
             if '_id' in user_data:
                 user_data['_id'] = str(user_data['_id'])
-            # Auto-reset today_earned if new day
-            today = datetime.now().date().isoformat()
+            # Auto-reset today_earned if new IST day (India +5:30)
+            from datetime import timezone as _tz, timedelta as _tdm
+            today = (datetime.now(_tz.utc) + _tdm(hours=5, minutes=30)).date().isoformat()
             if user_data.get('today_date') != today:
                 user_data['today_earned'] = 0.0
                 db.users.update_one(
@@ -596,22 +597,6 @@ def verify_passes_api():
     except Exception as e:
         logger.error(f"Verify passes error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
-
-@app.route('/api/season-claim', methods=['POST'])
-def season_claim_api():
-    try:
-        data = request.get_json()
-        user_id = int(data.get('user_id',0))
-        reward_pts = float(data.get('reward_pts',0))
-        reward_passes = int(data.get('reward_passes',0))
-        if not user_id: return jsonify({'success':False})
-        if reward_pts > 0:
-            db.add_balance(user_id, reward_pts/100, 'Season reward')
-        if reward_passes > 0:
-            db.users.update_one({'user_id':user_id},{'$inc':{'passes':reward_passes}})
-        return jsonify({'success':True})
-    except Exception as e:
-        return jsonify({'success':False})
 
 @app.route('/api/settings')
 def get_settings_api():
@@ -1200,18 +1185,13 @@ def send_ref_nudge():
         if not sender_id or not ref_user_id:
             return jsonify({'success': False, 'message': 'Invalid IDs'})
         # Send via bot async
-        movie_link = config.MOVIE_GROUP_LINK if config else 'https://t.me/asfilter_group'
+        _mg_link = config.MOVIE_GROUP_LINK if config else 'https://t.me/all_movies_webseries_is_here'
         msg = (
             f"👋 *{sender_name}* ne aapko yaad kiya!\n\n"
-            f"🎬 *FilmyFund mein aapka reward wait kar raha hai!*\n\n"
-            f"📌 Abhi tak movie search nahi ki — bas ek baar karo!\n\n"
-            f"✅ *Steps:*\n"
-            f"1️⃣ Niche link pe click karo\n"
-            f"2️⃣ Koi bhi movie search karo\n"
-            f"3️⃣ Shortlink complete karo\n"
-            f"4️⃣ *+30 pts* seedha aapke account mein! 💰\n\n"
-            f"👉 {movie_link}\n\n"
-            f"💡 Aur *{sender_name}* ko bhi 30 pts milenge — dono ka faayda!"
+            f"📌 Aapne abhi tak movie search nahi ki hai.\n\n"
+            f"🎬 Movie Group mein jaake koi bhi movie search karo aur shortlink pura karo:\n"
+            f"👉 {_mg_link}\n\n"
+            f"✅ Isse *aapko bhi* 30 pts milenge aur jisne refer kiya unhe bhi paise milenge! 💰"
         )
         import asyncio as _asyncio
         async def _send():
@@ -1266,18 +1246,18 @@ def send_shortlink_reminder_api():
             try:
                 import asyncio
                 async def _send(rid, rname):
-                    kb = [[InlineKeyboardButton("🎬 Movie Search Karo!", url=config.MOVIE_GROUP_LINK)]]
+                    kb = [[InlineKeyboardButton("🎬 MOVIE SEARCH KARO!", url=config.MOVIE_GROUP_LINK)]]
                     await bot_app.bot.send_message(
                         chat_id=rid,
                         text=(
-                            f"🎬 *{rname}, aaj ka reward le lo!*\n\n"
-                            f"📌 Movie search karke *+30 pts* aur kamao!\n\n"
-                            f"✅ *Sirf 3 steps:*\n"
-                            f"1️⃣ Niche button dabao\n"
-                            f"2️⃣ Koi movie search karo\n"
-                            f"3️⃣ Shortlink complete karo → *+30 pts!* 🎯\n\n"
-                            f"💡 Roz karo = Roz 30 pts!\n"
-                            f"🎮 Passes bhi milenge → Games khelo!"
+                            f"👋 *{rname}, yaad hai?*\n\n"
+                            f"Tumne abhi tak movie search nahi ki! 😔\n\n"
+                            f"🎁 *Abhi karo = 50 pts INSTANT bonus!*\n"
+                            f"🎬 Group mein koi bhi movie search karo\n"
+                            f"🔗 Shortlink kholo — bas 10 second!\n\n"
+                            f"💰 Roz search = Roz 30 pts!\n"
+                            f"🎮 Games khelo = Unlimited earning!\n\n"
+                            f"⏰ *Offer limited hai — jaldi karo!*"
                         ),
                         reply_markup=InlineKeyboardMarkup(kb),
                         parse_mode='Markdown'
@@ -1410,6 +1390,19 @@ def adsgram_reward():
         # Add balance to user
         db.add_balance(user_id, reward_pts, f'AdsGram reward ({block_id})')
         db.add_live_activity('bonus', user_id, reward_pts, f'📺 Ad dekhi! +{int(reward_pts*100)} pts')
+
+        # Set watch_ad_today so m_watchad mission can be claimed
+        try:
+            ist_now = datetime.utcnow()
+            from datetime import timezone, timedelta as _td2
+            ist_today = (datetime.now(timezone.utc) + _td2(hours=5, minutes=30)).date().isoformat()
+            db.users.update_one(
+                {'user_id': user_id},
+                {'$set': {'watch_ad_today': ist_today}}
+            )
+        except Exception as we:
+            logger.warning(f"watch_ad_today set error: {we}")
+
         db.user_cache.pop(f"user_{user_id}", None)
 
         logger.info(f"✅ AdsGram reward: user={user_id} block={block_id} bonus={bonus_type} +₹{reward_pts}")
