@@ -709,7 +709,7 @@ class Database:
                 return {'success': False, 'message': 'Already claimed or not eligible'}
 
             self.add_balance(user_id, reward, f"Milestone bonus: {refs_required} refs")
-            self.add_live_activity('milestone', user_id, reward, f"Milestone {refs_required} refs → +{int(float(reward)*100)} pts")
+            self.add_live_activity('milestone', user_id, reward, f"Milestone {refs_required} refs → +₹{reward}")
             logger.info(f"✅ Milestone claimed: user={user_id} refs={refs_required} reward=₹{reward}")
             return {'success': True, 'reward': reward}
 
@@ -965,7 +965,7 @@ class Database:
             self.add_balance(user_id, self.config.CHANNEL_JOIN_BONUS, "Channel join bonus")
             self.users.update_one({'user_id': user_id}, {'$set': {'channel_joined': True}})
             self.user_cache.pop(f"user_{user_id}", None)
-            self.add_live_activity('bonus', user_id, self.config.CHANNEL_JOIN_BONUS, f"joined channel +{int(float(self.config.CHANNEL_JOIN_BONUS)*100)} pts")
+            self.add_live_activity('bonus', user_id, self.config.CHANNEL_JOIN_BONUS, f"joined channel +₹{self.config.CHANNEL_JOIN_BONUS}")
             return True
         except Exception as e:
             logger.error(f"Error marking channel join: {e}")
@@ -1043,32 +1043,17 @@ class Database:
     # ========== MISSIONS ==========
 
     MISSIONS_DEF = [
-        # Daily missions
-        {'id': 'm_daily',       'total': 1,  'reward': 0.10, 'track': 'daily_bonus',   'long_term': False},
-        {'id': 'm_self_search', 'total': 1,  'reward': 0.50, 'track': 'self_search',   'long_term': False},
-        {'id': 'm_search5',     'total': 5,  'reward': 1.0,  'track': 'daily_search',  'long_term': False},
-        {'id': 'm_game',        'total': 10, 'reward': 1.0,  'track': 'game_plays',    'long_term': False},
-        {'id': 'm_game5win',    'total': 5,  'reward': 1.5,  'track': 'game_wins',     'long_term': False},
-        {'id': 'm_passes',      'total': 1,  'reward': 1.0,  'track': 'pass_purchase', 'long_term': False},
-        {'id': 'm_withdraw',    'total': 1,  'reward': 1.0,  'track': 'withdraw',      'long_term': False},
-        {'id': 'm_invite1',     'total': 1,  'reward': 0.50, 'track': 'invite_daily',  'long_term': False},
-        {'id': 'm_watchad',     'total': 1,  'reward': 0.10, 'track': 'watch_ad',      'long_term': False},
-        # Long-term missions
-        {'id': 'm_refer5',      'total': 5,  'reward': 2.0,  'track': 'active_refs',   'long_term': True},
-        {'id': 'm_shortlink',   'total': 1,  'reward': 1.0,  'track': 'shortlink',     'long_term': True},
-        {'id': 'm_streak3',     'total': 3,  'reward': 1.0,  'track': 'streak',        'long_term': True},
-        {'id': 'm_refer10',     'total': 10, 'reward': 5.0,  'track': 'active_refs',   'long_term': True},
-        {'id': 'm_streak7',     'total': 7,  'reward': 3.0,  'track': 'streak',        'long_term': True},
-        {'id': 'm_game50',      'total': 50, 'reward': 5.0,  'track': 'total_plays',   'long_term': True},
+        {'id': 'm_refer5',      'total': 5,  'reward': 2.0,  'track': 'active_refs'},
+        {'id': 'm_search5',     'total': 5,  'reward': 1.0,  'track': 'daily_search'},
+        {'id': 'm_self_search', 'total': 1,  'reward': 0.50, 'track': 'self_search'},
+        {'id': 'm_shortlink',   'total': 1,  'reward': 1.0,  'track': 'shortlink'},
+        {'id': 'm_game',        'total': 10, 'reward': 1.0,  'track': 'game_plays'},
+        {'id': 'm_game5win',    'total': 5,  'reward': 1.5,  'track': 'game_wins'},
+        {'id': 'm_passes',      'total': 1,  'reward': 1.0,  'track': 'pass_purchase'},
+        {'id': 'm_daily',       'total': 1,  'reward': 0.10, 'track': 'daily_bonus'},
+        {'id': 'm_streak3',     'total': 3,  'reward': 1.0,  'track': 'streak'},
+        {'id': 'm_withdraw',    'total': 1,  'reward': 1.0,  'track': 'withdraw'},
     ]
-
-    # Long-term missions use 'lt_' prefix key (no date) — daily use date key
-    def _mission_key(self, mdef, user_id):
-        if mdef.get('long_term'):
-            return {'user_id': user_id, 'mission_id': mdef['id'], 'long_term': True}
-        else:
-            today = datetime.now().date().isoformat()
-            return {'user_id': user_id, 'date': today, 'mission_id': mdef['id']}
 
     def get_user_missions(self, user_id):
         try:
@@ -1079,41 +1064,33 @@ class Database:
 
             for mdef in self.MISSIONS_DEF:
                 mid = mdef['id']
-                is_lt = mdef.get('long_term', False)
-                query = self._mission_key(mdef, user_id)
-                doc = self.missions.find_one(query)
-
+                doc = self.missions.find_one({'user_id': user_id, 'date': today, 'mission_id': mid})
                 if not doc:
                     progress = 0
                     if mid == 'm_refer5' and user:
                         progress = min(user.get('active_refs', 0), mdef['total'])
-                    elif mid == 'm_streak3' and user:
-                        progress = min(user.get('daily_streak', 0), mdef['total'])
                     elif mid == 'm_daily':
                         bonus_today = self.daily_bonus.find_one({'user_id': user_id, 'date': today})
                         progress = 1 if bonus_today else 0
 
-                    doc = {**query, 'progress': progress, 'completed': progress >= mdef['total'], 'claimed': False}
+                    doc = {
+                        'user_id': user_id,
+                        'date': today,
+                        'mission_id': mid,
+                        'progress': progress,
+                        'completed': progress >= mdef['total'],
+                        'claimed': False
+                    }
                     try:
                         self.missions.insert_one(doc)
                     except:
                         pass
 
-                # For long-term: refresh progress from live data each time
-                if is_lt and not doc.get('claimed'):
-                    if mid == 'm_refer5' and user:
-                        doc['progress'] = min(user.get('active_refs', 0), mdef['total'])
-                        doc['completed'] = user.get('active_refs', 0) >= mdef['total']
-                    elif mid == 'm_streak3' and user:
-                        doc['progress'] = min(user.get('daily_streak', 0), mdef['total'])
-                        doc['completed'] = user.get('daily_streak', 0) >= mdef['total']
-
                 result[mid] = {
                     'progress': doc.get('progress', 0),
                     'completed': doc.get('completed', False),
                     'claimed': doc.get('claimed', False),
-                    'claimed_date': doc.get('claimed_date', ''),
-                    'long_term': is_lt
+                    'claimed_date': doc.get('claimed_date', '')  # frontend uses this to verify TODAY
                 }
             return result
         except Exception as e:
@@ -1127,10 +1104,10 @@ class Database:
             mdef = next((m for m in self.MISSIONS_DEF if m['id'] == mission_id), None)
             if not mdef:
                 return
-            query = self._mission_key(mdef, user_id)
-            doc = self.missions.find_one(query)
+
+            doc = self.missions.find_one({'user_id': user_id, 'date': today, 'mission_id': mission_id})
             if not doc:
-                doc = {**query, 'progress': 0, 'completed': False, 'claimed': False}
+                doc = {'user_id': user_id, 'date': today, 'mission_id': mission_id, 'progress': 0, 'completed': False, 'claimed': False}
 
             if doc.get('claimed'):
                 return
@@ -1139,7 +1116,7 @@ class Database:
             completed = new_progress >= mdef['total']
 
             self.missions.update_one(
-                query,
+                {'user_id': user_id, 'date': today, 'mission_id': mission_id},
                 {'$set': {'progress': new_progress, 'completed': completed}},
                 upsert=True
             )
@@ -1159,26 +1136,24 @@ class Database:
             if not mdef:
                 return {'success': False, 'message': 'Mission not found'}
 
-            is_lt = mdef.get('long_term', False)
-            query = self._mission_key(mdef, user_id)
-
-            # ── STEP 1: Check already claimed ──────────────
-            doc = self.missions.find_one(query)
+            # ── STEP 1: Check already claimed (fast exit) ──────────────
+            doc = self.missions.find_one({
+                'user_id': user_id, 'date': today, 'mission_id': mission_id
+            })
             if doc and doc.get('claimed'):
                 return {'success': False, 'message': 'Already claimed'}
 
-            # ── STEP 2: Verify mission is actually completed ──
+            # ── STEP 2: Verify mission is actually completed ────────────
             completed = doc.get('completed', False) if doc else False
             progress  = doc.get('progress', 0)      if doc else 0
 
             if not completed or progress < mdef['total']:
                 user = self.get_user(user_id)
-                if mission_id in ('m_refer5', 'm_refer10') and user:
-                    refs = user.get('active_refs', 0)
-                    completed = refs >= mdef['total']
-                    progress  = min(refs, mdef['total'])
+                if mission_id == 'm_refer5' and user:
+                    completed = user.get('active_refs', 0) >= mdef['total']
+                    progress  = min(user.get('active_refs', 0), mdef['total'])
                 elif mission_id == 'm_daily':
-                    # Check both UTC and IST dates (timezone mismatch fix)
+                    # Check both UTC and IST (timezone mismatch fix for India)
                     bonus_utc = self.daily_bonus.find_one({'user_id': user_id, 'date': server_today})
                     bonus_ist = self.daily_bonus.find_one({'user_id': user_id, 'date': ist_today})
                     bonus_today = bonus_utc or bonus_ist
@@ -1189,21 +1164,14 @@ class Database:
                     plays     = (state.get('wins', 0) if state else 0) + (state.get('plays', 0) if state else 0)
                     progress  = min(plays, mdef['total'])
                     completed = progress >= mdef['total']
-                elif mission_id == 'm_game50' and user:
-                    total_plays = user.get('total_game_plays', 0)
-                    progress    = min(total_plays, mdef['total'])
-                    completed   = total_plays >= mdef['total']
                 elif mission_id == 'm_self_search':
                     completed = bool(user and user.get('last_self_search', '')[:10] == today)
                     progress  = 1 if completed else 0
-                elif mission_id in ('m_streak3', 'm_streak7') and user:
+                elif mission_id == 'm_streak3' and user:
                     streak    = user.get('daily_streak', 0)
                     progress  = min(streak, mdef['total'])
                     completed = streak >= mdef['total']
-                elif mission_id == 'm_shortlink':
-                    ref = self.referrals.find_one({'referrer_id': user_id, 'is_active': True})
-                    completed = bool(ref); progress = 1 if ref else 0
-                elif mission_id in ('m_game5win',) and user:
+                elif mission_id == 'm_game5win' and user:
                     wins      = user.get('games_won', 0)
                     progress  = min(wins, mdef['total'])
                     completed = wins >= mdef['total']
@@ -1211,38 +1179,38 @@ class Database:
                     wd        = self.withdrawals.find_one({'user_id': user_id, 'request_date': {'$gte': today}})
                     completed = bool(wd); progress = 1 if wd else 0
                 elif mission_id == 'm_passes':
-                    cl = self.daily_claims.find_one({'user_id': user_id, 'claimed_at': {'$gte': today}})
+                    cl        = self.daily_claims.find_one({'user_id': user_id, 'claimed_at': {'$gte': today}})
                     completed = bool(cl); progress = 1 if cl else 0
-                elif mission_id == 'm_search5':
-                    # Check if 5 referred users searched today
-                    refs_list = list(self.referrals.find({'referrer_id': user_id}))
-                    searched = sum(1 for r in refs_list if r.get('last_search_date','')[:10]==today)
-                    progress  = min(searched, mdef['total'])
-                    completed = searched >= mdef['total']
-                elif mission_id in ('m_invite1',):
-                    # Check if invited anyone today (any new referral today)
-                    new_ref = self.referrals.find_one({'referrer_id': user_id, 'created_at': {'$gte': today}})
-                    completed = bool(new_ref); progress = 1 if new_ref else 0
-                elif mission_id == 'm_watchad':
-                    # Check watch_ad_today field on user
-                    completed = bool(user and user.get('watch_ad_today','')[:10]==today)
-                    progress  = 1 if completed else 0
                 else:
                     completed = progress >= mdef['total']
 
             if not completed:
                 return {'success': False, 'message': 'Mission abhi puri nahi hui — pehle complete karo!'}
 
-            # ── STEP 3: Mark claimed ──────────────────────────────────
+            # ── STEP 3: Safe upsert using update_one (no unique conflict) ─
             update_result = self.missions.update_one(
-                {**query, 'claimed': {'$ne': True}},
-                {'$set': {
-                    'claimed': True, 'completed': True, 'progress': progress,
-                    'reward_given': float(reward), 'claimed_date': today,
-                }},
+                {
+                    'user_id':    user_id,
+                    'date':       today,
+                    'mission_id': mission_id,
+                    'claimed':    {'$ne': True}  # only update if NOT already claimed
+                },
+                {
+                    '$set': {
+                        'claimed':      True,
+                        'completed':    True,
+                        'progress':     progress,
+                        'reward_given': float(reward),
+                        'claimed_date': today,
+                        'user_id':      user_id,
+                        'date':         today,
+                        'mission_id':   mission_id,
+                    }
+                },
                 upsert=True
             )
 
+            # If matched_count==0 and upserted_id==None → already claimed by race condition
             if update_result.matched_count == 0 and update_result.upserted_id is None:
                 return {'success': False, 'message': 'Already claimed'}
 
@@ -1250,17 +1218,14 @@ class Database:
             self.add_balance(user_id, float(reward), f"Mission {mission_id} reward")
             self.add_live_activity('mission', user_id, reward, f"Mission complete! +{int(float(reward)*100)} pts")
             logger.info(f"✅ Mission claimed: user={user_id} {mission_id} +₹{reward}")
-
-            # ── STEP 5: Long-term missions RESET after claim ──────────
-            if is_lt:
-                self.missions.delete_one(query)
-                logger.info(f"♻️ Long-term mission {mission_id} reset for user {user_id}")
-
             return {'success': True, 'reward': float(reward)}
 
         except Exception as e:
-            logger.error(f"Error claiming mission {mission_id} for user {user_id}: {e}")
-            return {'success': False, 'message': 'Server error'}
+            err = str(e)
+            if 'duplicate' in err.lower() or 'E11000' in err:
+                # Race condition — already claimed by another request, silently accept
+                return {'success': False, 'message': 'Already claimed'}
+            logger.error(f"Mission claim error {mission_id}: {e}")
             return {'success': False, 'message': 'Try again'}
 
     # ========== ADS — UPDATED: timer_seconds field ==========
@@ -1268,22 +1233,9 @@ class Database:
     def get_all_ads(self):
         try:
             ads = list(self.ads.find().sort('order', 1))
-            result = []
             for ad in ads:
                 ad['_id'] = str(ad['_id'])
-                # Ensure all required fields exist
-                ad.setdefault('icon', '💎')
-                ad.setdefault('title', 'Offer')
-                ad.setdefault('reward', 0.0)
-                ad.setdefault('link', '#')
-                ad.setdefault('meta', 'Sponsored Offer')
-                ad.setdefault('description', '')
-                ad.setdefault('timer_seconds', 20)
-                ad.setdefault('claim_code', None)
-                ad.setdefault('image_url', '')
-                ad.setdefault('expiry', '')
-                result.append(ad)
-            return result
+            return ads
         except Exception as e:
             logger.error(f"Error getting ads: {e}")
             return []
@@ -1762,7 +1714,7 @@ class Database:
             return {'success': False, 'message': str(e)}
 
     def process_game_guess(self, user_id, guess, bet):
-        """Number guess — costs 1 pass per attempt, fixed reward on win."""
+        """Number guess — costs 1 pass."""
         try:
             user_id = int(user_id)
             today = datetime.now().date().isoformat()
@@ -1772,14 +1724,14 @@ class Database:
             if not user or user.get('passes', 0) <= 0:
                 return {'success': False, 'message': 'Passes nahi hain!'}
 
-            # Deduct 1 pass per attempt
-            self.deduct_pass(user_id)
+            deduct_result = self.deduct_game_balance(user_id, bet, 'guess')
+            if not deduct_result.get('success'):
+                return deduct_result
 
             secret = state.get('guess_secret', random.randint(1, 10))
             attempts_used = state.get('guess_attempts_used', 0) + 1
             is_correct = (guess == secret)
             is_last_attempt = (attempts_used >= 3)
-            FIXED_WIN_REWARD = 5  # fixed 500 pts (5 units)
 
             result = {
                 'success': True, 'correct': is_correct,
@@ -1788,14 +1740,17 @@ class Database:
             }
 
             if is_correct:
-                earn_result = self.add_game_earning(user_id, FIXED_WIN_REWARD, 'guess', "Guess correct! +500 pts")
+                reward = bet * 8
+                earn_result = self.add_game_earning(user_id, reward, 'guess', "Guess correct! x8")
                 result['reward'] = earn_result.get('earned', 0)
                 result['today_earned'] = earn_result.get('today_total', 0)
+                self.deduct_pass(user_id)
                 self.game_states.update_one(
                     {'user_id': user_id, 'date': today},
                     {'$set': {'guess_secret': random.randint(1, 10), 'guess_attempts_used': 0}}
                 )
             elif is_last_attempt:
+                self.deduct_pass(user_id)
                 self.game_states.update_one(
                     {'user_id': user_id, 'date': today},
                     {'$set': {'guess_secret': random.randint(1, 10), 'guess_attempts_used': 0}}
@@ -1823,18 +1778,20 @@ class Database:
             if not user or user.get('passes', 0) <= 0:
                 return {'success': False, 'message': 'Passes nahi hain!'}
 
-            # Deduct 1 pass (no balance deduction)
-            if not self.deduct_pass(user_id):
-                return {'success': False, 'message': 'Pass deduct nahi hua'}
+            deduct_result = self.deduct_game_balance(user_id, bet, 'coin')
+            if not deduct_result.get('success'):
+                return deduct_result
+
+            self.deduct_pass(user_id)
 
             actual_result = 'heads' if random.random() < 0.5 else 'tails'
             won = (choice == actual_result)
 
-            FIXED_WIN = 5  # 500 pts
-            result = {'success': True, 'won': won, 'result': actual_result, 'choice': choice, 'bet': 1, 'reward': 0}
+            result = {'success': True, 'won': won, 'result': actual_result, 'choice': choice, 'bet': bet, 'reward': 0}
 
             if won:
-                earn_result = self.add_game_earning(user_id, FIXED_WIN, 'coin', "Coin flip win! +500 pts")
+                reward = round(bet * 1.6, 2)  # 60% user payout, 40% house edge
+                earn_result = self.add_game_earning(user_id, reward, 'coin', f"Coin flip win ₹{reward}")
                 result['reward'] = earn_result.get('earned', 0)
                 result['today_earned'] = earn_result.get('today_total', 0)
 
@@ -1960,8 +1917,11 @@ class Database:
             user = self.get_user(user_id)
             if not user or user.get('passes', 0) <= 0:
                 return {'success': False, 'message': 'Passes nahi hain!'}
-            # Deduct 1 pass only (no balance deduction)
+            deduct_result = self.deduct_game_balance(user_id, bet, 'color')
+            if not deduct_result.get('success'):
+                return deduct_result
             if not self.deduct_pass(user_id):
+                self.add_balance(user_id, bet, "Color refund")
                 return {'success': False, 'message': 'Pass deduct nahi hua'}
             # Weighted color pick
             probs = [self.COLOR_CONFIG[c]['prob'] for c in valid_colors]
@@ -1975,13 +1935,12 @@ class Database:
                     break
             won = (choice == result_color)
             result = {'success': True, 'won': won, 'result_color': result_color, 'choice': choice, 'reward': 0}
-            # Fixed rewards per color (no bet multiplier)
-            COLOR_FIXED_REWARDS = {'red': 8, 'green': 8, 'blue': 10, 'gold': 15, 'purple': 20}
             if won:
-                fixed_reward = COLOR_FIXED_REWARDS.get(result_color, 8)
-                earn_result = self.add_game_earning(user_id, fixed_reward, 'color', f"Color {result_color} win!")
-                result['reward'] = earn_result.get('earned', fixed_reward)
-                result['multiplier'] = COLOR_FIXED_REWARDS.get(result_color, 8)
+                mult = self.COLOR_CONFIG[result_color]['mult']
+                reward = round(bet * mult, 2)
+                earn_result = self.add_game_earning(user_id, reward, 'color', f"Color {result_color} {mult}x")
+                result['reward'] = earn_result.get('earned', reward)
+                result['multiplier'] = mult
                 result['today_earned'] = earn_result.get('today_total', 0)
             return result
         except Exception as e:
@@ -2045,9 +2004,10 @@ class Database:
     MAX_DAILY_GAME_EARN = 3.0
 
     def runner_start(self, user_id, mode, bet):
-        """Start runner/skill game — deduct 1 pass only (no balance deduction)."""
+        """Start runner game — deduct pass + bet."""
         try:
             user_id = int(user_id)
+            bet = float(bet)
             if mode not in self.RUNNER_MODES:
                 return {'success': False, 'message': 'Invalid mode'}
             user = self.get_user(user_id)
@@ -2055,18 +2015,22 @@ class Database:
                 return {'success': False, 'message': 'User not found'}
             if user.get('passes', 0) <= 0:
                 return {'success': False, 'message': 'Passes nahi hain!'}
-            # Deduct ONLY pass (no balance deduction — pass-only mode)
+            if user.get('balance', 0) < bet:
+                return {'success': False, 'message': f'Balance kam hai! ₹{user.get("balance",0):.2f}'}
+            # Deduct pass + bet
             if not self.deduct_pass(user_id):
                 return {'success': False, 'message': 'Pass deduct nahi hua'}
+            self.users.update_one({'user_id': user_id}, {'$inc': {'balance': -bet}})
+            self.add_transaction(user_id, 'game_bet', -bet, f"Runner game bet ₹{bet} ({mode})")
             self.user_cache.pop(f"user_{user_id}", None)
             mode_info = self.RUNNER_MODES[mode]
-            max_reward = mode_info.get('max_reward', round(mode_info['seconds'] * mode_info['reward_per_sec'], 2))
+            max_reward = round(bet + (mode_info['seconds'] * mode_info['reward_per_sec']), 2)
             return {
                 'success': True,
                 'mode': mode,
                 'seconds': mode_info['seconds'],
                 'reward_per_sec': mode_info['reward_per_sec'],
-                'bet': 0,
+                'bet': bet,
                 'max_reward': max_reward
             }
         except Exception as e:
@@ -2167,34 +2131,6 @@ class Database:
         except Exception as e:
             logger.error(f"Error getting system stats: {e}")
             return {}
-
-
-    def get_settings(self):
-        """Get app settings from DB (UPI ID, etc.)"""
-        try:
-            if not self.ensure_connection():
-                return {}
-            doc = self.db.settings.find_one({'_id': 'app_settings'})
-            if doc:
-                doc.pop('_id', None)
-                return doc
-            return {}
-        except Exception as e:
-            logger.error(f"get_settings error: {e}")
-            return {}
-
-    def save_settings(self, data):
-        """Save app settings to DB"""
-        try:
-            if not self.ensure_connection():
-                return False
-            data['_id'] = 'app_settings'
-            data['updated_at'] = datetime.utcnow()
-            self.db.settings.replace_one({'_id': 'app_settings'}, data, upsert=True)
-            return True
-        except Exception as e:
-            logger.error(f"save_settings error: {e}")
-            return False
 
     def cleanup(self):
         try:
