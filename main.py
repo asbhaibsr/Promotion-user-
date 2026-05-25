@@ -597,6 +597,22 @@ def verify_passes_api():
         logger.error(f"Verify passes error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@app.route('/api/season-claim', methods=['POST'])
+def season_claim_api():
+    try:
+        data = request.get_json()
+        user_id = int(data.get('user_id',0))
+        reward_pts = float(data.get('reward_pts',0))
+        reward_passes = int(data.get('reward_passes',0))
+        if not user_id: return jsonify({'success':False})
+        if reward_pts > 0:
+            db.add_balance(user_id, reward_pts/100, 'Season reward')
+        if reward_passes > 0:
+            db.users.update_one({'user_id':user_id},{'$inc':{'passes':reward_passes}})
+        return jsonify({'success':True})
+    except Exception as e:
+        return jsonify({'success':False})
+
 @app.route('/api/settings')
 def get_settings_api():
     """Public settings — UPI ID for pass purchases"""
@@ -1184,12 +1200,18 @@ def send_ref_nudge():
         if not sender_id or not ref_user_id:
             return jsonify({'success': False, 'message': 'Invalid IDs'})
         # Send via bot async
+        movie_link = config.MOVIE_GROUP_LINK if config else 'https://t.me/asfilter_group'
         msg = (
             f"👋 *{sender_name}* ne aapko yaad kiya!\n\n"
-            f"📌 Aapne abhi tak movie search nahi ki hai.\n\n"
-            f"🎬 Movie Group mein jaake koi bhi movie search karo aur shortlink pura karo:\n"
-            f"👉 https://t.me/all_movies_webseries_is_here\n\n"
-            f"✅ Isse *aapko bhi* 30 pts milenge aur jisne refer kiya unhe bhi paise milenge! 💰"
+            f"🎬 *FilmyFund mein aapka reward wait kar raha hai!*\n\n"
+            f"📌 Abhi tak movie search nahi ki — bas ek baar karo!\n\n"
+            f"✅ *Steps:*\n"
+            f"1️⃣ Niche link pe click karo\n"
+            f"2️⃣ Koi bhi movie search karo\n"
+            f"3️⃣ Shortlink complete karo\n"
+            f"4️⃣ *+30 pts* seedha aapke account mein! 💰\n\n"
+            f"👉 {movie_link}\n\n"
+            f"💡 Aur *{sender_name}* ko bhi 30 pts milenge — dono ka faayda!"
         )
         import asyncio as _asyncio
         async def _send():
@@ -1244,18 +1266,18 @@ def send_shortlink_reminder_api():
             try:
                 import asyncio
                 async def _send(rid, rname):
-                    kb = [[InlineKeyboardButton("🎬 MOVIE SEARCH KARO!", url=config.MOVIE_GROUP_LINK)]]
+                    kb = [[InlineKeyboardButton("🎬 Movie Search Karo!", url=config.MOVIE_GROUP_LINK)]]
                     await bot_app.bot.send_message(
                         chat_id=rid,
                         text=(
-                            f"👋 *{rname}, yaad hai?*\n\n"
-                            f"Tumne abhi tak movie search nahi ki! 😔\n\n"
-                            f"🎁 *Abhi karo = 50 pts INSTANT bonus!*\n"
-                            f"🎬 Group mein koi bhi movie search karo\n"
-                            f"🔗 Shortlink kholo — bas 10 second!\n\n"
-                            f"💰 Roz search = Roz 30 pts!\n"
-                            f"🎮 Games khelo = Unlimited earning!\n\n"
-                            f"⏰ *Offer limited hai — jaldi karo!*"
+                            f"🎬 *{rname}, aaj ka reward le lo!*\n\n"
+                            f"📌 Movie search karke *+30 pts* aur kamao!\n\n"
+                            f"✅ *Sirf 3 steps:*\n"
+                            f"1️⃣ Niche button dabao\n"
+                            f"2️⃣ Koi movie search karo\n"
+                            f"3️⃣ Shortlink complete karo → *+30 pts!* 🎯\n\n"
+                            f"💡 Roz karo = Roz 30 pts!\n"
+                            f"🎮 Passes bhi milenge → Games khelo!"
                         ),
                         reply_markup=InlineKeyboardMarkup(kb),
                         parse_mode='Markdown'
