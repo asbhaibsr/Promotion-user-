@@ -2384,6 +2384,7 @@ let audioCtx2=null;
 let currentAdForCode=null;
 let adTimerRunning=false;
 let missionStates={};
+let balEl=null; // set after DOM ready
 let diceChoice=null,diceRolling=false;
 
 // SPIN SEGS — MUST match backend SPIN_SEGMENTS exactly (same order, same index)
@@ -2673,6 +2674,7 @@ function showBadgeProfile(){
 }
 
 function updateUI(){try{
+    if(!balEl)balEl=document.getElementById('balAmt');
     const bal=userData.balance||0;
     const pts=toPoints(bal);
     renderBadgeChip(userData);
