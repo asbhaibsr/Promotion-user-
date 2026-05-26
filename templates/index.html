@@ -2414,11 +2414,11 @@ async function apiGet(url,retries=1){
 async function apiPost(url,body,retries=1){
     for(let i=0;i<=retries;i++){
         try{
-            const ms=url.includes('/game/')?10000:6000;
+            const ms=url.includes('/claim-single-mission')||url.includes('/claim-day')?30000:url.includes('/game/')?10000:8000;
             const r=await Promise.race([fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),new Promise((_,rj)=>setTimeout(()=>rj(new Error('timeout')),ms))]);
             if(!r.ok){if(r.status===404){console.warn('404:',url);return{success:false,message:'API not found'};}throw new Error('HTTP '+r.status);}
             return await r.json();
-        }catch(e){if(i<retries){await new Promise(r=>setTimeout(r,800));continue;}console.warn('apiPost failed:',url);return{success:false,message:e.message==='timeout'?'⏳ Server slow — retry karo':'Network error'};}
+        }catch(e){if(i<retries){await new Promise(r=>setTimeout(r,800));continue;}console.warn('apiPost failed:',url);return{success:false,message:e.message==='timeout'?'⏳ Server warm ho raha hai — 10 sec baad retry karo':'Network error'};}
     }return{success:false,message:'Failed'};
 }
 
@@ -3934,37 +3934,29 @@ async function claimSingleMission(missionId,reward){
     const btnSpin=document.getElementById(btnId+'_spin');
     const btn=document.getElementById(btnId);
 
-    // STEP 1: Loading
+    // STEP 1: Loading state
     if(btn){btn.disabled=true;btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)';}
     if(btnTxt) btnTxt.style.display='none';
     if(btnSpin){btnSpin.style.display='inline';btnSpin.textContent='⏳ Loading...';}
 
     try{
-        // STEP 2: Show interstitial ad (non-blocking)
-        try{
-            if(typeof window.Adsgram!=='undefined'){
-                if(!intController) intController=window.Adsgram.init({blockId:ADSGRAM_INT_BLOCK});
-                if(btnSpin) btnSpin.textContent='📺 Ad dekho...';
-                await intController.show();
-            }
-        }catch(adErr){ console.log('Ad skipped, continuing claim'); }
-
-        // STEP 3: Backend claim
+        // STEP 2: Backend se seedha claim karo — ad blocker nahi
+        // (Ad system alag hai - Watch & Earn section mein)
         if(btnSpin) btnSpin.textContent='🎯 Claiming...';
-        const r=await apiPost('/api/claim-single-mission',{
-            user_id:userData.user_id,
-            mission_id:missionId,
-            reward:parseFloat(reward),
-            date:getISTDate()
+        const r = await apiPost('/api/claim-single-mission',{
+            user_id: userData.user_id,
+            mission_id: missionId,
+            reward: parseFloat(reward),
+            date: getISTDate()
         });
 
-        if(r&&r.success){
-            missionStates[missionId].claimed=true;
+        if(r && r.success){
+            missionStates[missionId].claimed = true;
             saveMissionClaimed(missionId);
-            const mReward=parseFloat(reward);
-            userData.balance=(userData.balance||0)+mReward;
-            userData.total_earned=(userData.total_earned||0)+mReward;
-            userData.today_earned=(userData.today_earned||0)+mReward;
+            const mReward = parseFloat(reward);
+            userData.balance = (userData.balance||0) + mReward;
+            userData.total_earned = (userData.total_earned||0) + mReward;
+            userData.today_earned = (userData.today_earned||0) + mReward;
             updateUI();
             playSound('mission');
             if(btn) btn.style.background='linear-gradient(135deg,#10b981,#059669)';
@@ -3985,16 +3977,21 @@ async function claimSingleMission(missionId,reward){
             updateMissionsUI();
             showToast('✅ Already claimed!');
         }else{
+            // Backend ne reject kiya — button reset karo
             if(btn){btn.disabled=false;btn.style.background='linear-gradient(135deg,var(--green),#16a34a)';}
             if(btnTxt){btnTxt.style.display='inline';}
             if(btnSpin){btnSpin.style.display='none';}
-            showToast('❌ '+(r?.message||'Dobara try karo'));
+            const errMsg = r?.message || 'Server se jawab nahi aaya';
+            showToast('❌ '+ errMsg);
+            console.error('Mission claim failed:', missionId, errMsg);
         }
     }catch(e){
+        // Network error ya server down — button reset, retry toast
         if(btn){btn.disabled=false;btn.style.background='linear-gradient(135deg,var(--green),#16a34a)';}
         if(btnTxt){btnTxt.style.display='inline';}
         if(btnSpin){btnSpin.style.display='none';}
-        showToast('❌ Network error');
+        showToast('❌ Network error — dobara try karo');
+        console.error('Mission claim exception:', e);
     }finally{
         _claimingMissions.delete(missionId);
     }
@@ -5642,10 +5639,15 @@ const BB_PIECES=[
 ];
 
 function openBlockGame(){
-    document.getElementById('blockBal').textContent = fmtPts(toPoints(userData.balance||0));
-    document.getElementById('blockSetup').style.display='block';
-    document.getElementById('blockGameArea').style.display='none';
-    document.getElementById('blockResult').style.display='none';
+    // blockBal null guard — element HTML mein nahi hai, crash prevent karo
+    const _bb=document.getElementById('blockBal');
+    if(_bb) _bb.textContent=fmtPts(toPoints(userData.balance||0));
+    const _bs=document.getElementById('blockSetup');
+    const _bg=document.getElementById('blockGameArea');
+    const _br=document.getElementById('blockResult');
+    if(_bs) _bs.style.display='block';
+    if(_bg) _bg.style.display='none';
+    if(_br) _br.style.display='none';
     openModal('blockblast');
 }
 function selBlockBet(a,el){
@@ -5711,13 +5713,7 @@ function checkGameOver(){
 }
 
 async function startBlockBlast(){
-    if((userData.passes||0)<=0){
-        showToast('❌ Passes nahi hain! Earn Passes pe jaao.');
-        return;
-    }
-    // Deduct pass locally first
-    userData.passes=Math.max(0,(userData.passes||1)-1);
-    updateUI();
+    // Passes check hataya — game ab free hai (passes optional)
     initBlockGrid();generatePieces();
     blockScore=0;blockLevel=1;blockActive=true;blockSelected=null;
     document.getElementById('blockSetup').style.display='none';
@@ -5730,7 +5726,7 @@ async function startBlockBlast(){
     }, 80);
     // Sync with server in background
     try{
-        await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'blockblast',bet:0,use_pass:true});
+        await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'blockblast',bet:0,use_pass:false});
     }catch(e){}
 }
 
@@ -5742,12 +5738,7 @@ function drawBlockGame(){
     const cs=Math.floor(W/BB_COLS);
     if(cs <= 0){ setTimeout(()=>drawBlockGame(),150); return; }
     canvas.width=cs*BB_COLS;canvas.height=cs*BB_ROWS;
-    // Add event listeners once
-    if(!canvas._bbEventsAdded){
-        canvas._bbEventsAdded=true;
-        canvas.addEventListener('click', handleBlockTap);
-        canvas.addEventListener('touchend', (e)=>{e.preventDefault();handleBlockTap(e);},{passive:false});
-    }
+    // Tap/click handlers removed — drag system in renderBlockPieces handles placement
     const ctx=canvas.getContext('2d');
     ctx.fillStyle='#050810';ctx.fillRect(0,0,canvas.width,canvas.height);
     // Grid lines
@@ -5777,120 +5768,149 @@ function renderBlockPieces(){
     const container=document.getElementById('blockPiecesRow');
     if(!container)return;
     container.innerHTML='';
+    // Remove any old drag ghost
+    const og=document.getElementById('bbDragGhost');if(og)og.remove();
+
     blockPieces.forEach((piece,idx)=>{
         if(!piece)return;
-        const cs=Math.min(30, Math.floor((container.offsetWidth||280)/3/Math.max(piece.shape[0].length,1)));
-        const canvas=document.createElement('canvas');
-        canvas.width=piece.shape[0].length*cs+6;
-        canvas.height=piece.shape.length*cs+6;
-        canvas.style.cursor='grab';
-        canvas.style.touchAction='none';
-        canvas.style.filter='none';
-        canvas.style.transition='transform .1s';
-        canvas.style.borderRadius='8px';
-        canvas.style.border='2px solid transparent';
-        canvas.style.cursor='grab';
+        const CS=32; // cell size in tray
+        const cols=piece.shape[0].length, rows=piece.shape.length;
+        const cv=document.createElement('canvas');
+        cv.width=cols*CS+4; cv.height=rows*CS+4;
+        cv.style.cssText='cursor:grab;touch-action:none;border-radius:8px;display:block;';
+        cv.dataset.idx=idx;
 
-        // Draw piece
-        const ctx=canvas.getContext('2d');
-        piece.shape.forEach((row,r)=>{row.forEach((cell,c)=>{
-            if(cell){
-                ctx.fillStyle=piece.color;ctx.shadowColor=piece.color;ctx.shadowBlur=6;
-                ctx.beginPath();ctx.roundRect(c*cs+2,r*cs+2,cs-2,cs-2,5);ctx.fill();ctx.shadowBlur=0;
-                ctx.fillStyle='rgba(255,255,255,.25)';
-                ctx.beginPath();ctx.roundRect(c*cs+4,r*cs+4,cs*.4,cs*.2,2);ctx.fill();
+        const ctx=cv.getContext('2d');
+        piece.shape.forEach((row,r)=>row.forEach((cell,c)=>{
+            if(!cell)return;
+            ctx.fillStyle=piece.color; ctx.shadowColor=piece.color; ctx.shadowBlur=8;
+            ctx.beginPath(); ctx.roundRect(c*CS+2,r*CS+2,CS-3,CS-3,6); ctx.fill();
+            ctx.shadowBlur=0;
+            ctx.fillStyle='rgba(255,255,255,0.3)';
+            ctx.beginPath(); ctx.roundRect(c*CS+5,r*CS+5,CS*0.35,CS*0.18,2); ctx.fill();
+        }));
+
+        // ── DRAG LOGIC ──────────────────────────────────────────────────
+        let dragging=false, ghost=null, ghostCS=0;
+
+        function startDrag(clientX, clientY){
+            dragging=true; blockSelected=idx;
+            cv.style.opacity='0.4';
+
+            // Ghost canvas floating over screen
+            const mainCanvas=document.getElementById('blockCanvas');
+            const rect=mainCanvas.getBoundingClientRect();
+            ghostCS=Math.floor(rect.width/BB_COLS);
+
+            ghost=document.createElement('canvas');
+            ghost.id='bbDragGhost';
+            ghost.width=cols*ghostCS+4; ghost.height=rows*ghostCS+4;
+            ghost.style.cssText=`position:fixed;pointer-events:none;z-index:9999;opacity:0.85;border-radius:8px;transition:none;`;
+            document.body.appendChild(ghost);
+
+            moveDrag(clientX, clientY);
+        }
+
+        function moveDrag(clientX, clientY){
+            if(!ghost)return;
+            // Center ghost on finger
+            ghost.style.left=(clientX - ghost.width/2)+'px';
+            ghost.style.top=(clientY - ghost.height/2)+'px';
+
+            // Draw ghost with grid-snapped highlight
+            const ctx2=ghost.getContext('2d');
+            ctx2.clearRect(0,0,ghost.width,ghost.height);
+            const mainCanvas=document.getElementById('blockCanvas');
+            const rect=mainCanvas.getBoundingClientRect();
+            const col=Math.floor((clientX-rect.left)/ghostCS);
+            const row=Math.floor((clientY-rect.top)/ghostCS);
+            const ar=Math.max(0,Math.min(row-Math.floor(rows/2), BB_ROWS-rows));
+            const ac=Math.max(0,Math.min(col-Math.floor(cols/2), BB_COLS-cols));
+            const canP=canPlace(piece.shape,ar,ac);
+
+            piece.shape.forEach((r2,ri)=>r2.forEach((cell,ci)=>{
+                if(!cell)return;
+                ctx2.fillStyle=canP?piece.color:'#ef4444';
+                ctx2.shadowColor=canP?piece.color:'#ef4444'; ctx2.shadowBlur=10;
+                ctx2.beginPath(); ctx2.roundRect(ci*ghostCS+2,ri*ghostCS+2,ghostCS-3,ghostCS-3,6); ctx2.fill();
+                ctx2.shadowBlur=0;
+            }));
+        }
+
+        function endDrag(clientX, clientY){
+            if(!dragging)return;
+            dragging=false;
+            cv.style.opacity='1';
+            if(ghost){ghost.remove();ghost=null;}
+
+            const mainCanvas=document.getElementById('blockCanvas');
+            const rect=mainCanvas.getBoundingClientRect();
+            const col=Math.floor((clientX-rect.left)/Math.floor(rect.width/BB_COLS));
+            const row=Math.floor((clientY-rect.top)/Math.floor(rect.height/BB_ROWS));
+
+            // Try multiple snap positions
+            const gs=Math.floor(rect.width/BB_COLS);
+            const tryPositions=[
+                [Math.max(0,Math.min(row-Math.floor(rows/2), BB_ROWS-rows)),
+                 Math.max(0,Math.min(col-Math.floor(cols/2), BB_COLS-cols))],
+                [Math.max(0,Math.min(row, BB_ROWS-rows)),
+                 Math.max(0,Math.min(col, BB_COLS-cols))],
+            ];
+            let placed=false;
+            for(const [ar,ac] of tryPositions){
+                if(canPlace(piece.shape,ar,ac)){
+                    placePiece(piece.shape,piece.color,ar,ac);
+                    blockPieces[idx]=null; blockSelected=null;
+                    placed=true; break;
+                }
             }
-        });});
+            if(!placed){ blockSelected=null; showToast('❌ Yahan fit nahi! Doosri jagah try karo'); playSound('click'); return; }
 
-        // Press/touch start — select piece
-        const onStart=(e)=>{
-            e.preventDefault();
-            blockSelected=idx;
-            canvas.style.transform='scale(1.2)';
-            canvas.style.border='2px solid '+piece.color;
-            canvas.style.filter='drop-shadow(0 0 10px '+piece.color+')';
-            canvas.style.cursor='grabbing';
-        };
-        canvas.addEventListener('mousedown', onStart);
-        canvas.addEventListener('touchstart', onStart, {passive:false});
+            const cleared=clearLines();
+            if(cleared>0){
+                blockScore+=cleared;
+                showToast('🔥 '+cleared+' Line Clear! +'+cleared+' pts');
+                playSound('earn'); triggerConfetti();
+                if(blockScore>blockLevel*5){
+                    blockLevel++; showToast('⬆️ Level '+blockLevel+'!'); playSound('levelup');
+                    if(blockLevel>2){
+                        const fill=blockLevel-1;
+                        for(let f=0;f<fill;f++){
+                            const fr=Math.floor(Math.random()*3)+BB_ROWS-4;
+                            const fc=Math.floor(Math.random()*BB_COLS);
+                            if(!blockGrid[fr][fc]) blockGrid[fr][fc]=BB_COLORS[Math.floor(Math.random()*BB_COLORS.length)];
+                        }
+                    }
+                }
+            } else { playSound('tap'); }
+            const scoreEl=document.getElementById('blockScore');
+            if(scoreEl) scoreEl.textContent=blockScore+' pts';
+            drawBlockGame();
+            if(blockPieces.every(p=>p===null)){ generatePieces(); showToast('🧱 New pieces!'); if(checkGameOver()){finishBlockBlast();return;} }
+            else if(checkGameOver()){ finishBlockBlast();return; }
+            renderBlockPieces();
+        }
 
-        // Release on piece — reset style
-        const onEnd=(e)=>{
-            e.preventDefault();
-            canvas.style.transform='scale(1)';
-            canvas.style.border='2px solid transparent';
-            canvas.style.filter='none';
-            canvas.style.cursor='grab';
-        };
-        canvas.addEventListener('mouseup', onEnd);
-        canvas.addEventListener('touchend', onEnd, {passive:false});
+        // Mouse events
+        cv.addEventListener('mousedown',(e)=>{ e.preventDefault(); startDrag(e.clientX,e.clientY); });
+        document.addEventListener('mousemove',(e)=>{ if(dragging) moveDrag(e.clientX,e.clientY); });
+        document.addEventListener('mouseup',(e)=>{ if(dragging) endDrag(e.clientX,e.clientY); });
 
-        container.appendChild(canvas);
-        const lbl=document.createElement('div');
-        lbl.style.cssText='font-size:9px;color:var(--text3);text-align:center;margin-top:3px;';
-        lbl.textContent='Press & drag';
-        container.appendChild(lbl);
+        // Touch events
+        cv.addEventListener('touchstart',(e)=>{ e.preventDefault(); startDrag(e.touches[0].clientX,e.touches[0].clientY); },{passive:false});
+        cv.addEventListener('touchmove',(e)=>{ e.preventDefault(); if(dragging) moveDrag(e.touches[0].clientX,e.touches[0].clientY); },{passive:false});
+        cv.addEventListener('touchend',(e)=>{ e.preventDefault(); if(dragging) endDrag(e.changedTouches[0].clientX,e.changedTouches[0].clientY); },{passive:false});
+
+        const wrap=document.createElement('div');
+        wrap.style.cssText='display:flex;flex-direction:column;align-items:center;gap:3px;';
+        wrap.appendChild(cv);
+        container.appendChild(wrap);
     });
 }
 
-function handleBlockTap(evt){
-    if(!blockActive)return;
-    if(blockSelected===null){showToast('👆 Neeche se piece select karo pehle!');return;}
-    const canvas=document.getElementById('blockCanvas');
-    const rect=canvas.getBoundingClientRect();
-    const scaleX=canvas.width/rect.width;
-    const scaleY=canvas.height/rect.height;
-    const cs=canvas.width/BB_COLS;
-    // Handle both mouse and touch
-    const clientX=evt.touches?evt.touches[0].clientX:evt.clientX;
-    const clientY=evt.touches?evt.touches[0].clientY:evt.clientY;
-    const col=Math.floor((clientX-rect.left)*scaleX/cs);
-    const row=Math.floor((clientY-rect.top)*scaleY/cs);
-    const piece=blockPieces[blockSelected];
-    if(!piece)return;
-    // Try exact position first, then try adjusted positions
-    let placed=false;
-    // Try top-left corner at tapped cell
-    const positions=[
-        [row, col],
-        [row-Math.floor(piece.shape.length/2), col-Math.floor(piece.shape[0].length/2)],
-        [Math.max(0,row-piece.shape.length+1), Math.max(0,col-piece.shape[0].length+1)],
-    ];
-    for(const [r,c] of positions){
-        const ar=Math.max(0,Math.min(r,BB_ROWS-piece.shape.length));
-        const ac=Math.max(0,Math.min(c,BB_COLS-piece.shape[0].length));
-        if(canPlace(piece.shape,ar,ac)){
-            placePiece(piece.shape,piece.color,ar,ac);
-            blockPieces[blockSelected]=null;blockSelected=null;
-            placed=true;
-            break;
-        }
-    }
-    if(!placed){showToast('❌ Yahan fit nahi hoga! Dusri jagah try karo');playSound('click');return;}
-    const cleared=clearLines();
-    if(cleared>0){
-        const bonus=cleared; // 1pt per line cleared (max ~8-10 lines in a game)
-        blockScore+=bonus;
-        showToast('🔥 '+cleared+' Line Clear! +'+bonus+' pts');
-        playSound('earn'); triggerConfetti();
-        if(blockScore>blockLevel*5){blockLevel++;showToast('⬆️ Level '+blockLevel+'! Getting harder!');playSound('levelup');
-            if(blockLevel>2){ const filledCells=blockLevel-1;
-                for(let f=0;f<filledCells;f++){ const fr=Math.floor(Math.random()*3)+BB_ROWS-4; const fc=Math.floor(Math.random()*BB_COLS); if(!blockGrid[fr][fc]) blockGrid[fr][fc]=BB_COLORS[Math.floor(Math.random()*BB_COLORS.length)]; }
-            }
-        }
-    }else{
-        // piece place — no pts (only line clears give pts)
-        playSound('tap');
-    }
-    drawBlockGame();
-    // Check if all pieces used → new batch
-    if(blockPieces.every(p=>p===null)){
-        generatePieces();
-        showToast('🧱 New pieces!');
-        if(checkGameOver()){finishBlockBlast();return;}
-    }else if(checkGameOver()){finishBlockBlast();return;}
-    renderBlockPieces();
-}
+// handleBlockTap is now unused — drag system handles placement
+function handleBlockTap(evt){ /* replaced by drag system */ }
+
 
 async function finishBlockBlast(){
     blockActive=false;
@@ -5926,15 +5946,20 @@ function exitBlockBlast(){blockActive=false;closeModal('blockblast');}
 // 💎 GEM MATCH — Match 3 gems (Candy Crush style)
 // ============================================================
 let gemBet=1,gemActive=false,gemScore=0,gemMoves=20,gemSelected=null,gemGrid=[];
-const GM_ROWS=7,GM_COLS=7;
+const GM_ROWS=6,GM_COLS=6; // 6x6 taaki cells badi hon, screen pe fit ho
 const GEM_TYPES=['💎','🔥','⭐','🍀','💜','🧡'];
 const GEM_COLORS=['#38bdf8','#ef4444','#fbbf24','#10d9a0','#8b5cf6','#f97316'];
 
 function openGemGame(){
-    document.getElementById('gemBal').textContent=fmtPts(toPoints(userData.balance||0));
-    document.getElementById('gemSetup').style.display='block';
-    document.getElementById('gemGameArea').style.display='none';
-    document.getElementById('gemResult').style.display='none';
+    // gemBal null guard — element HTML mein nahi hai, crash prevent karo
+    const _gb=document.getElementById('gemBal');
+    if(_gb) _gb.textContent=fmtPts(toPoints(userData.balance||0));
+    const _gs=document.getElementById('gemSetup');
+    const _gg=document.getElementById('gemGameArea');
+    const _gr=document.getElementById('gemResult');
+    if(_gs) _gs.style.display='block';
+    if(_gg) _gg.style.display='none';
+    if(_gr) _gr.style.display='none';
     openModal('gemmatch');
 }
 function selGemBet(a,el){
@@ -6017,12 +6042,7 @@ function processMatches(){
 }
 
 async function startGemMatch(){
-    if((userData.passes||0)<=0){
-        showToast('❌ Passes nahi hain! Earn Passes pe jaao.');
-        return;
-    }
-    userData.passes=Math.max(0,(userData.passes||1)-1);
-    updateUI();
+    // Passes check hataya — game ab free hai (passes optional)
     initGemGrid();
     gemScore=0;gemMoves=20;gemActive=true;gemSelected=null;
     document.getElementById('gemSetup').style.display='none';
@@ -6032,7 +6052,7 @@ async function startGemMatch(){
     setTimeout(()=>{ drawGemGrid(); }, 80);
     // Sync with server
     try{
-        await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'gemmatch',bet:0,use_pass:true});
+        await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'gemmatch',bet:0,use_pass:false});
     }catch(e){}
 }
 
@@ -6042,8 +6062,8 @@ function drawGemGrid(){
     // Get width from modal-inner or screen width
     const modalInner = container.closest('.modal-inner') || container.closest('.modal');
     const W = Math.min(
-        modalInner ? modalInner.offsetWidth - 20 : window.innerWidth - 32,
-        320
+        modalInner ? modalInner.offsetWidth - 16 : window.innerWidth - 24,
+        360   // allow wider grid so cells are bigger
     );
     const cs=Math.floor(W/GM_COLS);
     if(cs <= 0){ setTimeout(()=>drawGemGrid(),100); return; }
@@ -6196,15 +6216,21 @@ function openModal(id){
     if(id==='profile'||id==='profilePage'){updateMilestoneCard();updateBadgeUI();}
     if(id==='buyPasses'){loadAdminUpi();}
     if(id==='blockblast'){
-        document.getElementById('blockSetup').style.display='block';
-        document.getElementById('blockGameArea').style.display='none';
-        document.getElementById('blockResult').style.display='none';
+        const _s=document.getElementById('blockSetup');
+        const _g=document.getElementById('blockGameArea');
+        const _r=document.getElementById('blockResult');
+        if(_s)_s.style.display='block';
+        if(_g)_g.style.display='none';
+        if(_r)_r.style.display='none';
         blockActive=false;blockSelected=null;
     }
     if(id==='gemmatch'){
-        document.getElementById('gemSetup').style.display='block';
-        document.getElementById('gemGameArea').style.display='none';
-        document.getElementById('gemResult').style.display='none';
+        const _s=document.getElementById('gemSetup');
+        const _g=document.getElementById('gemGameArea');
+        const _r=document.getElementById('gemResult');
+        if(_s)_s.style.display='block';
+        if(_g)_g.style.display='none';
+        if(_r)_r.style.display='none';
         gemActive=false;
     }
     if(id==='watchEarn'){
