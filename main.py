@@ -1186,12 +1186,16 @@ def send_ref_nudge():
             return jsonify({'success': False, 'message': 'Invalid IDs'})
         # Send via bot async
         _mg_link = config.MOVIE_GROUP_LINK if config else 'https://t.me/all_movies_webseries_is_here'
+        # HTML parse mode use karo — Markdown mein special chars se "Can't parse entities" error aata hai
+        import html as _html
+        safe_name = _html.escape(sender_name)
+        safe_link = _html.escape(_mg_link)
         msg = (
-            f"👋 *{sender_name}* ne aapko yaad kiya!\n\n"
+            f"👋 <b>{safe_name}</b> ne aapko yaad kiya!\n\n"
             f"📌 Aapne abhi tak movie search nahi ki hai.\n\n"
             f"🎬 Movie Group mein jaake koi bhi movie search karo aur shortlink pura karo:\n"
-            f"👉 {_mg_link}\n\n"
-            f"✅ Isse *aapko bhi* 30 pts milenge aur jisne refer kiya unhe bhi paise milenge! 💰"
+            f"👉 {safe_link}\n\n"
+            f"✅ Isse <b>aapko bhi</b> 30 pts milenge aur jisne refer kiya unhe bhi paise milenge! 💰"
         )
         import asyncio as _asyncio
         async def _send():
@@ -1199,7 +1203,7 @@ def send_ref_nudge():
                 await bot_app.bot.send_message(
                     chat_id=ref_user_id,
                     text=msg,
-                    parse_mode='Markdown'
+                    parse_mode='HTML'
                 )
                 return {'success': True}
             except Exception as ex:
@@ -1700,6 +1704,22 @@ def run_flask():
     port = int(os.environ.get('PORT', 10000))
     logger.info(f"Flask starting on port {port}")
     time.sleep(2)  # Give previous instance time to release port
+
+    # ── Render Keep-Alive: har 13 min mein self-ping karo taaki server so na jaaye ──
+    def _keep_alive():
+        import urllib.request as _ur
+        webapp = os.environ.get('WEBAPP_URL', f'http://localhost:{port}')
+        base = webapp.rstrip('/')
+        while True:
+            try:
+                time.sleep(13 * 60)
+                _ur.urlopen(f'{base}/health', timeout=10)
+                logger.info("⏰ Keep-alive ping sent")
+            except Exception as _ke:
+                logger.debug(f"Keep-alive ping failed (ok): {_ke}")
+    _ka_thread = threading.Thread(target=_keep_alive, daemon=True, name='KeepAlive')
+    _ka_thread.start()
+    logger.info("✅ Keep-alive thread started (13 min interval)")
     try:
         from waitress import serve
         serve(app, host='0.0.0.0', port=port, threads=8, channel_timeout=60, connection_limit=200)
