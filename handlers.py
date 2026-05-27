@@ -90,31 +90,29 @@ class Handlers:
                         await context.bot.send_message(
                             chat_id=referrer_id,
                             text=(
-                                f"⚠️ Ye user pehle se bot pe hai!\n\n"
-                                f"👤 Name: {info.get('first_name', 'User')}\n"
-                                f"🔗 Username: {uname_txt}\n"
-                                f"📅 Joined: {info.get('join_date', 'Unknown')}\n"
-                                f"👥 Active refs: {info.get('active_refs', 0)}\n"
-                                f"💰 Balance: ₹{info.get('balance', 0):.2f}"
-                                f"{orig_txt}\n\n"
-                                f"❌ Ye user aapke referral se count nahi hoga.\n"
-                                f"💡 Naye users share karo!"
-                            ),
-                            parse_mode=ParseMode.MARKDOWN
+                                f"⚠️ Ye User Pehle Se Hai!\n\n"
+                                f"👤 {info.get('first_name', 'User')} pehle se FilmyFund use kar raha hai\n\n"
+                                f"❌ Ye aapke refer mein count NAHI hoga\n\n"
+                                f"💡 Tip: Naye log dhundho jo abhi tak join nahi kiye!\n"
+                                f"Jitne zyada naye refer — utni zyada KAMAI! 💰"
+                            )
                         )
                     except Exception as e:
                         logger.error(f"Notify referrer duplicate: {e}")
 
                 keyboard = [
-                    [InlineKeyboardButton("💰 Start Earning",
+                    [InlineKeyboardButton("💰 App Kholo — Paise Kamao!",
                         web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}"))],
-                    [InlineKeyboardButton("🎬 MOVIE GROUP", url=self.config.MOVIE_GROUP_LINK)],
-                    [InlineKeyboardButton("📢 All Groups & Channels", url="https://t.me/addlist/tN-IEpLgpUQzMGY1")]
+                    [InlineKeyboardButton("🎬 Movie Group", url=self.config.MOVIE_GROUP_LINK)],
+                    [InlineKeyboardButton("📢 Sabhi Groups Join Karo", url="https://t.me/addlist/tN-IEpLgpUQzMGY1")]
                 ]
                 await update.message.reply_text(
-                    f"👋 Welcome back {user.first_name}!\n\nMini App kholo:",
-                    reply_markup=InlineKeyboardMarkup(keyboard),
-                    parse_mode=ParseMode.MARKDOWN
+                    f"👋 Wapas Aaye {user.first_name}!\n\n"
+                    f"💰 Aaj ka Bonus abhi baaki hai!\n"
+                    f"🎯 Missions complete karo — points pao!\n"
+                    f"📺 Ads dekho — aur kamao!\n\n"
+                    f"⬇️ App kholo aur shuru karo!",
+                    reply_markup=InlineKeyboardMarkup(keyboard)
                 )
                 return
 
@@ -142,8 +140,7 @@ class Handlers:
                                 f"Username: @{user.username if user.username else 'N/A'}\n"
                                 f"Referred by: {referrer_name}\n"
                                 f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-                            ),
-                            parse_mode=ParseMode.MARKDOWN
+                            )
                         )
                     except Exception as e:
                         logger.error(f"Log channel new user error: {e}")
@@ -158,8 +155,7 @@ class Handlers:
                                 f"👤 New User! {user.first_name}\n"
                                 f"ID: {user.id}\nRef by: {referrer_id or 'Direct'}"
                             ),
-                            reply_markup=InlineKeyboardMarkup(kb),
-                            parse_mode=ParseMode.MARKDOWN
+                            reply_markup=InlineKeyboardMarkup(kb)
                         )
                     except:
                         pass
@@ -172,17 +168,16 @@ class Handlers:
                             await context.bot.send_message(
                                 chat_id=referrer_id,
                                 text=(
-                                    f"🎉 Naya Referral!\n\n"
-                                    f"{user.first_name} aapke link se join kar liya!\n\n"
-                                    f"📋 Ab kya karna hai:\n"
-                                    f"1️⃣ Inhe Movie Group pe jaane kaho\n"
-                                    f"2️⃣ Koi bhi movie search kare\n"
-                                    f"3️⃣ Movie bot ka shortlink complete kare\n\n"
-                                    f"✅ Shortlink complete = Referral Active!\n"
-                                    f"🎁 Aapko milega: 3 Passes + ₹{self.config.REFERRAL_BONUS}\n\n"
-                                    f"⏳ Status: Pending"
-                                ),
-                                parse_mode=ParseMode.MARKDOWN
+                                    f"🔔 {user.first_name} Join Ho Gaya!\n\n"
+                                    f"✅ Aapka referral link kaam kar gaya!\n\n"
+                                    f"⏳ Abhi sirf EK kaam baaki hai:\n"
+                                    f"👉 Inhe Movie Group pe movie search karni hai\n"
+                                    f"👉 Movie bot ka link khola aur 10 sec wait karo\n\n"
+                                    f"Bas itna karte hi:\n"
+                                    f"🎟 +3 Passes TURANT milenge!\n"
+                                    f"💰 +{int(float(self.config.REFERRAL_BONUS)*100)} pts account mein!\n\n"
+                                    f"🔥 Abhi inhe message karo — time mat kho!"
+                                )
                             )
                     except Exception as e:
                         logger.error(f"Notify referrer on join: {e}")
@@ -193,25 +188,27 @@ class Handlers:
 
             if referrer_id and is_new:
                 welcome_text = (
-                    f"🎬 FilmyFund mein Swagat Hai, {user.first_name}!\n\n"
-                    f"✅ Aap referral se aaye hain!\n\n"
-                    f"📌 3 Steps mein Earning:\n\n"
-                    f"Step 1️⃣ → 🎬 MOVIE GROUP join karo\n"
-                    f"Step 2️⃣ → Koi bhi movie search karo (jaise: Pushpa 2)\n"
-                    f"Step 3️⃣ → Movie bot jo link bheje — kholo aur 10 sec wait karo\n\n"
-                    f"✅ Reward:\n"
-                    f"• 50 pts turant! 🎁\n"
-                    f"• Roz search = 30 pts daily 💰\n"
-                    f"• Games = aur zyada! 🎮"
+                    f"🤑 {user.first_name}, Paise Kamana Shuru Karo!\n\n"
+                    f"✅ Referral se aaye — BONUS ACTIVE!\n\n"
+                    f"━━━ SIRF 3 KAAM ━━━\n\n"
+                    f"1️⃣ 👇 MOVIE GROUP join karo\n"
+                    f"2️⃣ Koi bhi movie search karo\n"
+                    f"    (jaise: Pushpa 2, Stree 2)\n"
+                    f"3️⃣ Link aaya → kholo → 10 sec ruko ✅\n\n"
+                    f"━━━ REWARD ━━━\n"
+                    f"🎁 +50 pts TURANT!\n"
+                    f"💰 Roz search = +30 pts\n"
+                    f"🎮 Games khelo = aur kamao\n"
+                    f"👥 Dosto ko refer karo = DOUBLE KAMAI\n\n"
+                    f"🔥 1000+ log roz paise kama rahe hain!"
                 )
                 keyboard = [
-                    [InlineKeyboardButton("🎬 MOVIE GROUP JOIN KARO", url=movie_group)],
-                    [InlineKeyboardButton("💰 Start Earning", web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}"))],
-                    [InlineKeyboardButton("📢 All Groups & Channels", url="https://t.me/addlist/tN-IEpLgpUQzMGY1")]
+                    [InlineKeyboardButton("🎬 MOVIE GROUP — ABHI JOIN KARO!", url=movie_group)],
+                    [InlineKeyboardButton("💰 App Kholo — Earning Shuru!", web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}"))],
+                    [InlineKeyboardButton("📢 Sabhi Groups Join Karo", url="https://t.me/addlist/tN-IEpLgpUQzMGY1")]
                 ]
                 await update.message.reply_text(
-                    welcome_text, reply_markup=InlineKeyboardMarkup(keyboard),
-                    parse_mode=ParseMode.MARKDOWN
+                    welcome_text, reply_markup=InlineKeyboardMarkup(keyboard)
                 )
                 # 2hr auto reminder
                 try:
@@ -220,16 +217,18 @@ class Handlers:
                         await asyncio.sleep(7200)
                         try:
                             if not self.db.referrals.find_one({'referred_id': user.id, 'is_active': True}):
-                                kb = [[InlineKeyboardButton("🎬 MOVIE SEARCH KARO!", url=movie_group)]]
+                                kb = [[InlineKeyboardButton("🎬 ABHI Movie Search Karo!", url=movie_group)]]
                                 await context.bot.send_message(
                                     chat_id=user.id,
                                     text=(
-                                        f"⏰ {user.first_name}, shortlink abhi baaki hai!\n\n"
-                                        f"🎁 50 pts bonus abhi bhi available!\n"
-                                        f"Bas ek movie search karo aur shortlink complete karo."
+                                        f"⚠️ {user.first_name}, Bonus Ud Jayega!\n\n"
+                                        f"😱 +50 pts abhi bhi aapke liye wait kar raha hai!\n\n"
+                                        f"Bas EK kaam:\n"
+                                        f"👇 Movie Group pe koi movie search karo\n"
+                                        f"👇 Link kholo, 10 sec ruko — HO GAYA!\n\n"
+                                        f"⏰ Abhi karo — kal mat sochna!"
                                     ),
-                                    reply_markup=InlineKeyboardMarkup(kb),
-                                    parse_mode=ParseMode.MARKDOWN
+                                    reply_markup=InlineKeyboardMarkup(kb)
                                 )
                         except Exception as e:
                             logger.error(f"2hr reminder: {e}")
@@ -238,25 +237,31 @@ class Handlers:
                     pass
             else:
                 keyboard = [
-                    [InlineKeyboardButton("💰 Start Earning",
+                    [InlineKeyboardButton("🤑 App Kholo — Paise Kamao!",
                         web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}"))],
-                    [InlineKeyboardButton("🎬 MOVIE GROUP", url=movie_group)],
-                    [InlineKeyboardButton("📢 All Groups & Channels", url="https://t.me/addlist/tN-IEpLgpUQzMGY1")]
+                    [InlineKeyboardButton("🎬 Movie Group Join Karo", url=movie_group)],
+                    [InlineKeyboardButton("📢 Sabhi Groups Join Karo", url="https://t.me/addlist/tN-IEpLgpUQzMGY1")]
                 ]
                 await update.message.reply_text(
-                    f"🎬 FilmyFund mein Swagat Hai, {user.first_name}!\n\n"
-                    f"🎯 Refer karo • Movie search karo • Paise kamao!\n\n"
-                    f"👇 Mini App kholo:",
-                    reply_markup=InlineKeyboardMarkup(keyboard),
-                    parse_mode=ParseMode.MARKDOWN
+                    f"💰 {user.first_name}, Paise Kamana Shuru Karo!\n\n"
+                    f"🎬 Movie dekho → Paise kamao\n"
+                    f"👥 Dosto ko refer karo → Aur paise kamao\n"
+                    f"🎮 Games khelo → Aur bhi paise kamao\n\n"
+                    f"🔥 1000+ log roz kama rahe hain FilmyFund se!\n\n"
+                    f"⬇️ App kholo aur ABHI shuru karo!",
+                    reply_markup=InlineKeyboardMarkup(keyboard)
                 )
 
             if is_new:
                 await update.message.reply_text(
-                    f"🔗 Aapka Referral Link:\n{ref_link}\n\n"
-                    f"📢 Share karo:\n• Active refer = 3 Passes + ₹{self.config.REFERRAL_BONUS}\n"
-                    f"• Roz search = 30 pts/day!",
-                    parse_mode=ParseMode.MARKDOWN
+                    f"🔗 Aapka Personal Earning Link:\n"
+                    f"{ref_link}\n\n"
+                    f"━━━ EK REFER = KITNA MILEGA? ━━━\n"
+                    f"🎟 +3 Passes (Games khelne ke liye)\n"
+                    f"💰 +{int(float(self.config.REFERRAL_BONUS)*100)} pts balance mein!\n"
+                    f"📅 Roz +30 pts — jab tak woh search karta rahe!\n\n"
+                    f"👇 Copy karo aur apne dosto ko bhejo!\n"
+                    f"Jitne zyada refer — UTNI ZYADA KAMAI! 🚀"
                 )
 
         except Exception as e:
@@ -318,12 +323,13 @@ class Handlers:
                             await context.bot.send_message(
                                 chat_id=referrer_id,
                                 text=(
-                                    f"📢 {user.first_name} Group Pe Aa Gaye!\n\n"
-                                    f"✅ Movie search kar di!\n\n"
-                                    f"⏳ Abhi shortlink complete baki hai...\n"
-                                    f"Jaise hi shortlink puri hogi — referral auto active ho jayega! 🎉"
-                                ),
-                                parse_mode=ParseMode.MARKDOWN
+                                    f"👀 {user.first_name} Movie Group Pe Aa Gaya!\n\n"
+                                    f"✅ Movie search bhi kar di!\n\n"
+                                    f"⏳ Sirf shortlink baaki hai...\n"
+                                    f"Jaise hi link khola — TURANT active!\n\n"
+                                    f"🎟 Aapko milenge: 3 Passes + {int(float(self.config.REFERRAL_BONUS)*100)} pts\n\n"
+                                    f"🔥 Inhe ek message karo — jaldi karo!"
+                                )
                             )
                     except Exception as e:
                         logger.error(f"Group notify referrer {referrer_id}: {e}")
@@ -572,16 +578,17 @@ class Handlers:
                     await context.bot.send_message(
                         chat_id=referrer_id,
                         text=(
-                            f"🎉 Referral Active Ho Gaya!\n\n"
-                            f"User: {name}\n"
-                            f"Shortlink complete kar li!\n\n"
-                            f"🎟 +3 Passes add ho gaye!\n"
-                            f"💰 +{ref_pts} pts balance mein add!\n\n"
-                            f"Ab jab bhi ye user movie search karega,\n"
-                            f"aapko {daily_pts} pts daily milega!\n\n"
-                            f"📱 Mini App pe jaake apna balance check karo!"
-                        ),
-                        parse_mode=ParseMode.MARKDOWN
+                            f"🎉🎉 REFERRAL ACTIVE HO GAYA! 🎉🎉\n\n"
+                            f"👤 {name} ne shortlink complete kar li!\n\n"
+                            f"━━━ AAPKO MILA ━━━\n"
+                            f"🎟 +3 Passes — abhi account mein!\n"
+                            f"💰 +{ref_pts} pts — abhi balance mein!\n\n"
+                            f"━━━ DAILY INCOME ━━━\n"
+                            f"📅 Ab jab bhi {name} movie search karega:\n"
+                            f"💵 +{daily_pts} pts ROZI aapko milta rahega!\n\n"
+                            f"🚀 Aur refer karo — aur kamao!\n"
+                            f"💡 App kholo aur balance check karo!"
+                        )
                     )
                     logger.info(f"Referrer {referrer_id} notified of activation")
                 except Exception as e:
@@ -600,21 +607,23 @@ class Handlers:
                 await context.bot.send_message(
                     chat_id=user_id,
                     text=(
-                        f"🎊 Verification Complete!\n\n"
-                        f"Badhai ho! Aap successfully verify ho gaye!\n\n"
-                        f"{referrer_name} ke referral se:\n"
-                        f"   +3 Passes mil gaye\n"
-                        f"   Earning shuru ho gayi!\n\n"
-                        f"Roz kya karna hai:\n"
-                        f"   Movie Group pe movie search karo\n"
-                        f"   Shortlink complete karo - 30 pts!\n"
-                        f"   Daily Bonus claim karo\n"
-                        f"   Missions complete karo\n"
-                        f"   Ads dekho - aur pts pao!\n\n"
-                        f"Neeche button se Mini App kholo!"
+                        f"🥳 CONGRATULATIONS {name.upper()}!\n\n"
+                        f"✅ Aap verify ho gaye!\n"
+                        f"💰 Earning SHURU!\n\n"
+                        f"━━━ ROZ KYA KARNA HAI? ━━━\n\n"
+                        f"🎬 Movie Group pe movie search karo\n"
+                        f"   → +30 pts TURANT!\n\n"
+                        f"🎁 Daily Bonus claim karo\n"
+                        f"   → FREE pts roz!\n\n"
+                        f"📺 Ads dekho\n"
+                        f"   → +10 pts har ad!\n\n"
+                        f"🎯 Missions complete karo\n"
+                        f"   → +100 se +500 pts!\n\n"
+                        f"👥 Dosto ko refer karo\n"
+                        f"   → Inki kamai = Aapki kamai!\n\n"
+                        f"🔥 Abhi App kholo — paise wait kar rahe hain!"
                     ),
-                    reply_markup=InlineKeyboardMarkup(keyboard),
-                    parse_mode=ParseMode.MARKDOWN
+                    reply_markup=InlineKeyboardMarkup(keyboard)
                 )
                 logger.info(f"User {user_id} notified of verification")
             except Forbidden:
@@ -651,11 +660,12 @@ class Handlers:
                         await context.bot.send_message(
                             chat_id=referrer_id,
                             text=(
-                                f"💰 Daily Earning!\n\n"
+                                f"💵 Daily Kamai Aayi!\n\n"
                                 f"👤 {name} ne aaj movie search ki!\n"
-                                f"✅ +₹{earning} aapke account mein add ho gaya!"
-                            ),
-                            parse_mode=ParseMode.MARKDOWN
+                                f"💰 +{int(float(earning)*100)} pts aapke account mein!\n\n"
+                                f"📈 Jitne zyada active refers — utni zyada ROZI!\n"
+                                f"💡 Aur dosto ko refer karo = aur kamai!"
+                            )
                         )
                     except Exception as e:
                         logger.error(f"Daily earning notify referrer {referrer_id}: {e}")
@@ -672,11 +682,12 @@ class Handlers:
     async def open_app(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         user = update.effective_user
         keyboard = [[InlineKeyboardButton(
-            "💰 Start Earning",
+            "🤑 App Kholo — Paise Kamao!",
             web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}")
         )]]
         await update.message.reply_text(
-            "Neeche click karo Mini App kholne ke liye:",
+            f"💰 {user.first_name}, aaj ka bonus abhi baaki hai!\n"
+            f"⬇️ App kholo aur ABHI kamao!",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
 
@@ -686,20 +697,25 @@ class Handlers:
             user = self.db.get_user(user_id)
             if user:
                 daily_potential = user.get('active_refs', 0) * self.config.DAILY_REFERRAL_EARNING
+                bal_pts = int(user.get('balance', 0) * 100)
+                total_pts = int(user.get('total_earned', 0) * 100)
+                today_pts = int(user.get('today_earned', 0) * 100)
+                daily_pts = int(float(daily_potential) * 100)
                 text = (
                     f"💰 Aapka Balance\n\n"
-                    f"Available: ₹{user.get('balance', 0):.2f}\n"
-                    f"Total Earned: ₹{user.get('total_earned', 0):.2f}\n"
-                    f"Aaj Kamaya: ₹{user.get('today_earned', 0):.2f}\n\n"
-                    f"👥 Referrals\n"
-                    f"Active: {user.get('active_refs', 0)}\n"
-                    f"Pending: {user.get('pending_refs', 0)}\n"
-                    f"Daily Potential: ₹{daily_potential:.2f}\n\n"
-                    f"🏆 Tier: {self.config.get_tier_name(user.get('tier', 1))}"
+                    f"🏦 Available: {bal_pts} pts\n"
+                    f"📊 Total Kamaya: {total_pts} pts\n"
+                    f"📅 Aaj Kamaya: {today_pts} pts\n\n"
+                    f"━━━ REFERRALS ━━━\n"
+                    f"✅ Active: {user.get('active_refs', 0)} log\n"
+                    f"⏳ Pending: {user.get('pending_refs', 0)} log\n"
+                    f"💵 Roz Milta Hai: {daily_pts} pts\n\n"
+                    f"🏆 Level: {self.config.get_tier_name(user.get('tier', 1))}\n\n"
+                    f"👉 Aur refer karo = aur kamao!"
                 )
             else:
-                text = "Pehle /start use karo"
-            await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
+                text = "❌ Pehle /start karo!"
+            await update.message.reply_text(text)
         except Exception as e:
             logger.error(f"Balance: {e}")
 
@@ -709,18 +725,23 @@ class Handlers:
             user = self.db.get_user(user_id)
             if user:
                 ref_link = f"https://t.me/{self.config.BOT_USERNAME}?start=ref_{user_id}"
-                daily_earning = user.get('active_refs', 0) * self.config.DAILY_REFERRAL_EARNING
+                daily_pts = int(user.get('active_refs', 0) * float(self.config.DAILY_REFERRAL_EARNING) * 100)
+                ref_pts = int(float(self.config.REFERRAL_BONUS) * 100)
                 text = (
                     f"👥 Aapke Referrals\n\n"
-                    f"Total: {user.get('total_refs', 0)}\n"
-                    f"Active: {user.get('active_refs', 0)}\n"
-                    f"Pending: {user.get('pending_refs', 0)}\n\n"
-                    f"💰 Daily Earnings: ₹{daily_earning:.2f}\n\n"
-                    f"🔗 Aapka Link:\n{ref_link}"
+                    f"✅ Active: {user.get('active_refs', 0)} log\n"
+                    f"⏳ Pending: {user.get('pending_refs', 0)} log\n"
+                    f"📊 Total: {user.get('total_refs', 0)} log\n\n"
+                    f"💵 Roz Mil Raha Hai: {daily_pts} pts\n\n"
+                    f"━━━ EK REFER SE MILTA HAI ━━━\n"
+                    f"🎟 3 Passes + {ref_pts} pts TURANT!\n"
+                    f"📅 Roz 30 pts — jab tak woh search kare!\n\n"
+                    f"🔗 Aapka Link:\n{ref_link}\n\n"
+                    f"📤 Copy karo aur ABHI share karo!"
                 )
             else:
-                text = "Pehle /start use karo"
-            await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
+                text = "❌ Pehle /start karo!"
+            await update.message.reply_text(text)
         except Exception as e:
             logger.error(f"Referrals: {e}")
 
@@ -729,21 +750,33 @@ class Handlers:
             user_id = update.effective_user.id
             user = self.db.get_user(user_id)
             if not user:
-                await update.message.reply_text("Pehle /start use karo")
+                await update.message.reply_text("❌ Pehle /start karo!")
                 return
             balance = user.get('balance', 0)
+            bal_pts = int(balance * 100)
+            min_pts = int(self.config.MIN_WITHDRAWAL * 100)
             if balance < self.config.MIN_WITHDRAWAL:
+                need_pts = min_pts - bal_pts
                 await update.message.reply_text(
-                    f"❌ Minimum withdrawal ₹{self.config.MIN_WITHDRAWAL} hai\n"
-                    f"Aapka balance: ₹{balance:.2f}\n\nAur friends refer karo!"
+                    f"😅 Balance Thoda Kam Hai!\n\n"
+                    f"💰 Aapke paas: {bal_pts} pts\n"
+                    f"🎯 Minimum chahiye: {min_pts} pts\n"
+                    f"📈 Aur chahiye: sirf {need_pts} pts!\n\n"
+                    f"━━━ JALDI KAMAO ━━━\n"
+                    f"🎬 Movie search karo → +30 pts\n"
+                    f"👥 1 refer karo → +{int(float(self.config.REFERRAL_BONUS)*100)} pts\n"
+                    f"🎯 Missions karo → +100 se +500 pts\n\n"
+                    f"🔥 Bas thoda aur — phir withdrawal!"
                 )
                 return
             keyboard = [[InlineKeyboardButton(
-                "💸 WITHDRAW NOW",
+                "💸 ABHI WITHDRAW KARO!",
                 web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user_id}&page=withdraw")
             )]]
             await update.message.reply_text(
-                f"💰 Balance: ₹{balance:.2f}\nNeeche click karo:",
+                f"🎉 Withdrawal Ke Liye Ready!\n\n"
+                f"💰 Aapka Balance: {bal_pts} pts\n\n"
+                f"⬇️ Neeche click karo aur paise NIKALO!",
                 reply_markup=InlineKeyboardMarkup(keyboard)
             )
         except Exception as e:
@@ -752,28 +785,27 @@ class Handlers:
     async def help_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
             text = (
-                "❓ *Help & FAQ*\n\n"
-                "*Commands:*\n"
-                "/start - Bot start karo\n"
-                "/app - Mini App kholo\n"
-                "/balance - Balance check karo\n"
-                "/referrals - Referrals dekho\n"
-                "/withdraw - Paise nikalo\n"
-                "/help - Ye message\n\n"
-                "*Earning Process:*\n"
-                "1️⃣ Referral link share karo\n"
-                "2️⃣ Dost bot join kare\n"
-                "3️⃣ Movie Group pe movie search kare\n"
-                "4️⃣ Movie bot ka shortlink complete kare\n"
-                "5️⃣ Log channel pe message aata hai → *referral auto active!*\n"
-                "6️⃣ Roz shortlink = *daily ₹0.30*\n\n"
-                "*⚠️ Rules:*\n"
-                "• Shortlink puri hone ke baad hi active hoga\n"
-                "• 1 user = 1 search per day\n"
-                "• Fake activity = withdrawal band\n\n"
-                f"Support: {self.config.SUPPORT_USERNAME}"
+                "❓ FilmyFund — Help\n\n"
+                "━━━ COMMANDS ━━━\n"
+                "/start — Bot shuru karo\n"
+                "/app — App kholo\n"
+                "/balance — Balance dekho\n"
+                "/referrals — Referrals dekho\n"
+                "/withdraw — Paise nikalo\n"
+                "/help — Ye message\n\n"
+                "━━━ PAISE KAISE KAMAYEIN? ━━━\n"
+                "1️⃣ Apna referral link share karo\n"
+                "2️⃣ Dost join kare\n"
+                "3️⃣ Woh Movie Group pe movie search kare\n"
+                "4️⃣ Movie bot ka link khola → 10 sec ruka\n"
+                "5️⃣ DONE! Referral active — roz paise aate rahenge!\n\n"
+                "━━━ RULES ━━━\n"
+                "⚠️ Sirf shortlink ke baad active hoga\n"
+                "⚠️ 1 user = 1 search per day\n"
+                "⚠️ Fake kaam = account band\n\n"
+                f"🆘 Support: {self.config.SUPPORT_USERNAME}"
             )
-            await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
+            await update.message.reply_text(text)
         except Exception as e:
             logger.error(f"Help: {e}")
 
@@ -786,9 +818,15 @@ class Handlers:
                 return
             message_text = message.text or ""
             if chat.type == 'private' and message_text.lower() in ['hi', 'hello', 'hey', 'hii', 'helo']:
+                keyboard = [[InlineKeyboardButton(
+                    "🤑 App Kholo — Paise Kamao!",
+                    web_app=WebAppInfo(url=f"{self.config.WEBAPP_URL}/?user_id={user.id}")
+                )]]
                 await message.reply_text(
-                    f"Namaskar {user.first_name}! 🙏\n"
-                    f"/start use karo earning shuru karne ke liye!"
+                    f"👋 {user.first_name}!\n\n"
+                    f"💰 FilmyFund pe aaj bhi paise wait kar rahe hain!\n"
+                    f"⬇️ App kholo aur kamao!",
+                    reply_markup=InlineKeyboardMarkup(keyboard)
                 )
         except Exception as e:
             logger.error(f"handle_message: {e}")
@@ -822,8 +860,7 @@ class Handlers:
                             await context.bot.send_message(
                                 chat_id=admin_id,
                                 text=f"📩 New Support\n\nUser: {user_id}\nMsg: {message[:100]}",
-                                reply_markup=InlineKeyboardMarkup(kb),
-                                parse_mode=ParseMode.MARKDOWN
+                                reply_markup=InlineKeyboardMarkup(kb)
                             )
                         except:
                             pass
@@ -844,18 +881,21 @@ class Handlers:
                 uid = u['user_id']
                 name = u.get('first_name', 'User')
                 try:
-                    kb = [[InlineKeyboardButton("💰 Start Earning",
+                    kb = [[InlineKeyboardButton("🤑 App Kholo — Abhi Kamao!",
                         web_app=WebAppInfo(url=f"{webapp_url}/?user_id={uid}"))]]
                     await context.bot.send_message(
                         chat_id=uid,
                         text=(
-                            f"⏰ {name}, aaj ka kaam baaki hai!\n\n"
-                            f"🎁 Daily Bonus claim karo!\n"
-                            f"🎬 Movie search karo = 30 pts!\n"
-                            f"⚡ Streak toot jayegi!"
+                            f"🔔 {name}, Aaj Ka Kaam Baaki Hai!\n\n"
+                            f"😱 Aaj ke FREE points abhi bhi available hain!\n\n"
+                            f"✅ Daily Bonus claim karo → FREE pts!\n"
+                            f"🎬 Movie search karo → +30 pts!\n"
+                            f"📺 Ads dekho → +10 pts har ad!\n"
+                            f"🎯 Missions karo → +500 pts tak!\n\n"
+                            f"⚠️ Streak toot gayi toh bonus band!\n\n"
+                            f"⬇️ ABHI App kholo!"
                         ),
-                        reply_markup=InlineKeyboardMarkup(kb),
-                        parse_mode=ParseMode.MARKDOWN
+                        reply_markup=InlineKeyboardMarkup(kb)
                     )
                     self.db.mark_user_reminded(uid)
                     sent += 1
