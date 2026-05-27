@@ -735,9 +735,57 @@
         .neon-glow{box-shadow:0 0 12px rgba(249,115,22,.25),0 0 24px rgba(249,115,22,.08);transition:box-shadow .3s;}
         .neon-glow:active{box-shadow:0 0 18px rgba(249,115,22,.4),0 0 36px rgba(249,115,22,.15);}
 
+        /* CUSTOM LOADING SCREEN */
+        #ffLoader{position:fixed;inset:0;background:linear-gradient(135deg,#6c3afc,#f5a623,#6c3afc);background-size:300% 300%;animation:loaderGrad 3s ease infinite;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+        @keyframes loaderGrad{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+        .ff-loader-logo{width:80px;height:80px;border-radius:20px;object-fit:cover;box-shadow:0 8px 32px rgba(0,0,0,.3);animation:logoBounce 1s ease-in-out infinite alternate;}
+        @keyframes logoBounce{from{transform:translateY(-6px);}to{transform:translateY(6px);}}
+        .ff-loader-title{font-family:'Fredoka One',cursive;font-size:28px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.3);}
+        .ff-loader-dots{display:flex;gap:8px;}
+        .ff-loader-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.9);}
+        .ff-loader-dot:nth-child(1){animation:dotPulse 1.2s ease-in-out infinite;}
+        .ff-loader-dot:nth-child(2){animation:dotPulse 1.2s ease-in-out infinite .2s;}
+        .ff-loader-dot:nth-child(3){animation:dotPulse 1.2s ease-in-out infinite .4s;}
+        @keyframes dotPulse{0%,100%{transform:scale(.6);opacity:.4;}50%{transform:scale(1.2);opacity:1;}}
+        .ff-loader-sub{font-size:13px;color:rgba(255,255,255,.8);font-weight:700;}
+
+        /* FLOATING CIRCLE BUTTONS */
+        .fab-left,.fab-right{position:fixed;z-index:190;display:flex;flex-direction:column;gap:10px;top:50%;transform:translateY(-50%);}
+        .fab-left{left:0;}
+        .fab-right{right:0;}
+        .fab-btn{width:52px;height:52px;border-radius:0 16px 16px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:none;font-size:20px;gap:2px;box-shadow:2px 4px 14px rgba(0,0,0,.25);transition:transform .15s,box-shadow .15s;position:relative;}
+        .fab-btn-right{border-radius:16px 0 0 16px;box-shadow:-2px 4px 14px rgba(0,0,0,.25);}
+        .fab-btn:active{transform:scale(.88);}
+        .fab-btn-label{font-size:7px;font-weight:800;color:#fff;line-height:1;letter-spacing:.3px;}
+        .fab-badge{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;background:var(--red);border-radius:10px;border:2px solid #fff;font-size:8px;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center;padding:0 2px;}
+
+        /* ADSGRAM-TASK OVERFLOW FIX */
+        adsgram-task{max-width:100%;overflow:hidden;display:block;box-sizing:border-box;}
+        #watchEarnModal .modal-inner{overflow-x:hidden;}
+
     </style>
 </head>
 <body>
+
+<!-- CUSTOM LOADING SCREEN -->
+<div id="ffLoader">
+<img src="https://i.postimg.cc/xT43NypN/IMG-20260320-075702-067.jpg" class="ff-loader-logo" alt="FilmyFund">
+<div class="ff-loader-title">💰 FilmyFund</div>
+<div class="ff-loader-dots"><div class="ff-loader-dot"></div><div class="ff-loader-dot"></div><div class="ff-loader-dot"></div></div>
+<div class="ff-loader-sub">Loading your earnings...</div>
+</div>
+<!-- LEFT FABs -->
+<div class="fab-left" id="fabLeft">
+<button class="fab-btn" style="background:linear-gradient(135deg,#f97316,#f5a623);" onclick="openModal('missions')" title="Missions"><span>🎯</span><span class="fab-btn-label">Mission</span><div class="fab-badge" id="fabMissionBadge" style="display:none;">!</div></button>
+<button class="fab-btn" style="background:linear-gradient(135deg,#22c55e,#059669);" onclick="openModal('dailyBonus')" title="Daily Bonus"><span>🎁</span><span class="fab-btn-label">Bonus</span><div class="fab-badge" id="fabBonusBadge" style="display:none;">!</div></button>
+<button class="fab-btn" style="background:linear-gradient(135deg,#3b82f6,#7c5cfc);" onclick="openModal('watchEarn')" title="Watch Earn"><span>📺</span><span class="fab-btn-label">Watch</span></button>
+</div>
+<!-- RIGHT FABs -->
+<div class="fab-right" id="fabRight">
+<button class="fab-btn fab-btn-right" style="background:linear-gradient(135deg,#6c3afc,#8b5cf6);" onclick="openModal('referral')" title="Refer"><span>👥</span><span class="fab-btn-label">Refer</span></button>
+<button class="fab-btn fab-btn-right" style="background:linear-gradient(135deg,#ef4444,#dc2626);" onclick="openModal('withdraw')" title="Withdraw"><span>💸</span><span class="fab-btn-label">Withdraw</span></button>
+<button class="fab-btn fab-btn-right" style="background:linear-gradient(135deg,#0d0d2e,#1a0a3e);" onclick="switchTab(2)" title="Games"><span>🎮</span><span class="fab-btn-label">Games</span></button>
+</div>
 
 <!-- ====== ONBOARDING POPUP ====== -->
 <div class="onboard-overlay" id="onboardOverlay">
@@ -897,44 +945,6 @@
             </div>
         </div>
 
-        <!-- ② DAILY BONUS + STREAK row -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px;">
-            <!-- Daily Bonus -->
-            <div class="daily-bonus-card" onclick="openModal('dailyBonus')" id="dailyBonusCard" style="margin-bottom:0;flex-direction:column;align-items:flex-start;gap:6px;padding:14px;">
-                <div id="dailyBonusIcon" style="font-size:28px;">🎁</div>
-                <div style="flex:1;">
-                    <div style="font-weight:800;font-size:13px;" data-t="daily_bonus">Daily Bonus</div>
-                    <div style="font-size:10px;color:var(--text2);margin-top:2px;" id="dailyBonusSubtitle" data-t="claim_today">Aaj claim karo!</div>
-                </div>
-                <div style="background:linear-gradient(135deg,var(--green),#059669);color:#fff;padding:6px 12px;border-radius:20px;font-weight:800;font-size:11px;align-self:flex-start;" id="dailyBonusBtn">Claim</div>
-            </div>
-            <!-- Watch Ad Earn — Opens full Watch Earn Modal -->
-            <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px solid rgba(59,130,246,.3);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:8px;cursor:pointer;" onclick="openModal('watchEarn')">
-                <div style="display:flex;align-items:center;gap:8px;">
-                    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue),#7c5cfc);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📺</div>
-                    <div style="flex:1;">
-                        <div style="font-family:'Fredoka One',cursive;font-weight:900;font-size:13px;color:var(--text);line-height:1.2;">Watch &amp; Earn</div>
-                        <div style="font-size:10px;color:var(--text3);">Ads dekho, paise kamao!</div>
-                    </div>
-                    <div style="background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;padding:4px 8px;border-radius:16px;font-size:10px;font-weight:900;white-space:nowrap;flex-shrink:0;">+10 pts</div>
-                </div>
-                <button id="rewardAdBtn" onclick="event.stopPropagation();openModal('watchEarn')" style="width:100%;background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;border:none;border-radius:22px;padding:9px 4px;font-weight:900;font-size:11px;cursor:pointer;font-family:'Fredoka One',cursive;">📺 Watch Ads & Earn →</button>
-                <div id="rewardAdStatus" style="font-size:9px;color:var(--text3);text-align:center;min-height:12px;"></div>
-            </div>
-        </div>
-
-        <!-- ③ MISSIONS card -->
-        <div class="mission-card" onclick="openModal('missions')" style="margin-bottom:10px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                <div style="font-family:'Fredoka One',cursive;font-size:16px;font-weight:900;" data-t="daily_missions">🎯 Daily Missions</div>
-                <div style="background:rgba(0,0,0,.18);padding:4px 11px;border-radius:20px;font-size:11px;font-weight:800;">600+ pts</div>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;">
-                <span data-t="complete_earn">Complete karo, points pao!</span>
-                <span><b id="missionsDone">0</b>/<b id="missionsTotal">6</b></span>
-            </div>
-            <div class="mission-bar-bg"><div class="mission-bar-fill" id="missionBarFill" style="width:0%"></div></div>
-        </div>
 
         <!-- ④ REFER & EARN — compact button only -->
         <div style="background:linear-gradient(135deg,rgba(108,58,252,.07),rgba(249,115,22,.05));border:1.5px solid rgba(108,58,252,.18);border-radius:18px;padding:13px 15px;margin-bottom:10px;display:flex;align-items:center;gap:11px;cursor:pointer;" onclick="openModal('referral')">
@@ -946,38 +956,20 @@
             <div style="background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;padding:8px 14px;border-radius:20px;font-weight:900;font-size:12px;white-space:nowrap;flex-shrink:0;">Share →</div>
         </div>
 
-        <!-- ⑤ SPONSORED OFFERS -->
-        <div class="section-head">
-            <h3 data-t="sponsored">💎 Sponsored Offers</h3>
-            <button class="admin-add-btn" id="addOfferBtn" onclick="openAdminCreateOffer()" style="display:none;">➕ <span data-t="add_offer">Add</span></button>
+        <!-- Hidden elements needed by JS (rewardAdBtn etc) — kept but not visible on home -->
+        <div style="display:none;">
+            <button id="rewardAdBtn"></button>
+            <div id="rewardAdStatus"></div>
+            <div id="missionsDone">0</div><div id="missionsTotal">6</div>
+            <div id="missionBarFill" style="width:0%"></div>
+            <div id="dailyBonusBtn">Claim</div>
+            <div id="dailyBonusSubtitle"></div>
+            <div id="dailyBonusIcon">🎁</div>
         </div>
-        <div id="adsContainer"></div>
-
-        <!-- AdsGram Task Ad (task-30639) — Beautiful Card -->
-        <div id="adsgram-task-wrapper" style="margin-bottom:12px;">
-            <div style="background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:1.5px solid rgba(108,58,252,.25);border-radius:20px;overflow:hidden;">
-                <div style="padding:14px 16px 10px;display:flex;align-items:center;gap:10px;">
-                    <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--purple),#7c3aed);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📋</div>
-                    <div style="flex:1;">
-                        <div style="font-family:'Fredoka One',cursive;font-weight:900;font-size:14px;color:var(--text);">Daily Task Ad</div>
-                        <div style="font-size:11px;color:var(--text3);margin-top:2px;">Complete karo, reward pao!</div>
-                    </div>
-                    <div style="background:linear-gradient(135deg,var(--purple),var(--gold));color:#fff;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:900;font-family:'Fredoka One',cursive;">+Pts</div>
-                </div>
-                <div style="padding:0 14px 14px;" id="taskAdButtonArea">
-                    <!-- Task button — click karo tab 15 sec timer shuru, phir claim -->
-                    <button id="taskStartBtn" onclick="startTaskAd()" style="width:100%;background:linear-gradient(135deg,var(--purple),var(--gold));color:#fff;border:none;padding:11px 20px;border-radius:30px;font-weight:900;font-size:13px;cursor:pointer;font-family:'Fredoka One',cursive;letter-spacing:.3px;">▶ Task Complete Karo</button>
-                    <div id="taskTimerBar" style="display:none;margin-top:8px;">
-                        <div style="font-size:11px;color:var(--text2);margin-bottom:4px;text-align:center;" id="taskTimerText">⏳ 15 seconds ruko...</div>
-                        <div style="height:6px;background:var(--bg3);border-radius:6px;overflow:hidden;">
-                            <div id="taskTimerFill" style="height:100%;background:linear-gradient(90deg,var(--purple),var(--gold));border-radius:6px;width:0%;transition:width 1s linear;"></div>
-                        </div>
-                    </div>
-                    <button id="taskClaimBtn" onclick="claimTaskAdReward()" style="display:none;width:100%;background:linear-gradient(135deg,var(--green),#059669);color:#fff;border:none;padding:11px 20px;border-radius:30px;font-weight:900;font-size:13px;cursor:pointer;font-family:'Fredoka One',cursive;margin-top:8px;">🎁 Claim Reward</button>
-                    <div id="taskDoneMsg" style="display:none;background:rgba(25,216,158,.1);border:1px solid var(--green);color:var(--green);padding:10px 20px;border-radius:30px;font-weight:900;font-size:13px;font-family:'Fredoka One',cursive;text-align:center;margin-top:4px;">✅ Aaj Ka Task Done!</div>
-                </div>
-            </div>
-        </div>
+        <!-- Admin add offer button (admin-only) -->
+        <div style="display:none;"><button class="admin-add-btn" id="addOfferBtn" onclick="openAdminCreateOffer()">➕ Add</button></div>
+        <!-- adsContainer hidden on home (still loads for missions) -->
+        <div id="adsContainer" style="display:none;"></div>
 
         <!-- 🏆 WEEKLY CONTEST PREVIEW -->
         <div style="background:linear-gradient(135deg,#fff7ed,#fefce8);border:2px solid rgba(249,115,22,.25);border-radius:20px;padding:14px;margin-bottom:10px;cursor:pointer;" onclick="switchTab(1)">
@@ -1573,7 +1565,12 @@
     </div>
     <!-- Game Area -->
     <div id="gemGameArea" style="display:none;padding:0 2px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 2px;margin-bottom:6px;">
+        <!-- Level Goal Banner -->
+        <div style="background:linear-gradient(135deg,rgba(124,92,252,.12),rgba(6,182,212,.08));border:1.5px solid rgba(124,92,252,.3);border-radius:12px;padding:8px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:11px;font-weight:800;color:var(--purple2);" id="gemGoalText">🎯 Level 1: gems blast karo</div>
+            <div style="background:var(--purple);color:#fff;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:900;" id="gemGoalProg">0/5</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 2px;margin-bottom:6px;">
             <div style="font-size:12px;font-weight:900;color:var(--text);">Moves: <span id="gemMoves">20</span></div>
             <div style="font-size:14px;font-weight:900;color:var(--gold);" id="gemScore">0 pts</div>
         </div>
@@ -2035,31 +2032,25 @@
             <div style="font-size:11px;color:var(--text2);margin-top:4px;">Bhulbhulaiya se niklo 🚩 jhande tak!</div>
         </div>
         <div style="background:var(--bg3);border-radius:14px;padding:12px;margin-bottom:10px;font-size:10px;color:var(--text2);">
-            📦 <b style="color:var(--gold);">Sokoban Style!</b> Boxes ko push karke 🎯 targets pe rakho<br>
+            📦 <b style="color:var(--gold);">Sokoban Challenge!</b> Boxes ko push karke 🎯 targets pe rakho<br>
             🏃 Player chalta hai → box same direction mein push hoga<br>
-            ⏱️ Jitni tez solve karo → utne zyada points!<br>
-            💡 Easy=2 boxes | Medium=3 boxes | Hard=4 boxes
+            ⏱️ Har match 1 minute ka — jitna zyada jeeto utna badho!<br>
+            🔥 Har match mein nayi map aur zyada mushkil hoti jaegi!
         </div>
-        <div style="margin-bottom:10px;background:rgba(124,92,252,.08);border:1px solid rgba(124,92,252,.2);border-radius:12px;padding:10px;text-align:center;font-weight:900;font-size:13px;color:var(--purple2);">
-            🎟️ 1 Pass per Game • Complete fast = More pts!
+        <div style="background:linear-gradient(135deg,rgba(240,192,64,.12),rgba(240,192,64,.04));border:1.5px solid rgba(240,192,64,.3);border-radius:14px;padding:12px;margin-bottom:12px;text-align:center;">
+            <div style="font-family:'Fredoka One',cursive;font-size:18px;font-weight:900;color:var(--gold);">+10 pts per match!</div>
+            <div style="font-size:10px;color:var(--text2);margin-top:3px;">Jitne zyada match jeeto utne zyada points kamao</div>
         </div>
-        <div style="margin-bottom:10px;">
-            <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:6px;">⚡ Difficulty:</div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
-                <button class="runner-mode-btn sel" onclick="selMazeDiff('easy',this)">Easy<br><span style="font-size:9px;color:var(--green);">60s | 3x</span></button>
-                <button class="runner-mode-btn" onclick="selMazeDiff('medium',this)">Medium<br><span style="font-size:9px;color:var(--gold);">40s | 5x</span></button>
-                <button class="runner-mode-btn" onclick="selMazeDiff('hard',this)">Hard<br><span style="font-size:9px;color:var(--red);">25s | 8x</span></button>
-            </div>
+        <div style="background:rgba(124,92,252,.08);border:1px solid rgba(124,92,252,.2);border-radius:12px;padding:10px;text-align:center;margin-bottom:12px;">
+            <span style="font-size:13px;font-weight:900;color:var(--purple2);">🎟️ 1 Pass use hoga</span>
         </div>
-        <div id="mazeRewardPreview" style="text-align:center;font-size:11px;color:var(--gold);font-weight:800;margin-bottom:8px;padding:6px;background:rgba(240,192,64,.08);border-radius:10px;">🏆 Jaldi solve karo = zyada points!</div>
-        <div style="display:flex;gap:8px;">
-    <button onclick="startMaze(false)" class="btn-gold" style="flex:1;padding:12px;font-size:14px;">🗺️ Game Start — 1 Pass</button>
-</div>
+        <button onclick="startMaze(false)" class="btn-gold" style="width:100%;padding:14px;font-size:15px;font-family:'Fredoka One',cursive;">▶ Start — 1 Pass</button>
     </div>
     <div id="mazeGame" style="display:none;padding:10px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <div id="mazeTimer" style="font-family:'Fredoka One',cursive;font-size:18px;font-weight:900;color:var(--red);">0:60</div>
-            <div style="font-size:11px;color:var(--gold);font-weight:800;" id="mazeEarning">0 pts</div>
+            <div id="mazeTimer" style="font-family:'Fredoka One',cursive;font-size:18px;font-weight:900;color:var(--red);">1:00</div>
+            <div style="font-size:12px;color:var(--text2);font-weight:800;" id="mazeMatchNum">Match 1</div>
+            <div style="font-size:11px;color:var(--gold);font-weight:800;" id="mazeEarning">0 pts earned</div>
             <div style="font-size:10px;color:var(--text2);" id="mazeMoves">Moves: 0</div>
         </div>
         <canvas id="mazeCanvas" style="width:100%;border-radius:12px;display:block;"></canvas>
@@ -2077,10 +2068,12 @@
         <div id="mazeResultTitle" style="font-family:'Fredoka One',cursive;font-size:22px;font-weight:900;color:var(--gold);margin-bottom:6px;"></div>
         <div id="mazeResultSub" style="font-size:12px;color:var(--text2);margin-bottom:14px;"></div>
         <div style="background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:14px;">
-            <div style="font-size:11px;color:var(--text2);">Reward:</div>
+            <div style="font-size:11px;color:var(--text2);">Is match ka reward:</div>
             <div id="mazeResultReward" style="font-family:'Fredoka One',cursive;font-size:32px;font-weight:900;color:var(--gold);margin-top:4px;"></div>
+            <div id="mazeTotalReward" style="font-size:12px;color:var(--text2);margin-top:6px;font-weight:700;"></div>
         </div>
-        <button class="btn-purple" onclick="resetMaze()" style="width:100%;margin-bottom:8px;">🔄 Again</button>
+        <button id="mazeNextBtn" onclick="mazeNextMatch()" class="btn-gold" style="width:100%;margin-bottom:8px;font-size:15px;display:none;">▶ Next Match →</button>
+        <button class="btn-purple" onclick="resetMaze()" style="width:100%;margin-bottom:8px;">🔄 Again (new game)</button>
         <button onclick="exitMaze()" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:11px;font-weight:800;cursor:pointer;">← Back</button>
     </div>
 </div>
@@ -3922,10 +3915,11 @@ async function doSelfSearch(){
 const _claimingMissions=new Set();
 
 async function claimSingleMission(missionId,reward){
-    if(_claimingMissions.has(missionId))return;
+    // Prevent double tap
+    if(_claimingMissions.has(missionId)){showToast('⏳ Claiming...');return;}
     if(!missionStates[missionId])missionStates[missionId]={progress:0,completed:true,claimed:false};
-    if(missionStates[missionId].claimed)return;
-    if(!userData.user_id){showToast('❌ Pehle login karo!');return;}
+    if(missionStates[missionId].claimed){showToast('✅ Already claimed!');return;}
+    if(!userData.user_id){showToast('❌ App reload karo, phir try karo!');return;}
 
     _claimingMissions.add(missionId);
 
@@ -3934,15 +3928,12 @@ async function claimSingleMission(missionId,reward){
     const btnSpin=document.getElementById(btnId+'_spin');
     const btn=document.getElementById(btnId);
 
-    // STEP 1: Loading state
+    // Loading state
     if(btn){btn.disabled=true;btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)';}
     if(btnTxt) btnTxt.style.display='none';
-    if(btnSpin){btnSpin.style.display='inline';btnSpin.textContent='⏳ Loading...';}
+    if(btnSpin){btnSpin.style.display='inline';btnSpin.textContent='⏳ Claiming...';}
 
     try{
-        // STEP 2: Backend se seedha claim karo — ad blocker nahi
-        // (Ad system alag hai - Watch & Earn section mein)
-        if(btnSpin) btnSpin.textContent='🎯 Claiming...';
         const r = await apiPost('/api/claim-single-mission',{
             user_id: userData.user_id,
             mission_id: missionId,
@@ -3959,9 +3950,9 @@ async function claimSingleMission(missionId,reward){
             userData.today_earned = (userData.today_earned||0) + mReward;
             updateUI();
             playSound('mission');
-            if(btn) btn.style.background='linear-gradient(135deg,#10b981,#059669)';
+            if(btn){btn.style.background='linear-gradient(135deg,#10b981,#059669)';}
             if(btnSpin) btnSpin.textContent='✅ +'+toPoints(parseFloat(reward))+' pts Mila!';
-            showToast('🎯 Mission Complete! +'+toPoints(mReward)+' pts! 🎉');
+            // Long-term missions reset after claim
             const isLT=['m_refer5','m_refer10','m_shortlink','m_streak3','m_streak7','m_game50'].includes(missionId);
             setTimeout(()=>{
                 if(isLT){
@@ -3969,32 +3960,81 @@ async function claimSingleMission(missionId,reward){
                     clearMissionClaimed(missionId);
                 }
                 updateMissionsUI();
+                updateFabBadges();
             },1800);
-            setTimeout(()=>showEarnMorePopup(toPoints(mReward)),800);
+            // Show Extra/Skip popup after claim
+            setTimeout(()=>showMissionExtraPopup(toPoints(mReward)),600);
         }else if(r?.message==='Already claimed'){
             missionStates[missionId].claimed=true;
             saveMissionClaimed(missionId);
+            if(btn){btn.style.background='linear-gradient(135deg,#10b981,#059669)';}
+            if(btnSpin) btnSpin.textContent='✅ Claimed!';
             updateMissionsUI();
-            showToast('✅ Already claimed!');
         }else{
-            // Backend ne reject kiya — button reset karo
             if(btn){btn.disabled=false;btn.style.background='linear-gradient(135deg,var(--green),#16a34a)';}
             if(btnTxt){btnTxt.style.display='inline';}
             if(btnSpin){btnSpin.style.display='none';}
-            const errMsg = r?.message || 'Server se jawab nahi aaya';
-            showToast('❌ '+ errMsg);
-            console.error('Mission claim failed:', missionId, errMsg);
+            showToast('❌ '+(r?.message||'Server error — retry karo'));
         }
     }catch(e){
-        // Network error ya server down — button reset, retry toast
         if(btn){btn.disabled=false;btn.style.background='linear-gradient(135deg,var(--green),#16a34a)';}
         if(btnTxt){btnTxt.style.display='inline';}
         if(btnSpin){btnSpin.style.display='none';}
         showToast('❌ Network error — dobara try karo');
-        console.error('Mission claim exception:', e);
     }finally{
         _claimingMissions.delete(missionId);
     }
+}
+
+// Mission Extra Claim / Skip popup — reward ke baad dikhta hai
+function showMissionExtraPopup(earnedPts){
+    const existing=document.getElementById('missionExtraPopup');if(existing)existing.remove();
+    const bonusPts=Math.min(Math.ceil(earnedPts*0.5),20); // max 20 bonus pts
+    const popup=document.createElement('div');
+    popup.id='missionExtraPopup';
+    popup.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:9500;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .25s ease;';
+    popup.innerHTML=`
+        <div style="background:var(--bg2);border-radius:22px;width:100%;max-width:340px;padding:26px 20px;text-align:center;border:2px solid var(--gold);box-shadow:0 0 40px rgba(240,192,64,.3);">
+            <div style="font-size:48px;margin-bottom:8px;">🎉</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:22px;font-weight:900;color:var(--gold);margin-bottom:4px;">+${earnedPts} pts Mila!</div>
+            <div style="font-size:13px;color:var(--text2);margin-bottom:20px;">Mission Complete! Extra bonus lo ya skip karo</div>
+            <button onclick="closeMissionExtra();showRewardAdBonus(${bonusPts});" style="width:100%;background:linear-gradient(135deg,var(--purple),var(--gold));color:#fff;border:none;padding:14px;border-radius:30px;font-weight:900;font-size:15px;cursor:pointer;font-family:'Fredoka One',cursive;margin-bottom:10px;box-shadow:0 4px 16px rgba(124,92,252,.3);">📺 Extra +${bonusPts} pts (Watch Ad)</button>
+            <button onclick="closeMissionExtra();" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:12px;border-radius:30px;font-size:14px;cursor:pointer;font-weight:700;">Skip</button>
+        </div>`;
+    document.body.appendChild(popup);
+    setTimeout(()=>closeMissionExtra(),10000);
+}
+function closeMissionExtra(){const p=document.getElementById('missionExtraPopup');if(p)p.remove();}
+
+async function showRewardAdBonus(extraPts){
+    try{
+        if(typeof window.Adsgram==='undefined'){showToast('📺 Ad load nahi hua');return;}
+        if(!rewardController) rewardController=window.Adsgram.init({blockId:ADSGRAM_REWARD_BLOCK});
+        await rewardController.show();
+        userData.balance=(userData.balance||0)+(extraPts/100);
+        userData.today_earned=(userData.today_earned||0)+(extraPts/100);
+        updateUI();
+        playSound('earn');
+        showToast('🎉 Extra +'+extraPts+' pts mila!');
+    }catch(e){showToast('❌ Ad puri dekho reward ke liye');}
+}
+
+// Update FAB badges
+function updateFabBadges(){
+    try{
+        const mBadge=document.getElementById('fabMissionBadge');
+        if(mBadge){
+            const completedCount=Object.values(missionStates).filter(s=>s.completed&&!s.claimed).length;
+            mBadge.style.display=completedCount>0?'flex':'none';
+            mBadge.textContent=completedCount>9?'9+':String(completedCount);
+        }
+        const bBadge=document.getElementById('fabBonusBadge');
+        if(bBadge){
+            const today=getISTDate();
+            const claimed=claimedDates.includes(today);
+            bBadge.style.display=!claimed?'flex':'none';
+        }
+    }catch(e){}
 }
 
 
@@ -5058,53 +5098,51 @@ async function watchAdForPass(){
 // ============================================================
 // 📦 SOKOBAN — Push ALL boxes to targets (real Sokoban!)
 // ============================================================
+// SOKOBAN — Continuous match system
 let mazeBet=1,mazeDiff='easy',mazeTimer=0,mazeInterval=null;
 let mazeActive=false,mazeMoveCount=0;
 let mazeGrid=[],mazePlayer={x:1,y:1},mazeBoxes=[],mazeTargets=[];
-const MAZE_DIFFS={easy:{time:120,pts:5,boxes:2,sz:7},medium:{time:90,pts:8,boxes:3,sz:9},hard:{time:60,pts:10,boxes:4,sz:11}};
+let mazeMatchNum=0, mazeTotalPts=0, mazeUsedLevels=[];
 
-// Premade Sokoban levels (guaranteed solvable)
-const SOKOBAN_LEVELS={
-    easy:[
-        {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,2,0,2,0,1],[1,0,0,0,0,0,1],[1,0,0,0,0,0,1],[1,0,3,0,0,0,1],[1,1,1,1,1,1,1]],
-         boxes:[{x:2,y:2},{x:4,y:2}],targets:[{x:1,y:4},{x:5,y:4}],player:{x:2,y:5}},
-        {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,0,2,0,0,1],[1,0,2,0,0,0,1],[1,0,0,0,0,0,1],[1,0,0,3,0,0,1],[1,1,1,1,1,1,1]],
-         boxes:[{x:3,y:2},{x:2,y:3}],targets:[{x:1,y:1},{x:5,y:1}],player:{x:3,y:5}},
-        {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,0,2,0,0,1],[1,0,0,0,0,0,1],[1,0,2,0,0,0,1],[1,0,3,0,0,0,1],[1,1,1,1,1,1,1]],
-         boxes:[{x:3,y:2},{x:2,y:4}],targets:[{x:5,y:2},{x:5,y:4}],player:{x:2,y:5}},
-    ],
-    medium:[
-        {grid:[[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,2,0,0,2,0,0,1],[1,0,0,0,0,0,2,0,1],[1,0,0,3,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1]],
-         boxes:[{x:2,y:2},{x:5,y:2},{x:6,y:3}],targets:[{x:4,y:4},{x:6,y:4},{x:2,y:6}],player:{x:3,y:4}},
-    ],
-    hard:[
-        {grid:[[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,2,0,2,0,0,0,0,0,1],[1,0,0,0,0,2,0,2,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,3,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1]],
-         boxes:[{x:2,y:2},{x:4,y:2},{x:5,y:3},{x:7,y:3}],targets:[{x:2,y:7},{x:4,y:7},{x:6,y:7},{x:8,y:7}],player:{x:3,y:5}},
-    ]
-};
+const MAZE_MATCH_TIME=60; // 1 minute per match
+const MAZE_PTS_PER_WIN=10; // 10 pts per win
+
+// All Sokoban levels — mix of easy/medium/hard for progression
+const SOKOBAN_ALL_LEVELS=[
+    // Match 1-2: easy (2 boxes, 7x7)
+    {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,2,0,2,0,1],[1,0,0,0,0,0,1],[1,0,0,0,0,0,1],[1,0,3,0,0,0,1],[1,1,1,1,1,1,1]],boxes:[{x:2,y:2},{x:4,y:2}],targets:[{x:1,y:4},{x:5,y:4}],player:{x:2,y:5}},
+    {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,0,2,0,0,1],[1,0,2,0,0,0,1],[1,0,0,0,0,0,1],[1,0,0,3,0,0,1],[1,1,1,1,1,1,1]],boxes:[{x:3,y:2},{x:2,y:3}],targets:[{x:1,y:1},{x:5,y:1}],player:{x:3,y:5}},
+    {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,0,2,0,0,1],[1,0,0,0,0,0,1],[1,0,2,0,0,0,1],[1,0,3,0,0,0,1],[1,1,1,1,1,1,1]],boxes:[{x:3,y:2},{x:2,y:4}],targets:[{x:5,y:2},{x:5,y:4}],player:{x:2,y:5}},
+    // Match 3-4: medium (3 boxes, 9x9)
+    {grid:[[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,2,0,0,2,0,0,1],[1,0,0,0,0,0,2,0,1],[1,0,0,3,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1]],boxes:[{x:2,y:2},{x:5,y:2},{x:6,y:3}],targets:[{x:4,y:4},{x:6,y:4},{x:2,y:6}],player:{x:3,y:4}},
+    {grid:[[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,0,2,0,0,0,0,1],[1,0,2,0,0,0,2,0,1],[1,0,0,0,3,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1]],boxes:[{x:3,y:2},{x:2,y:3},{x:6,y:3}],targets:[{x:1,y:5},{x:4,y:5},{x:7,y:5}],player:{x:4,y:4}},
+    // Match 5+: hard (4 boxes, 11x11)
+    {grid:[[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,2,0,2,0,0,0,0,0,1],[1,0,0,0,0,2,0,2,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,3,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1]],boxes:[{x:2,y:2},{x:4,y:2},{x:5,y:3},{x:7,y:3}],targets:[{x:2,y:7},{x:4,y:7},{x:6,y:7},{x:8,y:7}],player:{x:3,y:5}},
+    {grid:[[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,2,0,2,0,0,0,1],[1,0,0,2,0,0,0,2,0,0,1],[1,0,0,0,0,3,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1]],boxes:[{x:4,y:2},{x:6,y:2},{x:3,y:3},{x:7,y:3}],targets:[{x:1,y:8},{x:3,y:8},{x:7,y:8},{x:9,y:8}],player:{x:5,y:4}},
+];
 
 function openMazeGame(){
     document.getElementById('mazeBal').textContent=fmtPts(toPoints(userData.balance||0));
     document.getElementById('mazeSetup').style.display='block';
     document.getElementById('mazeGame').style.display='none';
     document.getElementById('mazeResult').style.display='none';
+    mazeMatchNum=0; mazeTotalPts=0; mazeUsedLevels=[];
     openModal('maze');
 }
-function selMazeBet(a,el){
-    if(a>(userData.balance||0)){showToast('❌ Points kam hain!');return;}
-    mazeBet=a;
-    document.querySelectorAll('#mazeModal .bet-chip').forEach(c=>c.classList.remove('sel'));
-    el.classList.add('sel');
-    const cfg=MAZE_DIFFS[mazeDiff];
-    const pr=document.getElementById('mazeRewardPreview');
-    if(pr)pr.textContent='🏆 Win: ~'+Math.floor(toPoints(a)*cfg.pts/100)+' pts';
-}
-function selMazeDiff(d,el){
-    mazeDiff=d;
-    document.querySelectorAll('#mazeModal .runner-mode-btn').forEach(c=>c.classList.remove('sel'));
-    el.classList.add('sel');
-    const selBet=document.querySelector('#mazeModal .bet-chip.sel');
-    if(selBet)selMazeBet(mazeBet,selBet);
+
+function getMazeLevel(matchNum){
+    // Progressive difficulty — no repeats until all used
+    const available=SOKOBAN_ALL_LEVELS.map((_,i)=>i).filter(i=>!mazeUsedLevels.includes(i));
+    if(available.length===0){ mazeUsedLevels=[]; return getMazeLevel(matchNum); }
+    // Match 1-2 easy, 3-4 medium, 5+ hard (cycle through indices)
+    let pool;
+    if(matchNum<=2) pool=available.filter(i=>i<3);
+    else if(matchNum<=4) pool=available.filter(i=>i>=3&&i<5);
+    else pool=available.filter(i=>i>=5);
+    if(!pool||!pool.length) pool=available;
+    const idx=pool[Math.floor(Math.random()*pool.length)];
+    mazeUsedLevels.push(idx);
+    return SOKOBAN_ALL_LEVELS[idx];
 }
 
 async function startMaze(tryFree){
@@ -5114,29 +5152,41 @@ async function startMaze(tryFree){
         const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'maze',bet:1,use_pass:true});
         if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
         userData.passes=Math.max(0,(userData.passes||1)-1);
-        userData.balance=Math.max(0,(userData.balance||0)-mazeBet);
         updateUI();
-    } else { showToast('🎮 Try Mode — No Reward!'); }
-    const cfg=MAZE_DIFFS[mazeDiff];
-    const levels=SOKOBAN_LEVELS[mazeDiff];
-    const lvl=levels[Math.floor(Math.random()*levels.length)];
+    }
+    mazeMatchNum++; mazeTotalPts=0; mazeUsedLevels=[];
+    startMazeMatch();
+}
+
+function startMazeMatch(){
+    const lvl=getMazeLevel(mazeMatchNum);
     mazeGrid=lvl.grid.map(r=>[...r]);
     mazeBoxes=lvl.boxes.map(b=>({...b}));
     mazeTargets=lvl.targets.map(t=>({...t}));
     mazePlayer={...lvl.player};
-    mazeTimer=cfg.time; mazeMoveCount=0; mazeActive=true;
+    mazeTimer=MAZE_MATCH_TIME; mazeMoveCount=0; mazeActive=true;
     document.getElementById('mazeSetup').style.display='none';
     document.getElementById('mazeGame').style.display='block';
     document.getElementById('mazeResult').style.display='none';
+    const mn=document.getElementById('mazeMatchNum');
+    if(mn) mn.textContent='Match '+mazeMatchNum;
     drawSokoban();
+    if(mazeInterval)clearInterval(mazeInterval);
     mazeInterval=setInterval(()=>{
         if(!mazeActive)return;
         mazeTimer--;
         const done=mazeBoxes.filter(b=>mazeTargets.some(t=>t.x===b.x&&t.y===b.y)).length;
-        document.getElementById('mazeTimer').textContent='⏱️ '+Math.floor(mazeTimer/60)+':'+String(mazeTimer%60).padStart(2,'0');
-        document.getElementById('mazeEarning').textContent=done+'/'+mazeBoxes.length+' boxes';
-        document.getElementById('mazeMoves').textContent='Moves: '+mazeMoveCount;
-        if(mazeBoxes.every(b=>mazeTargets.some(t=>t.x===b.x&&t.y===b.y))){mazeActive=false;clearInterval(mazeInterval);playSound('jackpot');finishMaze(true);}
+        const timerEl=document.getElementById('mazeTimer');
+        if(timerEl) timerEl.textContent='⏱️ '+Math.floor(mazeTimer/60)+':'+String(mazeTimer%60).padStart(2,'0');
+        const earningEl=document.getElementById('mazeEarning');
+        if(earningEl) earningEl.textContent=mazeTotalPts+' pts earned';
+        const movesEl=document.getElementById('mazeMoves');
+        if(movesEl) movesEl.textContent='Moves: '+mazeMoveCount;
+        // Win condition — all boxes on targets
+        if(mazeBoxes.every(b=>mazeTargets.some(t=>t.x===b.x&&t.y===b.y))){
+            mazeActive=false;clearInterval(mazeInterval);playSound('jackpot');finishMaze(true);
+        }
+        // Time up
         if(mazeTimer<=0){mazeActive=false;clearInterval(mazeInterval);finishMaze(false);}
     },1000);
     playSound('tap');
@@ -5154,7 +5204,6 @@ function drawSokoban(){
     canvas.width=W; canvas.height=W;
     const cs=Math.floor(W/sz);
     const ctx=canvas.getContext('2d');
-    // HD dark bg with subtle grid
     const sokBgGrad=ctx.createLinearGradient(0,0,W,W);
     sokBgGrad.addColorStop(0,'#040c18');sokBgGrad.addColorStop(1,'#080f20');
     ctx.fillStyle=sokBgGrad; ctx.fillRect(0,0,W,W);
@@ -5163,7 +5212,6 @@ function drawSokoban(){
             const t=mazeGrid[y][x];
             const px=x*cs, py=y*cs;
             if(t===1){
-                // Wall — 3D brick look
                 ctx.fillStyle='#1a3560'; ctx.fillRect(px,py,cs,cs);
                 ctx.fillStyle='rgba(100,160,255,0.15)'; ctx.fillRect(px,py,cs,2);
                 ctx.fillRect(px,py,2,cs);
@@ -5176,18 +5224,15 @@ function drawSokoban(){
             }
         }
     }
-    // Targets — glowing X
     mazeTargets.forEach(t=>{
         const bx=t.x*cs+2,by=t.y*cs+2,s2=cs-4;
         ctx.fillStyle='rgba(25,216,158,0.12)'; ctx.fillRect(bx,by,s2,s2);
         ctx.strokeStyle='rgba(25,216,158,0.7)'; ctx.lineWidth=2;
         ctx.beginPath(); ctx.moveTo(bx+4,by+4); ctx.lineTo(bx+s2-4,by+s2-4); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(bx+s2-4,by+4); ctx.lineTo(bx+4,by+s2-4); ctx.stroke();
-        // Glow
         ctx.shadowColor='rgba(25,216,158,0.5)'; ctx.shadowBlur=8;
         ctx.stroke(); ctx.shadowBlur=0;
     });
-    // Boxes
     mazeBoxes.forEach(b=>{
         const onTgt=mazeTargets.some(t=>t.x===b.x&&t.y===b.y);
         const bx=b.x*cs+2, by=b.y*cs+2, bs=cs-4;
@@ -5196,12 +5241,10 @@ function drawSokoban(){
         ctx.beginPath(); ctx.roundRect(bx,by,bs,bs,4); ctx.fill();
         ctx.shadowBlur=0;
         ctx.strokeStyle=onTgt?'rgba(255,255,255,0.6)':'rgba(255,255,255,0.3)'; ctx.lineWidth=1.5; ctx.stroke();
-        // Icon
         ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.font='bold '+(cs*0.45)+'px sans-serif';
         ctx.textAlign='center'; ctx.textBaseline='middle';
         ctx.fillText(onTgt?'✓':'▪',b.x*cs+cs/2,b.y*cs+cs/2);
     });
-    // Player — glowing hero
     const pg=ctx.createRadialGradient(mazePlayer.x*cs+cs/2,mazePlayer.y*cs+cs/2,0,mazePlayer.x*cs+cs/2,mazePlayer.y*cs+cs/2,cs);
     pg.addColorStop(0,'rgba(139,92,246,0.4)'); pg.addColorStop(1,'transparent');
     ctx.fillStyle=pg; ctx.fillRect(mazePlayer.x*cs-cs/2,mazePlayer.y*cs-cs/2,cs*2,cs*2);
@@ -5213,7 +5256,7 @@ let _mazeMoveBlock=false;
 function mazeMove(dx,dy){
     if(!mazeActive||_mazeMoveBlock)return;
     _mazeMoveBlock=true;
-    setTimeout(()=>{_mazeMoveBlock=false;},150); // 150ms between moves
+    setTimeout(()=>{_mazeMoveBlock=false;},130);
     const nx=mazePlayer.x+dx, ny=mazePlayer.y+dy;
     if(ny<0||ny>=mazeGrid.length||nx<0||nx>=mazeGrid[0].length){_mazeMoveBlock=false;return;}
     if(mazeGrid[ny][nx]===1){_mazeMoveBlock=false;return;}
@@ -5232,40 +5275,52 @@ function mazeMove(dx,dy){
 
 async function finishMaze(won){
     clearInterval(mazeInterval); mazeActive=false; document.onkeydown=null;
-    const cfg=MAZE_DIFFS[mazeDiff];
-    const betPts=toPoints(mazeBet);
-    let pts=0;
-    if(won){
-        // cfg.pts already capped at 5/8/10
-        const tBonus=mazeTimer/cfg.time;
-        pts=Math.min(Math.floor(cfg.pts*(0.7+tBonus*0.3)), cfg.pts);
-    }else{
-        const done=mazeBoxes.filter(b=>mazeTargets.some(t=>t.x===b.x&&t.y===b.y)).length;
-        pts=done>0?1:0; // partial = 1pt only
-    }
-    pts=Math.min(pts,10); // hard cap
-    const rup=fromPoints(pts);
-    if(rup>0){
-        if(!window._mazeTry)await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'maze',bet:mazeBet,survived_seconds:cfg.time-mazeTimer});
+    const pts = won ? MAZE_PTS_PER_WIN : 0;
+    if(pts>0){
+        if(!window._mazeTry){
+            await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'maze',bet:1,survived_seconds:MAZE_MATCH_TIME-mazeTimer});
+        }
+        mazeTotalPts+=pts;
+        const rup=fromPoints(pts);
         userData.balance=(userData.balance||0)+rup;
         userData.today_earned=(userData.today_earned||0)+rup;
         gameState.today_game_earned=(gameState.today_game_earned||0)+rup;
         gameState.totalPlays=(gameState.totalPlays||0)+1;
-        if(won)gameState.wins=(gameState.wins||0)+1;
-        updateUI(); if(won)showFloatingPts(pts);
+        if(won) gameState.wins=(gameState.wins||0)+1;
+        updateUI();
+        showFloatingPts(pts);
     }
     document.getElementById('mazeGame').style.display='none';
     document.getElementById('mazeResult').style.display='block';
     document.getElementById('mazeResultEmoji').textContent=won?'🏆':'⏱️';
-    document.getElementById('mazeResultTitle').textContent=won?'Sab Boxes Place! 🎉':'Time Out!';
-    document.getElementById('mazeResultSub').textContent=won?(mazeMoveCount+' moves mein!'):'Boxes: '+mazeBoxes.filter(b=>mazeTargets.some(t=>t.x===b.x&&t.y===b.y)).length+'/'+mazeBoxes.length;
-    document.getElementById('mazeResultReward').textContent='+'+pts+' pts';
+    document.getElementById('mazeResultTitle').textContent=won?'Match '+mazeMatchNum+' Jeeta! 🎉':'Time Out!';
+    document.getElementById('mazeResultSub').textContent=won?('Moves: '+mazeMoveCount+' | 1 minute mein jeeta!'):('Boxes: '+mazeBoxes.filter(b=>mazeTargets.some(t=>t.x===b.x&&t.y===b.y)).length+'/'+mazeBoxes.length+' placed');
+    document.getElementById('mazeResultReward').textContent=(won?'+'+pts+' pts':'0 pts');
+    const totalEl=document.getElementById('mazeTotalReward');
+    if(totalEl) totalEl.textContent='Total earned: '+mazeTotalPts+' pts';
+    const nextBtn=document.getElementById('mazeNextBtn');
+    if(nextBtn) nextBtn.style.display=won?'block':'none';
     playSound(won?'jackpot':'lose');
     if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
     updateMissionsUI();
 }
-function resetMaze(){document.getElementById('mazeSetup').style.display='block';document.getElementById('mazeGame').style.display='none';document.getElementById('mazeResult').style.display='none';}
+
+function mazeNextMatch(){
+    // Start next match — harder
+    mazeMatchNum++;
+    startMazeMatch();
+}
+
+function resetMaze(){
+    mazeMatchNum=0; mazeTotalPts=0; mazeUsedLevels=[];
+    document.getElementById('mazeSetup').style.display='block';
+    document.getElementById('mazeGame').style.display='none';
+    document.getElementById('mazeResult').style.display='none';
+}
 function exitMaze(){if(mazeInterval)clearInterval(mazeInterval);mazeActive=false;document.onkeydown=null;closeModal('maze');}
+// Keep old helpers for backwards compat
+function selMazeBet(a,el){}
+function selMazeDiff(d,el){}
 
 // ============================================================
 // 🐍 SNAKE — Smooth, visible snake, big food, speed targets
@@ -5377,29 +5432,48 @@ function drawSnake(){
 }
 
 async function finishSnake(){
-    if(snakeInterval)clearInterval(snakeInterval);if(snakeFrameId)cancelAnimationFrame(snakeFrameId);
-    snakeActive=false;document.onkeydown=null;
-    const betPts=toPoints(snakeBet);
-    // Max 10 pts per game — 0.5pt per dot, capped
-    let pts=Math.min(Math.floor(snakeScore*0.5), 8);
-    SN_TARGETS.forEach(t=>{if(snakeScore>=t.dots&&elapsed<=t.secs){pts+=t.bonus;showToast('🎯 Target! +'+t.bonus+' pts!');}});
-    pts=Math.min(pts,10); // hard cap 10pts
-    const rup=fromPoints(pts);
-    if(rup>0){
-        if(!window._snakeTry)await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'snake',bet:1,survived_seconds:snakeScore});
-        userData.balance=(userData.balance||0)+rup;userData.today_earned=(userData.today_earned||0)+rup;
-        gameState.today_game_earned=(gameState.today_game_earned||0)+rup;gameState.totalPlays=(gameState.totalPlays||0)+1;
-        if(snakeScore>=5)gameState.wins=(gameState.wins||0)+1;
-        updateUI();if(pts>0)showFloatingPts(pts);
+    try{
+        if(snakeInterval)clearInterval(snakeInterval);
+        if(snakeFrameId)cancelAnimationFrame(snakeFrameId);
+        snakeActive=false;
+        document.onkeydown=null;
+        const timeElapsed = 60 - snakeTimer; // seconds elapsed
+        let pts=Math.min(Math.floor(snakeScore*0.5), 8);
+        SN_TARGETS.forEach(t=>{
+            if(snakeScore>=t.dots && timeElapsed<=t.secs){
+                pts+=t.bonus;
+                showToast('🎯 Target! +'+t.bonus+' pts!');
+            }
+        });
+        pts=Math.min(pts,10); // hard cap 10pts
+        const rup=fromPoints(pts);
+        if(rup>0){
+            if(!window._snakeTry)await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'snake',bet:1,survived_seconds:snakeScore});
+            userData.balance=(userData.balance||0)+rup;
+            userData.today_earned=(userData.today_earned||0)+rup;
+            gameState.today_game_earned=(gameState.today_game_earned||0)+rup;
+            gameState.totalPlays=(gameState.totalPlays||0)+1;
+            if(snakeScore>=5)gameState.wins=(gameState.wins||0)+1;
+            updateUI();
+            if(pts>0)showFloatingPts(pts);
+        }
+        document.getElementById('snakeGame').style.display='none';
+        document.getElementById('snakeResult').style.display='block';
+        document.getElementById('snakeResultEmoji').textContent=snakeScore>=15?'🏆':snakeScore>=5?'🐍':'😅';
+        document.getElementById('snakeResultTitle').textContent=snakeScore>=15?'Snake Master! 🏆':snakeScore>=5?'Badiya khela!':'Aur try karo!';
+        document.getElementById('snakeFinalScore').textContent=snakeScore;
+        document.getElementById('snakeResultReward').textContent='+'+pts+' pts';
+        playSound(snakeScore>0?'earn':'lose');
+        if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
+        updateMissionsUI();
+    }catch(e){
+        console.error('finishSnake error:',e);
+        // Force show result screen even on error
+        try{
+            document.getElementById('snakeGame').style.display='none';
+            document.getElementById('snakeResult').style.display='block';
+        }catch(e2){}
     }
-    document.getElementById('snakeGame').style.display='none';document.getElementById('snakeResult').style.display='block';
-    document.getElementById('snakeResultEmoji').textContent=snakeScore>=15?'🏆':snakeScore>=5?'🐍':'😅';
-    document.getElementById('snakeResultTitle').textContent=snakeScore>=15?'Snake Master! 🏆':snakeScore>=5?'Badiya khela!':'Aur try karo!';
-    document.getElementById('snakeFinalScore').textContent=snakeScore;
-    document.getElementById('snakeResultReward').textContent='+'+pts+' pts';
-    playSound(snakeScore>0?'earn':'lose');
-    if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
-    updateMissionsUI();
 }
 function resetSnake(){document.getElementById('snakeSetup').style.display='block';document.getElementById('snakeGame').style.display='none';document.getElementById('snakeResult').style.display='none';}
 function exitSnake(){if(snakeInterval)clearInterval(snakeInterval);if(snakeFrameId)cancelAnimationFrame(snakeFrameId);snakeActive=false;document.onkeydown=null;closeModal('snake');}
@@ -5713,7 +5787,12 @@ function checkGameOver(){
 }
 
 async function startBlockBlast(){
-    // Passes check hataya — game ab free hai (passes optional)
+    // Pass check — 1 pass required
+    if(!userData.passes||userData.passes<1){showNoPassPopup();return;}
+    const r=await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'blockblast',bet:0,use_pass:true});
+    if(!r||!r.success){showToast('❌ '+(r?.message||'Error'));return;}
+    userData.passes=Math.max(0,(userData.passes||1)-1);
+    updateUI();
     initBlockGrid();generatePieces();
     blockScore=0;blockLevel=1;blockActive=true;blockSelected=null;
     document.getElementById('blockSetup').style.display='none';
@@ -5724,10 +5803,6 @@ async function startBlockBlast(){
         drawBlockGame();
         renderBlockPieces();
     }, 80);
-    // Sync with server in background
-    try{
-        await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'blockblast',bet:0,use_pass:false});
-    }catch(e){}
 }
 
 function drawBlockGame(){
@@ -5871,14 +5946,20 @@ function renderBlockPieces(){
                 blockScore+=cleared;
                 showToast('🔥 '+cleared+' Line Clear! +'+cleared+' pts');
                 playSound('earn'); triggerConfetti();
-                if(blockScore>blockLevel*5){
-                    blockLevel++; showToast('⬆️ Level '+blockLevel+'!'); playSound('levelup');
-                    if(blockLevel>2){
-                        const fill=blockLevel-1;
+                // Level up sirf jab POORI board clear ho (all cells null)
+                const isBoardEmpty = blockGrid.every(row=>row.every(cell=>cell===null));
+                if(isBoardEmpty){
+                    blockLevel++;
+                    showToast('⬆️ Level '+blockLevel+'! Board Clear! 🎉');
+                    playSound('levelup');
+                    // Harder boards — add pre-filled rows
+                    if(blockLevel>1){
+                        const fill=Math.min(blockLevel-1, 3);
                         for(let f=0;f<fill;f++){
-                            const fr=Math.floor(Math.random()*3)+BB_ROWS-4;
-                            const fc=Math.floor(Math.random()*BB_COLS);
-                            if(!blockGrid[fr][fc]) blockGrid[fr][fc]=BB_COLORS[Math.floor(Math.random()*BB_COLORS.length)];
+                            const fr=BB_ROWS-1-f;
+                            for(let fc=0;fc<BB_COLS;fc++){
+                                if(Math.random()>0.35) blockGrid[fr][fc]=BB_COLORS[Math.floor(Math.random()*BB_COLORS.length)];
+                            }
                         }
                     }
                 }
@@ -5886,8 +5967,16 @@ function renderBlockPieces(){
             const scoreEl=document.getElementById('blockScore');
             if(scoreEl) scoreEl.textContent=blockScore+' pts';
             drawBlockGame();
-            if(blockPieces.every(p=>p===null)){ generatePieces(); showToast('🧱 New pieces!'); if(checkGameOver()){finishBlockBlast();return;} }
-            else if(checkGameOver()){ finishBlockBlast();return; }
+            // Check if all pieces placed — generate new ones
+            if(blockPieces.every(p=>p===null)){
+                generatePieces();
+                showToast('🧱 New pieces!');
+            }
+            // Check game over — no piece can be placed anywhere
+            if(checkGameOver()){
+                finishBlockBlast();
+                return;
+            }
             renderBlockPieces();
         }
 
@@ -5946,12 +6035,24 @@ function exitBlockBlast(){blockActive=false;closeModal('blockblast');}
 // 💎 GEM MATCH — Match 3 gems (Candy Crush style)
 // ============================================================
 let gemBet=1,gemActive=false,gemScore=0,gemMoves=20,gemSelected=null,gemGrid=[];
-const GM_ROWS=6,GM_COLS=6; // 6x6 taaki cells badi hon, screen pe fit ho
+let gemLevel=1, gemGoalType='', gemGoalCount=0, gemGoalDone=0;
+const GM_ROWS=6,GM_COLS=6;
 const GEM_TYPES=['💎','🔥','⭐','🍀','💜','🧡'];
 const GEM_COLORS=['#38bdf8','#ef4444','#fbbf24','#10d9a0','#8b5cf6','#f97316'];
 
+// Level goals per level — tasks for each level
+const GEM_GOALS=[
+    {type:'any',count:5,label:'5 gems blast karo',pts:3},       // Level 1
+    {type:'any',count:8,label:'8 gems blast karo',pts:5},       // Level 2
+    {type:'💎',count:3,label:'3 💎 diamonds match karo',pts:8}, // Level 3
+    {type:'🔥',count:4,label:'4 🔥 fire match karo',pts:10},    // Level 4
+    {type:'bomb',count:1,label:'1 💣 bomb explode karo',pts:12}, // Level 5
+    {type:'any',count:12,label:'12 gems blast karo',pts:15},    // Level 6
+    {type:'⭐',count:5,label:'5 ⭐ stars match karo',pts:18},   // Level 7
+    {type:'bomb',count:2,label:'2 💣 bombs explode karo',pts:20}, // Level 8
+];
+
 function openGemGame(){
-    // gemBal null guard — element HTML mein nahi hai, crash prevent karo
     const _gb=document.getElementById('gemBal');
     if(_gb) _gb.textContent=fmtPts(toPoints(userData.balance||0));
     const _gs=document.getElementById('gemSetup');
@@ -5960,6 +6061,7 @@ function openGemGame(){
     if(_gs) _gs.style.display='block';
     if(_gg) _gg.style.display='none';
     if(_gr) _gr.style.display='none';
+    gemLevel=1;gemScore=0;
     openModal('gemmatch');
 }
 function selGemBet(a,el){
@@ -5969,33 +6071,88 @@ function selGemBet(a,el){
     el.classList.add('sel');
 }
 
-const GEM_BOMB = 99; // Special bomb gem type
+const GEM_BOMB = 99;
 function initGemGrid(){
     gemGrid=Array.from({length:GM_ROWS},()=>
         Array.from({length:GM_COLS},()=>Math.floor(Math.random()*GEM_TYPES.length))
     );
-    // Add 2 random bombs
-    for(let b=0;b<2;b++){ const r=1+Math.floor(Math.random()*(GM_ROWS-2)); const c=1+Math.floor(Math.random()*(GM_COLS-2)); gemGrid[r][c]=GEM_BOMB; }
-    // Ensure no initial matches
+    // Add bombs based on level (higher = more bombs)
+    const numBombs=Math.min(1+Math.floor(gemLevel/2),4);
+    for(let b=0;b<numBombs;b++){
+        const r=1+Math.floor(Math.random()*(GM_ROWS-2));
+        const c=1+Math.floor(Math.random()*(GM_COLS-2));
+        gemGrid[r][c]=GEM_BOMB;
+    }
+    // No initial matches
     let tries=0;
     while(findMatches().length>0&&tries<100){
-        for(let r=0;r<GM_ROWS;r++)for(let c=0;c<GM_COLS;c++)gemGrid[r][c]=Math.floor(Math.random()*GEM_TYPES.length);
+        for(let r=0;r<GM_ROWS;r++)for(let c=0;c<GM_COLS;c++)
+            if(gemGrid[r][c]!==GEM_BOMB) gemGrid[r][c]=Math.floor(Math.random()*GEM_TYPES.length);
         tries++;
     }
+}
+
+function getGoal(){
+    const idx=Math.min(gemLevel-1,GEM_GOALS.length-1);
+    return GEM_GOALS[idx];
+}
+
+function updateGemGoalUI(){
+    const goal=getGoal();
+    const el=document.getElementById('gemGoalText');
+    const prog=document.getElementById('gemGoalProg');
+    if(el) el.textContent='🎯 Level '+gemLevel+': '+goal.label;
+    if(prog) prog.textContent=gemGoalDone+'/'+goal.count;
+}
+
+function checkAutoAdjust(){
+    // If no possible moves exist, shuffle the grid (auto-adjust)
+    const hasPossibleMove=checkHasMoves();
+    if(!hasPossibleMove){
+        showToast('🔄 Koi move nahi! Grid shuffle...');
+        playSound('tap');
+        setTimeout(()=>{
+            initGemGrid();
+            gemGoalDone=0;
+            drawGemGrid();
+            updateGemGoalUI();
+        },600);
+    }
+}
+
+function checkHasMoves(){
+    // Check if any adjacent swap creates a match
+    for(let r=0;r<GM_ROWS;r++){
+        for(let c=0;c<GM_COLS;c++){
+            if(c+1<GM_COLS){
+                swapGems(r,c,r,c+1);
+                const m=findMatches().length>0;
+                swapGems(r,c,r,c+1);
+                if(m)return true;
+            }
+            if(r+1<GM_ROWS){
+                swapGems(r,c,r+1,c);
+                const m=findMatches().length>0;
+                swapGems(r,c,r+1,c);
+                if(m)return true;
+            }
+        }
+    }
+    return false;
 }
 
 function findMatches(){
     const matches=new Set();
     for(let r=0;r<GM_ROWS;r++){
         for(let c=0;c<GM_COLS-2;c++){
-            if(gemGrid[r][c]===gemGrid[r][c+1]&&gemGrid[r][c]===gemGrid[r][c+2]){
+            if(gemGrid[r][c]>=0&&gemGrid[r][c]!==GEM_BOMB&&gemGrid[r][c]===gemGrid[r][c+1]&&gemGrid[r][c]===gemGrid[r][c+2]){
                 matches.add(`${r},${c}`);matches.add(`${r},${c+1}`);matches.add(`${r},${c+2}`);
             }
         }
     }
     for(let c=0;c<GM_COLS;c++){
         for(let r=0;r<GM_ROWS-2;r++){
-            if(gemGrid[r][c]===gemGrid[r+1][c]&&gemGrid[r][c]===gemGrid[r+2][c]){
+            if(gemGrid[r][c]>=0&&gemGrid[r][c]!==GEM_BOMB&&gemGrid[r][c]===gemGrid[r+1][c]&&gemGrid[r][c]===gemGrid[r+2][c]){
                 matches.add(`${r},${c}`);matches.add(`${r+1},${c}`);matches.add(`${r+2},${c}`);
             }
         }
@@ -6004,53 +6161,54 @@ function findMatches(){
 }
 
 function clearMatches(matches){
+    const goal=getGoal();
     let pts=matches.length*20;
-    matches.forEach(({r,c})=>{gemGrid[r][c]=-1;});
+    // Track goal progress
+    matches.forEach(({r,c})=>{
+        const g=gemGrid[r][c];
+        const gemEmoji=GEM_TYPES[g];
+        if(goal.type==='any') gemGoalDone++;
+        else if(goal.type===gemEmoji) gemGoalDone++;
+        gemGrid[r][c]=-1;
+    });
+    // Higher level = higher pts per match
+    pts=Math.floor(pts*(1+gemLevel*0.1));
     // Drop gems
     for(let c=0;c<GM_COLS;c++){
         let empty=0;
-        for(let r=GM_ROWS-1;r>=0;r--){
-            if(gemGrid[r][c]===-1)empty++;
-            else if(empty>0){gemGrid[r+empty][c]=gemGrid[r][c];gemGrid[r][c]=-1;}
-        }
+        for(let r=GM_ROWS-1;r>=0;r--){ if(gemGrid[r][c]===-1)empty++; else if(empty>0){gemGrid[r+empty][c]=gemGrid[r][c];gemGrid[r][c]=-1;} }
         for(let r=0;r<empty;r++)gemGrid[r][c]=Math.floor(Math.random()*GEM_TYPES.length);
+    }
+    updateGemGoalUI();
+    // Check goal completion
+    const goal2=getGoal();
+    if(gemGoalDone>=goal2.count){
+        setTimeout(()=>levelUpGem(),400);
     }
     return pts;
 }
 
-function swapGems(r1,c1,r2,c2){
-    [gemGrid[r1][c1],gemGrid[r2][c2]]=[gemGrid[r2][c2],gemGrid[r1][c1]];
-}
-
-function processMatches(){
-    let totalPts=0;let chainCount=0;
-    let matches=findMatches();
-    while(matches.length>=3){
-        const pts=clearMatches(matches);
-        chainCount++;
-        totalPts+=pts*chainCount; // Chain multiplier!
-        matches=findMatches();
-    }
-    // After big chain, add new bomb as reward
-    if(totalPts > 200){ 
-        const br=1+Math.floor(Math.random()*(GM_ROWS-2));
-        const bc=1+Math.floor(Math.random()*(GM_COLS-2));
-        if(gemGrid[br][bc]!==GEM_BOMB && gemGrid[br][bc]>=0) gemGrid[br][bc]=GEM_BOMB;
-        showToast('💣 Big chain! Naya bomb mila!');
-    }
-    return totalPts;
+function levelUpGem(){
+    const goal=getGoal();
+    gemScore+=goal.pts*10; // Bonus pts for level completion
+    showToast('⬆️ Level '+gemLevel+' Clear! +'+(goal.pts*10)+' pts! 🎉');
+    playSound('jackpot'); triggerConfetti();
+    gemLevel++;
+    gemGoalDone=0;
+    gemMoves+=5; // Extra moves for next level
+    initGemGrid();
+    drawGemGrid();
+    updateGemGoalUI();
 }
 
 async function startGemMatch(){
-    // Passes check hataya — game ab free hai (passes optional)
     initGemGrid();
     gemScore=0;gemMoves=20;gemActive=true;gemSelected=null;
+    gemGoalDone=0;
     document.getElementById('gemSetup').style.display='none';
     document.getElementById('gemGameArea').style.display='block';
     document.getElementById('gemResult').style.display='none';
-    // Wait for modal to render
-    setTimeout(()=>{ drawGemGrid(); }, 80);
-    // Sync with server
+    setTimeout(()=>{ drawGemGrid(); updateGemGoalUI(); checkAutoAdjust(); }, 80);
     try{
         await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'gemmatch',bet:0,use_pass:false});
     }catch(e){}
@@ -6059,12 +6217,8 @@ async function startGemMatch(){
 function drawGemGrid(){
     const container=document.getElementById('gemGrid');
     if(!container)return;
-    // Get width from modal-inner or screen width
     const modalInner = container.closest('.modal-inner') || container.closest('.modal');
-    const W = Math.min(
-        modalInner ? modalInner.offsetWidth - 16 : window.innerWidth - 24,
-        360   // allow wider grid so cells are bigger
-    );
+    const W = Math.min(modalInner ? modalInner.offsetWidth - 16 : window.innerWidth - 24, 360);
     const cs=Math.floor(W/GM_COLS);
     if(cs <= 0){ setTimeout(()=>drawGemGrid(),100); return; }
     container.style.width=cs*GM_COLS+'px';
@@ -6076,32 +6230,29 @@ function drawGemGrid(){
         for(let c=0;c<GM_COLS;c++){
             const g=gemGrid[r][c];
             const cell=document.createElement('div');
-            cell.style.cssText=`width:${cs}px;height:${cs}px;display:flex;align-items:center;justify-content:center;border-radius:${cs*0.2}px;font-size:${cs*0.55}px;cursor:pointer;transition:all .15s;background:${g>=0?GEM_COLORS[g]+'22':'transparent'};border:1.5px solid ${g>=0?GEM_COLORS[g]+'44':'transparent'};`;
-            if(gemSelected&&gemSelected.r===r&&gemSelected.c===c){
-                cell.style.border=`2px solid ${GEM_COLORS[g]}`;
-                cell.style.boxShadow=`0 0 12px ${GEM_COLORS[g]}`;
-                cell.style.transform='scale(1.1)';
-            }
+            const isSelected=gemSelected&&gemSelected.r===r&&gemSelected.c===c;
+            cell.style.cssText=`width:${cs}px;height:${cs}px;display:flex;align-items:center;justify-content:center;border-radius:${cs*0.2}px;font-size:${cs*0.55}px;cursor:pointer;transition:all .15s;background:${g>=0&&g!==GEM_BOMB?GEM_COLORS[g]+'22':'transparent'};border:1.5px solid ${g>=0&&g!==GEM_BOMB?GEM_COLORS[g]+'44':'transparent'};`;
+            if(isSelected){ cell.style.border=`2px solid ${g>=0?GEM_COLORS[g]:'#fff'}`; cell.style.boxShadow=`0 0 12px ${g>=0?GEM_COLORS[g]:'#fff'}`; cell.style.transform='scale(1.1)'; }
             cell.textContent=g===GEM_BOMB?'💣':(g>=0?GEM_TYPES[g]:'');
-            if(g===GEM_BOMB){cell.style.background='rgba(255,78,106,0.2)';cell.style.border='1.5px solid rgba(255,78,106,0.6)';cell.style.animation='pulse 1s infinite';}
+            if(g===GEM_BOMB){cell.style.background='rgba(255,78,106,0.2)';cell.style.border='1.5px solid rgba(255,78,106,0.6)';}
             cell.onclick=()=>handleGemTap(r,c);
             container.appendChild(cell);
         }
     }
     const se=document.getElementById('gemScore');if(se)se.textContent=gemScore+' pts';
     const me=document.getElementById('gemMoves');if(me)me.textContent=gemMoves+' moves left';
-    if(gemMoves<=0){finishGemMatch();return;}
+    if(gemMoves<=0){setTimeout(()=>finishGemMatch(),300);return;}
 }
 
 function handleGemTap(r,c){
     if(!gemActive||gemGrid[r][c]<0)return;
-    // Bomb gem - tap to explode!
     if(gemGrid[r][c]===GEM_BOMB){
+        const goal=getGoal();
         const bombPts=150;
         gemScore+=bombPts;
-        // Explode 3x3 area
+        // Track bomb goal
+        if(goal.type==='bomb') gemGoalDone++;
         for(let br=r-1;br<=r+1;br++) for(let bc=c-1;bc<=c+1;bc++) if(br>=0&&br<GM_ROWS&&bc>=0&&bc<GM_COLS) gemGrid[br][bc]=-1;
-        // Drop gems
         for(let col=0;col<GM_COLS;col++){
             let empty=0;
             for(let row=GM_ROWS-1;row>=0;row--){ if(gemGrid[row][col]===-1)empty++; else if(empty>0){gemGrid[row+empty][col]=gemGrid[row][col];gemGrid[row][col]=-1;} }
@@ -6109,14 +6260,16 @@ function handleGemTap(r,c){
         }
         gemMoves--;
         playSound('jackpot'); triggerConfetti();
-        showToast('💣 BOMB! +'+bombPts+' pts! Area destroy!'); drawGemGrid(); return;
+        showToast('💣 BOMB! +'+bombPts+' pts!');
+        updateGemGoalUI();
+        if(gemGoalDone>=getGoal().count) setTimeout(()=>levelUpGem(),400);
+        drawGemGrid();
+        setTimeout(()=>checkAutoAdjust(),500);
+        return;
     }
-    if(!gemSelected){
-        gemSelected={r,c};drawGemGrid();return;
-    }
+    if(!gemSelected){ gemSelected={r,c};drawGemGrid();return; }
     const {r:r1,c:c1}=gemSelected;
     if(r===r1&&c===c1){gemSelected=null;drawGemGrid();return;}
-    // Check adjacent
     if(Math.abs(r-r1)+Math.abs(c-c1)===1){
         swapGems(r1,c1,r,c);
         const pts=processMatches();
@@ -6125,15 +6278,29 @@ function handleGemTap(r,c){
             showToast('✨ Match! +'+pts+'pts');playSound('earn');
             if(pts>100)triggerConfetti();
         }else{
-            swapGems(r1,c1,r,c); // Swap back
+            swapGems(r1,c1,r,c);
             showToast('❌ Koi match nahi!');playSound('click');
         }
         gemSelected=null;
         drawGemGrid();
-        if(gemMoves<=0)finishGemMatch();
+        if(gemMoves<=0) finishGemMatch();
+        else setTimeout(()=>checkAutoAdjust(),600);
     }else{
         gemSelected={r,c};drawGemGrid();
     }
+}
+
+function swapGems(r1,c1,r2,c2){ [gemGrid[r1][c1],gemGrid[r2][c2]]=[gemGrid[r2][c2],gemGrid[r1][c1]]; }
+function processMatches(){
+    let total=0; let cascade=0;
+    while(true){
+        const m=findMatches(); if(!m.length)break;
+        total+=clearMatches(m);
+        cascade++;
+        if(cascade>1) showToast('🔥 Cascade x'+cascade+'!');
+        if(cascade>10)break;
+    }
+    return total;
 }
 
 async function finishGemMatch(){
@@ -6155,12 +6322,12 @@ async function finishGemMatch(){
     updateMissionsUI();
 }
 function resetGemMatch(){
+    gemLevel=1; gemScore=0; gemMoves=20; gemActive=true; gemSelected=null; gemGoalDone=0;
     initGemGrid();
-    gemScore=0;gemMoves=20;gemActive=true;gemSelected=null;
     document.getElementById('gemSetup').style.display='none';
     document.getElementById('gemGameArea').style.display='block';
     document.getElementById('gemResult').style.display='none';
-    setTimeout(()=>drawGemGrid(),50);
+    setTimeout(()=>{ drawGemGrid(); updateGemGoalUI(); },50);
 }
 function exitGemMatch(){gemActive=false;closeModal('gemmatch');}
 
@@ -6210,9 +6377,10 @@ async function showTabAd(){
 function openModal(id){
     const el=document.getElementById(id+'Modal');if(!el)return;
     el.classList.add('open');
-    if(id==='missions'){loadMissions();}
-    if(id==='dailyBonus'){buildTrainChain();updateWeeklyBonus();checkStreakChallenge();}
+    if(id==='missions'){loadMissions(); setTimeout(()=>updateFabBadges(),500);}
+    if(id==='dailyBonus'){buildTrainChain();updateWeeklyBonus();checkStreakChallenge(); setTimeout(()=>updateFabBadges(),400);}
     if(id==='withdraw'){updateWithdrawCondition();}
+    if(id==='referral'){loadRefActivity();}
     if(id==='profile'||id==='profilePage'){updateMilestoneCard();updateBadgeUI();}
     if(id==='buyPasses'){loadAdminUpi();}
     if(id==='blockblast'){
@@ -7039,7 +7207,6 @@ async function init(){
     updateUI();
     updateMissionsUI();
     setLang(lang);
-    // Ready (no toast)
 
     // Non-critical staggered
     setTimeout(()=>{loadGameState();loadAds();initAdsGram();},400);
@@ -7048,6 +7215,15 @@ async function init(){
     setInterval(loadLiveActivity, 30000);
     setInterval(checkBroadcastNotifications, 60000);
     setInterval(async()=>{await loadUser();await loadGameState();checkShortlinkReminder();checkStreakChallenge();}, 60000);
+
+    // Hide custom loading screen after init is complete
+    setTimeout(()=>{
+        const ldr=document.getElementById('ffLoader');
+        if(ldr){ldr.style.transition='opacity .5s ease';ldr.style.opacity='0';setTimeout(()=>{ldr.style.display='none';},500);}
+    }, 300);
+
+    // Update FAB mission badges
+    setTimeout(()=>updateFabBadges(), 1500);
 }
 
 
