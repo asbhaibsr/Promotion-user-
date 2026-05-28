@@ -749,15 +749,15 @@
         @keyframes dotPulse{0%,100%{transform:scale(.6);opacity:.4;}50%{transform:scale(1.2);opacity:1;}}
         .ff-loader-sub{font-size:13px;color:rgba(255,255,255,.8);font-weight:700;}
 
-        /* FLOATING CIRCLE BUTTONS */
-        .fab-left,.fab-right{position:fixed;z-index:190;display:flex;flex-direction:column;gap:10px;top:50%;transform:translateY(-50%);}
+        /* FLOATING CIRCLE BUTTONS — only home page */
+        .fab-left,.fab-right{position:fixed;z-index:190;display:flex;flex-direction:column;gap:8px;top:50%;transform:translateY(-50%);}
         .fab-left{left:0;}
         .fab-right{right:0;}
-        .fab-btn{width:52px;height:52px;border-radius:0 16px 16px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:none;font-size:20px;gap:2px;box-shadow:2px 4px 14px rgba(0,0,0,.25);transition:transform .15s,box-shadow .15s;position:relative;}
-        .fab-btn-right{border-radius:16px 0 0 16px;box-shadow:-2px 4px 14px rgba(0,0,0,.25);}
+        .fab-btn{width:54px;height:54px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:none;font-size:22px;gap:1px;box-shadow:0 4px 16px rgba(0,0,0,.3);transition:transform .15s,box-shadow .15s;position:relative;overflow:visible;}
+        .fab-btn-right{border-radius:50%;}
         .fab-btn:active{transform:scale(.88);}
-        .fab-btn-label{font-size:7px;font-weight:800;color:#fff;line-height:1;letter-spacing:.3px;}
-        .fab-badge{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;background:var(--red);border-radius:10px;border:2px solid #fff;font-size:8px;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center;padding:0 2px;}
+        .fab-btn-label{font-size:6.5px;font-weight:900;color:#fff;line-height:1;letter-spacing:.3px;text-align:center;}
+        .fab-badge{position:absolute;top:-3px;right:-3px;min-width:16px;height:16px;background:var(--red);border-radius:10px;border:2px solid #fff;font-size:8px;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center;padding:0 2px;z-index:1;}
 
         /* ADSGRAM-TASK OVERFLOW FIX */
         adsgram-task{max-width:100%;overflow:hidden;display:block;box-sizing:border-box;}
@@ -1022,36 +1022,31 @@
 <!-- GAMES PAGE -->
 <div class="page" id="gamesPage">
     <div class="page-inner">
-        <!-- ★ SEASON REWARDS — Gamee Style Board -->
-        <div id="seasonRewardsCard" style="background:linear-gradient(135deg,#1a0533,#2d1566,#1a0533);border-radius:22px;padding:16px 14px 14px;margin-bottom:12px;position:relative;overflow:hidden;border:1.5px solid rgba(167,139,250,.3);box-shadow:0 8px 32px rgba(124,92,252,.3);">
-            <!-- Background stars -->
-            <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(167,139,250,.15),transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(250,204,21,.1),transparent 50%);pointer-events:none;"></div>
+        <!-- ★ GAME RANK REWARDS — Games khelo, passes pao! -->
+        <div id="seasonRewardsCard" style="background:linear-gradient(135deg,#0d0d2e,#1a0a3e,#0d1a3e);border-radius:22px;padding:16px 14px 14px;margin-bottom:12px;position:relative;overflow:hidden;border:1.5px solid rgba(124,92,252,.4);box-shadow:0 8px 32px rgba(124,92,252,.35);">
+            <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(124,92,252,.18),transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(240,192,64,.1),transparent 50%);pointer-events:none;"></div>
             <!-- Header -->
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;position:relative;">
                 <div>
-                    <div style="font-family:'Fredoka One',cursive;font-size:16px;font-weight:900;color:#fff;">🏆 Season Rewards</div>
-                    <div style="font-size:10px;color:rgba(167,139,250,.8);margin-top:1px;">Passes collect karo, rewards unlock karo!</div>
+                    <div style="font-family:'Fredoka One',cursive;font-size:17px;font-weight:900;color:#fff;">🎮 Game Rank Rewards</div>
+                    <div style="font-size:10px;color:rgba(167,139,250,.9);margin-top:1px;">Games khelo → Rank badhe → FREE Passes pao!</div>
                 </div>
                 <div style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:5px;">
-                    <span style="font-size:14px;">⚡</span>
+                    <span style="font-size:14px;">🎮</span>
                     <span style="font-size:13px;font-weight:900;color:#facc15;" id="seasonPassCount">0</span>
-                    <span style="font-size:10px;color:rgba(255,255,255,.6);">passes</span>
+                    <span style="font-size:10px;color:rgba(255,255,255,.6);">games</span>
                 </div>
             </div>
-            <!-- Season progress track -->
+            <!-- Rank track -->
             <div style="position:relative;margin-bottom:10px;">
-                <!-- Track line -->
-                <div style="height:4px;background:rgba(255,255,255,.1);border-radius:4px;margin:0 20px;position:relative;">
-                    <div id="seasonProgressLine" style="height:100%;background:linear-gradient(90deg,#a855f7,#facc15);border-radius:4px;width:0%;transition:width .8s ease;"></div>
+                <div style="height:4px;background:rgba(255,255,255,.1);border-radius:4px;margin:0 16px;position:relative;">
+                    <div id="seasonProgressLine" style="height:100%;background:linear-gradient(90deg,#7c3aed,#facc15);border-radius:4px;width:0%;transition:width .8s ease;"></div>
                 </div>
-                <!-- Reward nodes -->
-                <div id="seasonNodesRow" style="display:flex;justify-content:space-between;margin-top:-14px;padding:0 10px;">
-                    <!-- Injected by JS -->
-                </div>
+                <div id="seasonNodesRow" style="display:flex;justify-content:space-between;margin-top:-14px;padding:0 6px;overflow-x:auto;gap:4px;"></div>
             </div>
-            <!-- Current reward info -->
+            <!-- Claim info -->
             <div id="seasonCurrentInfo" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:10px 12px;text-align:center;margin-top:4px;">
-                <div style="font-size:10px;color:rgba(255,255,255,.6);">Agli reward ke liye chahiye</div>
+                <div style="font-size:10px;color:rgba(255,255,255,.6);">Agli reward ke liye</div>
                 <div id="seasonNextText" style="font-size:13px;font-weight:900;color:#facc15;margin-top:2px;">Loading...</div>
             </div>
         </div>
@@ -1315,7 +1310,7 @@
 
 <div class="modal" id="dailyBonusModal">
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('dailyBonus')">←</div><div class="modal-title"><img src="https://i.postimg.cc/50DFNn2V/image.png" style="width:30px;height:30px;object-fit:contain;vertical-align:middle;margin-right:6px;border-radius:8px;"> Daily Bonus</div></div>
-    <div style="text-align:center;font-size:11px;color:var(--text2);margin-bottom:5px;" data-t="bonus_subtitle">Roz claim karo, streak badhao, zyada pao!</div>
+    <div style="text-align:center;font-size:11px;color:var(--text2);margin-bottom:5px;" data-t="bonus_subtitle">🔥 Roz claim karo → Streak badhe → DOUBLE bonus!</div>
     <div class="train-track"><div class="train-chain" id="trainChain"></div></div>
     <div class="today-claim-box" id="todayClaimBox">
         <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">Aaj ka bonus</div>
@@ -1361,66 +1356,58 @@
 
 <!-- EARN PASSES -->
 <div class="modal" id="earnPassesModal">
-    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('earnPasses')">←</div><div class="modal-title">🎟️ Earn Passes & Paise Kaise Kamayein</div></div>
+    <div class="modal-hdr"><div class="back-btn" onclick="closeModal('earnPasses')">←</div><div class="modal-title">🎟️ FREE Passes Kamao — Game Khelo!</div></div>
     <div style="padding:14px;">
-    <div style="background:linear-gradient(135deg,rgba(139,92,246,.12),rgba(56,189,248,.08));border:1.5px solid rgba(139,92,246,.3);border-radius:18px;padding:16px;margin-bottom:14px;">
-        <div style="font-family:'Fredoka One',cursive;font-size:18px;font-weight:900;color:var(--gold);margin-bottom:4px;">🎟️ Aapke Passes</div>
-        <div style="font-family:'Fredoka One',cursive;font-size:36px;font-weight:900;color:var(--text);" id="epPassCount">0</div>
-        <div style="font-size:11px;color:var(--text2);">1 Pass = 1 Game khelne ka mauka!</div>
+    <div style="background:linear-gradient(135deg,rgba(124,92,252,.15),rgba(240,192,64,.1));border:2px solid rgba(240,192,64,.4);border-radius:18px;padding:16px;margin-bottom:14px;text-align:center;">
+        <div style="font-size:10px;color:var(--text2);">Aapke Paas Abhi</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:44px;font-weight:900;color:var(--gold);" id="epPassCount">0</div>
+        <div style="font-size:12px;color:var(--text2);">🎟️ Passes — Jitne zyada, utna zyada khelna!</div>
     </div>
 
-    <!-- DETAILED REFER GUIDE -->
-    <div style="font-family:'Fredoka One',cursive;font-size:15px;font-weight:900;color:var(--gold);margin-bottom:10px;">💰 Refer Karke Paise Kaise Kamayein — Poori Jankari</div>
-    
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;">
-        <div style="font-weight:900;color:var(--green);font-size:13px;margin-bottom:8px;">STEP 1️⃣ — Referral Link Share Karo</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.8;">
-            • Apna referral link copy karo (Profile page se)<br>
-            • WhatsApp, Telegram, Instagram pe share karo<br>
-            • Jitne zyada dost join karein, utna zyada kamao
+    <!-- HOW TO GET PASSES — super short -->
+    <div style="font-family:'Fredoka One',cursive;font-size:15px;font-weight:900;color:var(--gold);margin-bottom:10px;">⚡ Passes Kaise Milte Hain?</div>
+
+    <div style="background:var(--card);border:1.5px solid rgba(25,216,158,.3);border-radius:16px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
+        <div style="font-size:32px;flex-shrink:0;">👥</div>
+        <div>
+            <div style="font-weight:900;color:var(--green);font-size:13px;">Ek Dost Refer = +3 Passes!</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px;">Apna link share karo → Dost join kare → Movie search kare → <b>DONE! 3 Passes turant!</b></div>
         </div>
     </div>
 
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;">
-        <div style="font-weight:900;color:var(--blue);font-size:13px;margin-bottom:8px;">STEP 2️⃣ — Dost Bot Join Kare</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.8;">
-            • Dost aapke link se bot join kare<br>
-            • Woh FilmyFund bot start kare<br>
-            • Status: ⏳ <b style="color:var(--gold);">PENDING</b> ho jaata hai
+    <div style="background:var(--card);border:1.5px solid rgba(240,192,64,.3);border-radius:16px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
+        <div style="font-size:32px;flex-shrink:0;">🎁</div>
+        <div>
+            <div style="font-weight:900;color:var(--gold);font-size:13px;">Daily Bonus = +1 Pass!</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px;">Roz ek baar bonus claim karo → FREE Pass milta hai!</div>
         </div>
     </div>
 
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;">
-        <div style="font-weight:900;color:var(--gold);font-size:13px;margin-bottom:8px;">STEP 3️⃣ — Movie Search + Shortlink Complete Kare</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.8;">
-            • Dost hamara Movie Group join kare<br>
-            • Woh koi bhi movie search kare group mein<br>
-            • Bot ek shortlink bhejega — woh complete kare<br>
-            • ✅ <b style="color:var(--green);">Referral ACTIVE</b> ho jaayega!<br>
-            • Aapko milega: <b style="color:var(--gold);">3 Passes + 60 pts</b> turant!
+    <div style="background:var(--card);border:1.5px solid rgba(124,92,252,.3);border-radius:16px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
+        <div style="font-size:32px;flex-shrink:0;">📺</div>
+        <div>
+            <div style="font-weight:900;color:var(--purple2);font-size:13px;">Video Dekho = FREE Pass!</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px;">Pass khatam? Ad dekho → turant ek FREE Pass milta hai!</div>
         </div>
     </div>
 
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;">
-        <div style="font-weight:900;color:var(--purple2);font-size:13px;margin-bottom:8px;">STEP 4️⃣ — Roz Ki Kamaai (Daily Earning)</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.8;">
-            • Jab bhi aapka referred dost movie search kare<br>
-            • Aur shortlink complete kare (roz 1 baar)<br>
-            • Aapko milte hain: <b style="color:var(--green);">30 pts</b><br>
-            • 10 active refs = <b style="color:var(--gold);">300 pts daily!</b><br>
-            • 50 active refs = <b style="color:var(--gold);">1500 pts daily!</b>
+    <div style="background:var(--card);border:1.5px solid rgba(124,92,252,.3);border-radius:16px;padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:10px;">
+        <div style="font-size:32px;flex-shrink:0;">🏆</div>
+        <div>
+            <div style="font-weight:900;color:var(--purple2);font-size:13px;">Games Khelo = Rank Badhe = +5 Passes!</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px;">5, 10, 20, 30 games khelne par <b style="color:var(--gold);">+5 Passes FREE</b> har bar!</div>
         </div>
     </div>
 
     <div style="background:linear-gradient(135deg,rgba(240,192,64,.08),rgba(240,192,64,.02));border:1.5px solid rgba(240,192,64,.3);border-radius:16px;padding:14px;margin-bottom:14px;">
-        <div style="font-weight:900;color:var(--gold);font-size:13px;margin-bottom:8px;">🏆 BONUS KAMAAI</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.9;">
-            🎖️ <b style="color:var(--text);">Milestone Bonuses:</b> 5 refs=200pts, 10 refs=500pts, 25 refs=1500pts<br>
-            📅 <b style="color:var(--text);">Weekly Leaderboard:</b> Top 3 = ₹150, ₹65, ₹30<br>
-            📆 <b style="color:var(--text);">Monthly Leaderboard:</b> Top 3 = ₹300, ₹200, ₹100<br>
-            🔍 <b style="color:var(--text);">Self Search:</b> Khud movie search karo = 30 pts (48hr mein 1 baar)<br>
-            🎁 <b style="color:var(--text);">Daily Bonus:</b> Roz claim karo = streak bonus pts!<br>
-            🎯 <b style="color:var(--text);">Daily Missions:</b> 10 missions complete karo = 600+ pts!
+        <div style="font-weight:900;color:var(--gold);font-size:14px;margin-bottom:8px;">💰 Refer Se Kitna Milta Hai?</div>
+        <div style="font-size:12px;color:var(--text2);line-height:2;">
+            ✅ 1 refer active = <b style="color:var(--green);">3 Passes + 60 pts TURANT!</b><br>
+            📅 Woh roz search kare = <b style="color:var(--gold);">+30 pts roz aapko!</b><br>
+            🎖️ 5 refers = <b style="color:var(--text);">+200 pts bonus!</b><br>
+            🎖️ 10 refers = <b style="color:var(--text);">+500 pts bonus!</b><br>
+            📆 Weekly Top 1 = <b style="color:var(--gold);">+15000 pts!</b><br>
+            📆 Monthly Top 1 = <b style="color:var(--gold);">+30000 pts!</b>
         </div>
     </div>
 
@@ -1623,7 +1610,7 @@
                 <div style="width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,var(--blue),#7c5cfc);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📺</div>
                 <div style="flex:1;">
                     <div style="font-weight:900;font-size:14px;color:var(--text);">Watch & Earn</div>
-                    <div style="font-size:11px;color:var(--text3);">Ad dekho aur +10 pts pao</div>
+                    <div style="font-size:11px;color:var(--text3);">Ek ad dekho → +10 pts TURANT! 🔥</div>
                 </div>
                 <div style="background:linear-gradient(135deg,var(--blue),#7c5cfc);color:#fff;padding:5px 12px;border-radius:16px;font-size:12px;font-weight:900;">+10 pts</div>
             </div>
@@ -1656,9 +1643,9 @@
         <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1.5px solid rgba(34,197,94,.3);border-radius:14px;padding:11px 13px;margin-top:4px;">
             <div style="font-weight:800;font-size:12px;color:var(--green);margin-bottom:5px;">💡 Tips:</div>
             <div style="font-size:11px;color:var(--text2);line-height:1.6;">
-                ✅ Har Watch & Earn ke baad 5 min wait karo<br>
-                ✅ Task ad daily ek baar karo<br>
-                ✅ Watch karne ke baad Mission bhi claim karo!
+                ✅ ✅ Har ad ke baad 5 min wait karo<br>
+                ✅ ✅ Task ad roz ek baar — ekdum FREE bonus!<br>
+                ✅ ✅ Watch ke baad Mission claim karo = AUR points!
             </div>
         </div>
     </div>
@@ -2276,8 +2263,8 @@ function fmtRupees(rupees){ return '₹'+parseFloat(rupees).toFixed(2); }
 // TRANSLATIONS
 // ============================================================
 const T={
-    hi:{settings:'Settings',help_support:'Help & Support',dark_mode:'Dark Mode',sounds:'Sounds',admin_edit:'Admin Edit Mode',refer_earn:'Refer & Earn',language:'Language / भाषा',your_balance:'💰 Aapka Balance',today_earned:'Aaj Kamaya',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Aaj ka bonus claim karo!',claim:'Claim',daily_missions:'🎯 Daily Missions',mission_total_reward:'600+ pts Reward',complete_earn:'Missions complete karo, points pao!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Dost ko invite karo • 3 Passes + 60 pts!',copy:'Copy',share_more:'Share',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',lb_note:'📌 50+ active refs = weekly prize • 200+ = monthly prize',use_passes:'Passes use karo, points jeeto!',passes:'Passes',total_wins:'Total Wins',today:'Aaj',streak:'Streak',balance:'Balance',total_earned:'Total Kamaya',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Withdraw Karo',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'Naya Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',already_claimed:'Aaj ka bonus claim ho gaya!',referred_users:'👥 Referred Users Activity',missions:'Missions',bonus_subtitle:'Roz claim karo, streak badhao, zyada pao!',onboard_confirm:'Samajh Gaya! Shuru Karo'},
-    en:{settings:'Settings',help_support:'Help & Support',dark_mode:'Dark Mode',sounds:'Sounds',admin_edit:'Admin Edit Mode',refer_earn:'Refer & Earn',language:'Language',your_balance:'💰 Your Balance',today_earned:'Today Earned',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Claim your daily bonus!',claim:'Claim',daily_missions:'🎯 Daily Missions',mission_total_reward:'600+ pts Reward',complete_earn:'Complete missions, earn points!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Invite friends • 3 Passes + 60 pts!',copy:'Copy',share_more:'Share',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',lb_note:'📌 50+ active refs = weekly prize • 200+ = monthly prize',use_passes:'Use passes, win points!',passes:'Passes',total_wins:'Total Wins',today:'Today',streak:'Streak',balance:'Balance',total_earned:'Total Earned',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Withdraw Balance',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'New Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',already_claimed:'Aaj ka bonus claim ho gaya!',referred_users:'👥 Referred Users Activity',missions:'Missions',bonus_subtitle:'Claim daily, build streak, earn more!',onboard_confirm:'Got it! Start Karo!'}
+    hi:{settings:'Settings',help_support:'Help & Support',dark_mode:'Dark Mode',sounds:'Sounds',admin_edit:'Admin Edit Mode',refer_earn:'Refer & Earn',language:'Language / भाषा',your_balance:'💰 Aapka Balance',today_earned:'Aaj Kamaya',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'🔥 FREE Bonus — ABHI Claim Karo!',claim:'Claim',daily_missions:'🎯 Daily Missions',mission_total_reward:'💰 600+ pts — ROZ!',complete_earn:'🎯 Karo aur kamao — ABHI!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Dost ko invite karo • 3 Passes + 60 pts!',copy:'Copy',share_more:'Share',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',lb_note:'📌 50+ active refs = weekly prize • 200+ = monthly prize',use_passes:'🎮 Pass lagao → Points jeeto → Paise nikalo!',passes:'Passes',total_wins:'Total Wins',today:'Aaj',streak:'Streak',balance:'Balance',total_earned:'Total Kamaya',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Withdraw Karo',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'Naya Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',already_claimed:'Aaj ka bonus claim ho gaya!',referred_users:'👥 Referred Users Activity',missions:'Missions',bonus_subtitle:'🔥 Roz claim karo → Streak badhe → DOUBLE bonus!',onboard_confirm:'Samajh Gaya! Shuru Karo'},
+    en:{settings:'Settings',help_support:'Help & Support',dark_mode:'Dark Mode',sounds:'Sounds',admin_edit:'Admin Edit Mode',refer_earn:'Refer & Earn',language:'Language',your_balance:'💰 Your Balance',today_earned:'Today Earned',active_refs:'Active Refs',game_passes:'Game Passes',earn_passes:'+ Earn Passes',daily_bonus:'🎁 Daily Bonus',claim_today:'Claim your daily bonus!',claim:'Claim',daily_missions:'🎯 Daily Missions',mission_total_reward:'💰 600+ pts — ROZ!',complete_earn:'Complete missions, earn points!',refer_earn_title:'👥 Refer & Earn',refer_sub:'Invite friends • 3 Passes + 60 pts!',copy:'Copy',share_more:'Share',sponsored:'💎 Sponsored Offers',add_offer:'Add',live_activity:'⚡ Live Activity',users_online:'Users Online',leaderboard:'🏆 Leaderboard',weekly:'Weekly',monthly:'Monthly',rules:'Rules',lb_note:'📌 50+ active refs = weekly prize • 200+ = monthly prize',use_passes:'Use passes, win points!',passes:'Passes',total_wins:'Total Wins',today:'Today',streak:'Streak',balance:'Balance',total_earned:'Total Earned',total_refs:'Total Refs',active:'Active',pending:'Pending',games_won:'Games Won',ref_link:'Referral Link:',copy_link:'Copy Link',withdraw_balance:'Withdraw Balance',withdrawal_history:'📜 Withdrawal History',new_withdrawal:'New Withdrawal',home:'Home',ranks:'Ranks',games:'Games',profile:'Profile',history:'History',already_claimed:'Aaj ka bonus claim ho gaya!',referred_users:'👥 Referred Users Activity',missions:'Missions',bonus_subtitle:'Claim daily, build streak, earn more!',onboard_confirm:'Got it! Start Karo!'}
 };
 let lang='hi';
 function t(key){return(T[lang]&&T[lang][key])||T.hi[key]||key;}
@@ -2869,7 +2856,7 @@ async function claimWeeklyBonus(){
         userData.balance=(userData.balance||0)+1;
         userData.today_earned=(userData.today_earned||0)+1;
         updateUI();updateWeeklyBonus();
-        showToast('🎉 Weekly Bonus! +100 pts!');
+        showToast('🔥 WEEKLY BONUS! +100 pts account mein! 💰');
         playSound('levelup');
     }else{
         showToast('❌ '+(r?.message||'Already claimed'));
@@ -2923,7 +2910,7 @@ async function claimMilestone(refs,reward){
         userData.balance+=parseFloat(reward);
         userData.today_earned+=parseFloat(reward);
         updateUI();updateMilestoneCard();
-        showToast('🎉 Milestone! +'+toPoints(reward)+' pts!');
+        showToast('🏆 Milestone Reward! +'+toPoints(reward)+' pts mila! Aur badho!');
         playSound('jackpot');
     }else{
         showToast('❌ '+(r?.message||'Already claimed'));
@@ -3891,14 +3878,14 @@ async function doSelfSearch(){
             }
             updateMissionsUI();
             playSound('earn');
-            showToast('🔍 Movie Group khul gaya! Shortlink complete karo → +'+pts+' pts milega!');
+            showToast('🎬 Movie Group khula! Link kholo → 10 sec ruko → +'+pts+' pts TURANT! 💰');
         }else{
             if(btn)btn.disabled=false;
             const reason=r?.reason||'';
             if(reason==='too_soon'){
                 const h=r?.next_in_hours||47;
                 const m=r?.next_in_minutes||59;
-                showToast('⏳ Abhi nahi! '+h+'h '+m+'m baad try karo');
+                showToast('⏳ '+h+'h '+m+'m baad search karo — daily limit hai!');
                 selfSearchStatus={can_search:false,hours_left:h,minutes_left:m};
                 updateSelfSearchUI();
             }else{
@@ -3915,66 +3902,92 @@ async function doSelfSearch(){
 const _claimingMissions=new Set();
 
 async function claimSingleMission(missionId,reward){
-    // Prevent double tap
-    if(_claimingMissions.has(missionId)){showToast('⏳ Claiming...');return;}
+    if(_claimingMissions.has(missionId)){return;}
     if(!missionStates[missionId])missionStates[missionId]={progress:0,completed:true,claimed:false};
     if(missionStates[missionId].claimed){showToast('✅ Already claimed!');return;}
-    if(!userData.user_id){showToast('❌ App reload karo, phir try karo!');return;}
+    if(!userData.user_id){showToast('❌ App reload karo!');return;}
 
     _claimingMissions.add(missionId);
-
     const btnId='claimBtn_'+missionId;
+    const btn=document.getElementById(btnId);
     const btnTxt=document.getElementById(btnId+'_txt');
     const btnSpin=document.getElementById(btnId+'_spin');
-    const btn=document.getElementById(btnId);
 
-    // Loading state
+    // Step 1: Loading state
     if(btn){btn.disabled=true;btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)';}
     if(btnTxt) btnTxt.style.display='none';
-    if(btnSpin){btnSpin.style.display='inline';btnSpin.textContent='⏳ Claiming...';}
+    if(btnSpin){btnSpin.style.display='inline';btnSpin.textContent='📺 Ad load ho rahi...';}
 
     try{
-        const r = await apiPost('/api/claim-single-mission',{
-            user_id: userData.user_id,
-            mission_id: missionId,
-            reward: parseFloat(reward),
-            date: getISTDate()
+        // Step 2: Ad dikhao pehle (Adsgram reward ad)
+        let adWatched=false;
+        try{
+            if(typeof window.Adsgram!=='undefined'){
+                if(!rewardController) rewardController=window.Adsgram.init({blockId:ADSGRAM_REWARD_BLOCK});
+                if(btnSpin) btnSpin.textContent='📺 Ad dekho → Claim karo!';
+                await rewardController.show();
+                adWatched=true;
+            }
+        }catch(adErr){
+            // Ad failed/skipped — bhi claim karne do (graceful fallback)
+            adWatched=false;
+        }
+
+        if(btnSpin) btnSpin.textContent='⏳ Claim ho raha hai...';
+
+        // Step 3: Backend se claim karo
+        const r=await apiPost('/api/claim-single-mission',{
+            user_id:userData.user_id,
+            mission_id:missionId,
+            reward:parseFloat(reward),
+            date:getISTDate()
         });
 
-        if(r && r.success){
-            missionStates[missionId].claimed = true;
+        if(r&&r.success){
+            missionStates[missionId].claimed=true;
             saveMissionClaimed(missionId);
-            const mReward = parseFloat(reward);
-            userData.balance = (userData.balance||0) + mReward;
-            userData.total_earned = (userData.total_earned||0) + mReward;
-            userData.today_earned = (userData.today_earned||0) + mReward;
+            const mReward=parseFloat(reward);
+            userData.balance=(userData.balance||0)+mReward;
+            userData.total_earned=(userData.total_earned||0)+mReward;
+            userData.today_earned=(userData.today_earned||0)+mReward;
             updateUI();
             playSound('mission');
-            if(btn){btn.style.background='linear-gradient(135deg,#10b981,#059669)';}
-            if(btnSpin) btnSpin.textContent='✅ +'+toPoints(parseFloat(reward))+' pts Mila!';
-            // Long-term missions reset after claim
+            triggerConfetti();
+            showToast('🎯 +'+toPoints(mReward)+' pts Claim Hua! 🎉');
+
+            // Step 4: Button pe green tick dikhao
+            if(btn){
+                btn.disabled=true;
+                btn.style.background='linear-gradient(135deg,#10b981,#059669)';
+                btn.innerHTML='<span style="font-size:20px;">✅</span> <span style="font-weight:900;">Claimed!</span>';
+            }
+
+            // Long-term missions: claim ke baad reset ho ke naya mission aaye
             const isLT=['m_refer5','m_refer10','m_shortlink','m_streak3','m_streak7','m_game50'].includes(missionId);
             setTimeout(()=>{
                 if(isLT){
                     missionStates[missionId]={progress:0,completed:false,claimed:false,long_term:true};
                     clearMissionClaimed(missionId);
+                    showToast('🔄 Naya mission shuru! Aur kamao!');
                 }
                 updateMissionsUI();
                 updateFabBadges();
-            },1800);
-            // Show Extra/Skip popup after claim
-            setTimeout(()=>showMissionExtraPopup(toPoints(mReward)),600);
+            },2000);
+
+            // Extra/Skip popup
+            setTimeout(()=>showMissionExtraPopup(toPoints(mReward)),800);
+
         }else if(r?.message==='Already claimed'){
             missionStates[missionId].claimed=true;
             saveMissionClaimed(missionId);
-            if(btn){btn.style.background='linear-gradient(135deg,#10b981,#059669)';}
-            if(btnSpin) btnSpin.textContent='✅ Claimed!';
+            if(btn){btn.disabled=true;btn.style.background='linear-gradient(135deg,#10b981,#059669)';btn.innerHTML='✅ Claimed!';}
             updateMissionsUI();
         }else{
+            // Reset button
             if(btn){btn.disabled=false;btn.style.background='linear-gradient(135deg,var(--green),#16a34a)';}
             if(btnTxt){btnTxt.style.display='inline';}
             if(btnSpin){btnSpin.style.display='none';}
-            showToast('❌ '+(r?.message||'Server error — retry karo'));
+            showToast('❌ '+(r?.message||'Dobara try karo'));
         }
     }catch(e){
         if(btn){btn.disabled=false;btn.style.background='linear-gradient(135deg,var(--green),#16a34a)';}
@@ -4469,7 +4482,7 @@ function drawWheel(angle){
 }
 async function doSpin(){
     if(isSpinning)return;
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi! Refer karo ya daily bonus lo');return;}
+    if((userData.passes||0)<=0){showToast('😱 Pass nahi! Ek dost refer karo → 3 FREE Passes!');return;}
     isSpinning=true;
     const btn=document.getElementById('spinBtn');btn.disabled=true;btn.textContent='⏳...';
     document.getElementById('spinResultBox').style.display='none';
@@ -4641,7 +4654,7 @@ function chooseDice(n,el){
 async function doDiceRoll(){
     if(!diceChoice){showToast('❌ Pehle number choose karo!');return;}
     if(diceRolling)return;
-    if((userData.passes||0)<=0){showToast('❌ Passes nahi! Refer karo ya daily bonus lo');return;}
+    if((userData.passes||0)<=0){showToast('😱 Pass nahi! Ek dost refer karo → 3 FREE Passes!');return;}
     diceRolling=true;
     const btn=document.getElementById('diceRollBtn');btn.disabled=true;btn.textContent='⏳ Rolling...';
     document.getElementById('diceResWin').style.display='none';
@@ -5057,19 +5070,20 @@ function showNoPassPopup(){
     popup.id='noPassPopup';
     popup.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease;';
     popup.innerHTML=`
-        <div style="background:var(--bg2);border-radius:22px;width:100%;max-width:340px;padding:26px 20px;text-align:center;border:1.5px solid var(--purple);">
-            <div style="font-size:42px;margin-bottom:10px;">🎟️</div>
-            <div style="font-family:'Fredoka One',cursive;font-size:18px;font-weight:900;margin-bottom:6px;color:var(--text);">Pass Chahiye!</div>
-            <div style="font-size:12px;color:var(--text2);margin-bottom:16px;">Games khelne ke liye Pass zaroori hai.</div>
+        <div style="background:var(--bg2);border-radius:22px;width:100%;max-width:340px;padding:26px 20px;text-align:center;border:1.5px solid var(--purple);box-shadow:0 0 40px rgba(124,92,252,.3);">
+            <div style="font-size:48px;margin-bottom:8px;">😱</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:20px;font-weight:900;margin-bottom:4px;color:var(--gold);">Pass Khatam!</div>
+            <div style="font-size:12px;color:var(--text2);margin-bottom:16px;">Game khelne ke liye Pass chahiye<br>Neeche se FREE pass lo! 👇</div>
             ${canWatchAd?`
-            <button onclick="watchAdForPass();" style="width:100%;background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;padding:13px;border-radius:30px;font-weight:900;font-size:14px;cursor:pointer;font-family:inherit;margin-bottom:10px;">📺 Video Dekho → 1 Free Pass!</button>`
-            :`<div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:12px;padding:8px;font-size:11px;color:var(--gold);margin-bottom:10px;">⏳ ${adTimeLeft('no_passes')} min baad free pass milega</div>`}
-            <div style="background:var(--bg3);border-radius:14px;padding:12px;margin-bottom:16px;text-align:left;font-size:12px;color:var(--text2);line-height:1.8;">
-                ✅ Refer karo → <b style="color:var(--green);">+3 Passes</b><br>
-                🎁 Daily bonus claim karo → <b style="color:var(--gold);">+1 Pass</b>
+            <button onclick="watchAdForPass();" style="width:100%;background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;padding:14px;border-radius:30px;font-weight:900;font-size:15px;cursor:pointer;font-family:'Fredoka One',cursive;margin-bottom:10px;box-shadow:0 4px 16px rgba(245,158,11,.4);">📺 Ad Dekho → FREE Pass ABHI!</button>`
+            :`<div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:12px;padding:10px;font-size:12px;color:var(--gold);margin-bottom:10px;">⏳ ${adTimeLeft('no_passes')} min mein aur FREE pass milega!</div>`}
+            <div style="background:var(--bg3);border-radius:14px;padding:12px;margin-bottom:14px;text-align:left;font-size:12px;color:var(--text2);line-height:2;">
+                👥 Ek dost refer karo → <b style="color:var(--green);">+3 Passes FREE!</b><br>
+                🎁 Daily bonus claim karo → <b style="color:var(--gold);">+1 Pass FREE!</b><br>
+                🏆 Games khelo → <b style="color:var(--purple2);">Rank badhe = +5 Passes!</b>
             </div>
-            <button onclick="document.getElementById('noPassPopup').remove();openModal('earnPasses');" style="width:100%;background:linear-gradient(135deg,var(--purple),var(--gold));color:#fff;border:none;padding:11px;border-radius:30px;font-weight:900;font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:8px;">🎟️ Passes Kamao</button>
-            <button onclick="document.getElementById('noPassPopup').remove();" style="width:100%;background:transparent;border:1px solid var(--border);color:var(--text3);padding:10px;border-radius:30px;font-size:13px;cursor:pointer;">Baad mein</button>
+            <button onclick="document.getElementById('noPassPopup').remove();openModal('earnPasses');" style="width:100%;background:linear-gradient(135deg,var(--purple),var(--gold));color:#fff;border:none;padding:12px;border-radius:30px;font-weight:900;font-size:14px;cursor:pointer;font-family:'Fredoka One',cursive;margin-bottom:8px;">🎟️ Aur Passes Kamao →</button>
+            <button onclick="document.getElementById('noPassPopup').remove();" style="width:100%;background:transparent;border:1px solid var(--border);color:var(--text3);padding:10px;border-radius:30px;font-size:12px;cursor:pointer;">Baad mein dekhunga</button>
         </div>`;
     document.body.appendChild(popup);
 }
@@ -5085,7 +5099,7 @@ async function watchAdForPass(){
         userData.passes=(userData.passes||0)+1;
         updateUI();
         adMarkShown('no_passes');
-        showToast('🎟️ +1 Free Pass mila! Game khelo!');
+        showToast('🎟️ +1 FREE Pass mila! Ab game khelo aur kamao! 🔥');
         playSound('earn');
     }catch(e){
         showToast('❌ Ad puri dekho pass ke liye');
@@ -5104,21 +5118,23 @@ let mazeActive=false,mazeMoveCount=0;
 let mazeGrid=[],mazePlayer={x:1,y:1},mazeBoxes=[],mazeTargets=[];
 let mazeMatchNum=0, mazeTotalPts=0, mazeUsedLevels=[];
 
-const MAZE_MATCH_TIME=60; // 1 minute per match
-const MAZE_PTS_PER_WIN=10; // 10 pts per win
+const MAZE_MATCH_TIME=30; // 30 seconds per match
+const MAZE_PTS_PER_WIN=10;
 
-// All Sokoban levels — mix of easy/medium/hard for progression
+// Harder Sokoban levels — boxes near walls/corners so going back is harder
 const SOKOBAN_ALL_LEVELS=[
-    // Match 1-2: easy (2 boxes, 7x7)
-    {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,2,0,2,0,1],[1,0,0,0,0,0,1],[1,0,0,0,0,0,1],[1,0,3,0,0,0,1],[1,1,1,1,1,1,1]],boxes:[{x:2,y:2},{x:4,y:2}],targets:[{x:1,y:4},{x:5,y:4}],player:{x:2,y:5}},
-    {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,0,2,0,0,1],[1,0,2,0,0,0,1],[1,0,0,0,0,0,1],[1,0,0,3,0,0,1],[1,1,1,1,1,1,1]],boxes:[{x:3,y:2},{x:2,y:3}],targets:[{x:1,y:1},{x:5,y:1}],player:{x:3,y:5}},
-    {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,0,2,0,0,1],[1,0,0,0,0,0,1],[1,0,2,0,0,0,1],[1,0,3,0,0,0,1],[1,1,1,1,1,1,1]],boxes:[{x:3,y:2},{x:2,y:4}],targets:[{x:5,y:2},{x:5,y:4}],player:{x:2,y:5}},
-    // Match 3-4: medium (3 boxes, 9x9)
-    {grid:[[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,2,0,0,2,0,0,1],[1,0,0,0,0,0,2,0,1],[1,0,0,3,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1]],boxes:[{x:2,y:2},{x:5,y:2},{x:6,y:3}],targets:[{x:4,y:4},{x:6,y:4},{x:2,y:6}],player:{x:3,y:4}},
-    {grid:[[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,0,2,0,0,0,0,1],[1,0,2,0,0,0,2,0,1],[1,0,0,0,3,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1]],boxes:[{x:3,y:2},{x:2,y:3},{x:6,y:3}],targets:[{x:1,y:5},{x:4,y:5},{x:7,y:5}],player:{x:4,y:4}},
-    // Match 5+: hard (4 boxes, 11x11)
-    {grid:[[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,2,0,2,0,0,0,0,0,1],[1,0,0,0,0,2,0,2,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,3,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1]],boxes:[{x:2,y:2},{x:4,y:2},{x:5,y:3},{x:7,y:3}],targets:[{x:2,y:7},{x:4,y:7},{x:6,y:7},{x:8,y:7}],player:{x:3,y:5}},
-    {grid:[[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,2,0,2,0,0,0,1],[1,0,0,2,0,0,0,2,0,0,1],[1,0,0,0,0,3,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1]],boxes:[{x:4,y:2},{x:6,y:2},{x:3,y:3},{x:7,y:3}],targets:[{x:1,y:8},{x:3,y:8},{x:7,y:8},{x:9,y:8}],player:{x:5,y:4}},
+    // Match 1-2: medium difficulty — boxes near edges
+    {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,0,2,0,0,1],[1,0,0,0,0,0,1],[1,0,0,0,2,0,1],[1,0,3,0,0,0,1],[1,1,1,1,1,1,1]],boxes:[{x:3,y:2},{x:4,y:4}],targets:[{x:5,y:1},{x:1,y:4}],player:{x:2,y:5}},
+    {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,2,0,0,0,1],[1,0,0,0,2,0,1],[1,0,0,0,0,0,1],[1,0,0,3,0,0,1],[1,1,1,1,1,1,1]],boxes:[{x:2,y:2},{x:4,y:3}],targets:[{x:5,y:2},{x:1,y:5}],player:{x:3,y:5}},
+    {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,0,0,2,0,1],[1,2,0,0,0,0,1],[1,0,0,0,0,0,1],[1,0,0,3,0,0,1],[1,1,1,1,1,1,1]],boxes:[{x:4,y:2},{x:1,y:3}],targets:[{x:1,y:1},{x:5,y:4}],player:{x:3,y:5}},
+    // Match 3-4: 3 boxes, 9x9, boxes near walls
+    {grid:[[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,2,0,0,0,0,0,1],[1,0,0,0,2,0,0,0,1],[1,0,0,0,0,0,2,0,1],[1,0,0,3,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1]],boxes:[{x:2,y:2},{x:4,y:3},{x:6,y:4}],targets:[{x:7,y:1},{x:1,y:6},{x:7,y:6}],player:{x:3,y:5}},
+    {grid:[[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,2,0,0,0,1],[1,0,2,0,0,0,0,0,1],[1,0,0,0,0,0,2,0,1],[1,0,0,0,3,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1]],boxes:[{x:4,y:2},{x:2,y:3},{x:6,y:4}],targets:[{x:1,y:1},{x:7,y:2},{x:1,y:6}],player:{x:4,y:5}},
+    // Match 5+: 4 boxes, 11x11, very tricky placement
+    {grid:[[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,1],[1,2,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,2,0,0,0,0,1],[1,0,0,0,0,0,0,0,2,0,1],[1,0,0,0,0,3,0,0,0,0,1],[1,0,2,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1]],boxes:[{x:1,y:2},{x:5,y:3},{x:8,y:4},{x:2,y:6}],targets:[{x:9,y:1},{x:1,y:5},{x:9,y:6},{x:5,y:8}],player:{x:5,y:5}},
+    {grid:[[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,2,0,0,0,0,0,1],[1,0,0,0,0,0,2,0,0,0,1],[1,0,2,0,0,0,0,0,0,0,1],[1,0,0,0,0,3,0,0,0,0,1],[1,0,0,0,0,0,0,0,2,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1]],boxes:[{x:4,y:2},{x:6,y:3},{x:2,y:4},{x:8,y:6}],targets:[{x:9,y:1},{x:1,y:3},{x:9,y:4},{x:1,y:8}],player:{x:5,y:5}},
+    // Extra hard levels for match 7+
+    {grid:[[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,2,0,0,0,2,0,0,0,1],[1,0,0,0,2,0,0,0,2,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,3,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1]],boxes:[{x:2,y:2},{x:6,y:2},{x:4,y:3},{x:8,y:3}],targets:[{x:1,y:7},{x:5,y:7},{x:3,y:8},{x:7,y:8}],player:{x:5,y:5}},
 ];
 
 function openMazeGame(){
@@ -5698,22 +5714,33 @@ function resetChess(){document.getElementById('chessSetup').style.display='block
 let blockBet=1,blockActive=false,blockScore=0,blockLevel=1;
 let blockGrid=[],blockPieces=[],blockSelected=null,blockInterval=null;
 const BB_COLS=8,BB_ROWS=8;
-const BB_COLORS=['#8b5cf6','#3b82f6','#10d9a0','#f59e0b','#ef4444','#ec4899'];
+const BB_COLORS=['#8b5cf6','#3b82f6','#10d9a0','#f59e0b','#ef4444','#ec4899','#f97316','#06b6d4'];
 const BB_PIECES=[
-    [[1,1],[1,1]],         // 2x2 square
-    [[1,1,1]],              // 1x3 horizontal
-    [[1],[1],[1]],          // 3x1 vertical
-    [[1,1,1],[0,1,0]],      // T shape
-    [[1,1],[1,0]],          // L small
-    [[1,0],[1,1]],          // J small
-    [[1,1,1,1]],            // 1x4
-    [[1],[1],[1],[1]],      // 4x1
-    [[1,1,0],[0,1,1]],      // S shape
-    [[0,1,1],[1,1,0]],      // Z shape
+    [[1]],                              // 1x1 single
+    [[1,1]],                            // 1x2 horizontal
+    [[1],[1]],                          // 2x1 vertical
+    [[1,1],[1,1]],                      // 2x2 square
+    [[1,1,1]],                          // 1x3 horizontal
+    [[1],[1],[1]],                      // 3x1 vertical
+    [[1,1,1],[1,0,0]],                  // L shape
+    [[1,1,1],[0,0,1]],                  // J shape
+    [[1,0],[1,0],[1,1]],                // L vertical
+    [[0,1],[0,1],[1,1]],                // J vertical
+    [[1,1,1],[0,1,0]],                  // T shape
+    [[1,1,1,1]],                        // 1x4
+    [[1],[1],[1],[1]],                  // 4x1
+    [[1,1,0],[0,1,1]],                  // S shape
+    [[0,1,1],[1,1,0]],                  // Z shape
+    [[1,1,1],[1,0,0],[1,0,0]],          // Big L 3x3
+    [[1,1,1],[0,0,1],[0,0,1]],          // Big J
+    [[1,1],[1,1],[1,1]],                // 2x3 tall (6 blocks)
+    [[1,1,1],[1,1,1]],                  // 3x2 wide (6 blocks)
+    [[1,1,1,1],[1,0,0,0]],              // 4+1 L
+    [[1,1,1,1,1]],                      // 1x5 (rare)
+    [[1,1,1],[1,1,1],[1,1,1]],          // 3x3 full (9 blocks — rare)
 ];
 
 function openBlockGame(){
-    // blockBal null guard — element HTML mein nahi hai, crash prevent karo
     const _bb=document.getElementById('blockBal');
     if(_bb) _bb.textContent=fmtPts(toPoints(userData.balance||0));
     const _bs=document.getElementById('blockSetup');
@@ -5736,8 +5763,18 @@ function initBlockGrid(){
 }
 function generatePieces(){
     blockPieces=[];
+    // Filter pieces by level — higher level = bigger pieces included
+    const maxSize=Math.min(3+blockLevel, BB_PIECES.length);
+    const pool=BB_PIECES.slice(0, maxSize);
+    // Ensure no 3 same pieces in a row
+    const usedIdx=[];
     for(let i=0;i<3;i++){
-        const shape=BB_PIECES[Math.floor(Math.random()*BB_PIECES.length)];
+        let idx;
+        let tries=0;
+        do{ idx=Math.floor(Math.random()*pool.length); tries++; }
+        while(usedIdx.filter(x=>x===idx).length>=2 && tries<20);
+        usedIdx.push(idx);
+        const shape=pool[idx];
         const color=BB_COLORS[Math.floor(Math.random()*BB_COLORS.length)];
         blockPieces.push({shape,color,id:Date.now()+i});
     }
@@ -5762,7 +5799,6 @@ function placePiece(shape,color,row,col){
 }
 function clearLines(){
     let cleared=0;
-    // Check rows
     for(let r=BB_ROWS-1;r>=0;r--){
         if(blockGrid[r].every(c=>c!==null)){
             blockGrid.splice(r,1);
@@ -5770,7 +5806,6 @@ function clearLines(){
             cleared++;r++;
         }
     }
-    // Check columns
     for(let c=BB_COLS-1;c>=0;c--){
         if(blockGrid.every(row=>row[c]!==null)){
             for(let r=0;r<BB_ROWS;r++)blockGrid[r][c]=null;
@@ -5780,9 +5815,16 @@ function clearLines(){
     return cleared;
 }
 function checkGameOver(){
-    return blockPieces.every(p=>{
-        for(let r=0;r<BB_ROWS;r++)for(let c=0;c<BB_COLS;c++)if(canPlace(p.shape,r,c))return false;
-        return true;
+    // Check if ANY available (non-null) piece can be placed anywhere
+    const availPieces=blockPieces.filter(p=>p!==null);
+    if(availPieces.length===0) return false; // no pieces = generate new
+    return availPieces.every(p=>{
+        for(let r=0;r<BB_ROWS;r++){
+            for(let c=0;c<BB_COLS;c++){
+                if(canPlace(p.shape,r,c)) return false;
+            }
+        }
+        return true; // this piece has no valid placement
     });
 }
 
@@ -6040,17 +6082,29 @@ const GM_ROWS=6,GM_COLS=6;
 const GEM_TYPES=['💎','🔥','⭐','🍀','💜','🧡'];
 const GEM_COLORS=['#38bdf8','#ef4444','#fbbf24','#10d9a0','#8b5cf6','#f97316'];
 
-// Level goals per level — tasks for each level
+// Level goals — Auto-increasing: 10, 20, 40, 80 pattern
 const GEM_GOALS=[
-    {type:'any',count:5,label:'5 gems blast karo',pts:3},       // Level 1
-    {type:'any',count:8,label:'8 gems blast karo',pts:5},       // Level 2
-    {type:'💎',count:3,label:'3 💎 diamonds match karo',pts:8}, // Level 3
-    {type:'🔥',count:4,label:'4 🔥 fire match karo',pts:10},    // Level 4
-    {type:'bomb',count:1,label:'1 💣 bomb explode karo',pts:12}, // Level 5
-    {type:'any',count:12,label:'12 gems blast karo',pts:15},    // Level 6
-    {type:'⭐',count:5,label:'5 ⭐ stars match karo',pts:18},   // Level 7
-    {type:'bomb',count:2,label:'2 💣 bombs explode karo',pts:20}, // Level 8
+    {type:'any',count:10,label:'10 gems match karo'},
+    {type:'💎',count:4,label:'4 💎 match karo'},
+    {type:'🔥',count:5,label:'5 🔥 match karo'},
+    {type:'⭐',count:5,label:'5 ⭐ match karo'},
+    {type:'bomb',count:1,label:'1 💣 bomb phodo'},
+    {type:'any',count:20,label:'20 gems match karo'},
+    {type:'💜',count:6,label:'6 💜 match karo'},
+    {type:'bomb',count:2,label:'2 💣 bomb phodo'},
+    {type:'🍀',count:7,label:'7 🍀 match karo'},
+    {type:'any',count:40,label:'40 gems match karo'},
+    {type:'💎',count:10,label:'10 💎 match karo'},
+    {type:'any',count:60,label:'60 gems match karo'},
 ];
+
+function getGoal(){
+    const idx=(gemLevel-1)%GEM_GOALS.length;
+    const g=GEM_GOALS[idx];
+    // Level ke saath goal count badhe — har 4 levels pe double
+    const mult=Math.pow(2,Math.floor(gemLevel/4));
+    return {...g, count:Math.round(g.count*Math.min(mult,8)), pts:Math.min(gemLevel*3,30)};
+}
 
 function openGemGame(){
     const _gb=document.getElementById('gemBal');
@@ -6162,17 +6216,14 @@ function findMatches(){
 
 function clearMatches(matches){
     const goal=getGoal();
-    let pts=matches.length*20;
-    // Track goal progress
     matches.forEach(({r,c})=>{
         const g=gemGrid[r][c];
+        if(g<0||g===GEM_BOMB){gemGrid[r][c]=-1;return;}
         const gemEmoji=GEM_TYPES[g];
         if(goal.type==='any') gemGoalDone++;
         else if(goal.type===gemEmoji) gemGoalDone++;
         gemGrid[r][c]=-1;
     });
-    // Higher level = higher pts per match
-    pts=Math.floor(pts*(1+gemLevel*0.1));
     // Drop gems
     for(let c=0;c<GM_COLS;c++){
         let empty=0;
@@ -6180,18 +6231,17 @@ function clearMatches(matches){
         for(let r=0;r<empty;r++)gemGrid[r][c]=Math.floor(Math.random()*GEM_TYPES.length);
     }
     updateGemGoalUI();
-    // Check goal completion
-    const goal2=getGoal();
-    if(gemGoalDone>=goal2.count){
+    if(gemGoalDone>=getGoal().count){
         setTimeout(()=>levelUpGem(),400);
     }
-    return pts;
+    return 0; // 0 pts on gem match — sirf level complete par milte hain
 }
 
 function levelUpGem(){
     const goal=getGoal();
-    gemScore+=goal.pts*10; // Bonus pts for level completion
-    showToast('⬆️ Level '+gemLevel+' Clear! +'+(goal.pts*10)+' pts! 🎉');
+    const levelPts=goal.pts; // Points sirf level complete par
+    gemScore+=levelPts;
+    showToast('🏆 Level '+gemLevel+' Clear! +'+levelPts+' pts mila!');
     playSound('jackpot'); triggerConfetti();
     gemLevel++;
     gemGoalDone=0;
@@ -6349,6 +6399,11 @@ function switchTab(idx){
     else if(idx===3){updateUI();loadRefActivity();updateMilestoneCard();updateBadgeUI();}
     else if(idx===4)loadWithdrawalHistory();
     if(idx===2){ setTimeout(()=>renderSeasonRewards(),100); }
+    // FABs sirf home page (tab 0) pe dikhao
+    const fabL=document.getElementById('fabLeft');
+    const fabR=document.getElementById('fabRight');
+    if(fabL) fabL.style.display=idx===0?'flex':'none';
+    if(fabR) fabR.style.display=idx===0?'flex':'none';
     // Tab switch interstitial — 5 min cooldown
     if(adCanShow('tab_switch')){
         adMarkShown('tab_switch');
@@ -6605,69 +6660,80 @@ async function sendRefNudge(refUserId, refName, btn){
 // ═══════════════════════════════════════════════════════
 // SEASON REWARDS — Gamee Style
 // ═══════════════════════════════════════════════════════
+// GAME RANK REWARDS — games played ke basis par, 5 passes har milestone
 const SEASON_REWARDS = [
-    {passes:5,   icon:'🎟️', label:'5 pts',    reward_pts:5,    reward_passes:0},
-    {passes:10,  icon:'⚡',  label:'+1 Pass',  reward_pts:0,    reward_passes:1},
-    {passes:20,  icon:'💰',  label:'20 pts',   reward_pts:20,   reward_passes:0},
-    {passes:30,  icon:'🎟️', label:'+2 Pass',  reward_pts:0,    reward_passes:2},
-    {passes:50,  icon:'🌟',  label:'60 pts',   reward_pts:60,   reward_passes:0},
-    {passes:75,  icon:'🎟️', label:'+3 Pass',  reward_pts:0,    reward_passes:3},
-    {passes:100, icon:'👑',  label:'150 pts',  reward_pts:150,  reward_passes:0},
-    {passes:150, icon:'💎',  label:'+5 Pass',  reward_pts:0,    reward_passes:5},
-    {passes:200, icon:'🏆',  label:'300 pts',  reward_pts:300,  reward_passes:0},
+    {passes:5,   icon:'🥉', label:'Rank 1',  rank:'Bronze I',   reward_pts:0, reward_passes:5},
+    {passes:10,  icon:'🥉', label:'Rank 2',  rank:'Bronze II',  reward_pts:0, reward_passes:5},
+    {passes:20,  icon:'🥈', label:'Rank 3',  rank:'Silver I',   reward_pts:0, reward_passes:5},
+    {passes:30,  icon:'🥈', label:'Rank 4',  rank:'Silver II',  reward_pts:0, reward_passes:5},
+    {passes:50,  icon:'🥇', label:'Rank 5',  rank:'Gold I',     reward_pts:0, reward_passes:5},
+    {passes:75,  icon:'🥇', label:'Rank 6',  rank:'Gold II',    reward_pts:0, reward_passes:5},
+    {passes:100, icon:'💎', label:'Rank 7',  rank:'Diamond I',  reward_pts:0, reward_passes:5},
+    {passes:150, icon:'💎', label:'Rank 8',  rank:'Diamond II', reward_pts:0, reward_passes:5},
+    {passes:200, icon:'👑', label:'Rank 9',  rank:'Legend',     reward_pts:0, reward_passes:5},
 ];
 
 let _seasonClaimed = {};
 try{ _seasonClaimed = JSON.parse(localStorage.getItem('ez_season_claimed')||'{}'); }catch(e){}
 
 function renderSeasonRewards(){
-    const passes = userData.passes||0;
+    // Games played count use karo (passes ki jagah)
+    const gamesPlayed = (gameState&&gameState.totalPlays)||0;
     const row = document.getElementById('seasonNodesRow');
     const progLine = document.getElementById('seasonProgressLine');
     const nextText = document.getElementById('seasonNextText');
     const seasonPasses = document.getElementById('seasonPassCount');
     if(!row) return;
-    if(seasonPasses) seasonPasses.textContent = passes;
+    if(seasonPasses) seasonPasses.textContent = gamesPlayed;
 
-    // Find progress
-    const maxPasses = SEASON_REWARDS[SEASON_REWARDS.length-1].passes;
-    const pct = Math.min((passes/maxPasses)*100, 100);
+    const maxGames = SEASON_REWARDS[SEASON_REWARDS.length-1].passes;
+    const pct = Math.min((gamesPlayed/maxGames)*100, 100);
     if(progLine) progLine.style.width = pct+'%';
 
-    // Render nodes
+    // Rank names for display
+    const RANK_COLORS={
+        'Bronze I':'#cd7f32','Bronze II':'#cd7f32',
+        'Silver I':'#aaaaaa','Silver II':'#aaaaaa',
+        'Gold I':'#ffd700','Gold II':'#ffd700',
+        'Diamond I':'#b9f2ff','Diamond II':'#b9f2ff',
+        'Legend':'#facc15'
+    };
+
     row.innerHTML = SEASON_REWARDS.map((r,i)=>{
-        const unlocked = passes >= r.passes;
+        const unlocked = gamesPlayed >= r.passes;
         const claimed  = _seasonClaimed['s_'+r.passes];
         const canClaim = unlocked && !claimed;
-        return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:${canClaim?'pointer':'default'};"
+        const rankColor= RANK_COLORS[r.rank]||'#fff';
+        return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:36px;cursor:${canClaim?'pointer':'default'};"
             onclick="${canClaim?'claimSeasonReward('+r.passes+')':''}">
-            <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:${claimed?'14':'16'}px;
-                background:${claimed?'#10b981':canClaim?'#facc15':unlocked?'#a855f7':'rgba(255,255,255,.1)'};
-                border:2px solid ${claimed?'#10b981':canClaim?'#fde047':unlocked?'#c084fc':'rgba(255,255,255,.15)'};
-                box-shadow:${canClaim?'0 0 12px #facc1588':'none'};
-                transition:all .3s;">
+            <div style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:${claimed?'14':'18'}px;
+                background:${claimed?'#10b981':canClaim?'rgba(250,204,21,.25)':unlocked?'rgba(124,92,252,.3)':'rgba(255,255,255,.06)'};
+                border:2px solid ${claimed?'#10b981':canClaim?'#fde047':unlocked?'#7c3aed':'rgba(255,255,255,.15)'};
+                box-shadow:${canClaim?'0 0 14px #facc1566':'none'};
+                transition:all .3s;position:relative;">
                 ${claimed?'✅':canClaim?'🎁':unlocked?r.icon:'🔒'}
+                ${canClaim?'<div style="position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:#ef4444;border-radius:50%;border:1px solid #fff;"></div>':''}
             </div>
-            <div style="font-size:7px;font-weight:700;color:${claimed?'#6ee7b7':canClaim?'#facc15':'rgba(255,255,255,.5)'};white-space:nowrap;">${r.passes}⚡</div>
+            <div style="font-size:6.5px;font-weight:900;color:${claimed?'#6ee7b7':canClaim?'#facc15':'rgba(255,255,255,.45)'};text-align:center;line-height:1.2;">${r.passes}🎮</div>
+            <div style="font-size:6px;color:${rankColor};font-weight:700;opacity:${unlocked?1:0.4};">${r.rank}</div>
         </div>`;
     }).join('');
 
-    // Next reward info
-    const nextReward = SEASON_REWARDS.find(r=>!_seasonClaimed['s_'+r.passes]&&passes<r.passes);
-    const claimable  = SEASON_REWARDS.find(r=>passes>=r.passes&&!_seasonClaimed['s_'+r.passes]);
+    const nextReward = SEASON_REWARDS.find(r=>!_seasonClaimed['s_'+r.passes]&&gamesPlayed<r.passes);
+    const claimable  = SEASON_REWARDS.find(r=>gamesPlayed>=r.passes&&!_seasonClaimed['s_'+r.passes]);
     if(claimable){
         if(nextText){
-            nextText.textContent=`🎁 ${claimable.icon} ${claimable.label} — Claim Karo!`;
+            nextText.innerHTML=`🎁 ${claimable.rank} Reward — <b>+5 Passes CLAIM KARO!</b>`;
             nextText.style.color='#facc15';
         }
     }else if(nextReward){
-        const need = nextReward.passes - passes;
+        const need = nextReward.passes - gamesPlayed;
         if(nextText){
-            nextText.textContent=`${nextReward.icon} ${nextReward.label} ke liye ${need} aur passes chahiye`;
-            nextText.style.color='rgba(255,255,255,.7)';
+            nextText.innerHTML=`${nextReward.icon} <b>${nextReward.rank}</b> ke liye sirf <b style="color:#facc15;">${need} aur games!</b>`;
+            nextText.style.color='rgba(255,255,255,.8)';
         }
     }else{
-        if(nextText){ nextText.textContent='🏆 Sab rewards claim kar liye!'; nextText.style.color='#6ee7b7'; }
+        if(nextText){ nextText.textContent='👑 Legend Rank! Sab rewards claim kar liye!'; nextText.style.color='#6ee7b7'; }
     }
 }
 
@@ -6676,21 +6742,14 @@ async function claimSeasonReward(passReq){
     if(!r||_seasonClaimed['s_'+passReq]) return;
     _seasonClaimed['s_'+passReq]=true;
     try{ localStorage.setItem('ez_season_claimed', JSON.stringify(_seasonClaimed)); }catch(e){}
-    // Credit reward
-    if(r.reward_pts>0){
-        userData.balance=(userData.balance||0)+(r.reward_pts/100);
-        userData.today_earned=(userData.today_earned||0)+(r.reward_pts/100);
-    }
-    if(r.reward_passes>0){
-        userData.passes=(userData.passes||0)+r.reward_passes;
-    }
+    userData.passes=(userData.passes||0)+5; // Har reward = 5 passes
     updateUI();
     renderSeasonRewards();
-    showToast('🎉 Season Reward! '+r.icon+' '+r.label+' mila!');
-    playSound('earn');
-    // Sync with server
+    triggerConfetti();
+    showToast('🎉 '+r.rank+' Rank! +5 FREE Passes mile! 🎮');
+    playSound('jackpot');
     try{
-        await apiPost('/api/season-claim',{user_id:userData.user_id,passes_req:passReq,reward_pts:r.reward_pts,reward_passes:r.reward_passes});
+        await apiPost('/api/season-claim',{user_id:userData.user_id,passes_req:passReq,reward_pts:0,reward_passes:5});
     }catch(e){}
 }
 const NOTIF_KEY = 'ff_notifications';
