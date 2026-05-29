@@ -3916,21 +3916,27 @@ async function claimSingleMission(missionId,reward){
     // Step 1: Loading state
     if(btn){btn.disabled=true;btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)';}
     if(btnTxt) btnTxt.style.display='none';
-    if(btnSpin){btnSpin.style.display='inline';btnSpin.textContent='📺 Ad load ho rahi...';}
+    if(btnSpin){btnSpin.style.display='inline';btnSpin.textContent='⏳ Claim ho raha hai...';}
 
     try{
-        // Step 2: Ad dikhao pehle (Adsgram reward ad)
+        // Step 2: Ad dikhao — 5 second timeout ke saath (hang fix)
         let adWatched=false;
         try{
             if(typeof window.Adsgram!=='undefined'){
-                if(!rewardController) rewardController=window.Adsgram.init({blockId:ADSGRAM_REWARD_BLOCK});
+                // Har baar fresh controller banao (stale controller hang karta tha)
+                rewardController=window.Adsgram.init({blockId:ADSGRAM_REWARD_BLOCK});
                 if(btnSpin) btnSpin.textContent='📺 Ad dekho → Claim karo!';
-                await rewardController.show();
+                // 5 second timeout — agar ad hang kare to skip karo, claim mat rokna
+                await Promise.race([
+                    rewardController.show(),
+                    new Promise((_,rej)=>setTimeout(()=>rej(new Error('ad_timeout')),5000))
+                ]);
                 adWatched=true;
             }
         }catch(adErr){
-            // Ad failed/skipped — bhi claim karne do (graceful fallback)
+            // Ad failed/skipped/timeout — graceful fallback, claim continue karo
             adWatched=false;
+            rewardController=null; // next use ke liye reset
         }
 
         if(btnSpin) btnSpin.textContent='⏳ Claim ho raha hai...';
