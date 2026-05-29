@@ -1216,17 +1216,16 @@ class Database:
                 progress  = 1 if bonus_today else 0
 
             elif mission_id == 'm_game':
-                # Check both today dates (timezone mismatch)
+                # Check both today dates (IST + UTC, timezone mismatch se bachao)
                 state_utc = self.game_states.find_one({'user_id': user_id, 'date': server_today})
                 state_ist = self.game_states.find_one({'user_id': user_id, 'date': ist_today})
-                state = state_utc or state_ist
+                state = state_ist or state_utc  # IST prefer karo
                 if state:
-                    plays = (state.get('wins', 0) + state.get('plays', 0) +
-                             state.get('total_plays', 0))
+                    # total_plays ya plays field use karo — double count nahi hoga
+                    plays = state.get('total_plays') or state.get('plays', 0)
                 else:
-                    # Fallback: check user total_game_plays for today
                     plays = 0
-                # Also check missions doc progress
+                # Also check missions doc progress (DB progress se max lo)
                 mission_progress = doc.get('progress', 0) if doc else 0
                 progress = max(plays, mission_progress)
                 progress = min(progress, mdef['total'])
