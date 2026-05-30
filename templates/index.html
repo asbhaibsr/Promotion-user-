@@ -3772,7 +3772,7 @@ function updateMissionsUI(){
             </div>`;
         }else if(isDone){
             const btnId='claimBtn_'+m.id;
-            statusHtml=`<button id="${btnId}" class="mission-claim-btn" style="margin-top:8px;position:relative;overflow:hidden;" onclick="claimSingleMission(${JSON.stringify(m.id)},${m.reward})">
+            statusHtml=`<button id="${btnId}" class="mission-claim-btn" style="margin-top:8px;position:relative;overflow:hidden;" onclick="claimSingleMission('${m.id}',${m.reward})">
                 <span id="${btnId}_txt">🎯 Claim ${rewardTxt}</span>
                 <span id="${btnId}_spin" style="display:none;">⏳ Claiming...</span>
             </button>`;
@@ -3919,26 +3919,7 @@ async function claimSingleMission(missionId,reward){
     if(btnSpin){btnSpin.style.display='inline';btnSpin.textContent='⏳ Claim ho raha hai...';}
 
     try{
-        // Step 2: Ad dikhao — 5 second timeout ke saath (hang fix)
-        let adWatched=false;
-        try{
-            if(typeof window.Adsgram!=='undefined'){
-                // Har baar fresh controller banao (stale controller hang karta tha)
-                rewardController=window.Adsgram.init({blockId:ADSGRAM_REWARD_BLOCK});
-                if(btnSpin) btnSpin.textContent='📺 Ad dekho → Claim karo!';
-                // 5 second timeout — agar ad hang kare to skip karo, claim mat rokna
-                await Promise.race([
-                    rewardController.show(),
-                    new Promise((_,rej)=>setTimeout(()=>rej(new Error('ad_timeout')),5000))
-                ]);
-                adWatched=true;
-            }
-        }catch(adErr){
-            // Ad failed/skipped/timeout — graceful fallback, claim continue karo
-            adWatched=false;
-            rewardController=null; // next use ke liye reset
-        }
-
+        // Step 2: Directly claim karo — ad overlay mission claim block karta tha
         if(btnSpin) btnSpin.textContent='⏳ Claim ho raha hai...';
 
         // Step 3: Backend se claim karo
