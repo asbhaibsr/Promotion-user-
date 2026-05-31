@@ -178,6 +178,8 @@ def get_user_api(user_id):
                 db.user_cache.pop(f"user_{user_id}", None)
             # Include month_active_refs in main user call
             user_data['month_active_refs'] = db.get_month_active_refs(user_id)
+            # Include used withdrawal slots (each 1000pts used = 1 slot)
+            user_data['used_withdrawal_slots'] = db.get_used_refer_withdrawals(user_id)
             # Ensure today_earned field exists
             if 'today_earned' not in user_data:
                 user_data['today_earned'] = 0.0
@@ -1441,9 +1443,111 @@ def debug_claim():
         return jsonify({'error': str(e), 'trace': traceback.format_exc()})
 
 
+
+
+# ========== JACKPOT GAME API ==========
+
+@app.route('/api/jackpot/bet', methods=['POST'])
+def jackpot_bet_api():
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        amount = data.get('amount')
+        number = data.get('number')
+        if not all([user_id, amount, number]):
+            return jsonify({'success': False, 'message': 'Missing data'}), 400
+        if not db or not db.ensure_connection():
+            return jsonify({'success': False, 'message': 'Server error'}), 503
+        result = db.place_jackpot_bet(user_id, amount, number)
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"jackpot_bet_api error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/jackpot/participants')
+def jackpot_participants_api():
+    try:
+        if not db or not db.ensure_connection():
+            return jsonify({'participants': [], 'seats': '0/20'}), 503
+        participants = db.get_jackpot_participants()
+        return jsonify({'success': True, 'participants': participants, 'seats': f"{len(participants)}/20"})
+    except Exception as e:
+        logger.error(f"jackpot_participants_api error: {e}")
+        return jsonify({'success': False, 'participants': []}), 500
+
+
+@app.route('/api/jackpot/declare', methods=['POST'])
+def jackpot_declare_api():
+    try:
+        data = request.get_json()
+        admin_id = data.get('admin_id')
+        winning_number = data.get('winning_number')
+        if not all([admin_id, winning_number]):
+            return jsonify({'success': False, 'message': 'Missing data'}), 400
+        if not db or not db.ensure_connection():
+            return jsonify({'success': False, 'message': 'Server error'}), 503
+        result = db.declare_jackpot_result(winning_number, admin_id)
+        if result.get('success') and bot_app and config and bot_loop:
+            winners = result.get('winner_details', [])
+            summary = (f"Jackpot Result!\nWinning Number: {winning_number}\n"
+                      f"Total Bets: {result.get('total_bets', 0)}\nWinners: {result.get('winners', 0)}")
+            if winners:
+                summary += "\n\nWinners:\n" + "\n".join(f"- {w['name']} +{w['pts']} pts" for w in winners)
+            for admin_cid in config.ADMIN_IDS:
+                try:
+                    asyncio.run_coroutine_threadsafe(
+                        bot_app.bot.send_message(chat_id=admin_cid, text=summary), bot_loop)
+                except:
+                    pass
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"jackpot_declare_api error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/jackpot/status')
+def jackpot_status_api():
+    try:
+        if not db or not db.ensure_connection():
+            return jsonify({'seats_filled': 0, 'max_seats': 20, 'status': 'open'}), 503
+        round_doc = db.get_active_jackpot_round()
+        if not round_doc:
+            return jsonify({'seats_filled': 0, 'max_seats': 20, 'status': 'none'})
+        from bson.objectid import ObjectId
+        rid = round_doc['_id']
+        seats = db.jackpot_bets.count_documents({'round_id': rid, 'type': 'bet'})
+        return jsonify({'success': True, 'status': round_doc.get('status', 'open'),
+                       'seats_filled': seats, 'max_seats': 20,
+                       'result_at': round_doc.get('result_at', '')})
+    except Exception as e:
+        logger.error(f"jackpot_status_api error: {e}")
+        return jsonify({'seats_filled': 0, 'max_seats': 20}), 500
+
+
+@app.route('/api/admin/monthly-reset', methods=['POST'])
+def monthly_reset_api():
+    """Admin triggers monthly withdrawal slot reset (run on 30th)."""
+    try:
+        data = request.get_json() or {}
+        admin_id = data.get('admin_id')
+        if not admin_id:
+            return jsonify({'success': False, 'message': 'admin_id required'}), 400
+        if not db or not db.ensure_connection():
+            return jsonify({'success': False, 'message': 'DB error'}), 503
+        admin = db.get_user(int(admin_id))
+        if not admin or not admin.get('is_admin'):
+            return jsonify({'success': False, 'message': 'Admin only'}), 403
+        count = db.reset_monthly_withdraw_slots()
+        return jsonify({'success': True, 'archived': count, 'message': f'Monthly reset done. {count} withdrawals archived.'})
+    except Exception as e:
+        logger.error(f"monthly_reset_api error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+
 @app.route('/health')
 def health():
-    status = {'status': 'ok', 'time': datetime.now().isoformat(), 'db_connected': db.connected if db else False}
     if not db or not db.connected:
         status['status'] = 'degraded'
         return jsonify(status), 503
