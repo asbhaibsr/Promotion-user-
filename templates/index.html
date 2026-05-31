@@ -68,6 +68,7 @@
 
         /* ONBOARDING POPUP */
         .onboard-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9000;display:flex;align-items:center;justify-content:center;padding:10px;}
+        .onboard-overlay[style*="display: none"],.onboard-overlay[style*="display:none"]{pointer-events:none !important;}
         .onboard-card{background:var(--bg2);border-radius:24px;width:100%;max-width:420px;border:1.5px solid rgba(240,192,64,.25);box-shadow:0 0 60px rgba(124,92,252,.2);overflow:hidden;display:flex;flex-direction:column;max-height:92vh;min-height:0;}
         .onboard-header{background:linear-gradient(135deg,var(--purple),var(--gold));padding:18px 18px 14px;text-align:center;flex-shrink:0;}
         .onboard-header h2{font-family:'Fredoka One',cursive;font-size:20px;font-weight:900;color:#000;margin-bottom:4px;}
@@ -75,7 +76,7 @@
         .onboard-lang-row{display:flex;gap:8px;padding:12px 14px;background:var(--bg3);flex-shrink:0;}
         .onboard-lang-btn{flex:1;padding:9px;border-radius:10px;background:var(--bg2);border:1.5px solid var(--border);text-align:center;cursor:pointer;font-size:12px;font-weight:700;transition:all .2s;}
         .onboard-lang-btn.active{border-color:var(--gold);background:rgba(240,192,64,.1);color:var(--gold);}
-        .onboard-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px;flex:1;}
+        .onboard-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px;flex:1;min-height:0;position:relative;z-index:1;}
         .onboard-section{margin-bottom:14px;}
         .onboard-section-title{font-family:'Fredoka One',cursive;font-size:13px;font-weight:900;color:var(--gold);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
         .onboard-item{display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);}
@@ -83,14 +84,14 @@
         .onboard-item-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
         .onboard-item-text{font-size:11px;color:var(--text2);line-height:1.6;}
         .onboard-item-text b{color:var(--text);}
-        .onboard-footer{padding:12px 14px;flex-shrink:0;border-top:1px solid var(--border);background:var(--bg2);}
+        .onboard-footer{padding:12px 14px;flex-shrink:0;border-top:1px solid var(--border);background:var(--bg2);position:relative;z-index:10;}
         .onboard-confirm-btn{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;padding:14px;border-radius:36px;font-weight:900;font-size:14px;width:100%;cursor:pointer;font-family:inherit;box-shadow:0 5px 18px rgba(240,192,64,.3);}
         .onboard-confirm-btn:active{transform:scale(.97);}
 
         /* HOW TO EARN MODAL */
-        .how-earn-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:8000;display:none;align-items:center;justify-content:center;padding:14px;}
+        .how-earn-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9500;display:none;align-items:center;justify-content:center;padding:14px;}
         .how-earn-overlay.show{display:flex;}
-        .how-earn-card{background:var(--bg2);border-radius:24px;width:100%;max-width:440px;border:1.5px solid rgba(240,192,64,.25);overflow:hidden;display:flex;flex-direction:column;max-height:88vh;}
+        .how-earn-card{background:var(--bg2);border-radius:24px;width:100%;max-width:440px;border:1.5px solid rgba(240,192,64,.25);overflow:hidden;display:flex;flex-direction:column;max-height:88vh;min-height:0;}
 
         /* LANG FAB */
         .lang-fab{position:fixed;top:calc(env(safe-area-inset-top,0px)+10px);right:14px;z-index:300;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:30px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(124,92,252,.45);display:none;}
@@ -807,7 +808,7 @@
 </div>
 
 <!-- ====== HOW TO EARN OVERLAY (Settings se) ====== -->
-<div class="how-earn-overlay" id="howToEarnOverlay">
+<div class="how-earn-overlay" id="howToEarnOverlay" onclick="if(event.target===this)closeHowToEarn()">
     <div class="how-earn-card">
         <div class="onboard-header" style="position:relative;">
             <button onclick="closeHowToEarn()" style="position:absolute;top:0;left:0;background:rgba(0,0,0,.1);border:none;color:var(--text);width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">←</button>
@@ -821,7 +822,7 @@
         </div>
         <div class="onboard-body" id="howEarnBody"></div>
         <div class="onboard-footer">
-            <button class="onboard-confirm-btn" onclick="closeHowToEarn()">✅ Got it!</button>
+            <button id="howEarnGotItBtn" class="onboard-confirm-btn" onclick="closeHowToEarn()" style="position:relative;z-index:10;">✅ Got it!</button>
         </div>
     </div>
 </div>
@@ -1022,7 +1023,32 @@
 <!-- GAMES PAGE -->
 <div class="page" id="gamesPage">
     <div class="page-inner">
-        <!-- ★ GAME RANK REWARDS — Games khelo, passes pao! -->
+        <!-- ★ LUCKY 1-50 JACKPOT — Sabse upar featured game -->
+        <div style="background:linear-gradient(135deg,#1e3a8a,#3b82f6);border:2px solid #60a5fa;border-radius:22px;padding:16px;margin-bottom:14px;box-shadow:0 6px 24px rgba(59,130,246,.35);position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-10px;right:-10px;font-size:80px;opacity:0.1;pointer-events:none;">🎰</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div style="font-family:'Fredoka One',cursive;font-size:18px;font-weight:900;color:#fff;">🎰 Lucky 1-50 Jackpot</div>
+                <div style="background:rgba(0,0,0,0.35);color:#facc15;padding:4px 10px;border-radius:12px;font-size:10px;font-weight:900;" id="jackpotTimerTag">⏳ 24h Result</div>
+            </div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.8);margin-bottom:12px;">1 se 50 ke beech ek number chuno. Agar wo number khula — bada inaam! Sirf 20 log hissa le sakte hain.</div>
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+                <input type="number" id="jackpotBetAmt" class="inp" placeholder="Bet (pts)" style="flex:1;background:rgba(255,255,255,0.92);border:none;color:#000;">
+                <input type="number" id="jackpotNumber" class="inp" placeholder="1–50" min="1" max="50" style="flex:1;background:rgba(255,255,255,0.92);border:none;color:#000;">
+            </div>
+            <button onclick="submitJackpotBet()" style="width:100%;background:linear-gradient(135deg,#facc15,#eab308);color:#000;border:none;padding:12px;border-radius:30px;font-weight:900;font-size:14px;cursor:pointer;font-family:'Fredoka One',cursive;margin-bottom:10px;">✅ Bet Lagao</button>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="font-size:11px;font-weight:700;color:#6ee7b7;">👥 Seats: <span id="jackpotSeats">?/20</span></div>
+                <button onclick="viewJackpotParticipants()" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:#fff;padding:4px 12px;border-radius:12px;font-size:10px;font-weight:800;cursor:pointer;">Bets Dekho 👀</button>
+            </div>
+            <!-- Admin Declare Panel (visible only to admin) -->
+            <div id="jackpotAdminPanel" style="display:none;margin-top:12px;padding-top:12px;border-top:1px dashed rgba(255,255,255,0.3);">
+                <div style="font-size:10px;color:#facc15;font-weight:800;margin-bottom:6px;">👑 Admin: Result Declare Karo</div>
+                <div style="display:flex;gap:8px;">
+                    <input type="number" id="jackpotWinNum" class="inp" placeholder="Winning No. (1-50)" min="1" max="50" style="flex:1;background:rgba(255,255,255,0.92);border:none;color:#000;">
+                    <button onclick="declareJackpotResult()" style="background:#10b981;color:#fff;border:none;border-radius:10px;padding:0 14px;font-weight:800;font-size:12px;cursor:pointer;">Declare</button>
+                </div>
+            </div>
+        </div>
         <div id="seasonRewardsCard" style="background:linear-gradient(135deg,#0d0d2e,#1a0a3e,#0d1a3e);border-radius:22px;padding:16px 14px 14px;margin-bottom:12px;position:relative;overflow:hidden;border:1.5px solid rgba(124,92,252,.4);box-shadow:0 8px 32px rgba(124,92,252,.35);">
             <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(124,92,252,.18),transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(240,192,64,.1),transparent 50%);pointer-events:none;"></div>
             <!-- Header -->
@@ -1130,6 +1156,39 @@
             <div class="game-card" onclick="openGame('coin')"><img src="https://image2url.com/r2/default/images/1773972404884-e233660e-0845-4937-8f72-560d43048197.jpg" class="game-img" alt="Coin"><div style="padding:8px;"><div class="game-name">🪙 Coin</div><div class="game-desc">50/50!</div><span class="game-earn-tag">2x Win</span></div></div>
 
 </div>
+
+        <!-- NEW GAMES SECTION -->
+        <div style="display:flex;align-items:center;gap:8px;margin:14px 0 10px;">
+            <div style="flex:1;height:1px;background:var(--border);"></div>
+            <div style="font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;">🎲 Board & Mind Games</div>
+            <div style="flex:1;height:1px;background:var(--border);"></div>
+        </div>
+        <div class="games-grid">
+            <div class="game-card" onclick="showToast('🎲 Ludo — Coming Soon! 🔜')">
+                <div style="font-size:48px;text-align:center;padding:12px 0 4px;">🎲</div>
+                <div style="padding:8px;">
+                    <div class="game-name" style="color:#ef4444;">🎲 Ludo</div>
+                    <div class="game-desc">Multiplayer Board Game</div>
+                    <span class="game-earn-tag" style="color:#ef4444;border-color:#ef4444;background:rgba(239,68,68,0.1);">Coming Soon 🔜</span>
+                </div>
+            </div>
+            <div class="game-card" onclick="showToast('🐍 Saap Sidi — Coming Soon! 🔜')">
+                <div style="font-size:48px;text-align:center;padding:12px 0 4px;">🐍</div>
+                <div style="padding:8px;">
+                    <div class="game-name" style="color:#22c55e;">🐍 Saap Sidi</div>
+                    <div class="game-desc">Snakes & Ladders</div>
+                    <span class="game-earn-tag" style="color:#22c55e;border-color:#22c55e;background:rgba(34,197,94,0.1);">Coming Soon 🔜</span>
+                </div>
+            </div>
+            <div class="game-card" onclick="showToast('🧠 Mind Quiz — Coming Soon! 🔜')">
+                <div style="font-size:48px;text-align:center;padding:12px 0 4px;">🧠</div>
+                <div style="padding:8px;">
+                    <div class="game-name" style="color:#8b5cf6;">🧠 Mind Quiz</div>
+                    <div class="game-desc">Math & Memory</div>
+                    <span class="game-earn-tag" style="color:#8b5cf6;border-color:#8b5cf6;background:rgba(139,92,246,0.1);">Tez Dimaag</span>
+                </div>
+            </div>
+        </div>
 
     </div>
 </div>
@@ -1745,14 +1804,16 @@
 <!-- WITHDRAW -->
 <div class="modal" id="withdrawModal">
     <div class="modal-hdr"><div class="back-btn" onclick="closeModal('withdraw')">←</div><div class="modal-title">💰 Withdraw</div></div>
+    <!-- DATE WINDOW NOTICE -->
+    <div id="wdDateNotice" style="display:none;padding:10px 14px;border-radius:14px;font-size:12px;font-weight:700;margin-bottom:10px;text-align:center;"></div>
     <!-- WITHDRAWAL CONDITION BANNER -->
     <div class="wd-condition-banner" id="wdConditionBanner">
         <div class="wd-condition-title" id="wdConditionTitle">⚠️ Withdrawal Condition</div>
-        <div class="wd-condition-sub" id="wdConditionSub">Is mahine 20 active referrals chahiye withdraw karne ke liye</div>
+        <div class="wd-condition-sub" id="wdConditionSub">Refers × ₹20 = Max Withdrawal | 30 tarikh ko reset</div>
         <div class="wd-progress-bar"><div class="wd-progress-fill" id="wdProgressFill" style="width:0%"></div></div>
-        <div class="wd-progress-text" id="wdProgressText">0/20 refs this month</div>
+        <div class="wd-progress-text" id="wdProgressText">Loading...</div>
     </div>
-    <div class="avail-balance"><img src="https://i.postimg.cc/26CCdW9w/wallet-3d-icon-png-download-10033542.png" style="width:52px;height:52px;object-fit:contain;margin-bottom:6px;"><div style="font-size:11px;color:var(--text2);margin-bottom:3px;">Available Balance</div><div class="avail-amt" id="wdrawBal">₹0.00</div><div style="font-size:11px;color:var(--text2);margin-top:3px;">Minimum: ₹20 (2000 pts)</div></div>
+    <div class="avail-balance"><img src="https://i.postimg.cc/26CCdW9w/wallet-3d-icon-png-download-10033542.png" style="width:52px;height:52px;object-fit:contain;margin-bottom:6px;"><div style="font-size:11px;color:var(--text2);margin-bottom:3px;">Available Balance</div><div class="avail-amt" id="wdrawBal">₹0.00</div><div style="font-size:11px;color:var(--text2);margin-top:3px;">Minimum: ₹20</div></div>
     <input id="wdrawAmt" class="inp" placeholder="Amount (min ₹20)" type="number" min="20">
     <div class="method-btn" onclick="selMethod('upi')" id="methodUpi"><span style="font-size:24px;">📱</span><div><div style="font-weight:700;">UPI</div><div style="font-size:10px;color:var(--text2);">Instant</div></div></div>
     <div class="method-btn" onclick="selMethod('bank')" id="methodBank"><span style="font-size:24px;">🏦</span><div><div style="font-weight:700;">Bank Transfer</div><div style="font-size:10px;color:var(--text2);">1-2 working days</div></div></div>
@@ -2207,8 +2268,8 @@ window.confirmOnboard=function(){
     if(ov)ov.style.display='none';
 };
 window.closeHowToEarn=function(){
-    const el=document.getElementById('howToEarnModal');
-    if(el)el.classList.remove('open');
+    const ov=document.getElementById('howToEarnOverlay');
+    if(ov){ ov.classList.remove('show'); ov.style.display='none'; }
 };
 window.setLang=function(l){};  // stub — real fn loads later
 // ══ Global error suppressor — hide non-critical errors from console ══
@@ -2314,7 +2375,17 @@ function showHowToEarn(){
     document.getElementById('he_hi').classList.toggle('active',heLang==='hi');
     document.getElementById('he_en').classList.toggle('active',heLang==='en');
     document.getElementById('howEarnBody').innerHTML=ONBOARD_CONTENT[heLang];
-    document.getElementById('howToEarnOverlay').classList.add('show');
+    // Scroll body to top each time so footer stays accessible
+    setTimeout(()=>{ const b=document.getElementById('howEarnBody'); if(b) b.scrollTop=0; },50);
+    const ov=document.getElementById('howToEarnOverlay');
+    ov.style.display='flex';
+    ov.classList.add('show');
+    // Attach touchstart on Got it button — Android WebView sometimes blocks onclick on elements below scroll containers
+    const btn=document.getElementById('howEarnGotItBtn');
+    if(btn && !btn._tsSet){
+        btn.addEventListener('touchend',function(e){ e.preventDefault(); e.stopPropagation(); closeHowToEarn(); },{passive:false});
+        btn._tsSet=true;
+    }
 }
 function setHowEarnLang(l){
     heLang=l;
@@ -2322,7 +2393,11 @@ function setHowEarnLang(l){
     document.getElementById('he_en').classList.toggle('active',l==='en');
     document.getElementById('howEarnBody').innerHTML=ONBOARD_CONTENT[l];
 }
-function closeHowToEarn(){document.getElementById('howToEarnOverlay').classList.remove('show');}
+function closeHowToEarn(){
+    const ov=document.getElementById('howToEarnOverlay');
+    ov.classList.remove('show');
+    ov.style.display='none'; // explicitly hide so pointer-events are gone
+}
 
 // ============================================================
 // TELEGRAM & STATE
@@ -3221,28 +3296,84 @@ function getRefLink(){
 // ============================================================
 // WITHDRAWAL CONDITION — 20 active refs this month
 // ============================================================
+function getWithdrawTier(refs, balancePts){
+    // Formula: fresh_refers × ₹20 = max withdrawal (no upper cap)
+    // 30 tarikh ko reset hota hai server side
+    if(refs < 1) return {
+        allowed: false, maxPts: 0,
+        reason: '❌ Pehle 1 refer karo → ₹20 withdraw unlock hoga!',
+        nextMsg: '1 dost invite karo → ₹20 nikaalo'
+    };
+    const maxRupees = refs * 20;          // ₹20 per fresh refer
+    const maxPts    = maxRupees * 100;    // pts = rupees × 100
+    const label = refs >= 50 ? '🏆 Legend' : refs >= 20 ? '💎 Diamond' : refs >= 10 ? '🥇 Pro' : refs >= 5 ? '🥈 Active' : '✅ Basic';
+    return { allowed: true, maxPts, maxRupees, label, refs };
+}
+
+function isWithdrawWindowOpen(){
+    const day = new Date().getDate();
+    return day >= 25 && day <= 30;
+}
+
 function updateWithdrawCondition(){
-    const monthRefs=userData.month_active_refs||0;
-    const needed=20;
-    const met=monthRefs>=needed;
-    const banner=document.getElementById('wdConditionBanner');
-    const title=document.getElementById('wdConditionTitle');
-    const sub=document.getElementById('wdConditionSub');
-    const fill=document.getElementById('wdProgressFill');
-    const txt=document.getElementById('wdProgressText');
-    if(!banner)return;
-    if(met){
-        banner.className='wd-condition-banner met';
-        title.textContent='✅ Withdrawal Eligible!';
-        sub.textContent='Is mahine 20+ active referrals hain — withdraw kar sakte ho!';
-    }else{
-        banner.className='wd-condition-banner';
-        title.textContent='⚠️ Withdrawal Condition';
-        sub.textContent='Is mahine 20 active referrals chahiye withdraw karne ke liye';
+    const totalRefs   = userData.active_refs || 0;
+    const usedSlots   = userData.used_withdrawal_slots || 0;
+    const freshRefs   = Math.max(0, totalRefs - usedSlots);
+    const balancePts  = Math.round((userData.balance||0) * 100);
+    const tier        = getWithdrawTier(freshRefs, balancePts);
+    const windowOpen  = isWithdrawWindowOpen();
+    const day         = new Date().getDate();
+
+    const banner = document.getElementById('wdConditionBanner');
+    const title  = document.getElementById('wdConditionTitle');
+    const sub    = document.getElementById('wdConditionSub');
+    const fill   = document.getElementById('wdProgressFill');
+    const txt    = document.getElementById('wdProgressText');
+    const wdBtn  = document.querySelector('#withdrawModal .btn-gold');
+    if(!banner) return;
+
+    // Date window notice
+    const dateEl = document.getElementById('wdDateNotice');
+    if(dateEl){
+        if(windowOpen){
+            dateEl.style.display='block';
+            dateEl.innerHTML='✅ <b>Withdraw Window OPEN!</b> 25–30 tarikh tak nikaal sakte ho.';
+            dateEl.style.background='rgba(16,185,129,0.15)';
+            dateEl.style.color='#10b981';
+        } else {
+            dateEl.style.display='block';
+            dateEl.innerHTML=`⏳ Withdraw sirf <b>25–30 tarikh</b> ko milta hai.<br>Abhi ${day} tarikh hai — ${25-day>0?25-day+' din baad':'kal se'} khulega!`;
+            dateEl.style.background='rgba(245,158,11,0.12)';
+            dateEl.style.color='#f59e0b';
+        }
     }
-    const pct=Math.min((monthRefs/needed)*100,100);
-    fill.style.width=pct+'%';
-    txt.textContent=`${monthRefs}/${needed} refs this month`;
+
+    if(!windowOpen){
+        banner.className='wd-condition-banner';
+        title.textContent='⏳ Window Band Hai';
+        sub.textContent=`Withdraw sirf 25–30 tarikh ko. ${day<25?'Abhi '+(25-day)+' din baad':'Kal se'} khulega.`;
+        fill.style.width='0%';
+        txt.textContent='Abhi withdraw nahi kar sakte';
+        if(wdBtn){ wdBtn.disabled=true; wdBtn.style.opacity='0.4'; }
+        return;
+    }
+
+    if(wdBtn){ wdBtn.disabled=false; wdBtn.style.opacity='1'; }
+
+    if(!tier.allowed){
+        banner.className='wd-condition-banner';
+        title.textContent='⚠️ 1 Refer Karo — ₹20 Unlock Hoga!';
+        sub.textContent=tier.reason + ' ' + (tier.nextMsg||'');
+        fill.style.width='0%';
+        txt.textContent=`Fresh Refers: ${freshRefs} • Max Withdraw: ₹0`;
+    } else {
+        banner.className='wd-condition-banner met';
+        title.textContent=`${tier.label} — Max ₹${tier.maxRupees} Withdraw!`;
+        sub.textContent=`${freshRefs} refer(s) × ₹20 = ₹${tier.maxRupees} max | 30 tarikh ko reset`;
+        const pct=Math.min((freshRefs/20)*100,100);
+        fill.style.width=pct+'%';
+        txt.textContent=`${freshRefs} fresh refers • Max: ₹${tier.maxRupees} • Balance: ₹${((userData.balance||0)).toFixed(2)}`;
+    }
 }
 
 // ============================================================
@@ -3772,7 +3903,7 @@ function updateMissionsUI(){
             </div>`;
         }else if(isDone){
             const btnId='claimBtn_'+m.id;
-            statusHtml=`<button id="${btnId}" class="mission-claim-btn" style="margin-top:8px;position:relative;overflow:hidden;" onclick="claimSingleMission('${m.id}',${m.reward})">
+            statusHtml=`<button id="${btnId}" class="mission-claim-btn" style="margin-top:8px;position:relative;overflow:hidden;" onclick="claimSingleMission(${JSON.stringify(m.id)},${m.reward})">
                 <span id="${btnId}_txt">🎯 Claim ${rewardTxt}</span>
                 <span id="${btnId}_spin" style="display:none;">⏳ Claiming...</span>
             </button>`;
@@ -3919,7 +4050,26 @@ async function claimSingleMission(missionId,reward){
     if(btnSpin){btnSpin.style.display='inline';btnSpin.textContent='⏳ Claim ho raha hai...';}
 
     try{
-        // Step 2: Directly claim karo — ad overlay mission claim block karta tha
+        // Step 2: Ad dikhao — 5 second timeout ke saath (hang fix)
+        let adWatched=false;
+        try{
+            if(typeof window.Adsgram!=='undefined'){
+                // Har baar fresh controller banao (stale controller hang karta tha)
+                rewardController=window.Adsgram.init({blockId:ADSGRAM_REWARD_BLOCK});
+                if(btnSpin) btnSpin.textContent='📺 Ad dekho → Claim karo!';
+                // 5 second timeout — agar ad hang kare to skip karo, claim mat rokna
+                await Promise.race([
+                    rewardController.show(),
+                    new Promise((_,rej)=>setTimeout(()=>rej(new Error('ad_timeout')),5000))
+                ]);
+                adWatched=true;
+            }
+        }catch(adErr){
+            // Ad failed/skipped/timeout — graceful fallback, claim continue karo
+            adWatched=false;
+            rewardController=null; // next use ke liye reset
+        }
+
         if(btnSpin) btnSpin.textContent='⏳ Claim ho raha hai...';
 
         // Step 3: Backend se claim karo
@@ -4399,23 +4549,60 @@ function selMethod(m){
     playSound('tap');
 }
 async function doWithdraw(){
+    // Date window check — sirf 25-30 tarikh ko
+    if(!isWithdrawWindowOpen()){
+        const d=new Date().getDate();
+        showToast(`⏳ Withdraw sirf 25–30 tarikh ko! Abhi ${d} tarikh hai.`);
+        return;
+    }
     const amt=parseFloat(document.getElementById('wdrawAmt').value);
-    if(!amt||amt<20){showToast('❌ Minimum 2000 pts (₹20)');return;}
+    if(!amt||amt<20){showToast('❌ Minimum ₹20');return;}
     if(amt>userData.balance){showToast('❌ Balance kam hai');return;}
     if(!selectedMethod){showToast('❌ Method select karo');return;}
-    // Check 20 month active refs condition
-    const monthRefs=userData.month_active_refs||0;
-    if(monthRefs<20){showToast(`❌ Is mahine sirf ${monthRefs}/20 active refs hain. 20 hone chahiye withdraw ke liye!`);return;}
+
+    // Tiered check
+    const totalRefs  = userData.active_refs||0;
+    const usedSlots  = userData.used_withdrawal_slots||0;
+    const freshRefs  = Math.max(0, totalRefs - usedSlots);
+    const balancePts = Math.round((userData.balance||0)*100);
+    const tier       = getWithdrawTier(freshRefs, balancePts);
+
+    if(!tier.allowed){
+        showToast(tier.reason||'❌ Pehle 1 refer karo!');
+        return;
+    }
+    // Cap = freshRefs × ₹20
+    if(amt > tier.maxRupees){
+        showToast(`❌ ${freshRefs} refers × ₹20 = max ₹${tier.maxRupees}. Zyada refers karo!`);
+        return;
+    }
+
     let details='';
-    if(selectedMethod==='upi'){const u=document.getElementById('upiId').value;if(!u){showToast('❌ UPI ID bharo');return;}details=u;}
-    else{const a=document.getElementById('accNo').value,i=document.getElementById('ifsc').value,n=document.getElementById('accName').value;if(!a||!i||!n){showToast('❌ Bank details bharo');return;}details=`${n}|${a}|${i}`;}
+    if(selectedMethod==='upi'){
+        const u=document.getElementById('upiId').value;
+        if(!u){showToast('❌ UPI ID bharo');return;}
+        details=u;
+    } else {
+        const a=document.getElementById('accNo').value,
+              i=document.getElementById('ifsc').value,
+              n=document.getElementById('accName').value;
+        if(!a||!i||!n){showToast('❌ Bank details bharo');return;}
+        details=`${n}|${a}|${i}`;
+    }
+
     const r=await apiPost('/api/withdraw',{user_id:userData.user_id,amount:amt,method:selectedMethod==='upi'?'UPI':'Bank',details});
     if(r&&r.success){
-        userData.balance-=amt;updateUI();closeModal('withdraw');showToast('✅ Withdrawal requested!');playSound('earn');
+        userData.balance-=amt;
+        const slotsUsed=Math.ceil(amtPts/1000);
+        userData.used_withdrawal_slots=(userData.used_withdrawal_slots||0)+slotsUsed;
+        updateUI();
+        closeModal('withdraw');
+        showToast('✅ Withdrawal submitted! 25–30 tarikh ke beech process hoga.');
+        playSound('earn');
         if(missionStates['m_withdraw']){missionStates['m_withdraw'].progress=1;missionStates['m_withdraw'].completed=true;}
         updateMissionsUI();
-        setTimeout(()=>showEarnMorePopup(50), 1500);
-    }else showToast('❌ '+(r?.message||'Failed'));
+        setTimeout(()=>showEarnMorePopup(50),1500);
+    } else showToast('❌ '+(r?.message||'Failed'));
 }
 async function sendSupport(){
     const msg=document.getElementById('supportMsg').value.trim();
@@ -5108,20 +5295,102 @@ let mazeMatchNum=0, mazeTotalPts=0, mazeUsedLevels=[];
 const MAZE_MATCH_TIME=30; // 30 seconds per match
 const MAZE_PTS_PER_WIN=10;
 
-// Harder Sokoban levels — boxes near walls/corners so going back is harder
+// Harder Sokoban levels — internal walls creating corridors, classic Sokoban style
 const SOKOBAN_ALL_LEVELS=[
-    // Match 1-2: medium difficulty — boxes near edges
-    {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,0,2,0,0,1],[1,0,0,0,0,0,1],[1,0,0,0,2,0,1],[1,0,3,0,0,0,1],[1,1,1,1,1,1,1]],boxes:[{x:3,y:2},{x:4,y:4}],targets:[{x:5,y:1},{x:1,y:4}],player:{x:2,y:5}},
-    {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,2,0,0,0,1],[1,0,0,0,2,0,1],[1,0,0,0,0,0,1],[1,0,0,3,0,0,1],[1,1,1,1,1,1,1]],boxes:[{x:2,y:2},{x:4,y:3}],targets:[{x:5,y:2},{x:1,y:5}],player:{x:3,y:5}},
-    {grid:[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,0,0,2,0,1],[1,2,0,0,0,0,1],[1,0,0,0,0,0,1],[1,0,0,3,0,0,1],[1,1,1,1,1,1,1]],boxes:[{x:4,y:2},{x:1,y:3}],targets:[{x:1,y:1},{x:5,y:4}],player:{x:3,y:5}},
-    // Match 3-4: 3 boxes, 9x9, boxes near walls
-    {grid:[[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,2,0,0,0,0,0,1],[1,0,0,0,2,0,0,0,1],[1,0,0,0,0,0,2,0,1],[1,0,0,3,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1]],boxes:[{x:2,y:2},{x:4,y:3},{x:6,y:4}],targets:[{x:7,y:1},{x:1,y:6},{x:7,y:6}],player:{x:3,y:5}},
-    {grid:[[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,2,0,0,0,1],[1,0,2,0,0,0,0,0,1],[1,0,0,0,0,0,2,0,1],[1,0,0,0,3,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1]],boxes:[{x:4,y:2},{x:2,y:3},{x:6,y:4}],targets:[{x:1,y:1},{x:7,y:2},{x:1,y:6}],player:{x:4,y:5}},
-    // Match 5+: 4 boxes, 11x11, very tricky placement
-    {grid:[[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,1],[1,2,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,2,0,0,0,0,1],[1,0,0,0,0,0,0,0,2,0,1],[1,0,0,0,0,3,0,0,0,0,1],[1,0,2,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1]],boxes:[{x:1,y:2},{x:5,y:3},{x:8,y:4},{x:2,y:6}],targets:[{x:9,y:1},{x:1,y:5},{x:9,y:6},{x:5,y:8}],player:{x:5,y:5}},
-    {grid:[[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,2,0,0,0,0,0,1],[1,0,0,0,0,0,2,0,0,0,1],[1,0,2,0,0,0,0,0,0,0,1],[1,0,0,0,0,3,0,0,0,0,1],[1,0,0,0,0,0,0,0,2,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1]],boxes:[{x:4,y:2},{x:6,y:3},{x:2,y:4},{x:8,y:6}],targets:[{x:9,y:1},{x:1,y:3},{x:9,y:4},{x:1,y:8}],player:{x:5,y:5}},
-    // Extra hard levels for match 7+
-    {grid:[[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,2,0,0,0,2,0,0,0,1],[1,0,0,0,2,0,0,0,2,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,3,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1]],boxes:[{x:2,y:2},{x:6,y:2},{x:4,y:3},{x:8,y:3}],targets:[{x:1,y:7},{x:5,y:7},{x:3,y:8},{x:7,y:8}],player:{x:5,y:5}},
+    // Level 1: 7x7 with inner wall corridor
+    {grid:[
+        [1,1,1,1,1,1,1],
+        [1,0,0,0,0,0,1],
+        [1,0,1,1,0,0,1],
+        [1,0,1,0,2,0,1],
+        [1,0,0,2,1,0,1],
+        [1,0,0,0,0,3,1],
+        [1,1,1,1,1,1,1]
+    ],boxes:[{x:4,y:3},{x:3,y:4}],targets:[{x:1,y:1},{x:5,y:1}],player:{x:5,y:5}},
+    // Level 2: 7x7 — L-shaped room
+    {grid:[
+        [1,1,1,1,1,1,1],
+        [1,0,0,0,1,0,1],
+        [1,0,2,0,1,0,1],
+        [1,0,0,0,0,2,1],
+        [1,1,0,1,0,0,1],
+        [1,0,3,0,0,0,1],
+        [1,1,1,1,1,1,1]
+    ],boxes:[{x:2,y:2},{x:5,y:3}],targets:[{x:5,y:1},{x:1,y:4}],player:{x:2,y:5}},
+    // Level 3: 7x7 — cross walls
+    {grid:[
+        [1,1,1,1,1,1,1],
+        [1,0,0,0,0,0,1],
+        [1,0,1,2,1,0,1],
+        [1,0,2,0,2,0,1],
+        [1,0,1,0,1,0,1],
+        [1,0,0,3,0,0,1],
+        [1,1,1,1,1,1,1]
+    ],boxes:[{x:3,y:2},{x:2,y:3},{x:4,y:3}],targets:[{x:1,y:1},{x:5,y:1},{x:3,y:4}],player:{x:3,y:5}},
+    // Level 4: 9x9 — corridors with 3 boxes
+    {grid:[
+        [1,1,1,1,1,1,1,1,1],
+        [1,0,0,1,0,0,0,0,1],
+        [1,0,2,1,0,0,0,0,1],
+        [1,0,0,0,0,1,2,0,1],
+        [1,1,0,1,0,1,0,0,1],
+        [1,0,0,0,2,0,0,0,1],
+        [1,0,1,0,0,0,1,0,1],
+        [1,0,3,0,0,0,0,0,1],
+        [1,1,1,1,1,1,1,1,1]
+    ],boxes:[{x:2,y:2},{x:6,y:3},{x:4,y:5}],targets:[{x:7,y:1},{x:1,y:5},{x:7,y:6}],player:{x:2,y:7}},
+    // Level 5: 9x9 — zigzag walls
+    {grid:[
+        [1,1,1,1,1,1,1,1,1],
+        [1,0,0,0,0,0,0,0,1],
+        [1,0,2,1,0,0,0,0,1],
+        [1,0,0,1,0,2,1,0,1],
+        [1,0,0,0,0,0,1,0,1],
+        [1,0,1,0,2,0,0,0,1],
+        [1,0,1,0,0,0,1,0,1],
+        [1,0,3,0,0,0,0,0,1],
+        [1,1,1,1,1,1,1,1,1]
+    ],boxes:[{x:2,y:2},{x:5,y:3},{x:4,y:5}],targets:[{x:7,y:2},{x:1,y:4},{x:7,y:6}],player:{x:2,y:7}},
+    // Level 6: 11x11 — hard 4 boxes with inner maze
+    {grid:[
+        [1,1,1,1,1,1,1,1,1,1,1],
+        [1,0,0,0,0,0,0,0,0,0,1],
+        [1,0,2,1,0,0,0,1,2,0,1],
+        [1,0,0,1,0,0,0,1,0,0,1],
+        [1,0,0,0,0,1,0,0,0,0,1],
+        [1,0,0,0,0,3,0,0,0,0,1],
+        [1,0,0,0,0,1,0,0,0,0,1],
+        [1,0,2,1,0,0,0,1,2,0,1],
+        [1,0,0,1,0,0,0,1,0,0,1],
+        [1,0,0,0,0,0,0,0,0,0,1],
+        [1,1,1,1,1,1,1,1,1,1,1]
+    ],boxes:[{x:2,y:2},{x:8,y:2},{x:2,y:7},{x:8,y:7}],targets:[{x:9,y:1},{x:1,y:3},{x:9,y:6},{x:1,y:8}],player:{x:5,y:5}},
+    // Level 7: 11x11 — extreme
+    {grid:[
+        [1,1,1,1,1,1,1,1,1,1,1],
+        [1,0,0,0,0,0,0,0,0,0,1],
+        [1,0,1,0,2,0,2,0,1,0,1],
+        [1,0,1,0,0,0,0,0,1,0,1],
+        [1,0,0,0,1,0,1,0,0,0,1],
+        [1,0,0,0,0,3,0,0,0,0,1],
+        [1,0,0,0,1,0,1,0,0,0,1],
+        [1,0,1,0,2,0,2,0,1,0,1],
+        [1,0,1,0,0,0,0,0,1,0,1],
+        [1,0,0,0,0,0,0,0,0,0,1],
+        [1,1,1,1,1,1,1,1,1,1,1]
+    ],boxes:[{x:4,y:2},{x:6,y:2},{x:4,y:7},{x:6,y:7}],targets:[{x:1,y:1},{x:9,y:1},{x:1,y:8},{x:9,y:8}],player:{x:5,y:5}},
+    // Level 8: 9x9 — narrow corridors
+    {grid:[
+        [1,1,1,1,1,1,1,1,1],
+        [1,0,1,0,0,0,1,0,1],
+        [1,0,1,0,2,0,1,0,1],
+        [1,0,0,0,0,0,0,0,1],
+        [1,0,1,2,0,2,1,0,1],
+        [1,0,0,0,3,0,0,0,1],
+        [1,0,1,0,0,0,1,0,1],
+        [1,0,1,0,0,0,1,0,1],
+        [1,1,1,1,1,1,1,1,1]
+    ],boxes:[{x:4,y:2},{x:3,y:4},{x:5,y:4}],targets:[{x:1,y:1},{x:7,y:1},{x:4,y:6}],player:{x:4,y:5}},
 ];
 
 function openMazeGame(){
@@ -5387,7 +5656,7 @@ async function startSnake(tryFree){
         if(head.x===snakeFood.x&&head.y===snakeFood.y){snakeScore++;placeFood();playSound('tap');}else snake.pop();
         drawSnake();
         document.getElementById('snakeScore').textContent='🍎 '+snakeScore;
-        document.getElementById('snakeEarning').textContent=Math.min(Math.floor(snakeScore*0.5),10)+' pts';
+        document.getElementById('snakeEarning').textContent=(snakeScore*2)+' pts';
     }
     snakeFrameId=requestAnimationFrame(loop);
     snakeInterval=setInterval(()=>{if(!snakeActive){clearInterval(snakeInterval);return;}snakeTimer--;document.getElementById('snakeTimer').textContent=snakeTimer+'s';if(snakeTimer<=0){snakeActive=false;clearInterval(snakeInterval);cancelAnimationFrame(snakeFrameId);finishSnake();}},1000);
@@ -5441,14 +5710,14 @@ async function finishSnake(){
         snakeActive=false;
         document.onkeydown=null;
         const timeElapsed = 60 - snakeTimer; // seconds elapsed
-        let pts=Math.min(Math.floor(snakeScore*0.5), 8);
+        let pts=snakeScore*2; // 2 pts per fruit eaten
         SN_TARGETS.forEach(t=>{
             if(snakeScore>=t.dots && timeElapsed<=t.secs){
                 pts+=t.bonus;
                 showToast('🎯 Target! +'+t.bonus+' pts!');
             }
         });
-        pts=Math.min(pts,10); // hard cap 10pts
+        pts=Math.min(pts,50); // max 50pts per game
         const rup=fromPoints(pts);
         if(rup>0){
             if(!window._snakeTry)await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'snake',bet:1,survived_seconds:snakeScore});
@@ -5750,9 +6019,8 @@ function initBlockGrid(){
 }
 function generatePieces(){
     blockPieces=[];
-    // Filter pieces by level — higher level = bigger pieces included
-    const maxSize=Math.min(3+blockLevel, BB_PIECES.length);
-    const pool=BB_PIECES.slice(0, maxSize);
+    // All piece types available always — weight smaller pieces less at higher levels
+    const pool=BB_PIECES; // use ALL shapes every time
     // Ensure no 3 same pieces in a row
     const usedIdx=[];
     for(let i=0;i<3;i++){
@@ -6063,9 +6331,9 @@ function exitBlockBlast(){blockActive=false;closeModal('blockblast');}
 // ============================================================
 // 💎 GEM MATCH — Match 3 gems (Candy Crush style)
 // ============================================================
-let gemBet=1,gemActive=false,gemScore=0,gemMoves=20,gemSelected=null,gemGrid=[];
+let gemBet=1,gemActive=false,gemScore=0,gemMoves=15,gemSelected=null,gemGrid=[];
 let gemLevel=1, gemGoalType='', gemGoalCount=0, gemGoalDone=0;
-const GM_ROWS=6,GM_COLS=6;
+const GM_ROWS=7,GM_COLS=7;
 const GEM_TYPES=['💎','🔥','⭐','🍀','💜','🧡'];
 const GEM_COLORS=['#38bdf8','#ef4444','#fbbf24','#10d9a0','#8b5cf6','#f97316'];
 
@@ -6240,7 +6508,7 @@ function levelUpGem(){
 
 async function startGemMatch(){
     initGemGrid();
-    gemScore=0;gemMoves=20;gemActive=true;gemSelected=null;
+    gemScore=0;gemMoves=15;gemActive=true;gemSelected=null;
     gemGoalDone=0;
     document.getElementById('gemSetup').style.display='none';
     document.getElementById('gemGameArea').style.display='block';
@@ -6323,6 +6591,8 @@ function handleGemTap(r,c){
         if(gemMoves<=0) finishGemMatch();
         else setTimeout(()=>checkAutoAdjust(),600);
     }else{
+        // Non-adjacent — show error hint
+        showToast('⚠️ Sirf adjacent gems swap ho sakti hain!');
         gemSelected={r,c};drawGemGrid();
     }
 }
@@ -6385,7 +6655,7 @@ function switchTab(idx){
     if(idx===1)loadLeaderboard();
     else if(idx===3){updateUI();loadRefActivity();updateMilestoneCard();updateBadgeUI();}
     else if(idx===4)loadWithdrawalHistory();
-    if(idx===2){ setTimeout(()=>renderSeasonRewards(),100); }
+    if(idx===2){ setTimeout(()=>{ renderSeasonRewards(); loadJackpotStatus(); },100); }
     // FABs sirf home page (tab 0) pe dikhao
     const fabL=document.getElementById('fabLeft');
     const fabR=document.getElementById('fabRight');
@@ -7581,6 +7851,70 @@ async function randomAdWatch(){
 function closeRandomAdPopup() {
     const p = document.getElementById('randomAdPopup');
     if (p) p.remove();
+}
+
+// ============================================================
+// 🎰 LUCKY 1-50 JACKPOT
+// ============================================================
+async function loadJackpotStatus(){
+    try{
+        const r = await apiGet('/api/jackpot/status');
+        if(r && r.seats_filled !== undefined){
+            const el = document.getElementById('jackpotSeats');
+            if(el) el.textContent = r.seats_filled+'/20';
+        }
+        if(userData && userData.is_admin){
+            const ap = document.getElementById('jackpotAdminPanel');
+            if(ap) ap.style.display = 'block';
+        }
+    }catch(e){}
+}
+
+async function submitJackpotBet(){
+    const betAmt = parseInt(document.getElementById('jackpotBetAmt').value)||0;
+    const num    = parseInt(document.getElementById('jackpotNumber').value)||0;
+    if(betAmt < 100){ showToast('❌ Minimum 100 pts bet karo'); return; }
+    if(num < 1 || num > 50){ showToast('❌ 1 se 50 ke beech number chuno'); return; }
+    const balPts = Math.round((userData.balance||0)*100);
+    if(betAmt > balPts){ showToast('❌ Itne pts nahi hain'); return; }
+    const r = await apiPost('/api/jackpot/bet',{user_id:userData.user_id, amount:betAmt, number:num});
+    if(r && r.success){
+        userData.balance = Math.max(0,(userData.balance||0) - (betAmt/100));
+        updateUI();
+        showToast('✅ Bet confirm! Number: '+num+' | '+betAmt+' pts');
+        document.getElementById('jackpotBetAmt').value = '';
+        document.getElementById('jackpotNumber').value = '';
+        if(r.seats_filled){ const el=document.getElementById('jackpotSeats'); if(el) el.textContent=r.seats_filled; }
+        playSound('earn');
+    } else {
+        showToast('❌ '+(r?.message||'Bet fail ho gayi'));
+    }
+}
+
+async function viewJackpotParticipants(){
+    showToast('🔄 Loading participants...');
+    const r = await apiGet('/api/jackpot/participants');
+    if(r && r.participants && r.participants.length > 0){
+        let msg = '👥 Jackpot Bets ('+r.seats+'):\n\n';
+        r.participants.forEach((p,i)=>{ msg += (i+1)+'. '+p.name+' — No.'+p.number+' ('+p.amount+' pts)\n'; });
+        alert(msg);
+    } else {
+        showToast('👥 Abhi koi bet nahi lagayi hai');
+    }
+}
+
+async function declareJackpotResult(){
+    const winNum = parseInt(document.getElementById('jackpotWinNum').value)||0;
+    if(winNum < 1 || winNum > 50){ showToast('❌ 1-50 ke beech number do'); return; }
+    if(!confirm('Winning number '+winNum+' declare karna chahte ho?')) return;
+    const r = await apiPost('/api/jackpot/declare',{admin_id:userData.user_id, winning_number:winNum});
+    if(r && r.success){
+        showToast('🎰 Result declared! Winners: '+r.winners+' | Total: '+r.total_bets);
+        document.getElementById('jackpotWinNum').value = '';
+        loadJackpotStatus();
+    } else {
+        showToast('❌ '+(r?.message||'Declare fail'));
+    }
 }
 </script>
 </body>
