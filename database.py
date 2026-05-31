@@ -2364,11 +2364,15 @@ class Database:
         '5m':   {'seconds': 300, 'reward_per_sec': 0.002, 'label': '5 Minutes'},
         '10m':  {'seconds': 600, 'reward_per_sec': 0.0015,'label': '10 Minutes'},
         # Skill games
-        'maze':       {'seconds': 120, 'reward_per_sec': 0.003, 'label': 'Sokoban',       'max_reward': 0.25},
-        'snake':      {'seconds': 60,  'reward_per_sec': 0.003, 'label': 'Snake Game',    'max_reward': 0.20},
-        'chess':      {'seconds': 60,  'reward_per_sec': 0.003, 'label': 'Chess',         'max_reward': 0.20},
-        'blockblast': {'seconds': 120, 'reward_per_sec': 0.002, 'label': 'Block Blast',   'max_reward': 0.15},
-        'gemmatch':   {'seconds': 120, 'reward_per_sec': 0.002, 'label': 'Gem Match',     'max_reward': 0.15},
+        'maze':       {'seconds': 120, 'reward_per_sec': 0.003, 'label': 'Sokoban',           'max_reward': 0.25},
+        'snake':      {'seconds': 60,  'reward_per_sec': 0.003, 'label': 'Snake Game',        'max_reward': 0.20},
+        'chess':      {'seconds': 60,  'reward_per_sec': 0.003, 'label': 'Chess',             'max_reward': 0.20},
+        'blockblast': {'seconds': 120, 'reward_per_sec': 0.002, 'label': 'Block Blast',       'max_reward': 0.15},
+        'gemmatch':   {'seconds': 120, 'reward_per_sec': 0.002, 'label': 'Gem Match',         'max_reward': 0.15},
+        # New board & puzzle games — survived_seconds = pts earned in game
+        'ludo':       {'seconds': 200, 'reward_per_sec': 0.001, 'label': 'Ludo',              'max_reward': 0.30},
+        'saapsidi':   {'seconds': 200, 'reward_per_sec': 0.001, 'label': 'Saap Sidi',         'max_reward': 0.25},
+        'colorflow':  {'seconds': 120, 'reward_per_sec': 0.002, 'label': 'Color Flow',        'max_reward': 0.20},
     }
     MAX_DAILY_GAME_EARN = 3.0
 
@@ -2402,7 +2406,7 @@ class Database:
             return {'success': False, 'message': str(e)}
 
     def runner_finish(self, user_id, mode, bet, survived_seconds):
-        """Finish runner — credit reward based on survived time."""
+        """Finish runner/skill game — credit reward."""
         try:
             user_id = int(user_id)
             bet = float(bet)
@@ -2410,18 +2414,35 @@ class Database:
             if mode not in self.RUNNER_MODES:
                 return {'success': False, 'message': 'Invalid mode'}
             mode_info = self.RUNNER_MODES[mode]
+
+            # Board/puzzle games: survived_seconds = pts earned in JS
+            # Convert pts directly to rupees (100 pts = ₹1)
+            if mode in ('ludo', 'saapsidi', 'colorflow'):
+                pts = max(0, survived_seconds)
+                total_reward = round(pts / 100, 4)
+                mode_cap = mode_info.get('max_reward', 0.30)
+                total_reward = min(total_reward, mode_cap)
+                if total_reward > 0:
+                    self.add_game_earning(user_id, total_reward, mode,
+                        f"{mode_info['label']} {pts} pts → +₹{total_reward}")
+                    self.add_live_activity(mode, user_id, total_reward,
+                        f"🎮 {mode_info['label']}: {pts} pts → +₹{total_reward}")
+                return {
+                    'success': True,
+                    'reward': total_reward,
+                    'pts': pts,
+                    'won': pts > 0
+                }
+
+            # Original time-based logic for other games
             total_seconds = mode_info['seconds']
             reward_per_sec = mode_info['reward_per_sec']
-            # Calculate reward: bet back + earnings per second survived
             if survived_seconds <= 0:
                 return {'success': True, 'reward': 0, 'survived': 0, 'message': 'Game over! Kuch nahi mila.'}
             survived_pct = survived_seconds / total_seconds
-            # Bet refund based on % survived
             bet_back = round(bet * survived_pct, 2)
-            # Per second earning
             earned = round(survived_seconds * reward_per_sec, 4)
             total_reward = round(bet_back + earned, 2)
-            # Cap at max possible (per-mode cap + anti-cheat)
             max_reward = round(bet + (total_seconds * reward_per_sec), 2)
             mode_cap = mode_info.get('max_reward', max_reward)
             total_reward = min(total_reward, max_reward, mode_cap)
