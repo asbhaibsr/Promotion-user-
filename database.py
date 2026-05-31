@@ -52,6 +52,7 @@ class Database:
             self.pass_requests = self.db['pass_requests']
             self.notifications = self.db['notifications']
             self.game_states = self.db['game_states']
+            self.jackpot_bets = self.db['jackpot_bets']
 
             self._create_indexes()
             self._init_default_ads()
@@ -89,6 +90,7 @@ class Database:
             self.issues.create_index([('user_id', ASCENDING), ('timestamp', DESCENDING)])
             self.issues.create_index('status')
             self.game_states.create_index([('user_id', ASCENDING), ('date', ASCENDING)], unique=True)
+            self.jackpot_bets.create_index([('user_id', ASCENDING), ('round_id', ASCENDING)])
             logger.info("Database indexes created")
         except Exception as e:
             logger.error(f"Index creation error: {e}")
@@ -1467,46 +1469,305 @@ class Database:
 
     # ========== WITHDRAWAL — UPDATED: min ₹20, check month refs ==========
 
+    def get_used_refer_withdrawals(self, user_id):
+        """
+        Count refer slots used in CURRENT MONTH only.
+        Resets on 30th — so only this month's withdrawals count.
+        Formula: each ₹20 withdrawn = 1 refer slot used.
+        """
+        try:
+            user_id = int(user_id)
+            now = datetime.now()
+            # Current month start
+            month_start = datetime(now.year, now.month, 1).isoformat()
+            # Only count this month's non-rejected withdrawals
+            withdrawals = self.withdrawals.find({
+                'user_id': user_id,
+                'status': {'$in': ['pending', 'approved', 'paid']},
+                'request_date': {'$gte': month_start}
+            })
+            total_withdrawn_rupees = sum(w.get('amount', 0) for w in withdrawals)
+            # Each ₹20 = 1 refer slot used
+            used_slots = int(total_withdrawn_rupees // 20)
+            return used_slots
+        except Exception as e:
+            logger.error(f"Error getting used refer withdrawals: {e}")
+            return 0
+
+    def reset_monthly_withdraw_slots(self):
+        """
+        Called on 30th of each month (via cron/scheduler).
+        Marks all paid withdrawals as 'archived' so slots reset.
+        """
+        try:
+            result = self.withdrawals.update_many(
+                {'status': 'paid'},
+                {'$set': {'status': 'archived', 'archived_at': datetime.now().isoformat()}}
+            )
+            logger.info(f"Monthly reset: {result.modified_count} withdrawals archived")
+            return result.modified_count
+        except Exception as e:
+            logger.error(f"reset_monthly_withdraw_slots error: {e}")
+            return 0
+
     def process_withdrawal(self, user_id, amount, method, details):
         try:
             user_id = int(user_id)
-            amount = float(amount)
-            user = self.get_user(user_id)
+            amount  = float(amount)
+            user    = self.get_user(user_id)
             if not user:
                 return {'success': False, 'message': 'User not found'}
             if user.get('suspicious_activity'):
                 return {'success': False, 'message': 'Account under review'}
             if user.get('withdrawal_blocked'):
                 return {'success': False, 'message': 'Withdrawals blocked. Contact support.'}
+
+            # Date window: only 25th-30th of each month
+            today = datetime.now().day
+            if not (25 <= today <= 30):
+                return {'success': False, 'message': f'Withdraw sirf 25-30 tarikh ko hota hai. Abhi {today} tarikh hai.'}
+
             if user['balance'] < amount:
-                return {'success': False, 'message': f'Insufficient balance. You have ₹{user["balance"]:.2f}'}
-            # UPDATED: minimum ₹20
+                return {'success': False, 'message': f'Insufficient balance. You have Rs.{user["balance"]:.2f}'}
             if amount < self.config.MIN_WITHDRAWAL:
-                return {'success': False, 'message': f'Minimum withdrawal is ₹{self.config.MIN_WITHDRAWAL}'}
-            # UPDATED: check 20 month active refs
-            month_refs = self.get_month_active_refs(user_id)
-            if month_refs < 20:
-                return {'success': False, 'message': f'Is mahine sirf {month_refs}/20 active refs hain. 20 chahiye!'}
+                return {'success': False, 'message': f'Minimum withdrawal is Rs.{self.config.MIN_WITHDRAWAL}'}
+
+            # Formula: fresh_refers × ₹20 = max withdrawal (no upper cap)
+            # Resets on 30th of each month
+            total_refs = user.get('active_refs', 0)
+            used_slots = self.get_used_refer_withdrawals(user_id)
+            fresh_refs = max(0, total_refs - used_slots)
+
+            if fresh_refs < 1:
+                return {'success': False, 'message': f'Pehle 1 refer karo! Fresh refers: {fresh_refs}. Har refer = ₹20 withdrawal.'}
+
+            max_rupees = fresh_refs * 20   # ₹20 per fresh refer, no upper cap
+            if amount > max_rupees:
+                return {'success': False, 'message': f'{fresh_refs} refers × ₹20 = max ₹{max_rupees}. Zyada refers karo!'}
+
+            tier_label = 'Legend' if fresh_refs >= 50 else 'Diamond' if fresh_refs >= 20 else 'Pro' if fresh_refs >= 10 else 'Active' if fresh_refs >= 5 else 'Basic'
+
             pending = self.withdrawals.find_one({'user_id': user_id, 'status': 'pending'})
             if pending:
-                return {'success': False, 'message': 'You already have a pending withdrawal'}
+                return {'success': False, 'message': 'Pehla withdrawal abhi pending hai.'}
+
+            month_refs = self.get_month_active_refs(user_id)
             self.users.update_one({'user_id': user_id}, {'$inc': {'balance': -amount}})
             now = datetime.now().isoformat()
+            slots_used_now = -(-amount_pts // 1000)
             withdrawal = {
                 'user_id': user_id, 'amount': amount, 'method': method, 'details': details,
                 'status': 'pending', 'request_date': now, 'processed_date': None,
                 'user_name': user.get('first_name', ''), 'username': user.get('username', ''),
-                'active_refs': user.get('active_refs', 0), 'month_active_refs': month_refs
+                'active_refs': total_refs, 'month_active_refs': month_refs,
+                'tier': tier_label, 'amount_pts': amount_pts,
+                'used_refer_slots': used_slots + slots_used_now
             }
             result = self.withdrawals.insert_one(withdrawal)
-            self.add_transaction(user_id, 'withdrawal_request', -amount, f"Withdrawal #{str(result.inserted_id)[-6:]}")
-            self.add_live_activity('withdraw_request', user_id, amount, f"requested withdrawal ₹{amount}")
+            self.add_transaction(user_id, 'withdrawal_request', -amount, f"Withdrawal #{str(result.inserted_id)[-6:]} [{tier_label}]")
+            self.add_live_activity('withdraw_request', user_id, amount, f"requested withdrawal Rs.{amount} [{tier_label}]")
             self._update_single_mission_progress(user_id, 'm_withdraw', 1)
             self.user_cache.pop(f"user_{user_id}", None)
-            return {'success': True, 'message': 'Withdrawal request submitted!', 'id': str(result.inserted_id)}
+            return {'success': True, 'message': 'Withdrawal submitted! 25-30 tarikh ke beech process hoga.', 'id': str(result.inserted_id)}
         except Exception as e:
             logger.error(f"Error processing withdrawal: {e}")
             return {'success': False, 'message': 'Internal error. Please try again.'}
+
+    # ========== JACKPOT GAME ==========
+
+    def get_active_jackpot_round(self):
+        """Get current open jackpot round, or create one if none exists."""
+        try:
+            round_doc = self.jackpot_bets.find_one({'status': 'open'}, sort=[('created_at', -1)])
+            if not round_doc:
+                round_doc = {
+                    'status': 'open',
+                    'created_at': datetime.now().isoformat(),
+                    'result_at': (datetime.now() + timedelta(hours=24)).isoformat(),
+                    'winning_number': None,
+                    'total_bets': 0,
+                    'max_seats': 20
+                }
+                inserted = self.jackpot_bets.insert_one(round_doc)
+                round_doc['_id'] = str(inserted.inserted_id)
+            else:
+                round_doc['_id'] = str(round_doc['_id'])
+            return round_doc
+        except Exception as e:
+            logger.error(f"get_active_jackpot_round error: {e}")
+            return None
+
+    def place_jackpot_bet(self, user_id, amount_pts, number):
+        """
+        Place a bet in the current jackpot round.
+        amount_pts: points to bet (minimum 100)
+        number: chosen number 1-50
+        Returns dict with success/message.
+        """
+        try:
+            user_id = int(user_id)
+            amount_pts = int(amount_pts)
+            number = int(number)
+
+            if number < 1 or number > 50:
+                return {'success': False, 'message': 'Number 1 se 50 ke beech hona chahiye'}
+            if amount_pts < 100:
+                return {'success': False, 'message': 'Minimum 100 pts bet karo'}
+
+            user = self.get_user(user_id)
+            if not user:
+                return {'success': False, 'message': 'User not found'}
+
+            # Convert pts to rupees for balance check (100pts = ₹1)
+            amount_rupees = amount_pts / 100.0
+            if user.get('balance', 0) < amount_rupees:
+                return {'success': False, 'message': 'Balance kam hai'}
+
+            round_doc = self.get_active_jackpot_round()
+            if not round_doc:
+                return {'success': False, 'message': 'Jackpot round nahi mila'}
+
+            from bson.objectid import ObjectId
+            round_id = round_doc['_id']
+
+            # Check seats
+            seat_count = self.jackpot_bets.count_documents({'round_id': round_id, 'type': 'bet'})
+            if seat_count >= 20:
+                return {'success': False, 'message': 'Game full hai! 20/20 seats bhar gayi. Next round ka wait karo.'}
+
+            # Check if user already bet in this round
+            existing = self.jackpot_bets.find_one({'round_id': round_id, 'user_id': user_id, 'type': 'bet'})
+            if existing:
+                return {'success': False, 'message': 'Aapne is round mein pehle se bet lagayi hai!'}
+
+            # Deduct balance
+            self.users.update_one({'user_id': user_id}, {'$inc': {'balance': -amount_rupees}})
+
+            # Record bet
+            bet_doc = {
+                'type': 'bet',
+                'round_id': round_id,
+                'user_id': user_id,
+                'user_name': user.get('first_name', 'User'),
+                'username': user.get('username', ''),
+                'amount_pts': amount_pts,
+                'number': number,
+                'placed_at': datetime.now().isoformat(),
+                'result': None  # filled when declared
+            }
+            self.jackpot_bets.insert_one(bet_doc)
+
+            self.add_transaction(user_id, 'jackpot_bet', -amount_rupees, f"Jackpot bet on #{number}")
+            self.user_cache.pop(f"user_{user_id}", None)
+
+            new_seat_count = seat_count + 1
+            return {
+                'success': True,
+                'message': f'Bet confirmed! Number {number} → {amount_pts} pts',
+                'seats_filled': f"{new_seat_count}/20"
+            }
+        except Exception as e:
+            logger.error(f"place_jackpot_bet error: {e}")
+            return {'success': False, 'message': 'Internal error'}
+
+    def get_jackpot_participants(self, round_id=None):
+        """Get all bets in the current (or given) round."""
+        try:
+            if not round_id:
+                round_doc = self.get_active_jackpot_round()
+                if not round_doc:
+                    return []
+                round_id = round_doc['_id']
+            bets = list(self.jackpot_bets.find({'round_id': round_id, 'type': 'bet'}).sort('placed_at', 1))
+            result = []
+            for b in bets:
+                b.pop('_id', None)
+                result.append({
+                    'name': b.get('user_name', 'User'),
+                    'number': b.get('number'),
+                    'amount': b.get('amount_pts'),
+                    'placed_at': b.get('placed_at', '')
+                })
+            return result
+        except Exception as e:
+            logger.error(f"get_jackpot_participants error: {e}")
+            return []
+
+    def declare_jackpot_result(self, winning_number, admin_id):
+        """
+        Admin declares winning number.
+        Winners get: their bet × 40 pts (1 in 50 chance → fair payout).
+        Sends notification to all participants.
+        """
+        try:
+            admin_id = int(admin_id)
+            admin = self.get_user(admin_id)
+            if not admin or not admin.get('is_admin'):
+                return {'success': False, 'message': 'Admin only'}
+
+            winning_number = int(winning_number)
+            if winning_number < 1 or winning_number > 50:
+                return {'success': False, 'message': '1-50 ke beech number do'}
+
+            round_doc = self.jackpot_bets.find_one({'status': 'open'}, sort=[('created_at', -1)])
+            if not round_doc:
+                return {'success': False, 'message': 'Koi open round nahi'}
+
+            from bson.objectid import ObjectId
+            round_id = str(round_doc['_id'])
+            bets = list(self.jackpot_bets.find({'round_id': round_id, 'type': 'bet'}))
+
+            winners = []
+            losers = []
+            for bet in bets:
+                uid = bet['user_id']
+                bet_pts = bet.get('amount_pts', 0)
+                if bet.get('number') == winning_number:
+                    # Win: bet × 40 payout
+                    win_pts = bet_pts * 40
+                    win_rupees = win_pts / 100.0
+                    self.users.update_one({'user_id': uid}, {'$inc': {'balance': win_rupees}})
+                    self.add_transaction(uid, 'jackpot_win', win_rupees, f"Jackpot win! Number {winning_number} → +{win_pts} pts")
+                    self.user_cache.pop(f"user_{uid}", None)
+                    winners.append({'user_id': uid, 'name': bet.get('user_name'), 'pts': win_pts})
+                    # Send win notification
+                    self.add_notification(uid, f"🎰 JACKPOT JEETA! Number {winning_number} khula → +{win_pts} pts aapke wallet mein!", 'jackpot_win')
+                    self.jackpot_bets.update_one({'_id': bet['_id']}, {'$set': {'result': 'win', 'payout_pts': win_pts}})
+                else:
+                    losers.append(uid)
+                    self.add_notification(uid, f"🎰 Jackpot result: {winning_number} khula. Aapka number {bet.get('number')} tha. Better luck next time!", 'jackpot_lose')
+                    self.jackpot_bets.update_one({'_id': bet['_id']}, {'$set': {'result': 'lose'}})
+
+            # Close round
+            self.jackpot_bets.update_one(
+                {'_id': round_doc['_id']},
+                {'$set': {'status': 'closed', 'winning_number': winning_number, 'declared_at': datetime.now().isoformat()}}
+            )
+
+            return {
+                'success': True,
+                'winning_number': winning_number,
+                'total_bets': len(bets),
+                'winners': len(winners),
+                'losers': len(losers),
+                'winner_details': winners
+            }
+        except Exception as e:
+            logger.error(f"declare_jackpot_result error: {e}")
+            return {'success': False, 'message': str(e)}
+
+    def add_notification(self, user_id, message, notif_type='general'):
+        """Add a notification for user."""
+        try:
+            self.notifications.insert_one({
+                'user_id': int(user_id),
+                'message': message,
+                'type': notif_type,
+                'read': False,
+                'created_at': datetime.now().isoformat()
+            })
+        except Exception as e:
+            logger.error(f"add_notification error: {e}")
 
     def get_user_withdrawals(self, user_id, limit=10):
         try:
