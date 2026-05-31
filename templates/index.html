@@ -1160,36 +1160,109 @@
         <!-- NEW GAMES SECTION -->
         <div style="display:flex;align-items:center;gap:8px;margin:14px 0 10px;">
             <div style="flex:1;height:1px;background:var(--border);"></div>
-            <div style="font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;">🎲 Board & Mind Games</div>
+            <div style="font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;">🎲 Board & Puzzle Games</div>
             <div style="flex:1;height:1px;background:var(--border);"></div>
         </div>
         <div class="games-grid">
-            <div class="game-card" onclick="showToast('🎲 Ludo — Coming Soon! 🔜')">
+            <div class="game-card" onclick="openGame('ludo')">
                 <div style="font-size:48px;text-align:center;padding:12px 0 4px;">🎲</div>
                 <div style="padding:8px;">
                     <div class="game-name" style="color:#ef4444;">🎲 Ludo</div>
-                    <div class="game-desc">Multiplayer Board Game</div>
-                    <span class="game-earn-tag" style="color:#ef4444;border-color:#ef4444;background:rgba(239,68,68,0.1);">Coming Soon 🔜</span>
+                    <div class="game-desc">Saanp vs Seedi!</div>
+                    <span class="game-earn-tag" style="color:#ef4444;border-color:#ef4444;background:rgba(239,68,68,0.1);">Win = 30 pts</span>
                 </div>
             </div>
-            <div class="game-card" onclick="showToast('🐍 Saap Sidi — Coming Soon! 🔜')">
+            <div class="game-card" onclick="openGame('saapsidi')">
                 <div style="font-size:48px;text-align:center;padding:12px 0 4px;">🐍</div>
                 <div style="padding:8px;">
                     <div class="game-name" style="color:#22c55e;">🐍 Saap Sidi</div>
-                    <div class="game-desc">Snakes & Ladders</div>
-                    <span class="game-earn-tag" style="color:#22c55e;border-color:#22c55e;background:rgba(34,197,94,0.1);">Coming Soon 🔜</span>
+                    <div class="game-desc">1-100 Board</div>
+                    <span class="game-earn-tag" style="color:#22c55e;border-color:#22c55e;background:rgba(34,197,94,0.1);">Win = 25 pts</span>
                 </div>
             </div>
-            <div class="game-card" onclick="showToast('🧠 Mind Quiz — Coming Soon! 🔜')">
-                <div style="font-size:48px;text-align:center;padding:12px 0 4px;">🧠</div>
+            <div class="game-card" onclick="openGame('colorflow')">
+                <div style="font-size:48px;text-align:center;padding:12px 0 4px;">🔵</div>
                 <div style="padding:8px;">
-                    <div class="game-name" style="color:#8b5cf6;">🧠 Mind Quiz</div>
-                    <div class="game-desc">Math & Memory</div>
-                    <span class="game-earn-tag" style="color:#8b5cf6;border-color:#8b5cf6;background:rgba(139,92,246,0.1);">Tez Dimaag</span>
+                    <div class="game-name" style="color:#8b5cf6;">🌈 Color Flow</div>
+                    <div class="game-desc">Pipes Connect!</div>
+                    <span class="game-earn-tag" style="color:#8b5cf6;border-color:#8b5cf6;background:rgba(139,92,246,0.1);">Solve = 20 pts</span>
                 </div>
             </div>
         </div>
 
+    </div>
+</div>
+
+<!-- LUDO GAME MODAL -->
+<div class="modal" id="ludoModal">
+    <div class="modal-hdr"><div class="back-btn" onclick="exitLudo()">←</div><div class="modal-title">🎲 Ludo</div><div id="ludoBal" style="font-size:11px;color:var(--gold);font-weight:800;">0 pts</div></div>
+    <div id="ludoSetup" style="padding:14px;">
+        <div style="background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:16px;padding:16px;margin-bottom:14px;text-align:center;">
+            <div style="font-size:40px;margin-bottom:6px;">🎲</div>
+            <div style="font-family:'Fredoka One',cursive;font-weight:900;color:#92400e;font-size:18px;">LUDO</div>
+            <div style="font-size:11px;color:#a16207;margin-top:4px;">Computer ke saath khelo — Pehle ghar pahuncho!</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;">
+            <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:8px;">🎯 Rules:</div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.7;">• Tum 🔴 ho, Computer 🔵 hai<br>• 6 aane par token move karo<br>• Saare 4 tokens ghar pahunche = Jeet!<br>• Computer token pe aao = Wapas start</div>
+        </div>
+        <button onclick="startLudo()" style="width:100%;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;padding:14px;border-radius:30px;font-weight:900;font-size:15px;cursor:pointer;font-family:'Fredoka One',cursive;">🎲 Game Shuru Karo!</button>
+    </div>
+    <div id="ludoGame" style="display:none;padding:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-size:11px;font-weight:800;" id="ludoStatus">🎲 Dice Chalao!</div>
+            <div style="font-size:11px;color:var(--text2);">Pts: <span id="ludoPts" style="color:var(--gold);font-weight:900;">0</span></div>
+        </div>
+        <canvas id="ludoCanvas" style="width:100%;border-radius:12px;border:2px solid var(--border);display:block;touch-action:none;"></canvas>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+            <button id="ludoDiceBtn" onclick="rollLudoDice()" style="flex:1;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;padding:13px;border-radius:14px;font-weight:900;font-size:14px;cursor:pointer;">🎲 Dice Chalao</button>
+            <button onclick="exitLudo()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:13px 16px;font-weight:800;cursor:pointer;">✕</button>
+        </div>
+    </div>
+</div>
+
+<!-- SAAP SIDI MODAL -->
+<div class="modal" id="saapsidiModal">
+    <div class="modal-hdr"><div class="back-btn" onclick="exitSaapSidi()">←</div><div class="modal-title">🐍 Saap Sidi</div><div id="ssidiBal" style="font-size:11px;color:var(--gold);font-weight:800;">0 pts</div></div>
+    <div id="ssidiSetup" style="padding:14px;">
+        <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:16px;padding:16px;margin-bottom:14px;text-align:center;">
+            <div style="font-size:40px;margin-bottom:6px;">🐍🪜</div>
+            <div style="font-family:'Fredoka One',cursive;font-weight:900;color:#15803d;font-size:18px;">SAAP SIDI</div>
+            <div style="font-size:11px;color:#166534;margin-top:4px;">100 tak pahuncho — Saap se bacho!</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;">
+            <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:8px;">🎯 Rules:</div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.7;">• Tum 🟡 ho, Computer 🔵 hai<br>• Dice chalao aur move karo<br>• Sidi = Upar jao 🪜 | Saap = Neeche aao 🐍<br>• 100 pe pahuncho = Jeet!</div>
+        </div>
+        <button onclick="startSaapSidi()" style="width:100%;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;padding:14px;border-radius:30px;font-weight:900;font-size:15px;cursor:pointer;font-family:'Fredoka One',cursive;">🎲 Game Shuru Karo!</button>
+    </div>
+    <div id="ssidiGame" style="display:none;padding:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-size:11px;font-weight:800;" id="ssidiStatus">🎲 Dice Chalao!</div>
+            <div id="ssidiDiceResult" style="font-size:18px;font-weight:900;"></div>
+        </div>
+        <canvas id="ssidiCanvas" style="width:100%;border-radius:12px;border:2px solid var(--border);display:block;"></canvas>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+            <button id="ssidiDiceBtn" onclick="rollSaapDice()" style="flex:1;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;padding:13px;border-radius:14px;font-weight:900;font-size:14px;cursor:pointer;">🎲 Dice Chalao</button>
+            <button onclick="exitSaapSidi()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:13px 16px;font-weight:800;cursor:pointer;">✕</button>
+        </div>
+    </div>
+</div>
+
+<!-- COLOR FLOW MODAL -->
+<div class="modal" id="colorflowModal">
+    <div class="modal-hdr"><div class="back-btn" onclick="exitColorFlow()">←</div><div class="modal-title">🌈 Color Flow</div><div id="cfBal" style="font-size:11px;color:var(--gold);font-weight:800;">0 pts</div></div>
+    <div style="padding:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-size:11px;font-weight:800;">Level: <span id="cfLevel" style="color:var(--purple2);">1</span></div>
+            <div style="font-size:11px;">Moves: <span id="cfMoves" style="font-weight:900;color:var(--gold);">0</span></div>
+            <div style="font-size:11px;">Pts: <span id="cfPts" style="font-weight:900;color:var(--green);">0</span></div>
+        </div>
+        <div id="cfGrid" style="background:#0a0f1e;border-radius:14px;border:2px solid rgba(99,102,241,0.4);padding:8px;box-shadow:0 0 20px rgba(99,102,241,0.2);touch-action:none;user-select:none;"></div>
+        <div style="margin-top:10px;display:flex;gap:8px;">
+            <button onclick="cfReset()" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:11px;font-weight:800;cursor:pointer;">↺ Reset</button>
+            <button onclick="exitColorFlow()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:11px 16px;font-weight:800;cursor:pointer;">✕</button>
+        </div>
     </div>
 </div>
 
@@ -2343,8 +2416,8 @@ function toggleLang(){setLang(lang==='hi'?'en':'hi');}
 // ONBOARDING CONTENT
 // ============================================================
 const ONBOARD_CONTENT={
-    hi:`<div class="onboard-section"><div class="onboard-section-title">💡 FilmyFund Kya Hai?</div><div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">FilmyFund ek <b>Telegram Mini App</b> hai jahan aap refer karke, daily bonus lekar aur games khelkar <b>asli paise kama sakte ho</b>.</div></div></div><div class="onboard-section"><div class="onboard-section-title">💰 Paise Kaise Kamayein?</div><div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Apna referral link share karo</b> — jab koi aapke link se join kare, movie group pe jakar movie search kare aur shortlink complete kare, to aapko <b>3 Passes + 60 pts</b> milega.</div></div><div class="onboard-item"><div class="onboard-item-icon">🔁</div><div class="onboard-item-text"><b>Daily ₹0.30 per active user</b> — jo user roz movie search kare aur shortlink complete kare, us har user se tumhe roz 30 pts milega!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — roz login karke bonus claim karo. Streak badhao to bonus amount bhi badhega!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — har din missions complete karo, alag-alag paise aur passes jeetenge.</div></div><div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — offers claim karo, paise aur passes pao.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Games Khelo</b> — Passes use karke Spin, Guess, Coin Flip ya Dice Roll khelke aur points jeeto.</div></div></div><div class="onboard-section"><div class="onboard-section-title">📅 Daily Kya Karna Hai?</div><div class="onboard-item"><div class="onboard-item-icon">✅</div><div class="onboard-item-text"><b>Daily bonus claim karo</b> — streak mat totne do, warna ₹0.05 se shuru karna hoga.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily missions complete karo</b> — har mission alag claim karo.</div></div><div class="onboard-item"><div class="onboard-item-icon">📱</div><div class="onboard-item-text"><b>Apne referred users ko daily yaad dilao</b> — movie search karo aur shortlink puri karo → tumhe 30 pts milega.</div></div></div><div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div><div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Passes earn karo: refer karke (+3), daily bonus (+1), offers claim karke (+1).</div></div></div><div class="onboard-section"><div class="onboard-section-title">💸 Paise Withdraw Karna</div><div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Minimum <b>₹20</b> hone par UPI ya Bank Transfer se withdraw kar sakte ho. Zaruri: <b>Is mahine 20 active referrals</b> hone chahiye. Admin 24-48 ghante mein process karega.</div></div></div>`,
-    en:`<div class="onboard-section"><div class="onboard-section-title">💡 What is FilmyFund?</div><div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">FilmyFund is a <b>Telegram Mini App</b> where you can earn <b>real money</b> by referring friends, claiming daily bonuses, and playing games.</div></div></div><div class="onboard-section"><div class="onboard-section-title">💰 How to Earn Money?</div><div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Share your referral link</b> — when someone joins via your link, searches a movie & completes shortlink, you get <b>3 Passes + 60 pts</b>.</div></div><div class="onboard-item"><div class="onboard-item-icon">🔁</div><div class="onboard-item-text"><b>Daily ₹0.30 per active user</b> — for each referred user who completes shortlink daily, you earn ₹0.30!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — claim bonus every day. Maintain streak to increase bonus!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — complete missions, claim each one separately.</div></div><div class="onboard-item"><div class="onboard-item-icon">💎</div><div class="onboard-item-text"><b>Sponsored Offers</b> — claim offers to earn money and passes.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Play Games</b> — use Passes to play Spin, Guess, Coin Flip or Dice Roll!</div></div></div><div class="onboard-section"><div class="onboard-section-title">📅 Daily Tasks</div><div class="onboard-item"><div class="onboard-item-icon">✅</div><div class="onboard-item-text"><b>Claim daily bonus</b> — don't break streak or restart from ₹0.05.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Complete daily missions</b> — claim each mission separately.</div></div><div class="onboard-item"><div class="onboard-item-icon">📱</div><div class="onboard-item-text"><b>Remind referred users daily</b> — search movie → you get ₹0.30.</div></div></div><div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div><div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Earn passes: refer (+3), daily bonus (+1), offers (+1).</div></div></div><div class="onboard-section"><div class="onboard-section-title">💸 Withdrawals</div><div class="onboard-item"><div class="onboard-item-icon">💰</div><div class="onboard-item-text">Minimum <b>₹20</b>. Required: <b>20 active referrals this month</b>. Admin processes in 24-48 hrs.</div></div></div>`
+    hi:`<div class="onboard-section"><div class="onboard-section-title">💡 FilmyFund Kya Hai?</div><div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">FilmyFund ek <b>Telegram Mini App</b> hai jahan aap refer karke, daily bonus lekar aur games khelkar <b>asli paise kama sakte ho</b>. Free hai, koi investment nahi.</div></div></div><div class="onboard-section"><div class="onboard-section-title">💰 Paise Kaise Kamayein?</div><div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Refer karo</b> — apna referral link share karo. Jab koi join kare aur active rahe, tumhe <b>3 Passes + 60 pts</b> milega.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — roz login karo aur bonus claim karo. Streak badhao to bonus bhi badhega!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — har din alag missions complete karo aur points jeeto.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Games Khelo</b> — Spin, Ludo, Saap Sidi, Color Flow, Snake, Chess aur zyada! Pass use karo, points jeeto.</div></div></div><div class="onboard-section"><div class="onboard-section-title">💸 Withdraw Kaise Karein?</div><div class="onboard-item"><div class="onboard-item-icon">🔑</div><div class="onboard-item-text"><b>1 refer karo</b> → ₹20 tak withdraw ho sakta hai<br><b>2 refers</b> → ₹40 | <b>5 refers</b> → ₹100<br><b>Formula:</b> Refers × ₹20 = Max Withdrawal</div></div><div class="onboard-item"><div class="onboard-item-icon">📅</div><div class="onboard-item-text"><b>Withdraw window: har mahine 25–30 tarikh</b> ko hi withdraw hoga. UPI ya Bank dono se.</div></div><div class="onboard-item"><div class="onboard-item-icon">⚠️</div><div class="onboard-item-text"><b>Minimum ₹20</b> chahiye withdraw ke liye. Realistic earning: ₹50–200/month active use se.</div></div></div><div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div><div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Passes kaise milte hain: refer karo (+3), daily bonus (+1), missions complete karo.</div></div></div>`,
+    en:`<div class="onboard-section"><div class="onboard-section-title">💡 What is FilmyFund?</div><div class="onboard-item"><div class="onboard-item-icon">🤖</div><div class="onboard-item-text">FilmyFund is a <b>Telegram Mini App</b> where you earn <b>real money</b> by referring friends, claiming daily bonuses, and playing games. It's FREE — no investment needed.</div></div></div><div class="onboard-section"><div class="onboard-section-title">💰 How to Earn?</div><div class="onboard-item"><div class="onboard-item-icon">👥</div><div class="onboard-item-text"><b>Refer friends</b> — share your link. When someone joins and stays active, you get <b>3 Passes + 60 pts</b>.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎁</div><div class="onboard-item-text"><b>Daily Bonus</b> — login daily and claim bonus. Build your streak for bigger bonuses!</div></div><div class="onboard-item"><div class="onboard-item-icon">🎯</div><div class="onboard-item-text"><b>Daily Missions</b> — complete missions every day, earn points.</div></div><div class="onboard-item"><div class="onboard-item-icon">🎮</div><div class="onboard-item-text"><b>Play Games</b> — Spin, Ludo, Snakes & Ladders, Color Flow, Snake, Chess and more!</div></div></div><div class="onboard-section"><div class="onboard-section-title">💸 Withdrawals</div><div class="onboard-item"><div class="onboard-item-icon">🔑</div><div class="onboard-item-text"><b>1 refer</b> → ₹20 max | <b>2 refers</b> → ₹40 | <b>5 refers</b> → ₹100<br><b>Formula:</b> Refers × ₹20 = Max Withdrawal (no upper cap!)</div></div><div class="onboard-item"><div class="onboard-item-icon">📅</div><div class="onboard-item-text"><b>Withdrawal window: 25th–30th of each month</b> only. Via UPI or Bank Transfer.</div></div><div class="onboard-item"><div class="onboard-item-icon">⚠️</div><div class="onboard-item-text">Minimum ₹20. Realistic: ₹50–200/month with active use.</div></div></div><div class="onboard-section"><div class="onboard-section-title">🎟️ Passes System</div><div class="onboard-item"><div class="onboard-item-icon">🎟️</div><div class="onboard-item-text"><b>1 Pass = 1 Game</b>. Earn passes: refer (+3), daily bonus (+1), missions.</div></div></div>`
 };
 
 let obLang='hi';
@@ -3903,7 +3976,7 @@ function updateMissionsUI(){
             </div>`;
         }else if(isDone){
             const btnId='claimBtn_'+m.id;
-            statusHtml=`<button id="${btnId}" class="mission-claim-btn" style="margin-top:8px;position:relative;overflow:hidden;" onclick="claimSingleMission(${JSON.stringify(m.id)},${m.reward})">
+            statusHtml=`<button id="${btnId}" class="mission-claim-btn" style="margin-top:8px;position:relative;overflow:hidden;" onclick="claimSingleMission('${m.id}',${m.reward})">
                 <span id="${btnId}_txt">🎯 Claim ${rewardTxt}</span>
                 <span id="${btnId}_spin" style="display:none;">⏳ Claiming...</span>
             </button>`;
@@ -5228,12 +5301,15 @@ function openGame(g,tryFree){
     else if(g==='dice'){resetDiceUI();openModal('dice');}
     else if(g==='color'){resetColorUI();openModal('color');}
     else if(g==='crash'){resetCrashUI();renderCrashHistory();openModal('crash');}
-    else if(g==='runner'){openRunnerGame();}
+    else if(g==='runner'){showToast('🏃 Runner game hataya gaya');return;}
     else if(g==='maze'){openMazeGame();}
     else if(g==='snake'){openSnakeGame();}
     else if(g==='chess'){openChessGame();}
     else if(g==='blockblast'){openBlockGame();}
     else if(g==='gemmatch'){openGemGame();}
+    else if(g==='ludo'){openLudoGame();}
+    else if(g==='saapsidi'){openSaapSidiGame();}
+    else if(g==='colorflow'){openColorFlowGame();}
 }
 
 // Show popup when user has no passes
@@ -7852,6 +7928,405 @@ function closeRandomAdPopup() {
     const p = document.getElementById('randomAdPopup');
     if (p) p.remove();
 }
+
+// ============================================================
+// 🎲 LUDO GAME — vs Computer (2 tokens each, first to home wins)
+// ============================================================
+let ludoActive=false,ludoPts=0,ludoTurn='player',ludoDiceVal=0,ludoRolled=false;
+let ludoPlayerTokens=[{pos:0,home:false},{pos:0,home:false},{pos:0,home:false},{pos:0,home:false}];
+let ludoCompTokens=[{pos:0,home:false},{pos:0,home:false},{pos:0,home:false},{pos:0,home:false}];
+const LUDO_HOME=57; // 57 steps = home for each color track
+
+function openLudoGame(){
+    document.getElementById('ludoSetup').style.display='block';
+    document.getElementById('ludoGame').style.display='none';
+    document.getElementById('ludoBal').textContent=toPoints(userData.balance||0)+' pts';
+    openModal('ludo');
+}
+function startLudo(){
+    ludoActive=true;ludoPts=0;ludoTurn='player';ludoDiceVal=0;ludoRolled=false;
+    ludoPlayerTokens=[{pos:-1,home:false},{pos:-1,home:false},{pos:-1,home:false},{pos:-1,home:false}];
+    ludoCompTokens=[{pos:-1,home:false},{pos:-1,home:false},{pos:-1,home:false},{pos:-1,home:false}];
+    document.getElementById('ludoSetup').style.display='none';
+    document.getElementById('ludoGame').style.display='block';
+    document.getElementById('ludoPts').textContent='0';
+    document.getElementById('ludoStatus').textContent='🎲 Dice Chalao!';
+    document.getElementById('ludoDiceBtn').disabled=false;
+    const c=document.getElementById('ludoCanvas');
+    c.width=Math.min(window.innerWidth-40,360);
+    c.height=c.width;
+    drawLudo();
+}
+function rollLudoDice(){
+    if(!ludoActive||ludoRolled)return;
+    ludoDiceVal=Math.ceil(Math.random()*6);
+    ludoRolled=true;
+    document.getElementById('ludoDiceBtn').disabled=true;
+    const faces=['','⚀','⚁','⚂','⚃','⚄','⚅'];
+    document.getElementById('ludoStatus').textContent='🎲 '+faces[ludoDiceVal]+' '+ludoDiceVal+' aaya!';
+    drawLudo();
+    // Check movable tokens
+    const movable=ludoPlayerTokens.filter(t=>!t.home&&(t.pos===-1?ludoDiceVal===6:t.pos+ludoDiceVal<=LUDO_HOME));
+    if(movable.length===0){
+        document.getElementById('ludoStatus').textContent='😞 Koi move nahi! Computer ki bari...';
+        setTimeout(ludoCompTurn,1200);
+    } else if(movable.length===1){
+        ludoMoveToken('player',ludoPlayerTokens.indexOf(movable[0]));
+    } else {
+        document.getElementById('ludoStatus').textContent='🎯 Token tap karo! ('+ludoDiceVal+' aaya)';
+        document.getElementById('ludoDiceBtn').disabled=true;
+        drawLudo(true); // highlight movable
+    }
+}
+function ludoMoveToken(side,idx){
+    const tokens=side==='player'?ludoPlayerTokens:ludoCompTokens;
+    const t=tokens[idx];
+    if(t.home)return;
+    if(t.pos===-1){if(ludoDiceVal!==6)return;t.pos=0;}
+    else{t.pos=Math.min(t.pos+ludoDiceVal,LUDO_HOME);}
+    if(t.pos===LUDO_HOME){t.home=true;ludoPts+=5;document.getElementById('ludoPts').textContent=ludoPts;}
+    // Check capture
+    if(side==='player'){
+        ludoCompTokens.forEach(ct=>{if(!ct.home&&ct.pos===t.pos&&ct.pos>0){ct.pos=-1;ludoPts+=3;document.getElementById('ludoPts').textContent=ludoPts;showToast('💥 Computer ka token gaya!');}});
+    }
+    drawLudo();
+    // Check win
+    if(ludoPlayerTokens.filter(t=>t.home).length===4){ludoWin();return;}
+    if(ludoCompTokens.filter(t=>t.home).length===4){ludoLose();return;}
+    // Bonus turn on 6
+    if(ludoDiceVal===6&&side==='player'){
+        ludoRolled=false;document.getElementById('ludoDiceBtn').disabled=false;
+        document.getElementById('ludoStatus').textContent='🎉 6 aaya! Ek aur chance!';
+        return;
+    }
+    ludoRolled=false;
+    if(side==='player'){setTimeout(ludoCompTurn,800);}
+    else{document.getElementById('ludoDiceBtn').disabled=false;document.getElementById('ludoStatus').textContent='🎲 Teri bari! Dice chalao';}
+}
+function ludoCompTurn(){
+    const cv=Math.ceil(Math.random()*6);
+    const faces=['','⚀','⚁','⚂','⚃','⚄','⚅'];
+    document.getElementById('ludoStatus').textContent='🤖 Computer: '+faces[cv]+' '+cv;
+    ludoDiceVal=cv;
+    const movable=ludoCompTokens.filter(t=>!t.home&&(t.pos===-1?cv===6:t.pos+cv<=LUDO_HOME));
+    if(movable.length>0){
+        // Smart: prefer capture, else furthest
+        let best=movable.reduce((a,b)=>b.pos>a.pos?b:a);
+        // Check if any comp token can capture player
+        const capturable=movable.filter(t=>{const np=t.pos===-1?0:t.pos+cv;return ludoPlayerTokens.some(p=>!p.home&&p.pos===np&&p.pos>0);});
+        if(capturable.length>0)best=capturable[0];
+        setTimeout(()=>ludoMoveToken('comp',ludoCompTokens.indexOf(best)),600);
+    } else {
+        setTimeout(()=>{
+            document.getElementById('ludoStatus').textContent='🎲 Teri bari!';
+            ludoDiceVal=0;ludoRolled=false;
+            document.getElementById('ludoDiceBtn').disabled=false;
+        },800);
+    }
+    if(cv===6&&movable.length>0)setTimeout(ludoCompTurn,2000);
+}
+async function ludoWin(){
+    ludoActive=false;
+    showToast('🏆 Tum Jeete! +'+ludoPts+' pts!');
+    document.getElementById('ludoStatus').textContent='🏆 Tum Jeete! +'+ludoPts+' pts!';
+    document.getElementById('ludoDiceBtn').disabled=true;
+    const rup=fromPoints(ludoPts);
+    if(rup>0){userData.balance=(userData.balance||0)+rup;updateUI();}
+    await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'ludo',bet:0,survived_seconds:ludoPts}).catch(()=>{});
+    setTimeout(()=>{document.getElementById('ludoSetup').style.display='block';document.getElementById('ludoGame').style.display='none';},3000);
+}
+function ludoLose(){
+    ludoActive=false;
+    showToast('😢 Computer Jeeta! Dobara khelo!');
+    document.getElementById('ludoStatus').textContent='😢 Computer Jeeta!';
+    document.getElementById('ludoDiceBtn').disabled=true;
+    setTimeout(()=>{document.getElementById('ludoSetup').style.display='block';document.getElementById('ludoGame').style.display='none';},2000);
+}
+function drawLudo(highlight){
+    const c=document.getElementById('ludoCanvas');if(!c)return;
+    const ctx=c.getContext('2d');
+    const W=c.width,cs=W/9;
+    ctx.clearRect(0,0,W,W);
+    // Board colors
+    const colors=['#ef4444','#22c55e','#3b82f6','#eab308'];
+    // Draw board bg
+    ctx.fillStyle='#fff8f0';ctx.fillRect(0,0,W,W);
+    // 4 home squares
+    [[0,0,'#fecaca'],[6,0,'#bbf7d0'],[0,6,'#bfdbfe'],[6,6,'#fef08a']].forEach(([x,y,c])=>{
+        ctx.fillStyle=c;ctx.fillRect(x*cs,y*cs,3*cs,3*cs);
+        ctx.strokeStyle='rgba(0,0,0,0.1)';ctx.lineWidth=1;ctx.strokeRect(x*cs,y*cs,3*cs,3*cs);
+    });
+    // Center triangle pieces
+    ctx.fillStyle='#ef4444';ctx.beginPath();ctx.moveTo(3*cs,3*cs);ctx.lineTo(4.5*cs,4.5*cs);ctx.lineTo(3*cs,6*cs);ctx.fill();
+    ctx.fillStyle='#22c55e';ctx.beginPath();ctx.moveTo(3*cs,3*cs);ctx.lineTo(4.5*cs,4.5*cs);ctx.lineTo(6*cs,3*cs);ctx.fill();
+    ctx.fillStyle='#3b82f6';ctx.beginPath();ctx.moveTo(6*cs,3*cs);ctx.lineTo(4.5*cs,4.5*cs);ctx.lineTo(6*cs,6*cs);ctx.fill();
+    ctx.fillStyle='#eab308';ctx.beginPath();ctx.moveTo(3*cs,6*cs);ctx.lineTo(4.5*cs,4.5*cs);ctx.lineTo(6*cs,6*cs);ctx.fill();
+    // Grid lines
+    ctx.strokeStyle='rgba(0,0,0,0.08)';ctx.lineWidth=0.5;
+    for(let i=0;i<=9;i++){ctx.beginPath();ctx.moveTo(i*cs,0);ctx.lineTo(i*cs,W);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i*cs);ctx.lineTo(W,i*cs);ctx.stroke();}
+    // Player tokens
+    ludoPlayerTokens.forEach((t,i)=>{
+        if(t.home){ctx.fillStyle='#ef4444';ctx.beginPath();ctx.arc(4.5*cs+((i%2)-.5)*cs*0.6,(4.5+Math.floor(i/2)*.6-.3)*cs,cs*0.28,0,Math.PI*2);ctx.fill();}
+        else if(t.pos>=0){const px=(t.pos%9)*cs+cs/2,py=Math.floor(t.pos/9)*cs+cs/2;ctx.fillStyle='#ef4444';ctx.shadowColor='rgba(239,68,68,0.5)';ctx.shadowBlur=6;ctx.beginPath();ctx.arc(px,py,cs*0.3,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
+        else{const sx=[cs,1.5*cs][i%2],sy=[cs,cs,(2*cs),(2*cs)][i];ctx.fillStyle='rgba(239,68,68,0.4)';ctx.beginPath();ctx.arc(sx+(i>1?0:0),sy+(i%2)*0,cs*0.28,0,Math.PI*2);ctx.fill();}
+    });
+    // Comp tokens
+    ludoCompTokens.forEach((t,i)=>{
+        if(t.home){ctx.fillStyle='#22c55e';ctx.beginPath();ctx.arc(4.5*cs+((i%2)-.5)*cs*0.6,(4+Math.floor(i/2)*.6-.3)*cs,cs*0.28,0,Math.PI*2);ctx.fill();}
+        else if(t.pos>=0){const px=W-((t.pos%9)+1)*cs+cs/2,py=Math.floor(t.pos/9)*cs+cs/2;ctx.fillStyle='#22c55e';ctx.shadowColor='rgba(34,197,94,0.5)';ctx.shadowBlur=6;ctx.beginPath();ctx.arc(px,py,cs*0.3,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
+        else{ctx.fillStyle='rgba(34,197,94,0.4)';ctx.beginPath();ctx.arc((7+i%2)*cs,cs+(i%2)*0.5*cs,cs*0.28,0,Math.PI*2);ctx.fill();}
+    });
+    // Labels
+    ctx.fillStyle='rgba(0,0,0,0.6)';ctx.font=`${cs*0.3}px 'Fredoka One',cursive`;ctx.textAlign='center';
+    ctx.fillText('🔴 TUM',1.5*cs,W-0.3*cs);
+    ctx.fillText('🟢 CPU',7.5*cs,W-0.3*cs);
+}
+function exitLudo(){ludoActive=false;closeModal('ludo');}
+
+// ============================================================
+// 🐍 SAAP SIDI — Snakes & Ladders (full 10×10 board)
+// ============================================================
+let ssActive=false,ssPlayerPos=0,ssCompPos=0,ssTurn='player',ssPts=0;
+const SS_SNAKES={17:7,54:34,62:19,64:60,87:24,93:73,95:75,99:78};
+const SS_LADDERS={4:14,9:31,20:38,28:84,40:59,51:67,63:81,71:91};
+
+function openSaapSidiGame(){
+    document.getElementById('ssidiSetup').style.display='block';
+    document.getElementById('ssidiGame').style.display='none';
+    document.getElementById('ssidiBal').textContent=toPoints(userData.balance||0)+' pts';
+    openModal('saapsidi');
+}
+function startSaapSidi(){
+    ssActive=true;ssPlayerPos=0;ssCompPos=0;ssTurn='player';ssPts=0;
+    document.getElementById('ssidiSetup').style.display='none';
+    document.getElementById('ssidiGame').style.display='block';
+    document.getElementById('ssidiStatus').textContent='🎲 Teri bari! Dice chalao!';
+    document.getElementById('ssidiDiceBtn').disabled=false;
+    document.getElementById('ssidiDiceResult').textContent='';
+    const c=document.getElementById('ssidiCanvas');
+    c.width=Math.min(window.innerWidth-40,360);c.height=c.width;
+    drawSaapSidi();
+}
+function rollSaapDice(){
+    if(!ssActive||ssTurn!=='player')return;
+    ssTurn='rolling';
+    document.getElementById('ssidiDiceBtn').disabled=true;
+    const val=Math.ceil(Math.random()*6);
+    const faces=['','⚀','⚁','⚂','⚃','⚄','⚅'];
+    document.getElementById('ssidiDiceResult').textContent=faces[val];
+    document.getElementById('ssidiStatus').textContent='🎲 '+val+' aaya!';
+    setTimeout(()=>moveSaapToken('player',val),500);
+}
+function moveSaapToken(who,val){
+    let pos=who==='player'?ssPlayerPos:ssCompPos;
+    const newPos=pos+val;
+    if(newPos>100){
+        document.getElementById('ssidiStatus').textContent=who==='player'?'⚠️ Zyada ho gaya! Ruk!':'🤖 CPU ruk gaya!';
+        if(who==='player'){ssTurn='comp';setTimeout(ssCompTurn,1000);}
+        else{ssTurn='player';document.getElementById('ssidiDiceBtn').disabled=false;}
+        return;
+    }
+    pos=newPos;
+    let msg='';
+    if(SS_LADDERS[pos]){const to=SS_LADDERS[pos];pos=to;msg=`🪜 Sidi! ${newPos}→${to}`;ssPts+=3;}
+    else if(SS_SNAKES[pos]){const to=SS_SNAKES[pos];pos=to;msg=`🐍 Saap! ${newPos}→${to}`;if(who==='player')ssPts=Math.max(0,ssPts-1);}
+    if(who==='player')ssPlayerPos=pos;else ssCompPos=pos;
+    drawSaapSidi();
+    if(msg)showToast(msg);
+    if(pos>=100){
+        if(who==='player')ssWin();else ssLose();
+        return;
+    }
+    if(who==='player'){ssTurn='comp';setTimeout(ssCompTurn,1200);}
+    else{ssTurn='player';document.getElementById('ssidiDiceBtn').disabled=false;document.getElementById('ssidiStatus').textContent='🎲 Teri bari!';}
+}
+function ssCompTurn(){
+    const val=Math.ceil(Math.random()*6);
+    const faces=['','⚀','⚁','⚂','⚃','⚄','⚅'];
+    document.getElementById('ssidiStatus').textContent='🤖 CPU: '+faces[val]+' '+val;
+    document.getElementById('ssidiDiceResult').textContent=faces[val];
+    setTimeout(()=>moveSaapToken('comp',val),600);
+}
+async function ssWin(){
+    ssActive=false;ssPts+=25;
+    showToast('🏆 100 pahunch gaye! +'+ssPts+' pts!');
+    document.getElementById('ssidiStatus').textContent='🏆 TUM JEETE! +'+ssPts+' pts!';
+    document.getElementById('ssidiDiceBtn').disabled=true;
+    const rup=fromPoints(ssPts);if(rup>0){userData.balance=(userData.balance||0)+rup;updateUI();}
+    await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'saapsidi',bet:0,survived_seconds:ssPts}).catch(()=>{});
+    setTimeout(()=>{document.getElementById('ssidiSetup').style.display='block';document.getElementById('ssidiGame').style.display='none';},3000);
+}
+function ssLose(){
+    ssActive=false;
+    showToast('😢 CPU Jeeta! Dobara khelo!');
+    document.getElementById('ssidiStatus').textContent='😢 CPU Jeeta!';
+    setTimeout(()=>{document.getElementById('ssidiSetup').style.display='block';document.getElementById('ssidiGame').style.display='none';},2000);
+}
+function drawSaapSidi(){
+    const c=document.getElementById('ssidiCanvas');if(!c)return;
+    const ctx=c.getContext('2d');
+    const W=c.width,cs=W/10;
+    ctx.clearRect(0,0,W,W);
+    // Board squares
+    const COLORS=['#fef9c3','#f0fdf4','#eff6ff','#fdf2f8','#fff7ed'];
+    for(let i=0;i<100;i++){
+        const num=100-i;
+        const row=Math.floor(i/10);
+        const col=row%2===0?9-(i%10):i%10;
+        const x=col*cs,y=row*cs;
+        ctx.fillStyle=COLORS[i%5];ctx.fillRect(x,y,cs,cs);
+        ctx.strokeStyle='rgba(0,0,0,0.08)';ctx.lineWidth=0.5;ctx.strokeRect(x,y,cs,cs);
+        ctx.fillStyle='rgba(0,0,0,0.4)';ctx.font=`${cs*0.22}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='top';
+        ctx.fillText(num,x+cs/2,y+2);
+    }
+    // Draw snakes (red lines)
+    ctx.lineWidth=cs*0.18;ctx.lineCap='round';
+    Object.entries(SS_SNAKES).forEach(([from,to])=>{
+        const [fx,fy]=ssPos(parseInt(from),cs);const [tx,ty]=ssPos(parseInt(to),cs);
+        ctx.strokeStyle='rgba(239,68,68,0.7)';ctx.beginPath();ctx.moveTo(fx,fy);ctx.quadraticCurveTo((fx+tx)/2+cs,fy,tx,ty);ctx.stroke();
+        ctx.fillStyle='#ef4444';ctx.font=`${cs*0.4}px sans-serif`;ctx.fillText('🐍',fx,fy-cs*0.1);
+    });
+    // Draw ladders (green lines)
+    ctx.lineWidth=cs*0.12;
+    Object.entries(SS_LADDERS).forEach(([from,to])=>{
+        const [fx,fy]=ssPos(parseInt(from),cs);const [tx,ty]=ssPos(parseInt(to),cs);
+        ctx.strokeStyle='rgba(34,197,94,0.8)';ctx.beginPath();ctx.moveTo(fx,fy);ctx.lineTo(tx,ty);ctx.stroke();
+        ctx.font=`${cs*0.35}px sans-serif`;ctx.fillText('🪜',fx,fy);
+    });
+    // Player & comp tokens
+    if(ssPlayerPos>0){const [x,y]=ssPos(ssPlayerPos,cs);ctx.fillStyle='#fbbf24';ctx.shadowColor='rgba(251,191,36,0.6)';ctx.shadowBlur=8;ctx.beginPath();ctx.arc(x-cs*0.15,y,cs*0.28,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#fff';ctx.font=`${cs*0.3}px sans-serif`;ctx.textAlign='center';ctx.fillText('🟡',x-cs*0.15,y+cs*0.1);}
+    if(ssCompPos>0){const [x,y]=ssPos(ssCompPos,cs);ctx.fillStyle='#3b82f6';ctx.shadowColor='rgba(59,130,246,0.6)';ctx.shadowBlur=8;ctx.beginPath();ctx.arc(x+cs*0.15,y,cs*0.28,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#fff';ctx.font=`${cs*0.3}px sans-serif`;ctx.textAlign='center';ctx.fillText('🔵',x+cs*0.15,y+cs*0.1);}
+}
+function ssPos(n,cs){
+    const i=100-n;const row=Math.floor(i/10);const col=row%2===0?9-(i%10):i%10;
+    return [col*cs+cs/2,row*cs+cs/2];
+}
+function exitSaapSidi(){ssActive=false;closeModal('saapsidi');}
+
+// ============================================================
+// 🌈 COLOR FLOW — Pipe Puzzle Game
+// ============================================================
+let cfActive=false,cfLevel=1,cfMoves=0,cfPts=0;
+let cfSize=5,cfGrid=[],cfPaths={},cfDragging=null,cfCurrentPath=[];
+const CF_LEVELS=[
+    {size:5,pairs:{R:[[0,0],[4,4]],G:[[0,4],[4,0]],B:[[2,0],[2,4]],Y:[[0,2],[4,2]],P:[[1,1],[3,3]]}},
+    {size:5,pairs:{R:[[0,0],[3,4]],G:[[1,0],[4,3]],B:[[0,3],[4,1]],Y:[[2,1],[2,4]],P:[[0,4],[4,0]]}},
+    {size:6,pairs:{R:[[0,0],[5,5]],G:[[0,5],[5,0]],B:[[0,2],[5,3]],Y:[[2,0],[3,5]],P:[[1,1],[4,4]],O:[[3,1],[2,4]]}},
+    {size:6,pairs:{R:[[0,0],[4,5]],G:[[0,3],[5,2]],B:[[1,0],[5,4]],Y:[[0,5],[5,0]],P:[[2,2],[3,3]],O:[[3,1],[2,4]]}},
+    {size:7,pairs:{R:[[0,0],[6,6]],G:[[0,6],[6,0]],B:[[0,3],[6,3]],Y:[[3,0],[3,6]],P:[[1,1],[5,5]],O:[[1,5],[5,1]],W:[[3,3],[0,6]]}},
+    {size:7,pairs:{R:[[0,0],[5,6]],G:[[1,0],[6,5]],B:[[0,4],[6,2]],Y:[[2,0],[4,6]],P:[[0,6],[6,0]],O:[[3,2],[3,4]],W:[[2,3],[4,3]]}},
+];
+const CF_COLORS={R:'#ef4444',G:'#22c55e',B:'#3b82f6',Y:'#eab308',P:'#a855f7',O:'#f97316',W:'#e2e8f0'};
+
+function openColorFlowGame(){
+    cfActive=true;cfLevel=1;cfMoves=0;cfPts=0;
+    document.getElementById('cfBal').textContent=toPoints(userData.balance||0)+' pts';
+    document.getElementById('cfLevel').textContent=cfLevel;
+    document.getElementById('cfMoves').textContent=cfMoves;
+    document.getElementById('cfPts').textContent=cfPts;
+    openModal('colorflow');
+    cfLoadLevel();
+}
+function cfLoadLevel(){
+    const lv=CF_LEVELS[Math.min(cfLevel-1,CF_LEVELS.length-1)];
+    cfSize=lv.size;cfPaths={};cfDragging=null;cfCurrentPath=[];
+    cfGrid=Array.from({length:cfSize},()=>Array(cfSize).fill(null));
+    Object.entries(lv.pairs).forEach(([k,[a,b]])=>{
+        cfGrid[a[0]][a[1]]={color:k,dot:true};
+        cfGrid[b[0]][b[1]]={color:k,dot:true};
+        cfPaths[k]=[];
+    });
+    cfRenderGrid();
+}
+function cfRenderGrid(){
+    const cont=document.getElementById('cfGrid');if(!cont)return;
+    const W=Math.min(window.innerWidth-50,340);
+    const cs=Math.floor(W/cfSize);
+    cont.style.width=cs*cfSize+'px';cont.style.height=cs*cfSize+'px';
+    cont.style.display='grid';cont.style.gridTemplateColumns=`repeat(${cfSize},${cs}px)`;
+    cont.style.gap='2px';cont.style.margin='0 auto';
+    cont.innerHTML='';
+    for(let r=0;r<cfSize;r++){
+        for(let c2=0;c2<cfSize;c2++){
+            const cell=document.createElement('div');
+            cell.style.cssText=`width:${cs}px;height:${cs}px;border-radius:${cs*0.15}px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);position:relative;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;justify-content:center;`;
+            const g=cfGrid[r][c2];
+            if(g){
+                cell.style.background=CF_COLORS[g.color]+(g.dot?'':'88');
+                if(g.dot){
+                    const dot=document.createElement('div');
+                    dot.style.cssText=`width:${cs*0.55}px;height:${cs*0.55}px;border-radius:50%;background:${CF_COLORS[g.color]};border:2px solid rgba(255,255,255,0.6);box-shadow:0 0 8px ${CF_COLORS[g.color]};`;
+                    cell.appendChild(dot);
+                }
+            }
+            cell.dataset.r=r;cell.dataset.c=c2;
+            cell.addEventListener('mousedown',cfStart);cell.addEventListener('touchstart',cfStart,{passive:false});
+            cell.addEventListener('mouseenter',cfMove);cell.addEventListener('touchmove',cfTouchMove,{passive:false});
+            cont.appendChild(cell);
+        }
+    }
+    document.addEventListener('mouseup',cfEnd);document.addEventListener('touchend',cfEnd);
+}
+function cfStart(e){
+    e.preventDefault();
+    const r=parseInt(this.dataset.r||e.currentTarget.dataset.r),c=parseInt(this.dataset.c||e.currentTarget.dataset.c);
+    const g=cfGrid[r][c];if(!g||!g.dot)return;
+    cfDragging=g.color;cfCurrentPath=[[r,c]];
+    cfPaths[g.color]=[[r,c]];
+    // Clear old path of this color from grid (except dots)
+    for(let i=0;i<cfSize;i++)for(let j=0;j<cfSize;j++){if(cfGrid[i][j]&&cfGrid[i][j].color===g.color&&!cfGrid[i][j].dot)cfGrid[i][j]=null;}
+    cfRenderGrid();
+}
+function cfTouchMove(e){
+    e.preventDefault();
+    const t=e.touches[0];
+    const el=document.elementFromPoint(t.clientX,t.clientY);
+    if(el&&el.dataset.r)cfAddCell(parseInt(el.dataset.r),parseInt(el.dataset.c));
+}
+function cfMove(e){if(cfDragging)cfAddCell(parseInt(this.dataset.r),parseInt(this.dataset.c));}
+function cfAddCell(r,c){
+    if(!cfDragging)return;
+    const last=cfCurrentPath[cfCurrentPath.length-1];
+    if(last[0]===r&&last[1]===c)return;
+    const dr=Math.abs(r-last[0]),dc=Math.abs(c-last[1]);
+    if(dr+dc!==1)return;// must be adjacent
+    const existing=cfGrid[r][c];
+    if(existing&&existing.dot&&existing.color!==cfDragging)return;// can't cross other dot
+    cfGrid[r][c]={color:cfDragging,dot:existing?.dot||false};
+    cfCurrentPath.push([r,c]);cfPaths[cfDragging]=cfCurrentPath.slice();
+    cfMoves++;document.getElementById('cfMoves').textContent=cfMoves;
+    cfRenderGrid();
+    // Check win
+    if(existing&&existing.dot&&existing.color===cfDragging){cfCheckWin();}
+}
+function cfEnd(){cfDragging=null;cfCurrentPath=[];}
+function cfCheckWin(){
+    const lv=CF_LEVELS[Math.min(cfLevel-1,CF_LEVELS.length-1)];
+    const allConnected=Object.keys(lv.pairs).every(k=>{
+        const path=cfPaths[k]||[];if(path.length<2)return false;
+        const [a,b]=lv.pairs[k];
+        const s=path[0],e=path[path.length-1];
+        return ((s[0]===a[0]&&s[1]===a[1]&&e[0]===b[0]&&e[1]===b[1])||(s[0]===b[0]&&s[1]===b[1]&&e[0]===a[0]&&e[1]===a[1]));
+    });
+    // All cells filled?
+    const allFilled=cfGrid.every(row=>row.every(cell=>cell!==null));
+    if(allConnected&&allFilled){cfLevelComplete();}
+}
+async function cfLevelComplete(){
+    const earned=Math.max(20-Math.floor(cfMoves/5),5);
+    cfPts+=earned;
+    document.getElementById('cfPts').textContent=cfPts;
+    showToast('🎉 Level '+cfLevel+' Clear! +'+earned+' pts!');
+    const rup=fromPoints(earned);if(rup>0){userData.balance=(userData.balance||0)+rup;updateUI();}
+    await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'colorflow',bet:0,survived_seconds:cfPts}).catch(()=>{});
+    cfLevel++;
+    document.getElementById('cfLevel').textContent=cfLevel;
+    if(cfLevel>CF_LEVELS.length){showToast('🏆 Sab levels complete! Mast khele!');setTimeout(()=>exitColorFlow(),2000);return;}
+    setTimeout(()=>cfLoadLevel(),1200);
+}
+function cfReset(){cfLoadLevel();}
+function exitColorFlow(){cfActive=false;document.removeEventListener('mouseup',cfEnd);document.removeEventListener('touchend',cfEnd);closeModal('colorflow');}
+
 
 // ============================================================
 // 🎰 LUCKY 1-50 JACKPOT
