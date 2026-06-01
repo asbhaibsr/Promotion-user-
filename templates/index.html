@@ -1023,29 +1023,76 @@
 <!-- GAMES PAGE -->
 <div class="page" id="gamesPage">
     <div class="page-inner">
-        <!-- ★ LUCKY 1-50 JACKPOT — Sabse upar featured game -->
-        <div style="background:linear-gradient(135deg,#1e3a8a,#3b82f6);border:2px solid #60a5fa;border-radius:22px;padding:16px;margin-bottom:14px;box-shadow:0 6px 24px rgba(59,130,246,.35);position:relative;overflow:hidden;">
-            <div style="position:absolute;top:-10px;right:-10px;font-size:80px;opacity:0.1;pointer-events:none;">🎰</div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                <div style="font-family:'Fredoka One',cursive;font-size:18px;font-weight:900;color:#fff;">🎰 Lucky 1-50 Jackpot</div>
-                <div style="background:rgba(0,0,0,0.35);color:#facc15;padding:4px 10px;border-radius:12px;font-size:10px;font-weight:900;" id="jackpotTimerTag">⏳ 24h Result</div>
+        <!-- ★ LUCKY 1-50 JACKPOT PREMIUM CARD -->
+        <div style="background:linear-gradient(135deg,#0d0320,#1a0545,#0d1a3e);border:2px solid rgba(251,191,36,0.5);border-radius:24px;padding:0;margin-bottom:14px;box-shadow:0 8px 32px rgba(139,92,246,0.4),0 0 0 1px rgba(251,191,36,0.1);position:relative;overflow:hidden;">
+            <!-- Animated bg stars -->
+            <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 20% 30%,rgba(139,92,246,0.25),transparent 60%),radial-gradient(ellipse at 80% 70%,rgba(251,191,36,0.15),transparent 50%);pointer-events:none;"></div>
+            <!-- Header -->
+            <div style="padding:14px 16px 10px;position:relative;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+                    <div>
+                        <div style="font-family:'Fredoka One',cursive;font-size:20px;font-weight:900;color:#fff;text-shadow:0 0 20px rgba(251,191,36,0.5);">🎰 Lucky 1–50 Jackpot</div>
+                        <div style="font-size:10px;color:rgba(251,191,36,0.9);font-weight:700;margin-top:2px;">Ek number — 40× return milta hai!</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="background:rgba(0,0,0,0.4);border:1px solid rgba(251,191,36,0.4);color:#fbbf24;padding:4px 10px;border-radius:10px;font-size:10px;font-weight:900;" id="jackpotTimerTag">⏳ 24h Result</div>
+                        <div style="font-size:10px;color:#6ee7b7;font-weight:700;margin-top:4px;">👥 <span id="jackpotSeats">?/20</span> seats</div>
+                    </div>
+                </div>
+                <!-- Prize display -->
+                <div style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);border-radius:14px;padding:8px 12px;margin-bottom:10px;display:flex;justify-content:space-around;align-items:center;">
+                    <div style="text-align:center;">
+                        <div style="font-size:9px;color:rgba(255,255,255,0.6);">Min Bet</div>
+                        <div style="font-size:14px;font-weight:900;color:#fbbf24;">500 pts</div>
+                    </div>
+                    <div style="width:1px;height:30px;background:rgba(255,255,255,0.15);"></div>
+                    <div style="text-align:center;">
+                        <div style="font-size:9px;color:rgba(255,255,255,0.6);">Return</div>
+                        <div style="font-size:14px;font-weight:900;color:#4ade80;">40× bet</div>
+                    </div>
+                    <div style="width:1px;height:30px;background:rgba(255,255,255,0.15);"></div>
+                    <div style="text-align:center;">
+                        <div style="font-size:9px;color:rgba(255,255,255,0.6);">Max Win</div>
+                        <div style="font-size:14px;font-weight:900;color:#c084fc;" id="jackpotMaxWin">20,000 pts</div>
+                    </div>
+                </div>
+                <!-- Bet input -->
+                <div style="display:flex;gap:8px;margin-bottom:8px;">
+                    <div style="flex:1;position:relative;">
+                        <input type="number" id="jackpotBetAmt" class="inp" placeholder="Bet pts (min 500)" min="500"
+                            style="width:100%;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);color:#fff;border-radius:12px;padding:10px 12px;font-size:13px;box-sizing:border-box;"
+                            oninput="jackpotUpdateMaxWin(this.value)">
+                    </div>
+                    <div style="flex:1;position:relative;">
+                        <input type="number" id="jackpotNumber" class="inp" placeholder="Number (1–50)" min="1" max="50"
+                            style="width:100%;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);color:#fff;border-radius:12px;padding:10px 12px;font-size:13px;box-sizing:border-box;">
+                    </div>
+                </div>
+                <!-- Quick number buttons -->
+                <div style="margin-bottom:10px;">
+                    <div style="font-size:9px;color:rgba(255,255,255,0.5);margin-bottom:5px;">🎯 Lucky Numbers:</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                        <button onclick="document.getElementById('jackpotNumber').value=7" style="background:rgba(139,92,246,0.3);border:1px solid rgba(139,92,246,0.5);color:#c084fc;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;">7</button>
+                        <button onclick="document.getElementById('jackpotNumber').value=13" style="background:rgba(239,68,68,0.3);border:1px solid rgba(239,68,68,0.5);color:#fca5a5;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;">13</button>
+                        <button onclick="document.getElementById('jackpotNumber').value=21" style="background:rgba(34,197,94,0.3);border:1px solid rgba(34,197,94,0.5);color:#86efac;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;">21</button>
+                        <button onclick="document.getElementById('jackpotNumber').value=33" style="background:rgba(251,191,36,0.3);border:1px solid rgba(251,191,36,0.5);color:#fde68a;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;">33</button>
+                        <button onclick="document.getElementById('jackpotNumber').value=42" style="background:rgba(59,130,246,0.3);border:1px solid rgba(59,130,246,0.5);color:#93c5fd;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;">42</button>
+                        <button onclick="document.getElementById('jackpotNumber').value=Math.ceil(Math.random()*50)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;">🎲 Random</button>
+                    </div>
+                </div>
+                <button onclick="submitJackpotBet()" style="width:100%;background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;padding:13px;border-radius:16px;font-weight:900;font-size:15px;cursor:pointer;font-family:'Fredoka One',cursive;box-shadow:0 4px 15px rgba(245,158,11,0.4);letter-spacing:0.5px;">🎰 BET LAGAO — JEETNE KA MAUKA!</button>
+                <div style="display:flex;justify-content:space-between;margin-top:8px;align-items:center;">
+                    <div style="font-size:9px;color:rgba(255,255,255,0.4);">Points turant cut honge | Result 24h mein</div>
+                    <button onclick="viewJackpotParticipants()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);padding:4px 10px;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;">Bets 👀</button>
+                </div>
             </div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.8);margin-bottom:12px;">1 se 50 ke beech ek number chuno. Agar wo number khula — bada inaam! Sirf 20 log hissa le sakte hain.</div>
-            <div style="display:flex;gap:8px;margin-bottom:10px;">
-                <input type="number" id="jackpotBetAmt" class="inp" placeholder="Bet (pts)" style="flex:1;background:rgba(255,255,255,0.92);border:none;color:#000;">
-                <input type="number" id="jackpotNumber" class="inp" placeholder="1–50" min="1" max="50" style="flex:1;background:rgba(255,255,255,0.92);border:none;color:#000;">
-            </div>
-            <button onclick="submitJackpotBet()" style="width:100%;background:linear-gradient(135deg,#facc15,#eab308);color:#000;border:none;padding:12px;border-radius:30px;font-weight:900;font-size:14px;cursor:pointer;font-family:'Fredoka One',cursive;margin-bottom:10px;">✅ Bet Lagao</button>
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div style="font-size:11px;font-weight:700;color:#6ee7b7;">👥 Seats: <span id="jackpotSeats">?/20</span></div>
-                <button onclick="viewJackpotParticipants()" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:#fff;padding:4px 12px;border-radius:12px;font-size:10px;font-weight:800;cursor:pointer;">Bets Dekho 👀</button>
-            </div>
-            <!-- Admin Declare Panel (visible only to admin) -->
-            <div id="jackpotAdminPanel" style="display:none;margin-top:12px;padding-top:12px;border-top:1px dashed rgba(255,255,255,0.3);">
-                <div style="font-size:10px;color:#facc15;font-weight:800;margin-bottom:6px;">👑 Admin: Result Declare Karo</div>
+            <!-- Admin Panel -->
+            <div id="jackpotAdminPanel" style="display:none;border-top:1px dashed rgba(251,191,36,0.3);padding:10px 16px;">
+                <div style="font-size:10px;color:#fbbf24;font-weight:800;margin-bottom:6px;">👑 Admin: Result Declare</div>
                 <div style="display:flex;gap:8px;">
-                    <input type="number" id="jackpotWinNum" class="inp" placeholder="Winning No. (1-50)" min="1" max="50" style="flex:1;background:rgba(255,255,255,0.92);border:none;color:#000;">
-                    <button onclick="declareJackpotResult()" style="background:#10b981;color:#fff;border:none;border-radius:10px;padding:0 14px;font-weight:800;font-size:12px;cursor:pointer;">Declare</button>
+                    <input type="number" id="jackpotWinNum" placeholder="Winning No. (1-50)" min="1" max="50"
+                        style="flex:1;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:10px;padding:8px 12px;font-size:12px;">
+                    <button onclick="declareJackpotResult()" style="background:#10b981;color:#fff;border:none;border-radius:10px;padding:0 16px;font-weight:900;font-size:12px;cursor:pointer;">Declare</button>
                 </div>
             </div>
         </div>
@@ -1211,9 +1258,10 @@
     <div id="ludoGame" style="display:none;padding:10px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
             <div style="font-size:11px;font-weight:800;" id="ludoStatus">🎲 Dice Chalao!</div>
+            <div style="font-size:22px;min-width:32px;text-align:center;" id="ludoDiceDisplay">🎲</div>
             <div style="font-size:11px;color:var(--text2);">Pts: <span id="ludoPts" style="color:var(--gold);font-weight:900;">0</span></div>
         </div>
-        <canvas id="ludoCanvas" style="width:100%;border-radius:12px;border:2px solid var(--border);display:block;touch-action:none;"></canvas>
+        <canvas id="ludoCanvas" style="width:100%;border-radius:12px;display:block;touch-action:none;"></canvas>
         <div style="display:flex;gap:8px;margin-top:10px;">
             <button id="ludoDiceBtn" onclick="rollLudoDice()" style="flex:1;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;padding:13px;border-radius:14px;font-weight:900;font-size:14px;cursor:pointer;">🎲 Dice Chalao</button>
             <button onclick="exitLudo()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:13px 16px;font-weight:800;cursor:pointer;">✕</button>
@@ -1238,10 +1286,10 @@
     </div>
     <div id="ssidiGame" style="display:none;padding:10px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <div style="font-size:11px;font-weight:800;" id="ssidiStatus">🎲 Dice Chalao!</div>
-            <div id="ssidiDiceResult" style="font-size:18px;font-weight:900;"></div>
+            <div style="font-size:11px;font-weight:800;flex:1;" id="ssidiStatus">🎲 Dice Chalao!</div>
+            <div style="font-size:22px;min-width:32px;text-align:center;" id="ssidiDiceResult">🎲</div>
         </div>
-        <canvas id="ssidiCanvas" style="width:100%;border-radius:12px;border:2px solid var(--border);display:block;"></canvas>
+        <canvas id="ssidiCanvas" style="width:100%;border-radius:12px;display:block;"></canvas>
         <div style="display:flex;gap:8px;margin-top:10px;">
             <button id="ssidiDiceBtn" onclick="rollSaapDice()" style="flex:1;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;padding:13px;border-radius:14px;font-weight:900;font-size:14px;cursor:pointer;">🎲 Dice Chalao</button>
             <button onclick="exitSaapSidi()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:13px 16px;font-weight:800;cursor:pointer;">✕</button>
@@ -1258,8 +1306,9 @@
             <div style="font-size:11px;">Moves: <span id="cfMoves" style="font-weight:900;color:var(--gold);">0</span></div>
             <div style="font-size:11px;">Pts: <span id="cfPts" style="font-weight:900;color:var(--green);">0</span></div>
         </div>
-        <div id="cfGrid" style="background:#0a0f1e;border-radius:14px;border:2px solid rgba(99,102,241,0.4);padding:8px;box-shadow:0 0 20px rgba(99,102,241,0.2);touch-action:none;user-select:none;"></div>
-        <div style="margin-top:10px;display:flex;gap:8px;">
+        <canvas id="cfCanvas" style="width:100%;border-radius:14px;display:block;touch-action:none;user-select:none;box-shadow:0 0 20px rgba(99,102,241,0.3);"></canvas>
+        <div style="margin-top:10px;font-size:10px;color:var(--text3);text-align:center;">💡 Dot se dot tak line kheencho — poori board bhari honi chahiye</div>
+        <div style="margin-top:8px;display:flex;gap:8px;">
             <button onclick="cfReset()" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:11px;font-weight:800;cursor:pointer;">↺ Reset</button>
             <button onclick="exitColorFlow()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:11px 16px;font-weight:800;cursor:pointer;">✕</button>
         </div>
@@ -5373,100 +5422,92 @@ const MAZE_PTS_PER_WIN=10;
 
 // Harder Sokoban levels — internal walls creating corridors, classic Sokoban style
 const SOKOBAN_ALL_LEVELS=[
-    // Level 1: 7x7 with inner wall corridor
+    // Level 1: 7x7 simple, 2 boxes, internal wall
     {grid:[
         [1,1,1,1,1,1,1],
         [1,0,0,0,0,0,1],
-        [1,0,1,1,0,0,1],
-        [1,0,1,0,2,0,1],
-        [1,0,0,2,1,0,1],
-        [1,0,0,0,0,3,1],
-        [1,1,1,1,1,1,1]
-    ],boxes:[{x:4,y:3},{x:3,y:4}],targets:[{x:1,y:1},{x:5,y:1}],player:{x:5,y:5}},
-    // Level 2: 7x7 — L-shaped room
-    {grid:[
-        [1,1,1,1,1,1,1],
-        [1,0,0,0,1,0,1],
-        [1,0,2,0,1,0,1],
-        [1,0,0,0,0,2,1],
-        [1,1,0,1,0,0,1],
+        [1,0,1,0,0,0,1],
+        [1,0,0,2,0,0,1],
+        [1,0,0,0,2,1,1],
         [1,0,3,0,0,0,1],
         [1,1,1,1,1,1,1]
-    ],boxes:[{x:2,y:2},{x:5,y:3}],targets:[{x:5,y:1},{x:1,y:4}],player:{x:2,y:5}},
-    // Level 3: 7x7 — cross walls
+    ],boxes:[{x:3,y:3},{x:4,y:4}],targets:[{x:1,y:1},{x:5,y:1}],player:{x:2,y:5}},
+    // Level 2: 7x7, L-wall
     {grid:[
         [1,1,1,1,1,1,1],
         [1,0,0,0,0,0,1],
-        [1,0,1,2,1,0,1],
-        [1,0,2,0,2,0,1],
-        [1,0,1,0,1,0,1],
-        [1,0,0,3,0,0,1],
+        [1,0,2,0,0,0,1],
+        [1,0,0,0,1,0,1],
+        [1,1,1,0,0,2,1],
+        [1,0,3,0,0,0,1],
         [1,1,1,1,1,1,1]
-    ],boxes:[{x:3,y:2},{x:2,y:3},{x:4,y:3}],targets:[{x:1,y:1},{x:5,y:1},{x:3,y:4}],player:{x:3,y:5}},
-    // Level 4: 9x9 — corridors with 3 boxes
+    ],boxes:[{x:2,y:2},{x:5,y:4}],targets:[{x:5,y:1},{x:1,y:4}],player:{x:2,y:5}},
+    // Level 3: 7x7, 3 boxes, cross wall
+    {grid:[
+        [1,1,1,1,1,1,1],
+        [1,0,0,0,0,0,1],
+        [1,0,1,2,0,0,1],
+        [1,0,0,0,0,0,1],
+        [1,0,0,2,1,0,1],
+        [1,0,3,0,2,0,1],
+        [1,1,1,1,1,1,1]
+    ],boxes:[{x:3,y:2},{x:3,y:4},{x:4,y:5}],targets:[{x:1,y:1},{x:5,y:1},{x:5,y:3}],player:{x:2,y:5}},
+    // Level 4: 9x7, wider, 3 boxes
     {grid:[
         [1,1,1,1,1,1,1,1,1],
-        [1,0,0,1,0,0,0,0,1],
-        [1,0,2,1,0,0,0,0,1],
-        [1,0,0,0,0,1,2,0,1],
-        [1,1,0,1,0,1,0,0,1],
-        [1,0,0,0,2,0,0,0,1],
-        [1,0,1,0,0,0,1,0,1],
+        [1,0,0,0,0,0,0,0,1],
+        [1,0,1,0,2,0,0,0,1],
+        [1,0,0,0,0,0,1,0,1],
+        [1,0,2,0,0,0,0,2,1],
         [1,0,3,0,0,0,0,0,1],
         [1,1,1,1,1,1,1,1,1]
-    ],boxes:[{x:2,y:2},{x:6,y:3},{x:4,y:5}],targets:[{x:7,y:1},{x:1,y:5},{x:7,y:6}],player:{x:2,y:7}},
-    // Level 5: 9x9 — zigzag walls
+    ],boxes:[{x:4,y:2},{x:2,y:4},{x:7,y:4}],targets:[{x:7,y:1},{x:1,y:3},{x:7,y:3}],player:{x:2,y:5}},
+    // Level 5: 9x7, 4 boxes, zigzag walls
     {grid:[
         [1,1,1,1,1,1,1,1,1],
         [1,0,0,0,0,0,0,0,1],
         [1,0,2,1,0,0,0,0,1],
-        [1,0,0,1,0,2,1,0,1],
-        [1,0,0,0,0,0,1,0,1],
-        [1,0,1,0,2,0,0,0,1],
-        [1,0,1,0,0,0,1,0,1],
-        [1,0,3,0,0,0,0,0,1],
+        [1,0,0,0,0,2,0,0,1],
+        [1,0,0,1,2,0,0,0,1],
+        [1,0,3,0,0,0,2,0,1],
         [1,1,1,1,1,1,1,1,1]
-    ],boxes:[{x:2,y:2},{x:5,y:3},{x:4,y:5}],targets:[{x:7,y:2},{x:1,y:4},{x:7,y:6}],player:{x:2,y:7}},
-    // Level 6: 11x11 — hard 4 boxes with inner maze
-    {grid:[
-        [1,1,1,1,1,1,1,1,1,1,1],
-        [1,0,0,0,0,0,0,0,0,0,1],
-        [1,0,2,1,0,0,0,1,2,0,1],
-        [1,0,0,1,0,0,0,1,0,0,1],
-        [1,0,0,0,0,1,0,0,0,0,1],
-        [1,0,0,0,0,3,0,0,0,0,1],
-        [1,0,0,0,0,1,0,0,0,0,1],
-        [1,0,2,1,0,0,0,1,2,0,1],
-        [1,0,0,1,0,0,0,1,0,0,1],
-        [1,0,0,0,0,0,0,0,0,0,1],
-        [1,1,1,1,1,1,1,1,1,1,1]
-    ],boxes:[{x:2,y:2},{x:8,y:2},{x:2,y:7},{x:8,y:7}],targets:[{x:9,y:1},{x:1,y:3},{x:9,y:6},{x:1,y:8}],player:{x:5,y:5}},
-    // Level 7: 11x11 — extreme
-    {grid:[
-        [1,1,1,1,1,1,1,1,1,1,1],
-        [1,0,0,0,0,0,0,0,0,0,1],
-        [1,0,1,0,2,0,2,0,1,0,1],
-        [1,0,1,0,0,0,0,0,1,0,1],
-        [1,0,0,0,1,0,1,0,0,0,1],
-        [1,0,0,0,0,3,0,0,0,0,1],
-        [1,0,0,0,1,0,1,0,0,0,1],
-        [1,0,1,0,2,0,2,0,1,0,1],
-        [1,0,1,0,0,0,0,0,1,0,1],
-        [1,0,0,0,0,0,0,0,0,0,1],
-        [1,1,1,1,1,1,1,1,1,1,1]
-    ],boxes:[{x:4,y:2},{x:6,y:2},{x:4,y:7},{x:6,y:7}],targets:[{x:1,y:1},{x:9,y:1},{x:1,y:8},{x:9,y:8}],player:{x:5,y:5}},
-    // Level 8: 9x9 — narrow corridors
+    ],boxes:[{x:2,y:2},{x:5,y:3},{x:4,y:4},{x:6,y:5}],targets:[{x:7,y:1},{x:1,y:2},{x:7,y:3},{x:1,y:5}],player:{x:2,y:5}},
+    // Level 6: 9x9, harder, 4 boxes
     {grid:[
         [1,1,1,1,1,1,1,1,1],
-        [1,0,1,0,0,0,1,0,1],
-        [1,0,1,0,2,0,1,0,1],
+        [1,0,0,0,1,0,0,0,1],
+        [1,0,2,0,0,0,2,0,1],
+        [1,0,0,0,1,0,0,0,1],
+        [1,1,0,1,0,1,0,1,1],
+        [1,0,0,0,1,0,0,0,1],
+        [1,0,2,0,0,0,2,0,1],
+        [1,0,3,0,1,0,0,0,1],
+        [1,1,1,1,1,1,1,1,1]
+    ],boxes:[{x:2,y:2},{x:6,y:2},{x:2,y:6},{x:6,y:6}],targets:[{x:7,y:1},{x:1,y:1},{x:7,y:7},{x:1,y:7}],player:{x:2,y:7}},
+    // Level 7: 9x9, expert
+    {grid:[
+        [1,1,1,1,1,1,1,1,1],
         [1,0,0,0,0,0,0,0,1],
         [1,0,1,2,0,2,1,0,1],
-        [1,0,0,0,3,0,0,0,1],
-        [1,0,1,0,0,0,1,0,1],
-        [1,0,1,0,0,0,1,0,1],
+        [1,0,0,0,0,0,0,0,1],
+        [1,0,0,1,0,1,0,0,1],
+        [1,0,0,0,0,0,0,0,1],
+        [1,0,1,2,0,2,1,0,1],
+        [1,0,3,0,0,0,0,0,1],
         [1,1,1,1,1,1,1,1,1]
-    ],boxes:[{x:4,y:2},{x:3,y:4},{x:5,y:4}],targets:[{x:1,y:1},{x:7,y:1},{x:4,y:6}],player:{x:4,y:5}},
+    ],boxes:[{x:3,y:2},{x:5,y:2},{x:3,y:6},{x:5,y:6}],targets:[{x:1,y:1},{x:7,y:1},{x:1,y:7},{x:7,y:7}],player:{x:2,y:7}},
+    // Level 8: 9x9, extreme
+    {grid:[
+        [1,1,1,1,1,1,1,1,1],
+        [1,0,1,0,0,0,1,0,1],
+        [1,0,0,0,2,0,0,0,1],
+        [1,0,1,2,0,2,1,0,1],
+        [1,0,0,0,0,0,0,0,1],
+        [1,0,1,2,0,2,1,0,1],
+        [1,0,0,0,0,0,0,0,1],
+        [1,0,1,0,3,0,1,0,1],
+        [1,1,1,1,1,1,1,1,1]
+    ],boxes:[{x:4,y:2},{x:3,y:3},{x:5,y:3},{x:3,y:5},{x:5,y:5}],targets:[{x:1,y:1},{x:7,y:1},{x:4,y:4},{x:1,y:7},{x:7,y:7}],player:{x:4,y:7}},
 ];
 
 function openMazeGame(){
@@ -6143,6 +6184,14 @@ function clearLines(){
             cleared++;
         }
     }
+    if(cleared>0){
+        const earned=cleared*10; // 10pts per line
+        blockScore+=earned;
+        document.getElementById('blockScoreEl')?.textContent && null; // compat
+        const _bsel=document.getElementById('blockScore')||document.getElementById('blockScoreEl');
+        if(_bsel)_bsel.textContent=blockScore+' pts';
+        if(cleared>=2) showToast('🔥 '+cleared+' lines! +'+earned+' pts!');
+    }
     return cleared;
 }
 function checkGameOver(){
@@ -6314,18 +6363,14 @@ function renderBlockPieces(){
             }
             if(!placed){ blockSelected=null; showToast('❌ Yahan fit nahi! Doosri jagah try karo'); playSound('click'); return; }
 
-            const cleared=clearLines();
-            if(cleared>0){
-                blockScore+=cleared;
-                showToast('🔥 '+cleared+' Line Clear! +'+cleared+' pts');
+            clearLines(); // pts awarded inside clearLines (10pts per line)
+            if(blockScore>0){
                 playSound('earn'); triggerConfetti();
-                // Level up sirf jab POORI board clear ho (all cells null)
                 const isBoardEmpty = blockGrid.every(row=>row.every(cell=>cell===null));
                 if(isBoardEmpty){
                     blockLevel++;
                     showToast('⬆️ Level '+blockLevel+'! Board Clear! 🎉');
                     playSound('levelup');
-                    // Harder boards — add pre-filled rows
                     if(blockLevel>1){
                         const fill=Math.min(blockLevel-1, 3);
                         for(let f=0;f<fill;f++){
@@ -6376,7 +6421,7 @@ function handleBlockTap(evt){ /* replaced by drag system */ }
 
 async function finishBlockBlast(){
     blockActive=false;
-    const pts=Math.min(blockScore, 10); // max 10pts
+    const pts=Math.min(blockScore, 50); // max 50pts per game
     const rup=fromPoints(pts);
     if(rup>0){
         await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'blockblast',bet:0,survived_seconds:pts});
@@ -6387,8 +6432,8 @@ async function finishBlockBlast(){
     document.getElementById('blockGameArea').style.display='none';
     document.getElementById('blockResult').style.display='block';
     const fEl=document.getElementById('blockFinalScore');
-    if(fEl) fEl.textContent=pts>500?'🏆 '+pts+' pts — Block Master!':pts>200?'🧱 '+pts+' pts — Badiya!':'😅 '+pts+' pts — Agli baar!';
-    playSound(pts>100?'jackpot':'earn');
+    if(fEl) fEl.textContent=pts>=45?'🏆 '+pts+' pts — Block Master!':pts>=25?'🧱 '+pts+' pts — Badiya!':'😅 '+pts+' pts — Agli baar!';
+    playSound(pts>=30?'jackpot':'earn');
     if(missionStates['m_game']){missionStates['m_game'].progress=Math.min((missionStates['m_game'].progress||0)+1,10);missionStates['m_game'].completed=missionStates['m_game'].progress>=10;}
     updateMissionsUI();
 }
@@ -6659,8 +6704,7 @@ function handleGemTap(r,c){
             showToast('✨ Match! +'+pts+'pts');playSound('earn');
             if(pts>100)triggerConfetti();
         }else{
-            swapGems(r1,c1,r,c);
-            showToast('❌ Koi match nahi!');playSound('click');
+            swapGems(r1,c1,r,c); // swap back silently
         }
         gemSelected=null;
         drawGemGrid();
@@ -7930,403 +7974,831 @@ function closeRandomAdPopup() {
 }
 
 // ============================================================
-// 🎲 LUDO GAME — vs Computer (2 tokens each, first to home wins)
+// 🎲 LUDO GAME — Race Track Style, vs Computer
 // ============================================================
+// Board: 52-cell rectangular track + home columns
+// Red = Player (bottom-left), Blue = Computer (top-right)
 let ludoActive=false,ludoPts=0,ludoTurn='player',ludoDiceVal=0,ludoRolled=false;
-let ludoPlayerTokens=[{pos:0,home:false},{pos:0,home:false},{pos:0,home:false},{pos:0,home:false}];
-let ludoCompTokens=[{pos:0,home:false},{pos:0,home:false},{pos:0,home:false},{pos:0,home:false}];
-const LUDO_HOME=57; // 57 steps = home for each color track
+let ludoAnimating=false;
+// Each token: {track:-1=home, 0-51=outer track, 52-57=home column, 58=finished}
+let ludoP=[{t:-1},{t:-1},{t:-1},{t:-1}]; // player tokens (Red)
+let ludoC=[{t:-1},{t:-1},{t:-1},{t:-1}]; // computer tokens (Blue)
+const LUDO_HOME_COL=6; // 6 steps into home column to finish
+
+function getLudoXY(trackPos,W){
+  // Returns {x,y} center of cell for track position 0-51
+  const pad=Math.round(W*0.08), w=W-2*pad;
+  const seg=w/13; // 13 cells per side
+  if(trackPos<13)      return{x:pad+seg*0.5+seg*trackPos, y:W-pad-seg*0.5};
+  else if(trackPos<26) return{x:W-pad-seg*0.5, y:W-pad-seg*0.5-seg*(trackPos-13)};
+  else if(trackPos<39) return{x:W-pad-seg*0.5-seg*(trackPos-26), y:pad+seg*0.5};
+  else                 return{x:pad+seg*0.5, y:pad+seg*0.5+seg*(trackPos-39)};
+}
+function getLudoHomeColXY(step,color,W){
+  // step 0-5: path from entry toward center
+  const cx=W/2, cy=W/2;
+  if(color==='red'){   return{x:cx-W*0.28+W*0.095*step, y:W*0.87}; }
+  else{               return{x:cx+W*0.28-W*0.095*step, y:W*0.13}; }
+}
+function getLudoHomeSlot(i,color,W){
+  // Starting slots in home base
+  const ox=color==='red'?W*0.15:W*0.85;
+  const oy=color==='red'?W*0.82:W*0.18;
+  const dx=[[-1,-1],[1,-1],[-1,1],[1,1]];
+  return{x:ox+dx[i][0]*W*0.065, y:oy+dx[i][1]*W*0.065};
+}
 
 function openLudoGame(){
-    document.getElementById('ludoSetup').style.display='block';
-    document.getElementById('ludoGame').style.display='none';
-    document.getElementById('ludoBal').textContent=toPoints(userData.balance||0)+' pts';
-    openModal('ludo');
+  document.getElementById('ludoSetup').style.display='block';
+  document.getElementById('ludoGame').style.display='none';
+  document.getElementById('ludoBal').textContent=toPoints(userData.balance||0)+' pts';
+  openModal('ludo');
 }
 function startLudo(){
-    ludoActive=true;ludoPts=0;ludoTurn='player';ludoDiceVal=0;ludoRolled=false;
-    ludoPlayerTokens=[{pos:-1,home:false},{pos:-1,home:false},{pos:-1,home:false},{pos:-1,home:false}];
-    ludoCompTokens=[{pos:-1,home:false},{pos:-1,home:false},{pos:-1,home:false},{pos:-1,home:false}];
-    document.getElementById('ludoSetup').style.display='none';
-    document.getElementById('ludoGame').style.display='block';
-    document.getElementById('ludoPts').textContent='0';
-    document.getElementById('ludoStatus').textContent='🎲 Dice Chalao!';
-    document.getElementById('ludoDiceBtn').disabled=false;
-    const c=document.getElementById('ludoCanvas');
-    c.width=Math.min(window.innerWidth-40,360);
-    c.height=c.width;
-    drawLudo();
+  ludoActive=true;ludoPts=0;ludoTurn='player';ludoDiceVal=0;ludoRolled=false;ludoAnimating=false;
+  ludoP=[{t:-1},{t:-1},{t:-1},{t:-1}];
+  ludoC=[{t:-1},{t:-1},{t:-1},{t:-1}];
+  document.getElementById('ludoSetup').style.display='none';
+  document.getElementById('ludoGame').style.display='block';
+  document.getElementById('ludoPts').textContent='0';
+  document.getElementById('ludoStatus').innerHTML='🎲 <b>Teri Bari!</b> Dice Chalao!';
+  document.getElementById('ludoDiceBtn').disabled=false;
+  document.getElementById('ludoDiceDisplay').textContent='🎲';
+  const c=document.getElementById('ludoCanvas');
+  c.width=c.height=Math.min(window.innerWidth-28,320);
+  c.removeEventListener('click',ludoCanvasClick);
+  c.addEventListener('click',ludoCanvasClick);
+  drawLudo();
 }
+
 function rollLudoDice(){
-    if(!ludoActive||ludoRolled)return;
-    ludoDiceVal=Math.ceil(Math.random()*6);
-    ludoRolled=true;
-    document.getElementById('ludoDiceBtn').disabled=true;
-    const faces=['','⚀','⚁','⚂','⚃','⚄','⚅'];
-    document.getElementById('ludoStatus').textContent='🎲 '+faces[ludoDiceVal]+' '+ludoDiceVal+' aaya!';
-    drawLudo();
-    // Check movable tokens
-    const movable=ludoPlayerTokens.filter(t=>!t.home&&(t.pos===-1?ludoDiceVal===6:t.pos+ludoDiceVal<=LUDO_HOME));
+  if(!ludoActive||ludoRolled||ludoAnimating)return;
+  ludoRolled=true;
+  document.getElementById('ludoDiceBtn').disabled=true;
+  // Dice rolling animation
+  let rolls=0; const maxRolls=10;
+  const anim=setInterval(()=>{
+    const f=Math.ceil(Math.random()*6);
+    const faces=['⚀','⚁','⚂','⚃','⚄','⚅'];
+    document.getElementById('ludoDiceDisplay').textContent=faces[f-1];
+    rolls++;
+    if(rolls>=maxRolls){
+      clearInterval(anim);
+      ludoDiceVal=Math.ceil(Math.random()*6);
+      document.getElementById('ludoDiceDisplay').textContent=faces[ludoDiceVal-1];
+      afterLudoRoll('player');
+    }
+  },80);
+}
+
+function afterLudoRoll(side){
+  const tokens=side==='player'?ludoP:ludoC;
+  const movable=tokens.filter(tk=>{
+    if(tk.t===58)return false; // finished
+    if(tk.t===-1)return ludoDiceVal===6; // need 6 to enter track
+    if(tk.t>=52)return (tk.t-52)+ludoDiceVal<=LUDO_HOME_COL; // home col
+    return true; // on track
+  });
+  const d=ludoDiceVal;
+  const faces=['⚀','⚁','⚂','⚃','⚄','⚅'];
+  if(side==='player'){
+    document.getElementById('ludoStatus').innerHTML=`🎲 ${faces[d-1]} <b>${d}</b> aaya!`;
     if(movable.length===0){
-        document.getElementById('ludoStatus').textContent='😞 Koi move nahi! Computer ki bari...';
-        setTimeout(ludoCompTurn,1200);
+      document.getElementById('ludoStatus').innerHTML=`😞 ${d} aaya — Koi move nahi! Computer ki bari...`;
+      setTimeout(()=>ludoCompTurn(),1400);
     } else if(movable.length===1){
-        ludoMoveToken('player',ludoPlayerTokens.indexOf(movable[0]));
+      ludoMoveToken('player',tokens.indexOf(movable[0]),d);
     } else {
-        document.getElementById('ludoStatus').textContent='🎯 Token tap karo! ('+ludoDiceVal+' aaya)';
-        document.getElementById('ludoDiceBtn').disabled=true;
-        drawLudo(true); // highlight movable
+      document.getElementById('ludoStatus').innerHTML=`🎯 ${faces[d-1]} ${d} aaya — Token choose karo!`;
+      drawLudo(true); // show selectable
     }
+  } else {
+    // Computer AI: prefer capture > home column > furthest
+    let best=movable[0];
+    // Check capture opportunity
+    const captureable=movable.filter(tk=>{
+      if(tk.t<0||tk.t>=52)return false;
+      const np=(tk.t+d)%52;
+      return ludoP.some(p=>p.t>=0&&p.t<52&&p.t===np);
+    });
+    if(captureable.length)best=captureable[0];
+    else{
+      // Prefer tokens furthest along
+      const onTrack=movable.filter(tk=>tk.t>=0);
+      if(onTrack.length)best=onTrack.reduce((a,b)=>b.t>a.t?b:a);
+    }
+    setTimeout(()=>ludoMoveToken('comp',tokens.indexOf(best),d),600);
+  }
 }
-function ludoMoveToken(side,idx){
-    const tokens=side==='player'?ludoPlayerTokens:ludoCompTokens;
-    const t=tokens[idx];
-    if(t.home)return;
-    if(t.pos===-1){if(ludoDiceVal!==6)return;t.pos=0;}
-    else{t.pos=Math.min(t.pos+ludoDiceVal,LUDO_HOME);}
-    if(t.pos===LUDO_HOME){t.home=true;ludoPts+=5;document.getElementById('ludoPts').textContent=ludoPts;}
-    // Check capture
-    if(side==='player'){
-        ludoCompTokens.forEach(ct=>{if(!ct.home&&ct.pos===t.pos&&ct.pos>0){ct.pos=-1;ludoPts+=3;document.getElementById('ludoPts').textContent=ludoPts;showToast('💥 Computer ka token gaya!');}});
+
+function ludoCanvasClick(e){
+  if(!ludoRolled||!ludoActive||ludoAnimating)return;
+  const movable=ludoP.filter(tk=>{
+    if(tk.t===58)return false;
+    if(tk.t===-1)return ludoDiceVal===6;
+    if(tk.t>=52)return (tk.t-52)+ludoDiceVal<=LUDO_HOME_COL;
+    return true;
+  });
+  if(movable.length<=1)return;
+  const c=document.getElementById('ludoCanvas');
+  const rect=c.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const W=c.width;
+  movable.forEach(tk=>{
+    const pos=ludoGetTokenXY(tk,'red',W);
+    const dx=pos.x-mx, dy=pos.y-my;
+    if(Math.sqrt(dx*dx+dy*dy)<W*0.07){
+      ludoMoveToken('player',ludoP.indexOf(tk),ludoDiceVal);
     }
-    drawLudo();
-    // Check win
-    if(ludoPlayerTokens.filter(t=>t.home).length===4){ludoWin();return;}
-    if(ludoCompTokens.filter(t=>t.home).length===4){ludoLose();return;}
-    // Bonus turn on 6
-    if(ludoDiceVal===6&&side==='player'){
-        ludoRolled=false;document.getElementById('ludoDiceBtn').disabled=false;
-        document.getElementById('ludoStatus').textContent='🎉 6 aaya! Ek aur chance!';
-        return;
-    }
+  });
+}
+
+function ludoGetTokenXY(tk,color,W){
+  if(tk.t===-1) return getLudoHomeSlot(color==='red'?ludoP.indexOf(tk):ludoC.indexOf(tk),color,W);
+  if(tk.t>=52)  return getLudoHomeColXY(tk.t-52,color,W);
+  // adjust start position: Red starts at track pos 0 (bottom-left), Blue at pos 26 (top-right)
+  const offset=color==='red'?0:26;
+  const absPos=(tk.t+offset)%52;
+  return getLudoXY(absPos,W);
+}
+
+function ludoMoveToken(side,idx,dice){
+  if(ludoAnimating)return;
+  ludoAnimating=true;
+  const tokens=side==='player'?ludoP:ludoC;
+  const tk=tokens[idx];
+  const color=side==='player'?'red':'blue';
+  const W=document.getElementById('ludoCanvas').width;
+
+  if(tk.t===-1){ tk.t=0; ludoPts+=1; }
+  else if(tk.t>=52){ tk.t=Math.min(tk.t+dice,52+LUDO_HOME_COL); }
+  else{ tk.t+=dice; if(tk.t>=52){ tk.t=52+(tk.t-52); } }
+
+  if(tk.t>=52+LUDO_HOME_COL){ tk.t=58; ludoPts+=(side==='player'?10:0); }
+
+  // Check capture
+  if(side==='player'&&tk.t>=0&&tk.t<52){
+    const absP=tk.t%52;
+    ludoC.forEach(ct=>{
+      if(ct.t>=0&&ct.t<52&&(ct.t+26)%52===absP){
+        ct.t=-1;
+        showToast('💥 Computer ka token pakad liya! +3 pts');
+        ludoPts+=3;
+      }
+    });
+  }
+
+  document.getElementById('ludoPts').textContent=ludoPts;
+  drawLudo();
+  ludoAnimating=false;
+  ludoRolled=false;
+
+  // Check win
+  const pWon=ludoP.filter(t=>t.t===58).length===4;
+  const cWon=ludoC.filter(t=>t.t===58).length===4;
+  if(pWon){ludoWin();return;}
+  if(cWon){ludoLose();return;}
+
+  if(dice===6&&side==='player'){
+    document.getElementById('ludoStatus').innerHTML='🎉 6 aaya! Ek aur chance!';
     ludoRolled=false;
-    if(side==='player'){setTimeout(ludoCompTurn,800);}
-    else{document.getElementById('ludoDiceBtn').disabled=false;document.getElementById('ludoStatus').textContent='🎲 Teri bari! Dice chalao';}
+    document.getElementById('ludoDiceBtn').disabled=false;
+  } else if(side==='player'){
+    setTimeout(()=>ludoCompTurn(),800);
+  } else {
+    document.getElementById('ludoStatus').innerHTML='🎲 <b>Teri Bari!</b> Dice Chalao!';
+    document.getElementById('ludoDiceBtn').disabled=false;
+  }
 }
+
 function ludoCompTurn(){
-    const cv=Math.ceil(Math.random()*6);
-    const faces=['','⚀','⚁','⚂','⚃','⚄','⚅'];
-    document.getElementById('ludoStatus').textContent='🤖 Computer: '+faces[cv]+' '+cv;
-    ludoDiceVal=cv;
-    const movable=ludoCompTokens.filter(t=>!t.home&&(t.pos===-1?cv===6:t.pos+cv<=LUDO_HOME));
-    if(movable.length>0){
-        // Smart: prefer capture, else furthest
-        let best=movable.reduce((a,b)=>b.pos>a.pos?b:a);
-        // Check if any comp token can capture player
-        const capturable=movable.filter(t=>{const np=t.pos===-1?0:t.pos+cv;return ludoPlayerTokens.some(p=>!p.home&&p.pos===np&&p.pos>0);});
-        if(capturable.length>0)best=capturable[0];
-        setTimeout(()=>ludoMoveToken('comp',ludoCompTokens.indexOf(best)),600);
-    } else {
-        setTimeout(()=>{
-            document.getElementById('ludoStatus').textContent='🎲 Teri bari!';
-            ludoDiceVal=0;ludoRolled=false;
-            document.getElementById('ludoDiceBtn').disabled=false;
-        },800);
-    }
-    if(cv===6&&movable.length>0)setTimeout(ludoCompTurn,2000);
+  if(!ludoActive)return;
+  document.getElementById('ludoStatus').innerHTML='🤖 <b>Computer</b> soch raha hai...';
+  const cv=Math.ceil(Math.random()*6);
+  const faces=['⚀','⚁','⚂','⚃','⚄','⚅'];
+  document.getElementById('ludoDiceDisplay').textContent=faces[cv-1];
+  ludoDiceVal=cv;
+  setTimeout(()=>afterLudoRoll('comp'),600);
+  if(cv===6){
+    setTimeout(()=>{
+      if(ludoActive&&!ludoRolled){
+        const cv2=Math.ceil(Math.random()*6);
+        ludoDiceVal=cv2;
+        document.getElementById('ludoDiceDisplay').textContent=faces[cv2-1];
+        setTimeout(()=>afterLudoRoll('comp'),400);
+      }
+    },2200);
+  }
 }
+
 async function ludoWin(){
-    ludoActive=false;
-    showToast('🏆 Tum Jeete! +'+ludoPts+' pts!');
-    document.getElementById('ludoStatus').textContent='🏆 Tum Jeete! +'+ludoPts+' pts!';
-    document.getElementById('ludoDiceBtn').disabled=true;
-    const rup=fromPoints(ludoPts);
-    if(rup>0){userData.balance=(userData.balance||0)+rup;updateUI();}
-    await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'ludo',bet:0,survived_seconds:ludoPts}).catch(()=>{});
-    setTimeout(()=>{document.getElementById('ludoSetup').style.display='block';document.getElementById('ludoGame').style.display='none';},3000);
+  ludoActive=false;
+  showToast('🏆 TUM JEETE! +'+ludoPts+' pts!');
+  document.getElementById('ludoStatus').innerHTML='🏆 <b>TUM JEETE!</b> +'+ludoPts+' pts!';
+  document.getElementById('ludoDiceBtn').disabled=true;
+  const rup=fromPoints(ludoPts);
+  if(rup>0){userData.balance=(userData.balance||0)+rup;updateUI();}
+  await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'ludo',bet:0,survived_seconds:ludoPts}).catch(()=>{});
+  setTimeout(()=>{document.getElementById('ludoSetup').style.display='block';document.getElementById('ludoGame').style.display='none';},3000);
 }
 function ludoLose(){
-    ludoActive=false;
-    showToast('😢 Computer Jeeta! Dobara khelo!');
-    document.getElementById('ludoStatus').textContent='😢 Computer Jeeta!';
-    document.getElementById('ludoDiceBtn').disabled=true;
-    setTimeout(()=>{document.getElementById('ludoSetup').style.display='block';document.getElementById('ludoGame').style.display='none';},2000);
+  ludoActive=false;
+  showToast('😢 Computer Jeeta! Dobara try karo!');
+  document.getElementById('ludoStatus').innerHTML='😢 <b>Computer Jeeta!</b> Better luck next time!';
+  setTimeout(()=>{document.getElementById('ludoSetup').style.display='block';document.getElementById('ludoGame').style.display='none';},2500);
 }
-function drawLudo(highlight){
-    const c=document.getElementById('ludoCanvas');if(!c)return;
-    const ctx=c.getContext('2d');
-    const W=c.width,cs=W/9;
-    ctx.clearRect(0,0,W,W);
-    // Board colors
-    const colors=['#ef4444','#22c55e','#3b82f6','#eab308'];
-    // Draw board bg
-    ctx.fillStyle='#fff8f0';ctx.fillRect(0,0,W,W);
-    // 4 home squares
-    [[0,0,'#fecaca'],[6,0,'#bbf7d0'],[0,6,'#bfdbfe'],[6,6,'#fef08a']].forEach(([x,y,c])=>{
-        ctx.fillStyle=c;ctx.fillRect(x*cs,y*cs,3*cs,3*cs);
-        ctx.strokeStyle='rgba(0,0,0,0.1)';ctx.lineWidth=1;ctx.strokeRect(x*cs,y*cs,3*cs,3*cs);
+
+function drawLudo(showSelectable){
+  const c=document.getElementById('ludoCanvas');if(!c)return;
+  const ctx=c.getContext('2d');
+  const W=c.width;
+  ctx.clearRect(0,0,W,W);
+
+  // Background
+  const bg=ctx.createLinearGradient(0,0,W,W);
+  bg.addColorStop(0,'#1a0033');bg.addColorStop(1,'#0a1a33');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,W);
+
+  const pad=Math.round(W*0.08), w=W-2*pad;
+  const seg=w/13, cs=seg*0.82; // cell size
+
+  // Draw track cells
+  for(let i=0;i<52;i++){
+    const {x,y}=getLudoXY(i,W);
+    const isSafe=[0,13,26,39].includes(i);
+    const isRedHome=i>=48&&i<=51; // near red's home entry
+    const isBluHome=i>=22&&i<=25; // near blue's home entry
+
+    // Cell background
+    ctx.save();
+    ctx.translate(x,y);
+    const r=cs/2;
+    ctx.beginPath();
+    ctx.roundRect(-r,-r,cs,cs,4);
+
+    if(isSafe){ctx.fillStyle='#f59e0b';ctx.shadowColor='rgba(245,158,11,0.6)';ctx.shadowBlur=8;}
+    else if(i<13||i>=39){ctx.fillStyle='rgba(239,68,68,0.25)';}
+    else{ctx.fillStyle='rgba(59,130,246,0.25)';}
+    ctx.fill();
+    ctx.strokeStyle=isSafe?'#f59e0b':'rgba(255,255,255,0.15)';
+    ctx.lineWidth=isSafe?2:1;
+    ctx.stroke();
+    ctx.shadowBlur=0;
+
+    if(isSafe){ctx.fillStyle='#fff';ctx.font=`${cs*0.55}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('★',0,0);}
+    else{ctx.fillStyle='rgba(255,255,255,0.25)';ctx.font=`${cs*0.35}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(i+1,0,1);}
+    ctx.restore();
+  }
+
+  // Home base areas
+  const drawHome=(cx,cy,color,label)=>{
+    const hw=W*0.22;
+    const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,hw);
+    grd.addColorStop(0,color==='red'?'rgba(239,68,68,0.35)':'rgba(59,130,246,0.35)');
+    grd.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=grd;
+    ctx.beginPath();ctx.roundRect(cx-hw,cy-hw,hw*2,hw*2,hw*0.3);ctx.fill();
+    ctx.strokeStyle=color==='red'?'rgba(239,68,68,0.5)':'rgba(59,130,246,0.5)';
+    ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,255,255,0.5)';
+    ctx.font=`bold ${W*0.028}px 'Fredoka One',cursive`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(label,cx,cy+W*0.1);
+  };
+  drawHome(W*0.15,W*0.82,'red','🔴 YOU');
+  drawHome(W*0.85,W*0.18,'blue','🔵 CPU');
+
+  // Home columns
+  for(let s=0;s<LUDO_HOME_COL;s++){
+    const rPos=getLudoHomeColXY(s,'red',W);
+    const bPos=getLudoHomeColXY(s,'blue',W);
+    [[rPos,'rgba(239,68,68,0.5)'],[bPos,'rgba(59,130,246,0.5)']].forEach(([pos,clr])=>{
+      ctx.fillStyle=clr;
+      ctx.beginPath();ctx.roundRect(pos.x-cs/2,pos.y-cs/2,cs,cs,4);ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=1;ctx.stroke();
     });
-    // Center triangle pieces
-    ctx.fillStyle='#ef4444';ctx.beginPath();ctx.moveTo(3*cs,3*cs);ctx.lineTo(4.5*cs,4.5*cs);ctx.lineTo(3*cs,6*cs);ctx.fill();
-    ctx.fillStyle='#22c55e';ctx.beginPath();ctx.moveTo(3*cs,3*cs);ctx.lineTo(4.5*cs,4.5*cs);ctx.lineTo(6*cs,3*cs);ctx.fill();
-    ctx.fillStyle='#3b82f6';ctx.beginPath();ctx.moveTo(6*cs,3*cs);ctx.lineTo(4.5*cs,4.5*cs);ctx.lineTo(6*cs,6*cs);ctx.fill();
-    ctx.fillStyle='#eab308';ctx.beginPath();ctx.moveTo(3*cs,6*cs);ctx.lineTo(4.5*cs,4.5*cs);ctx.lineTo(6*cs,6*cs);ctx.fill();
-    // Grid lines
-    ctx.strokeStyle='rgba(0,0,0,0.08)';ctx.lineWidth=0.5;
-    for(let i=0;i<=9;i++){ctx.beginPath();ctx.moveTo(i*cs,0);ctx.lineTo(i*cs,W);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i*cs);ctx.lineTo(W,i*cs);ctx.stroke();}
-    // Player tokens
-    ludoPlayerTokens.forEach((t,i)=>{
-        if(t.home){ctx.fillStyle='#ef4444';ctx.beginPath();ctx.arc(4.5*cs+((i%2)-.5)*cs*0.6,(4.5+Math.floor(i/2)*.6-.3)*cs,cs*0.28,0,Math.PI*2);ctx.fill();}
-        else if(t.pos>=0){const px=(t.pos%9)*cs+cs/2,py=Math.floor(t.pos/9)*cs+cs/2;ctx.fillStyle='#ef4444';ctx.shadowColor='rgba(239,68,68,0.5)';ctx.shadowBlur=6;ctx.beginPath();ctx.arc(px,py,cs*0.3,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
-        else{const sx=[cs,1.5*cs][i%2],sy=[cs,cs,(2*cs),(2*cs)][i];ctx.fillStyle='rgba(239,68,68,0.4)';ctx.beginPath();ctx.arc(sx+(i>1?0:0),sy+(i%2)*0,cs*0.28,0,Math.PI*2);ctx.fill();}
-    });
-    // Comp tokens
-    ludoCompTokens.forEach((t,i)=>{
-        if(t.home){ctx.fillStyle='#22c55e';ctx.beginPath();ctx.arc(4.5*cs+((i%2)-.5)*cs*0.6,(4+Math.floor(i/2)*.6-.3)*cs,cs*0.28,0,Math.PI*2);ctx.fill();}
-        else if(t.pos>=0){const px=W-((t.pos%9)+1)*cs+cs/2,py=Math.floor(t.pos/9)*cs+cs/2;ctx.fillStyle='#22c55e';ctx.shadowColor='rgba(34,197,94,0.5)';ctx.shadowBlur=6;ctx.beginPath();ctx.arc(px,py,cs*0.3,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
-        else{ctx.fillStyle='rgba(34,197,94,0.4)';ctx.beginPath();ctx.arc((7+i%2)*cs,cs+(i%2)*0.5*cs,cs*0.28,0,Math.PI*2);ctx.fill();}
-    });
-    // Labels
-    ctx.fillStyle='rgba(0,0,0,0.6)';ctx.font=`${cs*0.3}px 'Fredoka One',cursive`;ctx.textAlign='center';
-    ctx.fillText('🔴 TUM',1.5*cs,W-0.3*cs);
-    ctx.fillText('🟢 CPU',7.5*cs,W-0.3*cs);
+  }
+
+  // Draw arrows showing direction
+  ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=1.5;
+  ctx.fillStyle='rgba(255,255,255,0.08)';
+  ctx.font=`${W*0.035}px sans-serif`;ctx.textAlign='center';
+  ctx.fillText('→',W*0.5,W*0.94);ctx.fillText('↑',W*0.94,W*0.5);
+  ctx.fillText('←',W*0.5,W*0.065);ctx.fillText('↓',W*0.06,W*0.5);
+
+  // Draw tokens
+  const drawToken=(tk,color,idx)=>{
+    let pos;
+    if(tk.t===58) return; // finished, don't draw
+    else if(tk.t===-1) pos=getLudoHomeSlot(idx,color,W);
+    else if(tk.t>=52) pos=getLudoHomeColXY(tk.t-52,color,W);
+    else{
+      const offset=color==='red'?0:26;
+      pos=getLudoXY((tk.t+offset)%52,W);
+    }
+    const r=W*0.055;
+    // Shadow
+    ctx.shadowColor=color==='red'?'rgba(239,68,68,0.8)':'rgba(59,130,246,0.8)';
+    ctx.shadowBlur=12;
+    // Token gradient
+    const tGrd=ctx.createRadialGradient(pos.x-r*0.3,pos.y-r*0.3,0,pos.x,pos.y,r);
+    if(color==='red'){tGrd.addColorStop(0,'#ff6b6b');tGrd.addColorStop(1,'#dc2626');}
+    else{tGrd.addColorStop(0,'#60a5fa');tGrd.addColorStop(1,'#2563eb');}
+    ctx.fillStyle=tGrd;
+    ctx.beginPath();ctx.arc(pos.x,pos.y,r,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    // Border
+    ctx.strokeStyle=color==='red'?'#fca5a5':'#93c5fd';
+    ctx.lineWidth=2;ctx.stroke();
+    // Inner dot
+    ctx.fillStyle='rgba(255,255,255,0.8)';
+    ctx.beginPath();ctx.arc(pos.x,pos.y,r*0.3,0,Math.PI*2);ctx.fill();
+    // Selectable highlight
+    if(showSelectable&&color==='red'&&tk.t!==-1||( showSelectable&&color==='red'&&ludoDiceVal===6)){
+      ctx.strokeStyle='#fbbf24';ctx.lineWidth=3;ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.arc(pos.x,pos.y,r+4,0,Math.PI*2);ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  };
+  ludoP.forEach((tk,i)=>drawToken(tk,'red',i));
+  ludoC.forEach((tk,i)=>drawToken(tk,'blue',i));
+
+  // Finished count
+  const pDone=ludoP.filter(t=>t.t===58).length;
+  const cDone=ludoC.filter(t=>t.t===58).length;
+  if(pDone>0||cDone>0){
+    ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font=`bold ${W*0.028}px sans-serif`;ctx.textAlign='center';
+    ctx.fillText(`🔴 ${pDone}/4  🔵 ${cDone}/4`,W/2,W/2);
+  }
 }
 function exitLudo(){ludoActive=false;closeModal('ludo');}
 
 // ============================================================
-// 🐍 SAAP SIDI — Snakes & Ladders (full 10×10 board)
+// 🐍 SAAP SIDI — Snakes & Ladders PREMIUM
 // ============================================================
 let ssActive=false,ssPlayerPos=0,ssCompPos=0,ssTurn='player',ssPts=0;
-const SS_SNAKES={17:7,54:34,62:19,64:60,87:24,93:73,95:75,99:78};
-const SS_LADDERS={4:14,9:31,20:38,28:84,40:59,51:67,63:81,71:91};
+const SS_SNAKES={99:36, 95:24, 92:51, 88:14, 62:19, 54:34, 47:26, 16:6};
+const SS_LADDERS={2:38, 7:14, 8:30, 15:26, 21:42, 28:76, 36:57, 51:67, 71:90, 78:98};
 
 function openSaapSidiGame(){
-    document.getElementById('ssidiSetup').style.display='block';
-    document.getElementById('ssidiGame').style.display='none';
-    document.getElementById('ssidiBal').textContent=toPoints(userData.balance||0)+' pts';
-    openModal('saapsidi');
+  document.getElementById('ssidiSetup').style.display='block';
+  document.getElementById('ssidiGame').style.display='none';
+  document.getElementById('ssidiBal').textContent=toPoints(userData.balance||0)+' pts';
+  openModal('saapsidi');
 }
 function startSaapSidi(){
-    ssActive=true;ssPlayerPos=0;ssCompPos=0;ssTurn='player';ssPts=0;
-    document.getElementById('ssidiSetup').style.display='none';
-    document.getElementById('ssidiGame').style.display='block';
-    document.getElementById('ssidiStatus').textContent='🎲 Teri bari! Dice chalao!';
-    document.getElementById('ssidiDiceBtn').disabled=false;
-    document.getElementById('ssidiDiceResult').textContent='';
-    const c=document.getElementById('ssidiCanvas');
-    c.width=Math.min(window.innerWidth-40,360);c.height=c.width;
-    drawSaapSidi();
+  ssActive=true;ssPlayerPos=0;ssCompPos=0;ssTurn='player';ssPts=0;
+  document.getElementById('ssidiSetup').style.display='none';
+  document.getElementById('ssidiGame').style.display='block';
+  document.getElementById('ssidiStatus').innerHTML='🎲 <b>Teri Bari!</b> Dice Chalao!';
+  document.getElementById('ssidiDiceBtn').disabled=false;
+  document.getElementById('ssidiDiceResult').textContent='🎲';
+  const c=document.getElementById('ssidiCanvas');
+  c.width=c.height=Math.min(window.innerWidth-28,320);
+  drawSaapSidi();
 }
+
 function rollSaapDice(){
-    if(!ssActive||ssTurn!=='player')return;
-    ssTurn='rolling';
-    document.getElementById('ssidiDiceBtn').disabled=true;
-    const val=Math.ceil(Math.random()*6);
-    const faces=['','⚀','⚁','⚂','⚃','⚄','⚅'];
-    document.getElementById('ssidiDiceResult').textContent=faces[val];
-    document.getElementById('ssidiStatus').textContent='🎲 '+val+' aaya!';
-    setTimeout(()=>moveSaapToken('player',val),500);
+  if(!ssActive||ssTurn!=='player')return;
+  ssTurn='rolling';
+  document.getElementById('ssidiDiceBtn').disabled=true;
+  let rolls=0;
+  const faces=['⚀','⚁','⚂','⚃','⚄','⚅'];
+  const anim=setInterval(()=>{
+    document.getElementById('ssidiDiceResult').textContent=faces[Math.ceil(Math.random()*6)-1];
+    rolls++;
+    if(rolls>=10){
+      clearInterval(anim);
+      const val=Math.ceil(Math.random()*6);
+      document.getElementById('ssidiDiceResult').textContent=faces[val-1];
+      document.getElementById('ssidiStatus').innerHTML=`🎲 <b>${val}</b> aaya!`;
+      setTimeout(()=>moveSaapToken('player',val),400);
+    }
+  },80);
 }
+
 function moveSaapToken(who,val){
-    let pos=who==='player'?ssPlayerPos:ssCompPos;
-    const newPos=pos+val;
-    if(newPos>100){
-        document.getElementById('ssidiStatus').textContent=who==='player'?'⚠️ Zyada ho gaya! Ruk!':'🤖 CPU ruk gaya!';
-        if(who==='player'){ssTurn='comp';setTimeout(ssCompTurn,1000);}
-        else{ssTurn='player';document.getElementById('ssidiDiceBtn').disabled=false;}
-        return;
-    }
-    pos=newPos;
-    let msg='';
-    if(SS_LADDERS[pos]){const to=SS_LADDERS[pos];pos=to;msg=`🪜 Sidi! ${newPos}→${to}`;ssPts+=3;}
-    else if(SS_SNAKES[pos]){const to=SS_SNAKES[pos];pos=to;msg=`🐍 Saap! ${newPos}→${to}`;if(who==='player')ssPts=Math.max(0,ssPts-1);}
-    if(who==='player')ssPlayerPos=pos;else ssCompPos=pos;
-    drawSaapSidi();
-    if(msg)showToast(msg);
-    if(pos>=100){
-        if(who==='player')ssWin();else ssLose();
-        return;
-    }
-    if(who==='player'){ssTurn='comp';setTimeout(ssCompTurn,1200);}
-    else{ssTurn='player';document.getElementById('ssidiDiceBtn').disabled=false;document.getElementById('ssidiStatus').textContent='🎲 Teri bari!';}
+  let pos=who==='player'?ssPlayerPos:ssCompPos;
+  let newPos=pos+val;
+  if(newPos>100){
+    document.getElementById('ssidiStatus').innerHTML=who==='player'?'⚠️ Zyada! Ruk!':'🤖 CPU ruka!';
+    if(who==='player'){ssTurn='comp';setTimeout(ssCompTurn,1000);}
+    else{ssTurn='player';document.getElementById('ssidiDiceBtn').disabled=false;}
+    return;
+  }
+  let msg='', bonusPts=0;
+  if(SS_LADDERS[newPos]){
+    const to=SS_LADDERS[newPos];
+    msg=`🪜 Sidi! ${newPos}→${to} +5pts`;
+    newPos=to; bonusPts=5;
+  } else if(SS_SNAKES[newPos]){
+    const to=SS_SNAKES[newPos];
+    msg=`🐍 Saap! ${newPos}→${to}`;
+    newPos=to;
+  }
+  if(who==='player'){ssPlayerPos=newPos;ssPts+=bonusPts;}
+  else ssCompPos=newPos;
+  drawSaapSidi();
+  if(msg) showToast(msg);
+  if(newPos>=100){
+    if(who==='player')ssWin();else ssLose();
+    return;
+  }
+  if(who==='player'){ssTurn='comp';setTimeout(ssCompTurn,1300);}
+  else{ssTurn='player';document.getElementById('ssidiDiceBtn').disabled=false;document.getElementById('ssidiStatus').innerHTML='🎲 <b>Teri Bari!</b>';}
 }
 function ssCompTurn(){
-    const val=Math.ceil(Math.random()*6);
-    const faces=['','⚀','⚁','⚂','⚃','⚄','⚅'];
-    document.getElementById('ssidiStatus').textContent='🤖 CPU: '+faces[val]+' '+val;
-    document.getElementById('ssidiDiceResult').textContent=faces[val];
-    setTimeout(()=>moveSaapToken('comp',val),600);
+  const val=Math.ceil(Math.random()*6);
+  const faces=['⚀','⚁','⚂','⚃','⚄','⚅'];
+  document.getElementById('ssidiStatus').innerHTML=`🤖 CPU: <b>${faces[val-1]} ${val}</b>`;
+  document.getElementById('ssidiDiceResult').textContent=faces[val-1];
+  setTimeout(()=>moveSaapToken('comp',val),700);
 }
 async function ssWin(){
-    ssActive=false;ssPts+=25;
-    showToast('🏆 100 pahunch gaye! +'+ssPts+' pts!');
-    document.getElementById('ssidiStatus').textContent='🏆 TUM JEETE! +'+ssPts+' pts!';
-    document.getElementById('ssidiDiceBtn').disabled=true;
-    const rup=fromPoints(ssPts);if(rup>0){userData.balance=(userData.balance||0)+rup;updateUI();}
-    await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'saapsidi',bet:0,survived_seconds:ssPts}).catch(()=>{});
-    setTimeout(()=>{document.getElementById('ssidiSetup').style.display='block';document.getElementById('ssidiGame').style.display='none';},3000);
+  ssActive=false;ssPts+=25;
+  showToast('🏆 100 pe pahunche! +'+ssPts+' pts!');
+  document.getElementById('ssidiStatus').innerHTML='🏆 <b>TUM JEETE! +'+ssPts+' pts!</b>';
+  document.getElementById('ssidiDiceBtn').disabled=true;
+  const rup=fromPoints(ssPts);if(rup>0){userData.balance=(userData.balance||0)+rup;updateUI();}
+  await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'saapsidi',bet:0,survived_seconds:ssPts}).catch(()=>{});
+  setTimeout(()=>{document.getElementById('ssidiSetup').style.display='block';document.getElementById('ssidiGame').style.display='none';},3000);
 }
 function ssLose(){
-    ssActive=false;
-    showToast('😢 CPU Jeeta! Dobara khelo!');
-    document.getElementById('ssidiStatus').textContent='😢 CPU Jeeta!';
-    setTimeout(()=>{document.getElementById('ssidiSetup').style.display='block';document.getElementById('ssidiGame').style.display='none';},2000);
+  ssActive=false;
+  showToast('😢 CPU Jeeta! Dobara khelo!');
+  document.getElementById('ssidiStatus').innerHTML='😢 <b>CPU Jeeta!</b>';
+  setTimeout(()=>{document.getElementById('ssidiSetup').style.display='block';document.getElementById('ssidiGame').style.display='none';},2500);
 }
+
+function ssPos(n,W){
+  // Convert board position 1-100 to canvas x,y
+  // Row 0 (top) = numbers 91-100, row 9 (bottom) = 1-10
+  const row=Math.floor((n-1)/10); // 0=bottom, 9=top
+  const drawRow=9-row; // flip: drawRow 0=top, 9=bottom
+  const posInRow=(n-1)%10; // 0-9
+  const col=row%2===0?posInRow:9-posInRow; // alternating direction
+  const cs=W/10.5;
+  const offX=cs*0.25, offY=cs*0.25;
+  return[offX+cs*col+cs/2, offY+cs*drawRow+cs/2, cs];
+}
+
 function drawSaapSidi(){
-    const c=document.getElementById('ssidiCanvas');if(!c)return;
-    const ctx=c.getContext('2d');
-    const W=c.width,cs=W/10;
-    ctx.clearRect(0,0,W,W);
-    // Board squares
-    const COLORS=['#fef9c3','#f0fdf4','#eff6ff','#fdf2f8','#fff7ed'];
-    for(let i=0;i<100;i++){
-        const num=100-i;
-        const row=Math.floor(i/10);
-        const col=row%2===0?9-(i%10):i%10;
-        const x=col*cs,y=row*cs;
-        ctx.fillStyle=COLORS[i%5];ctx.fillRect(x,y,cs,cs);
-        ctx.strokeStyle='rgba(0,0,0,0.08)';ctx.lineWidth=0.5;ctx.strokeRect(x,y,cs,cs);
-        ctx.fillStyle='rgba(0,0,0,0.4)';ctx.font=`${cs*0.22}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='top';
-        ctx.fillText(num,x+cs/2,y+2);
+  const c=document.getElementById('ssidiCanvas');if(!c)return;
+  const ctx=c.getContext('2d');
+  const W=c.width;
+  ctx.clearRect(0,0,W,W);
+
+  const cs=W/10.5, offX=cs*0.25, offY=cs*0.25;
+
+  // Board background
+  ctx.fillStyle='#0f172a';ctx.fillRect(0,0,W,W);
+
+  // Draw board cells
+  const CELL_COLORS=[
+    '#1e3a5f','#1e4d3f','#2d1e5f','#3f1e2d','#1e3f2d',
+    '#3d2d0f','#0f3d2d','#2d0f3d','#3d0f0f','#0f2d3d'
+  ];
+  for(let i=1;i<=100;i++){
+    const [x,y,s]=ssPos(i,W);
+    const row=Math.floor((i-1)/10);
+
+    // Cell gradient
+    const grad=ctx.createLinearGradient(x-s/2,y-s/2,x+s/2,y+s/2);
+    const base=CELL_COLORS[row];
+    grad.addColorStop(0,base+'dd');grad.addColorStop(1,base+'88');
+
+    const isSnakehead=Object.keys(SS_SNAKES).includes(String(i));
+    const isLadderbot=Object.keys(SS_LADDERS).includes(String(i));
+
+    if(i===100){ctx.fillStyle='rgba(255,215,0,0.3)';}
+    else if(isSnakehead){ctx.fillStyle='rgba(239,68,68,0.3)';}
+    else if(isLadderbot){ctx.fillStyle='rgba(34,197,94,0.3)';}
+    else{ctx.fillStyle=grad;}
+
+    ctx.beginPath();ctx.roundRect(x-s/2+1,y-s/2+1,s-2,s-2,3);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.07)';ctx.lineWidth=0.5;ctx.stroke();
+
+    // Number
+    ctx.fillStyle=i===100?'#ffd700':'rgba(255,255,255,0.55)';
+    ctx.font=`bold ${s*0.28}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(i,x,y);
+  }
+
+  // Draw ladders (green, with rungs)
+  ctx.lineCap='round';
+  Object.entries(SS_LADDERS).forEach(([from,to])=>{
+    const [fx,fy,s]=ssPos(parseInt(from),W);
+    const [tx,ty]=ssPos(parseInt(to),W);
+    const dx=tx-fx, dy=ty-fy;
+    const len=Math.sqrt(dx*dx+dy*dy);
+    const nx=dy/len*s*0.12, ny=-dx/len*s*0.12;
+
+    // Rails
+    ctx.strokeStyle='rgba(74,222,128,0.85)';ctx.lineWidth=s*0.1;
+    ctx.beginPath();ctx.moveTo(fx-nx,fy-ny);ctx.lineTo(tx-nx,ty-ny);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(fx+nx,fy+ny);ctx.lineTo(tx+nx,ty+ny);ctx.stroke();
+
+    // Rungs
+    const steps=Math.ceil(len/s*1.5);
+    ctx.strokeStyle='rgba(74,222,128,0.6)';ctx.lineWidth=s*0.07;
+    for(let r=1;r<steps;r++){
+      const t=r/steps;
+      const rx=fx+dx*t, ry=fy+dy*t;
+      ctx.beginPath();ctx.moveTo(rx-nx,ry-ny);ctx.lineTo(rx+nx,ry+ny);ctx.stroke();
     }
-    // Draw snakes (red lines)
-    ctx.lineWidth=cs*0.18;ctx.lineCap='round';
-    Object.entries(SS_SNAKES).forEach(([from,to])=>{
-        const [fx,fy]=ssPos(parseInt(from),cs);const [tx,ty]=ssPos(parseInt(to),cs);
-        ctx.strokeStyle='rgba(239,68,68,0.7)';ctx.beginPath();ctx.moveTo(fx,fy);ctx.quadraticCurveTo((fx+tx)/2+cs,fy,tx,ty);ctx.stroke();
-        ctx.fillStyle='#ef4444';ctx.font=`${cs*0.4}px sans-serif`;ctx.fillText('🐍',fx,fy-cs*0.1);
-    });
-    // Draw ladders (green lines)
-    ctx.lineWidth=cs*0.12;
-    Object.entries(SS_LADDERS).forEach(([from,to])=>{
-        const [fx,fy]=ssPos(parseInt(from),cs);const [tx,ty]=ssPos(parseInt(to),cs);
-        ctx.strokeStyle='rgba(34,197,94,0.8)';ctx.beginPath();ctx.moveTo(fx,fy);ctx.lineTo(tx,ty);ctx.stroke();
-        ctx.font=`${cs*0.35}px sans-serif`;ctx.fillText('🪜',fx,fy);
-    });
-    // Player & comp tokens
-    if(ssPlayerPos>0){const [x,y]=ssPos(ssPlayerPos,cs);ctx.fillStyle='#fbbf24';ctx.shadowColor='rgba(251,191,36,0.6)';ctx.shadowBlur=8;ctx.beginPath();ctx.arc(x-cs*0.15,y,cs*0.28,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#fff';ctx.font=`${cs*0.3}px sans-serif`;ctx.textAlign='center';ctx.fillText('🟡',x-cs*0.15,y+cs*0.1);}
-    if(ssCompPos>0){const [x,y]=ssPos(ssCompPos,cs);ctx.fillStyle='#3b82f6';ctx.shadowColor='rgba(59,130,246,0.6)';ctx.shadowBlur=8;ctx.beginPath();ctx.arc(x+cs*0.15,y,cs*0.28,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#fff';ctx.font=`${cs*0.3}px sans-serif`;ctx.textAlign='center';ctx.fillText('🔵',x+cs*0.15,y+cs*0.1);}
-}
-function ssPos(n,cs){
-    const i=100-n;const row=Math.floor(i/10);const col=row%2===0?9-(i%10):i%10;
-    return [col*cs+cs/2,row*cs+cs/2];
+    // Emoji at start
+    ctx.font=`${s*0.7}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('🪜',fx,fy-s*0.1);
+  });
+
+  // Draw snakes (curvy, colorful)
+  const snakeColors=['#ef4444','#f97316','#a855f7','#ec4899','#06b6d4'];
+  let si=0;
+  Object.entries(SS_SNAKES).forEach(([from,to])=>{
+    const [fx,fy,s]=ssPos(parseInt(from),W);
+    const [tx,ty]=ssPos(parseInt(to),W);
+    const clr=snakeColors[si%snakeColors.length]; si++;
+
+    // Draw curvy snake body
+    ctx.shadowColor=clr;ctx.shadowBlur=6;
+    ctx.strokeStyle=clr;ctx.lineWidth=s*0.22;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(tx,ty);
+
+    // Create S-curve with multiple control points
+    const mx=(fx+tx)/2, my=(fy+ty)/2;
+    const perp=s*1.5;
+    ctx.bezierCurveTo(
+      tx+(fx-tx)*0.3+perp, ty+(fy-ty)*0.3,
+      fx-(fx-tx)*0.3-perp, fy-(fy-ty)*0.3,
+      fx, fy
+    );
+    ctx.stroke();
+
+    // Darker outline
+    ctx.shadowBlur=0;
+    ctx.strokeStyle=clr+'66';ctx.lineWidth=s*0.28;
+    ctx.stroke();
+
+    ctx.shadowBlur=0;
+    // Snake head emoji
+    ctx.font=`${s*0.72}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('🐍',fx,fy-s*0.05);
+  });
+
+  // Player token
+  const drawSsToken=(pos,clr,emoji,off)=>{
+    if(pos<=0)return;
+    const [x,y,s]=ssPos(pos,W);
+    const px=x+off*s*0.22;
+    ctx.shadowColor=clr;ctx.shadowBlur=14;
+    const g=ctx.createRadialGradient(px-s*0.1,y-s*0.1,0,px,y,s*0.35);
+    g.addColorStop(0,clr+'ff');g.addColorStop(1,clr+'99');
+    ctx.fillStyle=g;
+    ctx.beginPath();ctx.arc(px,y,s*0.34,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+    ctx.font=`${s*0.38}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(emoji,px,y+1);
+  };
+  drawSsToken(ssPlayerPos,'#fbbf24','🟡',-0.5);
+  drawSsToken(ssCompPos,'#3b82f6','🔵',0.5);
+
+  // Position labels
+  ctx.fillStyle='rgba(255,255,255,0.7)';
+  ctx.font=`bold ${W*0.03}px sans-serif`;ctx.textAlign='left';
+  ctx.fillText(`🟡 ${ssPlayerPos}/100  🔵 ${ssCompPos}/100`,6,W-6);
 }
 function exitSaapSidi(){ssActive=false;closeModal('saapsidi');}
 
 // ============================================================
-// 🌈 COLOR FLOW — Pipe Puzzle Game
+// 🌈 COLOR FLOW — Pipe Connect Puzzle (Pointer Events)
 // ============================================================
 let cfActive=false,cfLevel=1,cfMoves=0,cfPts=0;
-let cfSize=5,cfGrid=[],cfPaths={},cfDragging=null,cfCurrentPath=[];
+let cfSize=5,cfCells=[],cfPaths={},cfDragging=null,cfDragPath=[];
+let cfPointerDown=false;
+
 const CF_LEVELS=[
-    {size:5,pairs:{R:[[0,0],[4,4]],G:[[0,4],[4,0]],B:[[2,0],[2,4]],Y:[[0,2],[4,2]],P:[[1,1],[3,3]]}},
-    {size:5,pairs:{R:[[0,0],[3,4]],G:[[1,0],[4,3]],B:[[0,3],[4,1]],Y:[[2,1],[2,4]],P:[[0,4],[4,0]]}},
-    {size:6,pairs:{R:[[0,0],[5,5]],G:[[0,5],[5,0]],B:[[0,2],[5,3]],Y:[[2,0],[3,5]],P:[[1,1],[4,4]],O:[[3,1],[2,4]]}},
-    {size:6,pairs:{R:[[0,0],[4,5]],G:[[0,3],[5,2]],B:[[1,0],[5,4]],Y:[[0,5],[5,0]],P:[[2,2],[3,3]],O:[[3,1],[2,4]]}},
-    {size:7,pairs:{R:[[0,0],[6,6]],G:[[0,6],[6,0]],B:[[0,3],[6,3]],Y:[[3,0],[3,6]],P:[[1,1],[5,5]],O:[[1,5],[5,1]],W:[[3,3],[0,6]]}},
-    {size:7,pairs:{R:[[0,0],[5,6]],G:[[1,0],[6,5]],B:[[0,4],[6,2]],Y:[[2,0],[4,6]],P:[[0,6],[6,0]],O:[[3,2],[3,4]],W:[[2,3],[4,3]]}},
+  {size:5,dots:{R:[[0,0],[4,4]],G:[[0,4],[4,0]],B:[[2,0],[2,4]],Y:[[0,2],[4,2]]}},
+  {size:5,dots:{R:[[0,0],[3,4]],G:[[1,0],[4,3]],B:[[0,3],[4,1]],Y:[[2,2],[4,4]],P:[[0,1],[2,4]]}},
+  {size:6,dots:{R:[[0,0],[5,5]],G:[[0,5],[5,0]],B:[[0,2],[5,3]],Y:[[2,0],[3,5]],P:[[1,1],[4,4]],O:[[3,1],[2,4]]}},
+  {size:6,dots:{R:[[0,0],[4,5]],G:[[0,3],[5,2]],B:[[1,0],[5,4]],Y:[[0,5],[5,0]],P:[[2,2],[3,3]],O:[[3,1],[2,4]]}},
+  {size:7,dots:{R:[[0,0],[6,6]],G:[[0,6],[6,0]],B:[[0,3],[6,3]],Y:[[3,0],[3,6]],P:[[1,1],[5,5]],O:[[1,5],[5,1]],W:[[2,3],[4,3]]}},
 ];
-const CF_COLORS={R:'#ef4444',G:'#22c55e',B:'#3b82f6',Y:'#eab308',P:'#a855f7',O:'#f97316',W:'#e2e8f0'};
+const CF_CLRS={R:'#ef4444',G:'#22c55e',B:'#3b82f6',Y:'#eab308',P:'#a855f7',O:'#f97316',W:'#e2e8f0'};
+const CF_NAMES={R:'Red',G:'Green',B:'Blue',Y:'Yellow',P:'Purple',O:'Orange',W:'White'};
 
 function openColorFlowGame(){
-    cfActive=true;cfLevel=1;cfMoves=0;cfPts=0;
-    document.getElementById('cfBal').textContent=toPoints(userData.balance||0)+' pts';
-    document.getElementById('cfLevel').textContent=cfLevel;
-    document.getElementById('cfMoves').textContent=cfMoves;
-    document.getElementById('cfPts').textContent=cfPts;
-    openModal('colorflow');
+  cfActive=true;cfLevel=1;cfMoves=0;cfPts=0;
+  document.getElementById('cfBal').textContent=toPoints(userData.balance||0)+' pts';
+  document.getElementById('cfLevel').textContent=cfLevel;
+  document.getElementById('cfMoves').textContent=cfMoves;
+  document.getElementById('cfPts').textContent=cfPts;
+  openModal('colorflow');
+  setTimeout(()=>{
+    const c=document.getElementById('cfCanvas');
+    if(c){c.width=c.height=Math.min(window.innerWidth-28,340);cfSetupCanvas();}
     cfLoadLevel();
+  },120);
 }
-function cfLoadLevel(){
-    const lv=CF_LEVELS[Math.min(cfLevel-1,CF_LEVELS.length-1)];
-    cfSize=lv.size;cfPaths={};cfDragging=null;cfCurrentPath=[];
-    cfGrid=Array.from({length:cfSize},()=>Array(cfSize).fill(null));
-    Object.entries(lv.pairs).forEach(([k,[a,b]])=>{
-        cfGrid[a[0]][a[1]]={color:k,dot:true};
-        cfGrid[b[0]][b[1]]={color:k,dot:true};
-        cfPaths[k]=[];
-    });
-    cfRenderGrid();
-}
-function cfRenderGrid(){
-    const cont=document.getElementById('cfGrid');if(!cont)return;
-    const W=Math.min(window.innerWidth-50,340);
-    const cs=Math.floor(W/cfSize);
-    cont.style.width=cs*cfSize+'px';cont.style.height=cs*cfSize+'px';
-    cont.style.display='grid';cont.style.gridTemplateColumns=`repeat(${cfSize},${cs}px)`;
-    cont.style.gap='2px';cont.style.margin='0 auto';
-    cont.innerHTML='';
-    for(let r=0;r<cfSize;r++){
-        for(let c2=0;c2<cfSize;c2++){
-            const cell=document.createElement('div');
-            cell.style.cssText=`width:${cs}px;height:${cs}px;border-radius:${cs*0.15}px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);position:relative;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;justify-content:center;`;
-            const g=cfGrid[r][c2];
-            if(g){
-                cell.style.background=CF_COLORS[g.color]+(g.dot?'':'88');
-                if(g.dot){
-                    const dot=document.createElement('div');
-                    dot.style.cssText=`width:${cs*0.55}px;height:${cs*0.55}px;border-radius:50%;background:${CF_COLORS[g.color]};border:2px solid rgba(255,255,255,0.6);box-shadow:0 0 8px ${CF_COLORS[g.color]};`;
-                    cell.appendChild(dot);
-                }
-            }
-            cell.dataset.r=r;cell.dataset.c=c2;
-            cell.addEventListener('mousedown',cfStart);cell.addEventListener('touchstart',cfStart,{passive:false});
-            cell.addEventListener('mouseenter',cfMove);cell.addEventListener('touchmove',cfTouchMove,{passive:false});
-            cont.appendChild(cell);
-        }
-    }
-    document.addEventListener('mouseup',cfEnd);document.addEventListener('touchend',cfEnd);
-}
-function cfStart(e){
-    e.preventDefault();
-    const r=parseInt(this.dataset.r||e.currentTarget.dataset.r),c=parseInt(this.dataset.c||e.currentTarget.dataset.c);
-    const g=cfGrid[r][c];if(!g||!g.dot)return;
-    cfDragging=g.color;cfCurrentPath=[[r,c]];
-    cfPaths[g.color]=[[r,c]];
-    // Clear old path of this color from grid (except dots)
-    for(let i=0;i<cfSize;i++)for(let j=0;j<cfSize;j++){if(cfGrid[i][j]&&cfGrid[i][j].color===g.color&&!cfGrid[i][j].dot)cfGrid[i][j]=null;}
-    cfRenderGrid();
-}
-function cfTouchMove(e){
-    e.preventDefault();
-    const t=e.touches[0];
-    const el=document.elementFromPoint(t.clientX,t.clientY);
-    if(el&&el.dataset.r)cfAddCell(parseInt(el.dataset.r),parseInt(el.dataset.c));
-}
-function cfMove(e){if(cfDragging)cfAddCell(parseInt(this.dataset.r),parseInt(this.dataset.c));}
-function cfAddCell(r,c){
-    if(!cfDragging)return;
-    const last=cfCurrentPath[cfCurrentPath.length-1];
-    if(last[0]===r&&last[1]===c)return;
-    const dr=Math.abs(r-last[0]),dc=Math.abs(c-last[1]);
-    if(dr+dc!==1)return;// must be adjacent
-    const existing=cfGrid[r][c];
-    if(existing&&existing.dot&&existing.color!==cfDragging)return;// can't cross other dot
-    cfGrid[r][c]={color:cfDragging,dot:existing?.dot||false};
-    cfCurrentPath.push([r,c]);cfPaths[cfDragging]=cfCurrentPath.slice();
-    cfMoves++;document.getElementById('cfMoves').textContent=cfMoves;
-    cfRenderGrid();
-    // Check win
-    if(existing&&existing.dot&&existing.color===cfDragging){cfCheckWin();}
-}
-function cfEnd(){cfDragging=null;cfCurrentPath=[];}
-function cfCheckWin(){
-    const lv=CF_LEVELS[Math.min(cfLevel-1,CF_LEVELS.length-1)];
-    const allConnected=Object.keys(lv.pairs).every(k=>{
-        const path=cfPaths[k]||[];if(path.length<2)return false;
-        const [a,b]=lv.pairs[k];
-        const s=path[0],e=path[path.length-1];
-        return ((s[0]===a[0]&&s[1]===a[1]&&e[0]===b[0]&&e[1]===b[1])||(s[0]===b[0]&&s[1]===b[1]&&e[0]===a[0]&&e[1]===a[1]));
-    });
-    // All cells filled?
-    const allFilled=cfGrid.every(row=>row.every(cell=>cell!==null));
-    if(allConnected&&allFilled){cfLevelComplete();}
-}
-async function cfLevelComplete(){
-    const earned=Math.max(20-Math.floor(cfMoves/5),5);
-    cfPts+=earned;
-    document.getElementById('cfPts').textContent=cfPts;
-    showToast('🎉 Level '+cfLevel+' Clear! +'+earned+' pts!');
-    const rup=fromPoints(earned);if(rup>0){userData.balance=(userData.balance||0)+rup;updateUI();}
-    await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'colorflow',bet:0,survived_seconds:cfPts}).catch(()=>{});
-    cfLevel++;
-    document.getElementById('cfLevel').textContent=cfLevel;
-    if(cfLevel>CF_LEVELS.length){showToast('🏆 Sab levels complete! Mast khele!');setTimeout(()=>exitColorFlow(),2000);return;}
-    setTimeout(()=>cfLoadLevel(),1200);
-}
-function cfReset(){cfLoadLevel();}
-function exitColorFlow(){cfActive=false;document.removeEventListener('mouseup',cfEnd);document.removeEventListener('touchend',cfEnd);closeModal('colorflow');}
 
+function cfLoadLevel(){
+  const lv=CF_LEVELS[Math.min(cfLevel-1,CF_LEVELS.length-1)];
+  cfSize=lv.size;cfPaths={};cfDragging=null;cfDragPath=[];cfPointerDown=false;
+  // Init cells: null or {color, dot}
+  cfCells=Array.from({length:cfSize},()=>Array(cfSize).fill(null));
+  Object.entries(lv.dots).forEach(([k,[a,b]])=>{
+    cfCells[a[0]][a[1]]={color:k,dot:true};
+    cfCells[b[0]][b[1]]={color:k,dot:true};
+    cfPaths[k]={path:[],complete:false};
+  });
+  cfDrawCanvas();
+}
+
+function cfGetCanvas(){return document.getElementById('cfCanvas');}
+function cfCellAt(cx,cy){
+  const c=cfGetCanvas();if(!c)return null;
+  const W=Math.min(c.width,c.height);
+  const pad=8, cs=(W-2*pad)/cfSize;
+  const col=Math.floor((cx-pad)/cs), row=Math.floor((cy-pad)/cs);
+  if(row<0||row>=cfSize||col<0||col>=cfSize)return null;
+  return{row,col};
+}
+
+function cfPointerStart(e){
+  e.preventDefault();
+  cfPointerDown=true;
+  const c=cfGetCanvas();
+  const rect=c.getBoundingClientRect();
+  const scaleX=c.width/rect.width, scaleY=c.height/rect.height;
+  const src=e.touches?e.touches[0]:e;
+  const cx=(src.clientX-rect.left)*scaleX, cy=(src.clientY-rect.top)*scaleY;
+  const cell=cfCellAt(cx,cy);
+  if(!cell)return;
+  const existing=cfCells[cell.row][cell.col];
+  if(!existing||!existing.dot)return;
+  cfDragging=existing.color;
+  // Clear this color's path from grid
+  for(let r=0;r<cfSize;r++)for(let cc=0;cc<cfSize;cc++){
+    if(cfCells[r][cc]&&cfCells[r][cc].color===cfDragging&&!cfCells[r][cc].dot)cfCells[r][cc]=null;
+  }
+  cfDragPath=[[cell.row,cell.col]];
+  cfPaths[cfDragging]={path:cfDragPath.slice(),complete:false};
+  cfDrawCanvas();
+}
+
+function cfPointerMove(e){
+  e.preventDefault();
+  if(!cfPointerDown||!cfDragging)return;
+  const c=cfGetCanvas();
+  const rect=c.getBoundingClientRect();
+  const scaleX=c.width/rect.width, scaleY=c.height/rect.height;
+  const src=e.touches?e.touches[0]:e;
+  const cx=(src.clientX-rect.left)*scaleX, cy=(src.clientY-rect.top)*scaleY;
+  const cell=cfCellAt(cx,cy);
+  if(!cell)return;
+  const last=cfDragPath[cfDragPath.length-1];
+  if(last[0]===cell.row&&last[1]===cell.col)return;
+  // Must be adjacent
+  if(Math.abs(cell.row-last[0])+Math.abs(cell.col-last[1])!==1)return;
+  // Can't go through other color's dot
+  const existing=cfCells[cell.row][cell.col];
+  if(existing&&existing.dot&&existing.color!==cfDragging)return;
+  // Check if going back (allow)
+  const prev=cfDragPath.length>1?cfDragPath[cfDragPath.length-2]:null;
+  if(prev&&prev[0]===cell.row&&prev[1]===cell.col){
+    // Going back - remove last
+    const removed=cfDragPath.pop();
+    cfCells[removed[0]][removed[1]]=null;
+    // Re-check if start dot
+    const start=cfDragPath[0];
+    if(cfCells[start[0]][start[1]]===null)cfCells[start[0]][start[1]]={color:cfDragging,dot:true};
+  } else {
+    // Clear any non-dot cell in path from another color
+    if(existing&&!existing.dot)cfCells[cell.row][cell.col]=null;
+    cfDragPath.push([cell.row,cell.col]);
+    cfCells[cell.row][cell.col]={color:cfDragging,dot:!!existing?.dot};
+  }
+  cfPaths[cfDragging]={path:cfDragPath.slice(),complete:false};
+  cfMoves++;document.getElementById('cfMoves').textContent=cfMoves;
+  // Check if connected to other endpoint
+  const lv=CF_LEVELS[Math.min(cfLevel-1,CF_LEVELS.length-1)];
+  const [a,b]=lv.dots[cfDragging];
+  const end=cfDragPath[cfDragPath.length-1];
+  if((end[0]===b[0]&&end[1]===b[1])||(cfDragPath.length>1&&end[0]===a[0]&&end[1]===a[1])){
+    cfPaths[cfDragging].complete=true;
+  }
+  cfDrawCanvas();
+  if(cfPaths[cfDragging].complete)cfCheckWin();
+}
+
+function cfPointerEnd(e){cfPointerDown=false;cfDragging=null;cfDragPath=[];}
+
+function cfCheckWin(){
+  const lv=CF_LEVELS[Math.min(cfLevel-1,CF_LEVELS.length-1)];
+  const allDone=Object.keys(lv.dots).every(k=>cfPaths[k]&&cfPaths[k].complete);
+  const allFilled=cfCells.every(row=>row.every(cell=>cell!==null));
+  if(allDone&&allFilled)cfLevelComplete();
+}
+
+async function cfLevelComplete(){
+  const earned=Math.max(20-Math.floor(cfMoves/(cfSize)),5);
+  cfPts+=earned;
+  document.getElementById('cfPts').textContent=cfPts;
+  showToast('🎉 Level '+cfLevel+' Clear! +'+earned+' pts!');
+  const rup=fromPoints(earned);if(rup>0){userData.balance=(userData.balance||0)+rup;updateUI();}
+  await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'colorflow',bet:0,survived_seconds:cfPts}).catch(()=>{});
+  cfLevel++;document.getElementById('cfLevel').textContent=cfLevel;
+  if(cfLevel>CF_LEVELS.length){showToast('🏆 Sab levels complete!');setTimeout(()=>exitColorFlow(),2000);return;}
+  cfMoves=0;document.getElementById('cfMoves').textContent=0;
+  setTimeout(()=>cfLoadLevel(),1200);
+}
+
+function cfDrawCanvas(){
+  const c=cfGetCanvas();if(!c)return;
+  const ctx=c.getContext('2d');
+  const W=c.width;
+  ctx.clearRect(0,0,W,W);
+
+  const pad=8, cs=(W-2*pad)/cfSize;
+  const r=cs*0.12; // corner radius
+
+  // Background
+  ctx.fillStyle='#0a0f1e';ctx.fillRect(0,0,W,W);
+
+  // Grid
+  for(let row=0;row<cfSize;row++){
+    for(let col=0;col<cfSize;col++){
+      const x=pad+col*cs, y=pad+row*cs;
+      ctx.fillStyle='rgba(255,255,255,0.04)';
+      ctx.beginPath();ctx.roundRect(x+1,y+1,cs-2,cs-2,r);ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=0.5;ctx.stroke();
+    }
+  }
+
+  // Draw filled paths
+  for(let row=0;row<cfSize;row++){
+    for(let col=0;col<cfSize;col++){
+      const cell=cfCells[row][col];
+      if(!cell||cell.dot)continue;
+      const x=pad+col*cs+cs/2, y=pad+row*cs+cs/2;
+      const clr=CF_CLRS[cell.color];
+      ctx.fillStyle=clr+'55';
+      ctx.beginPath();ctx.roundRect(pad+col*cs+2,pad+row*cs+2,cs-4,cs-4,r);ctx.fill();
+    }
+  }
+
+  // Draw path lines connecting dots
+  Object.entries(cfPaths).forEach(([k,{path,complete}])=>{
+    if(path.length<2)return;
+    const clr=CF_CLRS[k];
+    ctx.strokeStyle=clr;ctx.lineWidth=cs*0.35;ctx.lineCap='round';ctx.lineJoin='round';
+    ctx.shadowColor=clr;ctx.shadowBlur=8;
+    ctx.beginPath();
+    path.forEach(([pr,pc],i)=>{
+      const x=pad+pc*cs+cs/2, y=pad+pr*cs+cs/2;
+      if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+    ctx.shadowBlur=0;
+  });
+
+  // Draw dots on top
+  const lv=CF_LEVELS[Math.min(cfLevel-1,CF_LEVELS.length-1)];
+  Object.entries(lv.dots).forEach(([k,[a,b]])=>{
+    [[a],[b]].forEach(([[pr,pc]])=>{
+      const x=pad+pc*cs+cs/2, y=pad+pr*cs+cs/2;
+      const clr=CF_CLRS[k];
+      const dr=cs*0.35;
+      ctx.shadowColor=clr;ctx.shadowBlur=12;
+      const g=ctx.createRadialGradient(x-dr*0.3,y-dr*0.3,0,x,y,dr);
+      g.addColorStop(0,clr);g.addColorStop(1,clr+'88');
+      ctx.fillStyle=g;
+      ctx.beginPath();ctx.arc(x,y,dr,0,Math.PI*2);ctx.fill();
+      ctx.shadowBlur=0;
+      ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=2;ctx.stroke();
+    });
+  });
+}
+
+function cfSetupCanvas(){
+  const c=document.getElementById('cfCanvas');if(!c)return;
+  c.removeEventListener('mousedown',c._cfStart);
+  c.removeEventListener('mousemove',c._cfMove);
+  c.removeEventListener('mouseup',c._cfEnd);
+  c.removeEventListener('touchstart',c._cfStart);
+  c.removeEventListener('touchmove',c._cfMove);
+  c.removeEventListener('touchend',c._cfEnd);
+  c._cfStart=cfPointerStart;c._cfMove=cfPointerMove;c._cfEnd=cfPointerEnd;
+  c.addEventListener('mousedown',c._cfStart);
+  c.addEventListener('mousemove',c._cfMove);
+  c.addEventListener('mouseup',c._cfEnd);
+  c.addEventListener('touchstart',c._cfStart,{passive:false});
+  c.addEventListener('touchmove',c._cfMove,{passive:false});
+  c.addEventListener('touchend',c._cfEnd,{passive:false});
+}
+
+function cfReset(){cfLoadLevel();}
+function exitColorFlow(){cfActive=false;closeModal('colorflow');}
 
 // ============================================================
 // 🎰 LUCKY 1-50 JACKPOT
@@ -8345,23 +8817,38 @@ async function loadJackpotStatus(){
     }catch(e){}
 }
 
+function jackpotUpdateMaxWin(val){
+    const pts = parseInt(val)||0;
+    const el = document.getElementById('jackpotMaxWin');
+    if(el) el.textContent = pts>0 ? (pts*40).toLocaleString()+' pts' : '20,000 pts';
+}
+
 async function submitJackpotBet(){
     const betAmt = parseInt(document.getElementById('jackpotBetAmt').value)||0;
     const num    = parseInt(document.getElementById('jackpotNumber').value)||0;
-    if(betAmt < 100){ showToast('❌ Minimum 100 pts bet karo'); return; }
+    if(betAmt < 500){ showToast('❌ Minimum 500 pts bet karo!'); return; }
     if(num < 1 || num > 50){ showToast('❌ 1 se 50 ke beech number chuno'); return; }
     const balPts = Math.round((userData.balance||0)*100);
-    if(betAmt > balPts){ showToast('❌ Itne pts nahi hain'); return; }
+    if(betAmt > balPts){ showToast(`❌ Balance kam hai! (${balPts} pts available)`); return; }
+
+    // Immediately cut points from UI (optimistic update)
+    const rupDeduct = betAmt/100;
+    userData.balance = Math.max(0,(userData.balance||0) - rupDeduct);
+    updateUI();
+
     const r = await apiPost('/api/jackpot/bet',{user_id:userData.user_id, amount:betAmt, number:num});
     if(r && r.success){
-        userData.balance = Math.max(0,(userData.balance||0) - (betAmt/100));
-        updateUI();
-        showToast('✅ Bet confirm! Number: '+num+' | '+betAmt+' pts');
+        showToast(`🎰 Bet locked! #${num} pe ${betAmt} pts | Result 24h mein!`);
         document.getElementById('jackpotBetAmt').value = '';
         document.getElementById('jackpotNumber').value = '';
+        document.getElementById('jackpotMaxWin').textContent = '20,000 pts';
         if(r.seats_filled){ const el=document.getElementById('jackpotSeats'); if(el) el.textContent=r.seats_filled; }
         playSound('earn');
+        triggerConfetti();
     } else {
+        // Refund if API failed
+        userData.balance = (userData.balance||0) + rupDeduct;
+        updateUI();
         showToast('❌ '+(r?.message||'Bet fail ho gayi'));
     }
 }
