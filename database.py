@@ -1876,30 +1876,35 @@ class Database:
         """
         Weekly = refs activated THIS week (Mon-Sun)
         Monthly = refs activated THIS month
-        Both are fresh — no overlap with previous periods
+        Both are fresh — resets automatically each week/month.
+        NO all-time fallback — fresh period = fresh start.
         """
         try:
             now = datetime.now()
 
             if mode == 'weekly':
-                # Monday of this week
+                # Monday 00:00:00 of current week
                 days_since_monday = now.weekday()
-                week_start = (now - timedelta(days=days_since_monday)).replace(
+                date_filter = (now - timedelta(days=days_since_monday)).replace(
                     hour=0, minute=0, second=0, microsecond=0
-                ).isoformat()
-                date_filter = week_start
+                )
                 label = 'weekly'
             else:
-                # First day of this month
-                month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
-                date_filter = month_start
+                # 1st day of current month 00:00:00
+                date_filter = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
                 label = 'monthly'
 
-            # Count refs activated in this period per user
+            # Try matching both datetime objects AND isoformat strings
+            # because some records may have been stored as strings
+            date_filter_str = date_filter.isoformat()
+
             pipeline = [
                 {'$match': {
                     'is_active': True,
-                    'activation_date': {'$gte': date_filter}
+                    '$or': [
+                        {'activation_date': {'$gte': date_filter}},
+                        {'activation_date': {'$gte': date_filter_str}}
+                    ]
                 }},
                 {'$group': {
                     '_id': '$referrer_id',
@@ -1914,36 +1919,26 @@ class Database:
             result = []
             for i, item in enumerate(period_data):
                 uid = item['_id']
+                if not uid:
+                    continue
                 user = self.get_user(uid)
                 if not user:
                     continue
                 result.append({
                     'rank': i + 1,
                     'name': user.get('first_name', 'User')[:15],
-                    'active_refs': item['period_refs'],  # THIS period's refs
-                    'total_active': user.get('active_refs', 0),  # all-time
+                    'active_refs': item['period_refs'],   # current period only
+                    'total_active': user.get('active_refs', 0),
                     'pending_refs': user.get('pending_refs', 0),
                     'total_earned': user.get('total_earned', 0),
                     'period': label
                 })
 
-            # If no period data yet, fall back to all-time active refs
-            if not result:
-                users = self.users.find(
-                    {'suspicious_activity': False},
-                    {'user_id': 1, 'first_name': 1, 'active_refs': 1, 'pending_refs': 1}
-                ).sort('active_refs', -1).limit(limit)
-                for i, user in enumerate(users):
-                    result.append({
-                        'rank': i + 1,
-                        'name': user.get('first_name', 'User')[:15],
-                        'active_refs': user.get('active_refs', 0),
-                        'total_active': user.get('active_refs', 0),
-                        'pending_refs': user.get('pending_refs', 0),
-                        'total_earned': user.get('total_earned', 0),
-                        'period': label
-                    })
+            # Re-rank (filter may have removed some nulls)
+            for i, r in enumerate(result):
+                r['rank'] = i + 1
 
+            # No all-time fallback — leaderboard resets cleanly each period
             return result
 
         except Exception as e:
@@ -1992,6 +1987,8 @@ class Database:
                 self.game_states.insert_one(state)
             if '_id' in state:
                 state['_id'] = str(state['_id'])
+            # Map total_plays -> totalPlays so JS gameState syncs correctly on load
+            state['totalPlays'] = state.get('total_plays', 0)
             return state
         except Exception as e:
             logger.error(f"Error getting game state: {e}")
@@ -2414,6 +2411,18 @@ class Database:
             if mode not in self.RUNNER_MODES:
                 return {'success': False, 'message': 'Invalid mode'}
             mode_info = self.RUNNER_MODES[mode]
+
+            # Har game finish par total_game_plays increment karo (daily state + user)
+            today = datetime.now().date().isoformat()
+            self.game_states.update_one(
+                {'user_id': user_id, 'date': today},
+                {'$inc': {'total_plays': 1}},
+                upsert=True
+            )
+            self.users.update_one(
+                {'user_id': user_id},
+                {'$inc': {'total_game_plays': 1}}
+            )
 
             # Board/puzzle games: survived_seconds = pts earned in JS
             # Convert pts directly to rupees (100 pts = ₹1)
