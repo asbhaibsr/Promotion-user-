@@ -56,6 +56,13 @@ from handlers import Handlers
 from admin import AdminHandlers
 
 app = Flask(__name__)
+
+@app.route('/static/games/<path:filename>')
+def serve_game_static(filename):
+    import os
+    static_dir = os.path.join(os.path.dirname(__file__), 'static', 'games')
+    return send_from_directory(static_dir, filename)
+
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'filmyfund-secret-key-2024')
 try:
     from flask_compress import Compress
