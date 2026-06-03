@@ -968,9 +968,17 @@
             <div id="dailyBonusIcon">🎁</div>
         </div>
         <!-- Admin add offer button (admin-only) -->
-        <div style="display:none;"><button class="admin-add-btn" id="addOfferBtn" onclick="openAdminCreateOffer()">➕ Add</button></div>
-        <!-- adsContainer hidden on home (still loads for missions) -->
-        <div id="adsContainer" style="display:none;"></div>
+        <div style="display:none;" id="addOfferBtnOld"><button class="admin-add-btn" id="addOfferBtn" onclick="openAdminCreateOffer()">➕ Add</button></div>
+        <!-- 💎 Sponsored Offers Section — Visible on Home Page -->
+        <div style="margin-bottom:14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                <div style="font-weight:900;font-size:14px;" data-t="sponsored">💎 Sponsored Offers</div>
+                <div id="addOfferBtnInline" style="display:none;">
+                    <button class="admin-add-btn" onclick="openAdminCreateOffer()" style="font-size:10px;padding:4px 10px;">➕ Add</button>
+                </div>
+            </div>
+            <div id="adsContainer"></div>
+        </div>
 
         <!-- 🏆 WEEKLY CONTEST PREVIEW -->
         <div style="background:linear-gradient(135deg,#fff7ed,#fefce8);border:2px solid rgba(249,115,22,.25);border-radius:20px;padding:14px;margin-bottom:10px;cursor:pointer;" onclick="switchTab(1)">
@@ -1256,14 +1264,21 @@
         <button onclick="startLudo()" style="width:100%;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;padding:14px;border-radius:30px;font-weight:900;font-size:15px;cursor:pointer;font-family:'Fredoka One',cursive;">🎲 Game Shuru Karo!</button>
     </div>
     <div id="ludoGame" style="display:none;padding:10px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;background:rgba(0,0,0,.3);border-radius:12px;padding:8px 12px;">
             <div style="font-size:11px;font-weight:800;" id="ludoStatus">🎲 Dice Chalao!</div>
-            <div style="font-size:22px;min-width:32px;text-align:center;" id="ludoDiceDisplay">🎲</div>
+            <img id="ludoDiceImg" src="/static/games/ludo_dice.gif" style="width:40px;height:40px;border-radius:8px;object-fit:cover;" />
             <div style="font-size:11px;color:var(--text2);">Pts: <span id="ludoPts" style="color:var(--gold);font-weight:900;">0</span></div>
         </div>
-        <canvas id="ludoCanvas" style="width:100%;border-radius:12px;display:block;touch-action:none;"></canvas>
+        <!-- HD Ludo Board with real board.gif -->
+        <div style="position:relative;width:100%;max-width:340px;margin:0 auto;">
+            <img id="ludoBoardImg" src="/static/games/ludo_board.gif"
+                 style="width:100%;border-radius:12px;display:block;"
+                 onload="ludoBoardLoaded()" />
+            <!-- Pawn overlay canvas (transparent, sits on top of board image) -->
+            <canvas id="ludoCanvas" style="position:absolute;top:0;left:0;width:100%;height:100%;border-radius:12px;touch-action:none;"></canvas>
+        </div>
         <div style="display:flex;gap:8px;margin-top:10px;">
-            <button id="ludoDiceBtn" onclick="rollLudoDice()" style="flex:1;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;border:none;padding:13px;border-radius:14px;font-weight:900;font-size:14px;cursor:pointer;">🎲 Dice Chalao</button>
+            <button id="ludoDiceBtn" onclick="rollLudoDice()" style="flex:1;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;padding:13px;border-radius:14px;font-weight:900;font-size:14px;cursor:pointer;">🎲 Dice Chalao</button>
             <button onclick="exitLudo()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:13px 16px;font-weight:800;cursor:pointer;">✕</button>
         </div>
     </div>
@@ -1287,9 +1302,15 @@
     <div id="ssidiGame" style="display:none;padding:10px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
             <div style="font-size:11px;font-weight:800;flex:1;" id="ssidiStatus">🎲 Dice Chalao!</div>
-            <div style="font-size:22px;min-width:32px;text-align:center;" id="ssidiDiceResult">🎲</div>
+            <img id="ssidiDiceImg" src="/static/games/ludo_dice.gif" style="width:36px;height:36px;border-radius:8px;object-fit:cover;" />
         </div>
-        <canvas id="ssidiCanvas" style="width:100%;border-radius:12px;display:block;"></canvas>
+        <!-- HD Snake & Ladder Board -->
+        <div style="position:relative;width:100%;max-width:340px;margin:0 auto;">
+            <img id="snlBoardImg" src="/static/games/snl_board.png"
+                 style="width:100%;border-radius:12px;display:block;"
+                 onload="snlBoardLoaded()" />
+            <canvas id="ssidiCanvas" style="position:absolute;top:0;left:0;width:100%;height:100%;border-radius:12px;"></canvas>
+        </div>
         <div style="display:flex;gap:8px;margin-top:10px;">
             <button id="ssidiDiceBtn" onclick="rollSaapDice()" style="flex:1;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;padding:13px;border-radius:14px;font-weight:900;font-size:14px;cursor:pointer;">🎲 Dice Chalao</button>
             <button onclick="exitSaapSidi()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:13px 16px;font-weight:800;cursor:pointer;">✕</button>
@@ -1303,6 +1324,7 @@
     <div style="padding:10px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
             <div style="font-size:11px;font-weight:800;">Level: <span id="cfLevel" style="color:var(--purple2);">1</span></div>
+            <div style="font-size:11px;font-weight:900;color:#ef4444;">⏱️ <span id="cfTimer">60</span>s</div>
             <div style="font-size:11px;">Moves: <span id="cfMoves" style="font-weight:900;color:var(--gold);">0</span></div>
             <div style="font-size:11px;">Pts: <span id="cfPts" style="font-weight:900;color:var(--green);">0</span></div>
         </div>
@@ -1739,7 +1761,8 @@
             <div style="background:var(--purple);color:#fff;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:900;" id="gemGoalProg">0/5</div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 2px;margin-bottom:6px;">
-            <div style="font-size:12px;font-weight:900;color:var(--text);">Moves: <span id="gemMoves">20</span></div>
+            <div style="font-size:12px;font-weight:900;color:#ef4444;">⏱️ <span id="gemTimer">60</span>s</div>
+            <div style="font-size:11px;font-weight:800;color:var(--text2);">Moves: <span id="gemMoves">30</span></div>
             <div style="font-size:14px;font-weight:900;color:var(--gold);" id="gemScore">0 pts</div>
         </div>
         <div id="gemGrid" style="margin:0 auto;touch-action:none;"></div>
@@ -2531,6 +2554,24 @@ const BOT_USERNAME='LinkProviderRobot';
 
 let userData={user_id:null,first_name:'Guest',username:'',balance:0,total_earned:0,tier:1,total_refs:0,active_refs:0,pending_refs:0,daily_streak:0,today_earned:0,is_admin:false,games_won:0,passes:0,photo_url:null,month_active_refs:0};
 let gameState={today_game_earned:0,wins:0,win_streak:0,totalPlays:0};
+// Session reward progress: sessionStorage se load karo (date-keyed, resets each day)
+function _loadGameStatePlays(){
+    try{
+        const k='ez_gsp_'+getISTDate();
+        const v=sessionStorage.getItem(k);
+        if(v){const s=JSON.parse(v);gameState.totalPlays=s.totalPlays||0;}
+        // Old keys delete karo
+        for(let ky of Object.keys(sessionStorage)){
+            if(ky.startsWith('ez_gsp_')&&ky!==k) sessionStorage.removeItem(ky);
+        }
+    }catch(e){}
+}
+function _saveGameStatePlays(){
+    try{
+        const k='ez_gsp_'+getISTDate();
+        sessionStorage.setItem(k,JSON.stringify({totalPlays:gameState.totalPlays||0}));
+    }catch(e){}
+}
 let claimedDates=[],userStreak=0,adminAds=[],adminEditMode=false,selectedMethod=null;
 let soundOn=true,currentTheme='light',lbMode='weekly';
 let spinAngle=0,isSpinning=false;
@@ -2626,7 +2667,8 @@ async function loadUser(){
             document.getElementById('adminSidebarBtn').style.display='flex';
             const apb=document.getElementById('adminPanelBtn');if(apb)apb.style.display='flex';
             document.getElementById('adminSupportBtn').style.display='flex';
-            document.getElementById('addOfferBtn').style.display='flex';
+            const aob=document.getElementById('addOfferBtn');if(aob)aob.style.display='flex';
+            const abi=document.getElementById('addOfferBtnInline');if(abi)abi.style.display='flex';
         }
         if((userData.active_refs||0)>oldRefs&&oldRefs>0)showCongratsPopup();
         updateUI();
@@ -2639,7 +2681,21 @@ async function loadUser(){
 async function loadGameState(){
     if(!userData.user_id)return;
     const d=await apiGet(`/api/game/state/${userData.user_id}`);
-    if(d&&!d.error){gameState={...gameState,...d};updateUI();}
+    if(d&&!d.error){
+        gameState={...gameState,...d};
+        // sessionStorage se saved totalPlays lo — server se milta hai but session me zyada accurate
+        const k='ez_gsp_'+getISTDate();
+        try{
+            const sv=sessionStorage.getItem(k);
+            if(sv){
+                const sp=JSON.parse(sv);
+                // Server aur session ka max lo
+                gameState.totalPlays=Math.max(gameState.totalPlays||0, sp.totalPlays||0);
+            }
+        }catch(e){}
+        updateUI();
+        renderSeasonRewards();
+    }
 }
 async function loadBonusDays(){
     if(!userData.user_id)return;
@@ -5438,10 +5494,10 @@ const SOKOBAN_ALL_LEVELS=[
         [1,0,0,0,0,0,1],
         [1,0,2,0,0,0,1],
         [1,0,0,0,1,0,1],
-        [1,1,1,0,0,2,1],
+        [1,0,0,0,0,2,1],
         [1,0,3,0,0,0,1],
         [1,1,1,1,1,1,1]
-    ],boxes:[{x:2,y:2},{x:5,y:4}],targets:[{x:5,y:1},{x:1,y:4}],player:{x:2,y:5}},
+    ],boxes:[{x:2,y:2},{x:5,y:4}],targets:[{x:5,y:1},{x:1,y:3}],player:{x:2,y:5}},
     // Level 3: 7x7, 3 boxes, cross wall
     {grid:[
         [1,1,1,1,1,1,1],
@@ -5588,16 +5644,19 @@ function startMazeMatch(){
 function drawSokoban(){
     const canvas=document.getElementById('mazeCanvas');
     if(!canvas||!mazeGrid.length)return;
-    const sz=mazeGrid.length;
+    const rows=mazeGrid.length;
+    const cols=mazeGrid[0].length;
+    const maxDim=Math.max(rows,cols);
     const W=Math.min(canvas.parentElement.offsetWidth-8||300,340);
-    canvas.width=W; canvas.height=W;
-    const cs=Math.floor(W/sz);
+    const cs=Math.floor(W/maxDim);
+    canvas.width=cs*cols; canvas.height=cs*rows;
+    const CW=canvas.width, CH=canvas.height;
     const ctx=canvas.getContext('2d');
-    const sokBgGrad=ctx.createLinearGradient(0,0,W,W);
+    const sokBgGrad=ctx.createLinearGradient(0,0,CW,CH);
     sokBgGrad.addColorStop(0,'#040c18');sokBgGrad.addColorStop(1,'#080f20');
-    ctx.fillStyle=sokBgGrad; ctx.fillRect(0,0,W,W);
-    for(let y=0;y<sz;y++){
-        for(let x=0;x<sz;x++){
+    ctx.fillStyle=sokBgGrad; ctx.fillRect(0,0,CW,CH);
+    for(let y=0;y<rows;y++){
+        for(let x=0;x<cols;x++){
             const t=mazeGrid[y][x];
             const px=x*cs, py=y*cs;
             if(t===1){
@@ -6452,7 +6511,7 @@ function exitBlockBlast(){blockActive=false;closeModal('blockblast');}
 // ============================================================
 // 💎 GEM MATCH — Match 3 gems (Candy Crush style)
 // ============================================================
-let gemBet=1,gemActive=false,gemScore=0,gemMoves=15,gemSelected=null,gemGrid=[];
+let gemBet=1,gemActive=false,gemScore=0,gemMoves=30,gemTimeLeft=60,gemTimerInterval=null,gemSelected=null,gemGrid=[];
 let gemLevel=1, gemGoalType='', gemGoalCount=0, gemGoalDone=0;
 const GM_ROWS=7,GM_COLS=7;
 const GEM_TYPES=['💎','🔥','⭐','🍀','💜','🧡'];
@@ -6629,12 +6688,21 @@ function levelUpGem(){
 
 async function startGemMatch(){
     initGemGrid();
-    gemScore=0;gemMoves=15;gemActive=true;gemSelected=null;
+    gemScore=0;gemMoves=30;gemTimeLeft=60;gemActive=true;gemSelected=null;
     gemGoalDone=0;
     document.getElementById('gemSetup').style.display='none';
     document.getElementById('gemGameArea').style.display='block';
     document.getElementById('gemResult').style.display='none';
     setTimeout(()=>{ drawGemGrid(); updateGemGoalUI(); checkAutoAdjust(); }, 80);
+    // Start 60-second countdown timer
+    if(gemTimerInterval) clearInterval(gemTimerInterval);
+    gemTimerInterval=setInterval(()=>{
+        if(!gemActive){clearInterval(gemTimerInterval);return;}
+        gemTimeLeft--;
+        const te=document.getElementById('gemTimer');
+        if(te){te.textContent=gemTimeLeft;te.style.color=gemTimeLeft<=10?'#ef4444':'#ef4444';}
+        if(gemTimeLeft<=0){clearInterval(gemTimerInterval);finishGemMatch();}
+    },1000);
     try{
         await apiPost('/api/game/runner-start',{user_id:userData.user_id,mode:'gemmatch',bet:0,use_pass:false});
     }catch(e){}
@@ -6732,11 +6800,16 @@ function processMatches(){
 
 async function finishGemMatch(){
     gemActive=false;
+    if(gemTimerInterval){clearInterval(gemTimerInterval);gemTimerInterval=null;}
+    gameState.totalPlays=(gameState.totalPlays||0)+1;
+    if(gemScore>0) gameState.wins=(gameState.wins||0)+1;
+    renderSeasonRewards();
     const pts=gemScore;const rup=fromPoints(pts);
     if(rup>0){
         await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'gemmatch',bet:0,survived_seconds:gemScore});
         userData.balance=(userData.balance||0)+rup;
         userData.today_earned=(userData.today_earned||0)+rup;
+        gameState.today_game_earned=(gameState.today_game_earned||0)+rup;
         updateUI();showFloatingPts(pts);
         if(pts>300)triggerConfetti();
     }
@@ -6749,14 +6822,24 @@ async function finishGemMatch(){
     updateMissionsUI();
 }
 function resetGemMatch(){
-    gemLevel=1; gemScore=0; gemMoves=20; gemActive=true; gemSelected=null; gemGoalDone=0;
+    if(gemTimerInterval){clearInterval(gemTimerInterval);gemTimerInterval=null;}
+    gemLevel=1; gemScore=0; gemMoves=30; gemTimeLeft=60; gemActive=true; gemSelected=null; gemGoalDone=0;
     initGemGrid();
     document.getElementById('gemSetup').style.display='none';
     document.getElementById('gemGameArea').style.display='block';
     document.getElementById('gemResult').style.display='none';
+    const te=document.getElementById('gemTimer');if(te)te.textContent='60';
+    // Restart timer
+    gemTimerInterval=setInterval(()=>{
+        if(!gemActive){clearInterval(gemTimerInterval);return;}
+        gemTimeLeft--;
+        const te=document.getElementById('gemTimer');
+        if(te)te.textContent=gemTimeLeft;
+        if(gemTimeLeft<=0){clearInterval(gemTimerInterval);finishGemMatch();}
+    },1000);
     setTimeout(()=>{ drawGemGrid(); updateGemGoalUI(); },50);
 }
-function exitGemMatch(){gemActive=false;closeModal('gemmatch');}
+function exitGemMatch(){gemActive=false;if(gemTimerInterval){clearInterval(gemTimerInterval);gemTimerInterval=null;}closeModal('gemmatch');}
 
 function exitChess(){if(chessInterval)clearInterval(chessInterval);chessActive=false;closeModal('chess');}
 
@@ -7112,6 +7195,8 @@ function renderSeasonRewards(){
     }else{
         if(nextText){ nextText.textContent='👑 Legend Rank! Sab rewards claim kar liye!'; nextText.style.color='#6ee7b7'; }
     }
+    // Progress sessionStorage me save karo (daily reset)
+    _saveGameStatePlays();
 }
 
 async function claimSeasonReward(passReq){
@@ -8014,6 +8099,13 @@ function openLudoGame(){
   document.getElementById('ludoBal').textContent=toPoints(userData.balance||0)+' pts';
   openModal('ludo');
 }
+function ludoBoardLoaded(){
+  // Called when board image loads — sync canvas size to image
+  const img=document.getElementById('ludoBoardImg');
+  const c=document.getElementById('ludoCanvas');
+  if(img&&c){c.width=img.naturalWidth||600;c.height=img.naturalHeight||600;}
+  if(ludoActive) drawLudo();
+}
 function startLudo(){
   ludoActive=true;ludoPts=0;ludoTurn='player';ludoDiceVal=0;ludoRolled=false;ludoAnimating=false;
   ludoP=[{t:-1},{t:-1},{t:-1},{t:-1}];
@@ -8023,9 +8115,15 @@ function startLudo(){
   document.getElementById('ludoPts').textContent='0';
   document.getElementById('ludoStatus').innerHTML='🎲 <b>Teri Bari!</b> Dice Chalao!';
   document.getElementById('ludoDiceBtn').disabled=false;
-  document.getElementById('ludoDiceDisplay').textContent='🎲';
+  document.getElementById('ludoDiceImg').src='/static/games/ludo_dice.gif';
+  // Sync canvas to board image size
+  const img=document.getElementById('ludoBoardImg');
   const c=document.getElementById('ludoCanvas');
-  c.width=c.height=Math.min(window.innerWidth-28,320);
+  if(img&&img.complete&&img.naturalWidth){
+    c.width=img.naturalWidth;c.height=img.naturalHeight;
+  } else {
+    c.width=600;c.height=600;
+  }
   c.removeEventListener('click',ludoCanvasClick);
   c.addEventListener('click',ludoCanvasClick);
   drawLudo();
@@ -8036,16 +8134,15 @@ function rollLudoDice(){
   ludoRolled=true;
   document.getElementById('ludoDiceBtn').disabled=true;
   // Dice rolling animation
+  document.getElementById('ludoDiceImg').src='/static/games/ludo_dice.gif';
   let rolls=0; const maxRolls=10;
   const anim=setInterval(()=>{
     const f=Math.ceil(Math.random()*6);
-    const faces=['⚀','⚁','⚂','⚃','⚄','⚅'];
-    document.getElementById('ludoDiceDisplay').textContent=faces[f-1];
     rolls++;
     if(rolls>=maxRolls){
       clearInterval(anim);
       ludoDiceVal=Math.ceil(Math.random()*6);
-      document.getElementById('ludoDiceDisplay').textContent=faces[ludoDiceVal-1];
+      document.getElementById('ludoDiceImg').src='/static/games/ludo_d'+ludoDiceVal+'.jpg';
       afterLudoRoll('player');
     }
   },80);
@@ -8176,7 +8273,7 @@ function ludoCompTurn(){
   document.getElementById('ludoStatus').innerHTML='🤖 <b>Computer</b> soch raha hai...';
   const cv=Math.ceil(Math.random()*6);
   const faces=['⚀','⚁','⚂','⚃','⚄','⚅'];
-  document.getElementById('ludoDiceDisplay').textContent=faces[cv-1];
+  document.getElementById('ludoDiceImg').src='/static/games/ludo_d'+cv+'.jpg';
   ludoDiceVal=cv;
   setTimeout(()=>afterLudoRoll('comp'),600);
   if(cv===6){
@@ -8198,6 +8295,10 @@ async function ludoWin(){
   document.getElementById('ludoDiceBtn').disabled=true;
   const rup=fromPoints(ludoPts);
   if(rup>0){userData.balance=(userData.balance||0)+rup;updateUI();}
+  gameState.totalPlays=(gameState.totalPlays||0)+1;
+  gameState.wins=(gameState.wins||0)+1;
+  gameState.today_game_earned=(gameState.today_game_earned||0)+rup;
+  renderSeasonRewards();
   await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'ludo',bet:0,survived_seconds:ludoPts}).catch(()=>{});
   setTimeout(()=>{document.getElementById('ludoSetup').style.display='block';document.getElementById('ludoGame').style.display='none';},3000);
 }
@@ -8205,6 +8306,8 @@ function ludoLose(){
   ludoActive=false;
   showToast('😢 Computer Jeeta! Dobara try karo!');
   document.getElementById('ludoStatus').innerHTML='😢 <b>Computer Jeeta!</b> Better luck next time!';
+  gameState.totalPlays=(gameState.totalPlays||0)+1;
+  renderSeasonRewards();
   setTimeout(()=>{document.getElementById('ludoSetup').style.display='block';document.getElementById('ludoGame').style.display='none';},2500);
 }
 
@@ -8212,12 +8315,13 @@ function drawLudo(showSelectable){
   const c=document.getElementById('ludoCanvas');if(!c)return;
   const ctx=c.getContext('2d');
   const W=c.width;
+  // Sync canvas display size to parent image
+  const img=document.getElementById('ludoBoardImg');
+  if(img&&img.complete&&img.naturalWidth&&(c.width!==img.naturalWidth)){
+    c.width=img.naturalWidth;c.height=img.naturalHeight;
+  }
   ctx.clearRect(0,0,W,W);
-
-  // Background
-  const bg=ctx.createLinearGradient(0,0,W,W);
-  bg.addColorStop(0,'#1a0033');bg.addColorStop(1,'#0a1a33');
-  ctx.fillStyle=bg;ctx.fillRect(0,0,W,W);
+  // No background — board.gif is shown beneath this transparent overlay canvas
 
   const pad=Math.round(W*0.08), w=W-2*pad;
   const seg=w/13, cs=seg*0.82; // cell size
@@ -8353,24 +8457,33 @@ function startSaapSidi(){
   document.getElementById('ssidiStatus').innerHTML='🎲 <b>Teri Bari!</b> Dice Chalao!';
   document.getElementById('ssidiDiceBtn').disabled=false;
   document.getElementById('ssidiDiceResult').textContent='🎲';
+  const img=document.getElementById('snlBoardImg');
   const c=document.getElementById('ssidiCanvas');
-  c.width=c.height=Math.min(window.innerWidth-28,320);
+  if(img&&img.complete&&img.naturalWidth){
+    c.width=img.naturalWidth;c.height=img.naturalHeight;
+  } else { c.width=492;c.height=492; }
+  document.getElementById('ssidiDiceImg').src='/static/games/ludo_dice.gif';
   drawSaapSidi();
+}
+function snlBoardLoaded(){
+  const img=document.getElementById('snlBoardImg');
+  const c=document.getElementById('ssidiCanvas');
+  if(img&&c){c.width=img.naturalWidth||492;c.height=img.naturalHeight||492;}
+  if(ssActive)drawSaapSidi();
 }
 
 function rollSaapDice(){
   if(!ssActive||ssTurn!=='player')return;
   ssTurn='rolling';
   document.getElementById('ssidiDiceBtn').disabled=true;
+  document.getElementById('ssidiDiceImg').src='/static/games/ludo_dice.gif';
   let rolls=0;
-  const faces=['⚀','⚁','⚂','⚃','⚄','⚅'];
   const anim=setInterval(()=>{
-    document.getElementById('ssidiDiceResult').textContent=faces[Math.ceil(Math.random()*6)-1];
     rolls++;
     if(rolls>=10){
       clearInterval(anim);
       const val=Math.ceil(Math.random()*6);
-      document.getElementById('ssidiDiceResult').textContent=faces[val-1];
+      document.getElementById('ssidiDiceImg').src='/static/games/ludo_d'+val+'.jpg';
       document.getElementById('ssidiStatus').innerHTML=`🎲 <b>${val}</b> aaya!`;
       setTimeout(()=>moveSaapToken('player',val),400);
     }
@@ -8410,8 +8523,8 @@ function moveSaapToken(who,val){
 function ssCompTurn(){
   const val=Math.ceil(Math.random()*6);
   const faces=['⚀','⚁','⚂','⚃','⚄','⚅'];
-  document.getElementById('ssidiStatus').innerHTML=`🤖 CPU: <b>${faces[val-1]} ${val}</b>`;
-  document.getElementById('ssidiDiceResult').textContent=faces[val-1];
+  document.getElementById('ssidiDiceImg').src='/static/games/ludo_d'+val+'.jpg';
+  document.getElementById('ssidiStatus').innerHTML=`🤖 CPU: <b>${val}</b> aaya!`;
   setTimeout(()=>moveSaapToken('comp',val),700);
 }
 async function ssWin(){
@@ -8420,6 +8533,10 @@ async function ssWin(){
   document.getElementById('ssidiStatus').innerHTML='🏆 <b>TUM JEETE! +'+ssPts+' pts!</b>';
   document.getElementById('ssidiDiceBtn').disabled=true;
   const rup=fromPoints(ssPts);if(rup>0){userData.balance=(userData.balance||0)+rup;updateUI();}
+  gameState.totalPlays=(gameState.totalPlays||0)+1;
+  gameState.wins=(gameState.wins||0)+1;
+  gameState.today_game_earned=(gameState.today_game_earned||0)+rup;
+  renderSeasonRewards();
   await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'saapsidi',bet:0,survived_seconds:ssPts}).catch(()=>{});
   setTimeout(()=>{document.getElementById('ssidiSetup').style.display='block';document.getElementById('ssidiGame').style.display='none';},3000);
 }
@@ -8427,6 +8544,8 @@ function ssLose(){
   ssActive=false;
   showToast('😢 CPU Jeeta! Dobara khelo!');
   document.getElementById('ssidiStatus').innerHTML='😢 <b>CPU Jeeta!</b>';
+  gameState.totalPlays=(gameState.totalPlays||0)+1;
+  renderSeasonRewards();
   setTimeout(()=>{document.getElementById('ssidiSetup').style.display='block';document.getElementById('ssidiGame').style.display='none';},2500);
 }
 
@@ -8445,44 +8564,18 @@ function ssPos(n,W){
 function drawSaapSidi(){
   const c=document.getElementById('ssidiCanvas');if(!c)return;
   const ctx=c.getContext('2d');
+  // Sync canvas to board image
+  const img=document.getElementById('snlBoardImg');
+  if(img&&img.complete&&img.naturalWidth&&c.width!==img.naturalWidth){
+    c.width=img.naturalWidth;c.height=img.naturalHeight;
+  }
   const W=c.width;
   ctx.clearRect(0,0,W,W);
+  // No background — snl_board.png is background image beneath this overlay canvas
 
   const cs=W/10.5, offX=cs*0.25, offY=cs*0.25;
 
-  // Board background
-  ctx.fillStyle='#0f172a';ctx.fillRect(0,0,W,W);
-
-  // Draw board cells
-  const CELL_COLORS=[
-    '#1e3a5f','#1e4d3f','#2d1e5f','#3f1e2d','#1e3f2d',
-    '#3d2d0f','#0f3d2d','#2d0f3d','#3d0f0f','#0f2d3d'
-  ];
-  for(let i=1;i<=100;i++){
-    const [x,y,s]=ssPos(i,W);
-    const row=Math.floor((i-1)/10);
-
-    // Cell gradient
-    const grad=ctx.createLinearGradient(x-s/2,y-s/2,x+s/2,y+s/2);
-    const base=CELL_COLORS[row];
-    grad.addColorStop(0,base+'dd');grad.addColorStop(1,base+'88');
-
-    const isSnakehead=Object.keys(SS_SNAKES).includes(String(i));
-    const isLadderbot=Object.keys(SS_LADDERS).includes(String(i));
-
-    if(i===100){ctx.fillStyle='rgba(255,215,0,0.3)';}
-    else if(isSnakehead){ctx.fillStyle='rgba(239,68,68,0.3)';}
-    else if(isLadderbot){ctx.fillStyle='rgba(34,197,94,0.3)';}
-    else{ctx.fillStyle=grad;}
-
-    ctx.beginPath();ctx.roundRect(x-s/2+1,y-s/2+1,s-2,s-2,3);ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.07)';ctx.lineWidth=0.5;ctx.stroke();
-
-    // Number
-    ctx.fillStyle=i===100?'#ffd700':'rgba(255,255,255,0.55)';
-    ctx.font=`bold ${s*0.28}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText(i,x,y);
-  }
+  // Board is the real PNG image beneath — no background or grid drawn here
 
   // Draw ladders (green, with rungs)
   ctx.lineCap='round';
@@ -8573,7 +8666,7 @@ function exitSaapSidi(){ssActive=false;closeModal('saapsidi');}
 // ============================================================
 // 🌈 COLOR FLOW — Pipe Connect Puzzle (Pointer Events)
 // ============================================================
-let cfActive=false,cfLevel=1,cfMoves=0,cfPts=0;
+let cfActive=false,cfLevel=1,cfMoves=0,cfPts=0,cfTimeLeft=60,cfTimerInterval=null;
 let cfSize=5,cfCells=[],cfPaths={},cfDragging=null,cfDragPath=[];
 let cfPointerDown=false;
 
@@ -8588,17 +8681,37 @@ const CF_CLRS={R:'#ef4444',G:'#22c55e',B:'#3b82f6',Y:'#eab308',P:'#a855f7',O:'#f
 const CF_NAMES={R:'Red',G:'Green',B:'Blue',Y:'Yellow',P:'Purple',O:'Orange',W:'White'};
 
 function openColorFlowGame(){
-  cfActive=true;cfLevel=1;cfMoves=0;cfPts=0;
+  cfActive=true;cfLevel=1;cfMoves=0;cfPts=0;cfTimeLeft=60;
   document.getElementById('cfBal').textContent=toPoints(userData.balance||0)+' pts';
   document.getElementById('cfLevel').textContent=cfLevel;
   document.getElementById('cfMoves').textContent=cfMoves;
   document.getElementById('cfPts').textContent=cfPts;
+  const te=document.getElementById('cfTimer');if(te)te.textContent='60';
   openModal('colorflow');
   setTimeout(()=>{
     const c=document.getElementById('cfCanvas');
     if(c){c.width=c.height=Math.min(window.innerWidth-28,340);cfSetupCanvas();}
     cfLoadLevel();
   },120);
+  // 60 second countdown timer
+  if(cfTimerInterval)clearInterval(cfTimerInterval);
+  cfTimerInterval=setInterval(()=>{
+    if(!cfActive){clearInterval(cfTimerInterval);cfTimerInterval=null;return;}
+    cfTimeLeft--;
+    const t=document.getElementById('cfTimer');
+    if(t){t.textContent=cfTimeLeft;t.style.color=cfTimeLeft<=10?'#ef4444':'#ef4444';}
+    if(cfTimeLeft<=0){
+      clearInterval(cfTimerInterval);cfTimerInterval=null;
+      cfActive=false;
+      showToast('⏰ Time Up! '+cfPts+' pts earned!');
+      gameState.totalPlays=(gameState.totalPlays||0)+1;
+      if(cfPts>0)gameState.wins=(gameState.wins||0)+1;
+      gameState.today_game_earned=(gameState.today_game_earned||0)+fromPoints(cfPts);
+      renderSeasonRewards();
+      apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'colorflow',bet:0,survived_seconds:cfPts}).catch(()=>{});
+      setTimeout(()=>exitColorFlow(),2200);
+    }
+  },1000);
 }
 
 function cfLoadLevel(){
@@ -8708,7 +8821,14 @@ async function cfLevelComplete(){
   const rup=fromPoints(earned);if(rup>0){userData.balance=(userData.balance||0)+rup;updateUI();}
   await apiPost('/api/game/runner-finish',{user_id:userData.user_id,mode:'colorflow',bet:0,survived_seconds:cfPts}).catch(()=>{});
   cfLevel++;document.getElementById('cfLevel').textContent=cfLevel;
-  if(cfLevel>CF_LEVELS.length){showToast('🏆 Sab levels complete!');setTimeout(()=>exitColorFlow(),2000);return;}
+  if(cfLevel>CF_LEVELS.length){
+    clearInterval(cfTimerInterval);cfTimerInterval=null;cfActive=false;
+    gameState.totalPlays=(gameState.totalPlays||0)+1;
+    gameState.wins=(gameState.wins||0)+1;
+    renderSeasonRewards();
+    showToast('🏆 Sab levels complete! +'+cfPts+' pts!');
+    setTimeout(()=>exitColorFlow(),2200);return;
+  }
   cfMoves=0;document.getElementById('cfMoves').textContent=0;
   setTimeout(()=>cfLoadLevel(),1200);
 }
@@ -8798,7 +8918,7 @@ function cfSetupCanvas(){
 }
 
 function cfReset(){cfLoadLevel();}
-function exitColorFlow(){cfActive=false;closeModal('colorflow');}
+function exitColorFlow(){cfActive=false;if(cfTimerInterval){clearInterval(cfTimerInterval);cfTimerInterval=null;}closeModal('colorflow');}
 
 // ============================================================
 // 🎰 LUCKY 1-50 JACKPOT
