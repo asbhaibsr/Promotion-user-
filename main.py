@@ -55,13 +55,13 @@ from database import Database
 from handlers import Handlers
 from admin import AdminHandlers
 
-app = Flask(__name__)
+import os as _os
+_BASE_DIR = _os.path.abspath(_os.path.dirname(__file__))
 
-@app.route('/static/games/<path:filename>')
-def serve_game_static(filename):
-    import os
-    static_dir = os.path.join(os.path.dirname(__file__), 'static', 'games')
-    return send_from_directory(static_dir, filename)
+# Flask ko static folder ka bilkul sahi path do — Render pe bhi kaam kare
+app = Flask(__name__,
+            static_folder=_os.path.join(_BASE_DIR, 'static'),
+            static_url_path='/static')
 
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'filmyfund-secret-key-2024')
 try:
